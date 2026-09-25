@@ -1,0 +1,6 @@
+{
+  "name": "Circle Panda",
+  "description": "An anonymous web social application with a virtual coin economy, group chats, events, and dating.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
