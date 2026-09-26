@@ -1,1 +1,22 @@
-aW1wb3J0IHsgY3JlYXRlRmlsZVJvdXRlIH0gZnJvbSAiQHRhbnN0YWNrL3JlYWN0LXJvdXRlciI7CmltcG9ydCB7IEZlZWRQYWdlIH0gZnJvbSAiLi9pbmRleCI7CgpleHBvcnQgY29uc3QgUm91dGUgPSBjcmVhdGVGaWxlUm91dGUoIi9mZWVkIikoewogIGhlYWQ6ICgpID0+ICh7CiAgICBtZXRhOiBbCiAgICAgIHsgdGl0bGU6ICJDaXJjbGUgUGFuZGEg4oCUIENhbXB1cyBGZWVkIiB9LAogICAgICB7CiAgICAgICAgbmFtZTogImRlc2NyaXB0aW9uIiwKICAgICAgICBjb250ZW50OgogICAgICAgICAgIkFub255bW91cyBwb3N0cywgZXBoZW1lcmFsIGdyb3VwIGNoYXRzLCBkYXRpbmcsIGFuZCBldmVudHMg4oCUIHBvd2VyZWQgYnkgUGFuZGEgQ29pbnMuIiwKICAgICAgfSwKICAgICAgeyBwcm9wZXJ0eTogIm9nOnRpdGxlIiwgY29udGVudDogIkNpcmNsZSBQYW5kYSDigJQgQ2FtcHVzIEZlZWQiIH0sCiAgICAgIHsKICAgICAgICBwcm9wZXJ0eTogIm9nOmRlc2NyaXB0aW9uIiwKICAgICAgICBjb250ZW50OgogICAgICAgICAgIkFub255bW91cyBwb3N0cywgZXBoZW1lcmFsIGdyb3VwIGNoYXRzLCBkYXRpbmcsIGFuZCBldmVudHMg4oCUIHBvd2VyZWQgYnkgUGFuZGEgQ29pbnMuIiwKICAgICAgfSwKICAgIF0sCiAgfSksCiAgY29tcG9uZW50OiBGZWVkUGFnZSwKfSk7Cg==
+import { createFileRoute } from "@tanstack/react-router";
+import { FeedPage } from "./index";
+
+export const Route = createFileRoute("/feed")({
+  head: () => ({
+    meta: [
+      { title: "Circle Panda — Campus Feed" },
+      {
+        name: "description",
+        content:
+          "Anonymous posts, ephemeral group chats, dating, and events — powered by Panda Coins.",
+      },
+      { property: "og:title", content: "Circle Panda — Campus Feed" },
+      {
+        property: "og:description",
+        content:
+          "Anonymous posts, ephemeral group chats, dating, and events — powered by Panda Coins.",
+      },
+    ],
+  }),
+  component: FeedPage,
+});
