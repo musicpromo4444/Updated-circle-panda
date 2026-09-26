@@ -1,1 +1,57 @@
-aW1wb3J0IHsgdXNlRWZmZWN0LCB1c2VTdGF0ZSB9IGZyb20gInJlYWN0IjsKaW1wb3J0IHsgc3VwYWJhc2UgfSBmcm9tICJAL2ludGVncmF0aW9ucy9zdXBhYmFzZS9jbGllbnQiOwppbXBvcnQgdHlwZSB7IEFkQ3JlYXRpdmUsIEFkUGxhY2VtZW50VGFyZ2V0IH0gZnJvbSAiQC9jb21wb25lbnRzL2Fkcy9BZFR5cGVzIjsKCi8qKgogKiBQcm9kdWN0aW9uIGFkIGludmVudG9yeSBpcyBzZXJ2ZXItYXV0aG9yaXRhdGl2ZS4gVGhlcmUgaXMgZGVsaWJlcmF0ZWx5IG5vCiAqIGxvY2FsIGNyZWF0aXZlL2NvbmZpZyBmYWxsYmFjayBzbyBhIHNwb25zb3IgY2Fubm90IGJlIGZhYnJpY2F0ZWQgYnkgYnJvd3NlciBzdG9yYWdlLgogKi8KZXhwb3J0IGNvbnN0IElOSVRJQUxfQ1JFQVRJVkVTOiBBZENyZWF0aXZlW10gPSBbXTsKCmV4cG9ydCBmdW5jdGlvbiB1c2VBY3RpdmVBZENyZWF0aXZlKHBsYWNlbWVudDogQWRQbGFjZW1lbnRUYXJnZXQpIHsKICBjb25zdCBbY3JlYXRpdmUsIHNldENyZWF0aXZlXSA9IHVzZVN0YXRlPEFkQ3JlYXRpdmUgfCBudWxsPihudWxsKTsKCiAgdXNlRWZmZWN0KCgpID0+IHsKICAgIGxldCBjYW5jZWxsZWQgPSBmYWxzZTsKICAgIGNvbnN0IGxvYWQgPSBhc3luYyAoKSA9PiB7CiAgICAgIGNvbnN0IHsgZGF0YSwgZXJyb3IgfSA9IGF3YWl0IChzdXBhYmFzZSBhcyBhbnkpLnJwYygiZ2V0X2FkX3J1bnRpbWVfY29uZmlnIik7CiAgICAgIGlmIChjYW5jZWxsZWQgfHwgZXJyb3IpIHJldHVybjsKICAgICAgY29uc3QgY29uZmlnID0gZGF0YT8uY29uZmlnIHx8IHt9OwogICAgICBjb25zdCBlbmFibGVkID0gcGxhY2VtZW50ID09PSAicG9wdXBfMV9kYWlseV9sb2dpbiIgPyBjb25maWcuZGFpbHlfbG9naW5fcG9wdXBfYmFubmVyICE9PSBmYWxzZQogICAgICAgIDogcGxhY2VtZW50ID09PSAicG9wdXBfMV9kYWlseV9sb2dpbl9ib3R0b20iID8gY29uZmlnLmRhaWx5X2xvZ2luX3BvcHVwX2Jhbm5lciAhPT0gZmFsc2UKICAgICAgICA6IHBsYWNlbWVudCA9PT0gInBvcHVwXzJfZW5nYWdlbWVudCIgPyBjb25maWcuZW5nYWdlbWVudF9wb3B1cF9iYW5uZXIgIT09IGZhbHNlCiAgICAgICAgOiBwbGFjZW1lbnQgPT09ICJtYWluX2ZlZWRfY2FyZCIgPyBjb25maWcubWFpbl9mZWVkX2Jhbm5lciAhPT0gZmFsc2UKICAgICAgICA6IHBsYWNlbWVudCA9PT0gInNldmVuX2RheV9iYW5uZXIiID8gY29uZmlnLnNldmVuX2RheV9iYW5uZXJfZW5hYmxlZCAhPT0gZmFsc2UKICAgICAgICA6IHBsYWNlbWVudCA9PT0gInNldmVuX2RheV9wbGF5YWJsZSIgPyBjb25maWcuc2V2ZW5fZGF5X3BsYXlhYmxlX2VuYWJsZWQgIT09IGZhbHNlCiAgICAgICAgOiB0cnVlOwogICAgICBpZiAoIWVuYWJsZWQpIHsgc2V0Q3JlYXRpdmUobnVsbCk7IHJldHVybjsgfQogICAgICBjb25zdCByb3dzID0gQXJyYXkuaXNBcnJheShkYXRhPy5jcmVhdGl2ZXMpID8gZGF0YS5jcmVhdGl2ZXMgOiBbXTsKICAgICAgY29uc3QgbWF0Y2ggPSByb3dzLmZpbmQoKHJvdzogYW55KSA9PiByb3cucGxhY2VtZW50ID09PSBwbGFjZW1lbnQgJiYgcm93LnN0YXR1cyA9PT0gImFjdGl2ZSIpOwogICAgICBpZiAoIW1hdGNoKSB7IHNldENyZWF0aXZlKG51bGwpOyByZXR1cm47IH0KICAgICAgc2V0Q3JlYXRpdmUoewogICAgICAgIGlkOiBtYXRjaC5pZCwKICAgICAgICBzcG9uc29yOiBtYXRjaC5zcG9uc29yLAogICAgICAgIGhlYWRsaW5lOiBtYXRjaC5oZWFkbGluZSwKICAgICAgICBkZXNjcmlwdGlvbjogbWF0Y2guZGVzY3JpcHRpb24gfHwgIiIsCiAgICAgICAgaW1hZ2VVcmw6IG1hdGNoLmltYWdlX3VybCB8fCB1bmRlZmluZWQsCiAgICAgICAgcG9zdGVyVXJsOiBtYXRjaC5wb3N0ZXJfdXJsIHx8IHVuZGVmaW5lZCwKICAgICAgICB2aWRlb1VybDogbWF0Y2gudmlkZW9fdXJsIHx8IHVuZGVmaW5lZCwKICAgICAgICB0YWdsaW5lOiBtYXRjaC50YWdsaW5lIHx8IHVuZGVmaW5lZCwKICAgICAgICBkdXJhdGlvblNlY29uZHM6IG1hdGNoLmR1cmF0aW9uX3NlY29uZHMgfHwgOCwKICAgICAgICBza2lwQWZ0ZXJTZWNvbmRzOiBtYXRjaC5za2lwX2FmdGVyX3NlY29uZHMgPz8gNSwKICAgICAgICBkZXN0aW5hdGlvblVybDogbWF0Y2guZGVzdGluYXRpb25fdXJsIHx8ICIiLAogICAgICAgIHBsYWNlbWVudDogbWF0Y2gucGxhY2VtZW50LAogICAgICAgIGNhdGVnb3J5OiBtYXRjaC5jYXRlZ29yeSB8fCAiU3BvbnNvcmVkIFBhcnRuZXIiLAogICAgICAgIGNhbGxUb0FjdGlvbjogbWF0Y2guY2FsbF90b19hY3Rpb24gfHwgIkxlYXJuIE1vcmUiLAogICAgICAgIHN0YXR1czogbWF0Y2guc3RhdHVzLAogICAgICAgIGltcHJlc3Npb25zOiAwLAogICAgICAgIGNsaWNrczogMCwKICAgICAgICBjcmVhdGVkQXQ6IG1hdGNoLmNyZWF0ZWRfYXQgfHwgbmV3IERhdGUoKS50b0lTT1N0cmluZygpLAogICAgICB9KTsKICAgIH07CiAgICB2b2lkIGxvYWQoKTsKICAgIHJldHVybiAoKSA9PiB7IGNhbmNlbGxlZCA9IHRydWU7IH07CiAgfSwgW3BsYWNlbWVudF0pOwoKICByZXR1cm4gY3JlYXRpdmU7Cn0K
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import type { AdCreative, AdPlacementTarget } from "@/components/ads/AdTypes";
+
+/**
+ * Production ad inventory is server-authoritative. There is deliberately no
+ * local creative/config fallback so a sponsor cannot be fabricated by browser storage.
+ */
+export const INITIAL_CREATIVES: AdCreative[] = [];
+
+export function useActiveAdCreative(placement: AdPlacementTarget) {
+  const [creative, setCreative] = useState<AdCreative | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    const load = async () => {
+      const { data, error } = await (supabase as any).rpc("get_ad_runtime_config");
+      if (cancelled || error) return;
+      const config = data?.config || {};
+      const enabled = placement === "popup_1_daily_login" ? config.daily_login_popup_banner !== false
+        : placement === "popup_1_daily_login_bottom" ? config.daily_login_popup_banner !== false
+        : placement === "popup_2_engagement" ? config.engagement_popup_banner !== false
+        : placement === "main_feed_card" ? config.main_feed_banner !== false
+        : placement === "seven_day_banner" ? config.seven_day_banner_enabled !== false
+        : placement === "seven_day_playable" ? config.seven_day_playable_enabled !== false
+        : true;
+      if (!enabled) { setCreative(null); return; }
+      const rows = Array.isArray(data?.creatives) ? data.creatives : [];
+      const match = rows.find((row: any) => row.placement === placement && row.status === "active");
+      if (!match) { setCreative(null); return; }
+      setCreative({
+        id: match.id,
+        sponsor: match.sponsor,
+        headline: match.headline,
+        description: match.description || "",
+        imageUrl: match.image_url || undefined,
+        posterUrl: match.poster_url || undefined,
+        videoUrl: match.video_url || undefined,
+        tagline: match.tagline || undefined,
+        durationSeconds: match.duration_seconds || 8,
+        skipAfterSeconds: match.skip_after_seconds ?? 5,
+        destinationUrl: match.destination_url || "",
+        placement: match.placement,
+        category: match.category || "Sponsored Partner",
+        callToAction: match.call_to_action || "Learn More",
+        status: match.status,
+        impressions: 0,
+        clicks: 0,
+        createdAt: match.created_at || new Date().toISOString(),
+      });
+    };
+    void load();
+    return () => { cancelled = true; };
+  }, [placement]);
+
+  return creative;
+}
