@@ -1,1 +1,111 @@
-aW1wb3J0IHsgdXNlRWZmZWN0LCB1c2VTdGF0ZSB9IGZyb20gInJlYWN0IjsKaW1wb3J0IHR5cGUgeyBDb2luUGFja2FnZSwgUHJpY2luZ0NvbmZpZywgVmlwUGxhbiB9IGZyb20gIkAvbGliL3ByaWNpbmdUeXBlcyI7CmltcG9ydCB7IHN1cGFiYXNlIH0gZnJvbSAiQC9pbnRlZ3JhdGlvbnMvc3VwYWJhc2UvY2xpZW50IjsKCmV4cG9ydCBjb25zdCBTVE9SQUdFX0tFWV9QUklDSU5HX0NPTkZJRyA9ICJjcF9hZG1pbl9wcmljaW5nX2NvbmZpZyI7CmV4cG9ydCBjb25zdCBFVkVOVF9QUklDSU5HX0NPTkZJR19VUERBVEVEID0gImNwX3ByaWNpbmdfY29uZmlnX3VwZGF0ZWQiOwoKZXhwb3J0IGNvbnN0IERFRkFVTFRfQ09JTl9QQUNLQUdFUzogQ29pblBhY2thZ2VbXSA9IFtdOwoKZXhwb3J0IGNvbnN0IERFRkFVTFRfVklQX1BMQU5TOiBWaXBQbGFuW10gPSBbXTsKCgpleHBvcnQgY29uc3QgREVGQVVMVF9QUklDSU5HX0NPTkZJRzogUHJpY2luZ0NvbmZpZyA9IHsKICBwYWNrYWdlczogREVGQVVMVF9DT0lOX1BBQ0tBR0VTLAogIHZpcFBsYW5zOiBERUZBVUxUX1ZJUF9QTEFOUywKICBwYXlzdGFjazogewogICAgcHVibGljS2V5OiAoaW1wb3J0Lm1ldGEuZW52LlZJVEVfUEFZU1RBQ0tfUFVCTElDX0tFWSBhcyBzdHJpbmcgfCB1bmRlZmluZWQpID8/ICIiLAogICAgY3VycmVuY3k6ICJVU0QiLAogICAgZXhjaGFuZ2VSYXRlTmduOiAxNTAwLCAvLyDigqYxLDUwMCA9ICQxLjAwIFVTRAogICAgdGVzdE1vZGU6IGZhbHNlLAogICAgbWVyY2hhbnROYW1lOiAiQ2lyY2xlIFBhbmRhIENhbXB1cyBTdG9yZSIsCiAgfSwKICBhbmRyb2lkQnJpZGdlOiB7CiAgICBlbmFibGVkOiB0cnVlLAogICAgYnJpZGdlSW50ZXJmYWNlTmFtZTogIkFuZHJvaWRCcmlkZ2UiLAogICAgZmFsbGJhY2tUb0Jyb3dzZXI6IHRydWUsCiAgICBzYW5kYm94Q2hlY2tvdXRVcmw6ICJodHRwczovL2NoZWNrb3V0LmNpcmNsZXBhbmRhLmFwcC9wYXkiLAogIH0sCiAgZ29vZ2xlUGxheTogewogICAgcHJvdmlkZXI6ICJnb29nbGVfcGxheSIsCiAgICBlbmFibGVkOiB0cnVlLAogICAgcHJvZHVjdElkczoge30sCiAgICBzdWJzY3JpcHRpb25JZHM6IHt9LAogIH0sCiAgYXBwbGVJYXA6IHsKICAgIHByb3ZpZGVyOiAiYXBwbGVfaWFwIiwKICAgIGVuYWJsZWQ6IHRydWUsCiAgICBwcm9kdWN0SWRzOiB7fSwKICAgIHN1YnNjcmlwdGlvbklkczoge30sCiAgfSwKICBsYXN0VXBkYXRlZDogbmV3IERhdGUoKS50b0lTT1N0cmluZygpLAp9OwoKCgpleHBvcnQgZnVuY3Rpb24gbWVyZ2VTZXJ2ZXJDYXRhbG9nKHJvd3M6IGFueVtdKTogUHJpY2luZ0NvbmZpZyB7CiAgY29uc3QgY3VycmVudCA9IERFRkFVTFRfUFJJQ0lOR19DT05GSUc7CiAgY29uc3QgcGFja2FnZXM6IENvaW5QYWNrYWdlW10gPSByb3dzLmZpbHRlcigocikgPT4gci5pdGVtX3R5cGUgPT09ICJjb2luX3BhY2thZ2UiKS5tYXAoKHIpID0+IHsKICAgIGNvbnN0IGZhbGxiYWNrID0gY3VycmVudC5wYWNrYWdlcy5maW5kKChwKSA9PiBwLmlkID09PSByLmlkKTsKICAgIHJldHVybiB7CiAgICAgIGlkOiByLmlkLCBuYW1lOiByLm5hbWUsIHByaWNlOiBOdW1iZXIoci5wcmljZV91c2QpLCBwcmljZU5nbjogTnVtYmVyKHIucHJpY2VfbmduKSwgY29pbnM6IE51bWJlcihyLmNvaW5zKSwKICAgICAgZGVzY3JpcHRpb246IHIuZGVzY3JpcHRpb24gPz8gZmFsbGJhY2s/LmRlc2NyaXB0aW9uID8/ICJQYW5kYSBDb2luIHBhY2thZ2UiLAogICAgICBib251c1RhZzogci5ib251c190YWcgPz8gZmFsbGJhY2s/LmJvbnVzVGFnLCBiYWRnZTogci5iYWRnZSA/PyBmYWxsYmFjaz8uYmFkZ2UsCiAgICAgIGVuYWJsZWQ6IEJvb2xlYW4oci5lbmFibGVkKSwgaXNQb3B1bGFyOiBCb29sZWFuKHIuaXNfcG9wdWxhciksIGlzQmVzdFZhbHVlOiBCb29sZWFuKHIuaXNfYmVzdF92YWx1ZSksCiAgICAgIGljb246IHIuaWNvbiA/PyBmYWxsYmFjaz8uaWNvbiA/PyAi8J+qmSIsCiAgICB9OwogIH0pOwogIGNvbnN0IHZpcFBsYW5zOiBWaXBQbGFuW10gPSByb3dzLmZpbHRlcigocikgPT4gci5pdGVtX3R5cGUgPT09ICJ2aXBfc3Vic2NyaXB0aW9uIikubWFwKChyKSA9PiB7CiAgICBjb25zdCBmYWxsYmFjayA9IGN1cnJlbnQudmlwUGxhbnMuZmluZCgocCkgPT4gcC5pZCA9PT0gci5pZCk7CiAgICByZXR1cm4gewogICAgICBpZDogci5pZCwgbmFtZTogci5uYW1lLCBwcmljZTogTnVtYmVyKHIucHJpY2VfdXNkKSwgcHJpY2VOZ246IE51bWJlcihyLnByaWNlX25nbiksIGludGVydmFsOiByLmludGVydmFsID09PSAibW9udGgiID8gIm1vbnRoIiA6ICJ3ZWVrIiwKICAgICAgZHVyYXRpb25EYXlzOiBOdW1iZXIoci52aXBfZGF5cyksIGJpbGxpbmdQZXJpb2Q6IHIuYmlsbGluZ19wZXJpb2QgPz8gZmFsbGJhY2s/LmJpbGxpbmdQZXJpb2QgPz8gInBlciBwZXJpb2QiLAogICAgICBkZXNjcmlwdGlvbjogci5kZXNjcmlwdGlvbiA/PyBmYWxsYmFjaz8uZGVzY3JpcHRpb24gPz8gIkNpcmNsZSBQYW5kYSBWSVAgUGFzcyIsIGJhZGdlOiByLmJhZGdlID8/IGZhbGxiYWNrPy5iYWRnZSwKICAgICAgaXNIaWdobGlnaHRlZDogQm9vbGVhbihyLmlzX2hpZ2hsaWdodGVkKSwgZW5hYmxlZDogQm9vbGVhbihyLmVuYWJsZWQpLCBwZXJrczogQXJyYXkuaXNBcnJheShyLnBlcmtzKSA/IHIucGVya3MgOiAoZmFsbGJhY2s/LnBlcmtzID8/IFtdKSwKICAgIH07CiAgfSk7CiAgcmV0dXJuIHsgLi4uY3VycmVudCwgcGFja2FnZXMsIHZpcFBsYW5zLCBsYXN0VXBkYXRlZDogbmV3IERhdGUoKS50b0lTT1N0cmluZygpIH07Cn0KCmV4cG9ydCBmdW5jdGlvbiBnZXRQcmljaW5nQ29uZmlnKCk6IFByaWNpbmdDb25maWcgewogIHJldHVybiBERUZBVUxUX1BSSUNJTkdfQ09ORklHOwp9CgpleHBvcnQgYXN5bmMgZnVuY3Rpb24gbG9hZFByaWNpbmdDb25maWcoKTogUHJvbWlzZTxQcmljaW5nQ29uZmlnPiB7CiAgY29uc3QgeyBkYXRhLCBlcnJvciB9ID0gYXdhaXQgKHN1cGFiYXNlIGFzIGFueSkuZnJvbSgic3RvcmVfY2F0YWxvZyIpLnNlbGVjdCgiaWQsaXRlbV90eXBlLG5hbWUscHJpY2VfdXNkLGNvaW5zLHZpcF9kYXlzLGVuYWJsZWQsZGVzY3JpcHRpb24sYm9udXNfdGFnLGJhZGdlLGljb24saXNfcG9wdWxhcixpc19iZXN0X3ZhbHVlLGludGVydmFsLGJpbGxpbmdfcGVyaW9kLGlzX2hpZ2hsaWdodGVkLHBlcmtzIik7CiAgaWYgKGVycm9yIHx8ICFBcnJheS5pc0FycmF5KGRhdGEpKSByZXR1cm4gREVGQVVMVF9QUklDSU5HX0NPTkZJRzsKICByZXR1cm4gbWVyZ2VTZXJ2ZXJDYXRhbG9nKGRhdGEpOwp9CgovKiogQWRtaW4tb25seSBwZXJzaXN0ZW5jZS4gQ3VzdG9tZXIgY2hlY2tvdXQgbmV2ZXIgdHJ1c3RzIHRoaXMgbG9jYWwgc3RhdGUuICovCmV4cG9ydCBhc3luYyBmdW5jdGlvbiBzYXZlUHJpY2luZ0NvbmZpZyhjb25maWc6IFByaWNpbmdDb25maWcpOiBQcm9taXNlPHZvaWQ+IHsKICBjb25zdCByb3dzID0gWwogICAgLi4uY29uZmlnLnBhY2thZ2VzLm1hcCgoaXRlbSkgPT4gKHsgaWQ6aXRlbS5pZCxpdGVtX3R5cGU6ImNvaW5fcGFja2FnZSIsbmFtZTppdGVtLm5hbWUscHJpY2VfdXNkOml0ZW0ucHJpY2UscHJpY2VfbmduOk1hdGgucm91bmQoaXRlbS5wcmljZSooY29uZmlnLnBheXN0YWNrLmV4Y2hhbmdlUmF0ZU5nbnx8MTUwMCkqMTAwKS8xMDAsY29pbnM6aXRlbS5jb2lucyx2aXBfZGF5czowLGVuYWJsZWQ6aXRlbS5lbmFibGVkLGRlc2NyaXB0aW9uOml0ZW0uZGVzY3JpcHRpb24sYm9udXNfdGFnOml0ZW0uYm9udXNUYWcgPz8gbnVsbCxiYWRnZTppdGVtLmJhZGdlID8/IG51bGwsaWNvbjppdGVtLmljb24gPz8gbnVsbCxpc19wb3B1bGFyOkJvb2xlYW4oaXRlbS5pc1BvcHVsYXIpLGlzX2Jlc3RfdmFsdWU6Qm9vbGVhbihpdGVtLmlzQmVzdFZhbHVlKSx1cGRhdGVkX2F0Om5ldyBEYXRlKCkudG9JU09TdHJpbmcoKSB9KSksCiAgICAuLi5jb25maWcudmlwUGxhbnMubWFwKChpdGVtKSA9PiAoeyBpZDppdGVtLmlkLGl0ZW1fdHlwZToidmlwX3N1YnNjcmlwdGlvbiIsbmFtZTppdGVtLm5hbWUscHJpY2VfdXNkOml0ZW0ucHJpY2UscHJpY2VfbmduOk1hdGgucm91bmQoaXRlbS5wcmljZSooY29uZmlnLnBheXN0YWNrLmV4Y2hhbmdlUmF0ZU5nbnx8MTUwMCkqMTAwKS8xMDAsY29pbnM6MCx2aXBfZGF5czppdGVtLmR1cmF0aW9uRGF5cyxlbmFibGVkOml0ZW0uZW5hYmxlZCxkZXNjcmlwdGlvbjppdGVtLmRlc2NyaXB0aW9uLGJhZGdlOml0ZW0uYmFkZ2UgPz8gbnVsbCxpbnRlcnZhbDppdGVtLmludGVydmFsLGJpbGxpbmdfcGVyaW9kOml0ZW0uYmlsbGluZ1BlcmlvZCxpc19oaWdobGlnaHRlZDpCb29sZWFuKGl0ZW0uaXNIaWdobGlnaHRlZCkscGVya3M6aXRlbS5wZXJrcyx1cGRhdGVkX2F0Om5ldyBEYXRlKCkudG9JU09TdHJpbmcoKSB9KSksCiAgXTsKICBjb25zdCB7IGVycm9yIH0gPSBhd2FpdCAoc3VwYWJhc2UgYXMgYW55KS5mcm9tKCJzdG9yZV9jYXRhbG9nIikudXBzZXJ0KHJvd3MsIHsgb25Db25mbGljdDoiaWQiIH0pOwogIGlmIChlcnJvcikgdGhyb3cgZXJyb3I7CiAgaWYgKHR5cGVvZiB3aW5kb3cgIT09ICJ1bmRlZmluZWQiKSB3aW5kb3cuZGlzcGF0Y2hFdmVudChuZXcgQ3VzdG9tRXZlbnQoRVZFTlRfUFJJQ0lOR19DT05GSUdfVVBEQVRFRCkpOwp9CgpleHBvcnQgZnVuY3Rpb24gcmVzZXRQcmljaW5nQ29uZmlnKCk6IFByaWNpbmdDb25maWcgewogIHZvaWQgc2F2ZVByaWNpbmdDb25maWcoREVGQVVMVF9QUklDSU5HX0NPTkZJRykuY2F0Y2goKGVycikgPT4gY29uc29sZS5lcnJvcigiRmFpbGVkIHRvIHJlc2V0IHByaWNpbmc6IiwgZXJyKSk7CiAgcmV0dXJuIERFRkFVTFRfUFJJQ0lOR19DT05GSUc7Cn0KCmV4cG9ydCBmdW5jdGlvbiB1c2VQcmljaW5nQ29uZmlnKCkgewogIGNvbnN0IFtjb25maWcsIHNldENvbmZpZ10gPSB1c2VTdGF0ZTxQcmljaW5nQ29uZmlnPihERUZBVUxUX1BSSUNJTkdfQ09ORklHKTsKICB1c2VFZmZlY3QoKCkgPT4gewogICAgbGV0IGNhbmNlbGxlZCA9IGZhbHNlOwogICAgY29uc3QgbG9hZCA9IGFzeW5jICgpID0+IHsKICAgICAgY29uc3QgeyBkYXRhLCBlcnJvciB9ID0gYXdhaXQgKHN1cGFiYXNlIGFzIGFueSkuZnJvbSgic3RvcmVfY2F0YWxvZyIpLnNlbGVjdCgiaWQsaXRlbV90eXBlLG5hbWUscHJpY2VfdXNkLGNvaW5zLHZpcF9kYXlzLGVuYWJsZWQsZGVzY3JpcHRpb24sYm9udXNfdGFnLGJhZGdlLGljb24saXNfcG9wdWxhcixpc19iZXN0X3ZhbHVlLGludGVydmFsLGJpbGxpbmdfcGVyaW9kLGlzX2hpZ2hsaWdodGVkLHBlcmtzIikuZXEoImVuYWJsZWQiLCB0cnVlKTsKICAgICAgaWYgKCFjYW5jZWxsZWQgJiYgIWVycm9yICYmIEFycmF5LmlzQXJyYXkoZGF0YSkgJiYgZGF0YS5sZW5ndGgpIHNldENvbmZpZyhtZXJnZVNlcnZlckNhdGFsb2coZGF0YSkpOwogICAgfTsKICAgIHZvaWQgbG9hZCgpOwogICAgY29uc3QgaGFuZGxlVXBkYXRlID0gKCkgPT4gdm9pZCBsb2FkKCk7CiAgICB3aW5kb3cuYWRkRXZlbnRMaXN0ZW5lcihFVkVOVF9QUklDSU5HX0NPTkZJR19VUERBVEVELCBoYW5kbGVVcGRhdGUpOwogICAgd2luZG93LmFkZEV2ZW50TGlzdGVuZXIoInN0b3JhZ2UiLCBoYW5kbGVVcGRhdGUpOwogICAgcmV0dXJuICgpID0+IHsgY2FuY2VsbGVkID0gdHJ1ZTsgd2luZG93LnJlbW92ZUV2ZW50TGlzdGVuZXIoRVZFTlRfUFJJQ0lOR19DT05GSUdfVVBEQVRFRCwgaGFuZGxlVXBkYXRlKTsgd2luZG93LnJlbW92ZUV2ZW50TGlzdGVuZXIoInN0b3JhZ2UiLCBoYW5kbGVVcGRhdGUpOyB9OwogIH0sIFtdKTsKICByZXR1cm4gY29uZmlnOwp9Cg==
+import { useEffect, useState } from "react";
+import type { CoinPackage, PricingConfig, VipPlan } from "@/lib/pricingTypes";
+import { supabase } from "@/integrations/supabase/client";
+
+export const STORAGE_KEY_PRICING_CONFIG = "cp_admin_pricing_config";
+export const EVENT_PRICING_CONFIG_UPDATED = "cp_pricing_config_updated";
+
+export const DEFAULT_COIN_PACKAGES: CoinPackage[] = [];
+
+export const DEFAULT_VIP_PLANS: VipPlan[] = [];
+
+
+export const DEFAULT_PRICING_CONFIG: PricingConfig = {
+  packages: DEFAULT_COIN_PACKAGES,
+  vipPlans: DEFAULT_VIP_PLANS,
+  paystack: {
+    publicKey: (import.meta.env.VITE_PAYSTACK_PUBLIC_KEY as string | undefined) ?? "",
+    currency: "USD",
+    exchangeRateNgn: 1500, // ₦1,500 = $1.00 USD
+    testMode: false,
+    merchantName: "Circle Panda Campus Store",
+  },
+  androidBridge: {
+    enabled: true,
+    bridgeInterfaceName: "AndroidBridge",
+    fallbackToBrowser: true,
+    sandboxCheckoutUrl: "https://checkout.circlepanda.app/pay",
+  },
+  googlePlay: {
+    provider: "google_play",
+    enabled: true,
+    productIds: {},
+    subscriptionIds: {},
+  },
+  appleIap: {
+    provider: "apple_iap",
+    enabled: true,
+    productIds: {},
+    subscriptionIds: {},
+  },
+  lastUpdated: new Date().toISOString(),
+};
+
+
+
+export function mergeServerCatalog(rows: any[]): PricingConfig {
+  const current = DEFAULT_PRICING_CONFIG;
+  const packages: CoinPackage[] = rows.filter((r) => r.item_type === "coin_package").map((r) => {
+    const fallback = current.packages.find((p) => p.id === r.id);
+    return {
+      id: r.id, name: r.name, price: Number(r.price_usd), priceNgn: Number(r.price_ngn), coins: Number(r.coins),
+      description: r.description ?? fallback?.description ?? "Panda Coin package",
+      bonusTag: r.bonus_tag ?? fallback?.bonusTag, badge: r.badge ?? fallback?.badge,
+      enabled: Boolean(r.enabled), isPopular: Boolean(r.is_popular), isBestValue: Boolean(r.is_best_value),
+      icon: r.icon ?? fallback?.icon ?? "🪙",
+    };
+  });
+  const vipPlans: VipPlan[] = rows.filter((r) => r.item_type === "vip_subscription").map((r) => {
+    const fallback = current.vipPlans.find((p) => p.id === r.id);
+    return {
+      id: r.id, name: r.name, price: Number(r.price_usd), priceNgn: Number(r.price_ngn), interval: r.interval === "month" ? "month" : "week",
+      durationDays: Number(r.vip_days), billingPeriod: r.billing_period ?? fallback?.billingPeriod ?? "per period",
+      description: r.description ?? fallback?.description ?? "Circle Panda VIP Pass", badge: r.badge ?? fallback?.badge,
+      isHighlighted: Boolean(r.is_highlighted), enabled: Boolean(r.enabled), perks: Array.isArray(r.perks) ? r.perks : (fallback?.perks ?? []),
+    };
+  });
+  return { ...current, packages, vipPlans, lastUpdated: new Date().toISOString() };
+}
+
+export function getPricingConfig(): PricingConfig {
+  return DEFAULT_PRICING_CONFIG;
+}
+
+export async function loadPricingConfig(): Promise<PricingConfig> {
+  const { data, error } = await (supabase as any).from("store_catalog").select("id,item_type,name,price_usd,coins,vip_days,enabled,description,bonus_tag,badge,icon,is_popular,is_best_value,interval,billing_period,is_highlighted,perks");
+  if (error || !Array.isArray(data)) return DEFAULT_PRICING_CONFIG;
+  return mergeServerCatalog(data);
+}
+
+/** Admin-only persistence. Customer checkout never trusts this local state. */
+export async function savePricingConfig(config: PricingConfig): Promise<void> {
+  const rows = [
+    ...config.packages.map((item) => ({ id:item.id,item_type:"coin_package",name:item.name,price_usd:item.price,price_ngn:Math.round(item.price*(config.paystack.exchangeRateNgn||1500)*100)/100,coins:item.coins,vip_days:0,enabled:item.enabled,description:item.description,bonus_tag:item.bonusTag ?? null,badge:item.badge ?? null,icon:item.icon ?? null,is_popular:Boolean(item.isPopular),is_best_value:Boolean(item.isBestValue),updated_at:new Date().toISOString() })),
+    ...config.vipPlans.map((item) => ({ id:item.id,item_type:"vip_subscription",name:item.name,price_usd:item.price,price_ngn:Math.round(item.price*(config.paystack.exchangeRateNgn||1500)*100)/100,coins:0,vip_days:item.durationDays,enabled:item.enabled,description:item.description,badge:item.badge ?? null,interval:item.interval,billing_period:item.billingPeriod,is_highlighted:Boolean(item.isHighlighted),perks:item.perks,updated_at:new Date().toISOString() })),
+  ];
+  const { error } = await (supabase as any).from("store_catalog").upsert(rows, { onConflict:"id" });
+  if (error) throw error;
+  if (typeof window !== "undefined") window.dispatchEvent(new CustomEvent(EVENT_PRICING_CONFIG_UPDATED));
+}
+
+export function resetPricingConfig(): PricingConfig {
+  void savePricingConfig(DEFAULT_PRICING_CONFIG).catch((err) => console.error("Failed to reset pricing:", err));
+  return DEFAULT_PRICING_CONFIG;
+}
+
+export function usePricingConfig() {
+  const [config, setConfig] = useState<PricingConfig>(DEFAULT_PRICING_CONFIG);
+  useEffect(() => {
+    let cancelled = false;
+    const load = async () => {
+      const { data, error } = await (supabase as any).from("store_catalog").select("id,item_type,name,price_usd,coins,vip_days,enabled,description,bonus_tag,badge,icon,is_popular,is_best_value,interval,billing_period,is_highlighted,perks").eq("enabled", true);
+      if (!cancelled && !error && Array.isArray(data) && data.length) setConfig(mergeServerCatalog(data));
+    };
+    void load();
+    const handleUpdate = () => void load();
+    window.addEventListener(EVENT_PRICING_CONFIG_UPDATED, handleUpdate);
+    window.addEventListener("storage", handleUpdate);
+    return () => { cancelled = true; window.removeEventListener(EVENT_PRICING_CONFIG_UPDATED, handleUpdate); window.removeEventListener("storage", handleUpdate); };
+  }, []);
+  return config;
+}

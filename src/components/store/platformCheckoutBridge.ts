@@ -1,1 +1,191 @@
-aW1wb3J0IHR5cGUgeyBDb2luUGFja2FnZSwgUHJpY2luZ0NvbmZpZywgVmlwUGxhbiB9IGZyb20gIkAvbGliL3ByaWNpbmdUeXBlcyI7CgpkZWNsYXJlIGdsb2JhbCB7CiAgaW50ZXJmYWNlIFdpbmRvdyB7CiAgICBBbmRyb2lkQnJpZGdlPzogewogICAgICBvcGVuVXJsPzogKHVybDogc3RyaW5nKSA9PiB2b2lkOwogICAgICBpbml0aWF0ZVBheW1lbnQ/OiAocGF5bG9hZEpzb246IHN0cmluZykgPT4gYm9vbGVhbjsKICAgICAgaXNXZWJWaWV3PzogKCkgPT4gYm9vbGVhbjsKICAgICAgb25QYXltZW50Q29tcGxldGU/OiAoc3VjY2VzczogYm9vbGVhbiwgdHJhbnNhY3Rpb25JZDogc3RyaW5nKSA9PiB2b2lkOwogICAgZ2V0RGlzdHJpYnV0aW9uPzogKCkgPT4gImdvb2dsZV9wbGF5IiB8ICJleHRlcm5hbCI7CiAgICAgIHJlcXVlc3RHb29nbGVQbGF5UHVyY2hhc2U/OiAocGF5bG9hZEpzb246IHN0cmluZykgPT4gYm9vbGVhbjsKICAgIH07CiAgICBBbmRyb2lkPzogewogICAgICBvcGVuVXJsPzogKHVybDogc3RyaW5nKSA9PiB2b2lkOwogICAgICBpbml0aWF0ZVBheW1lbnQ/OiAocGF5bG9hZEpzb246IHN0cmluZykgPT4gYm9vbGVhbjsKICAgICAgcmVxdWVzdEdvb2dsZVBsYXlQdXJjaGFzZT86IChwYXlsb2FkSnNvbjogc3RyaW5nKSA9PiBib29sZWFuOwogICAgfTsKICAgIENpcmNsZVBhbmRhSU9TPzogewogICAgICByZXF1ZXN0QXBwbGVQdXJjaGFzZT86IChwYXlsb2FkSnNvbjogc3RyaW5nKSA9PiBib29sZWFuOwogICAgfTsKICAgIFBheXN0YWNrUG9wPzogewogICAgICBzZXR1cDogKG9wdGlvbnM6IHsKICAgICAgICBrZXk6IHN0cmluZzsKICAgICAgICBlbWFpbDogc3RyaW5nOwogICAgICAgIGFtb3VudDogbnVtYmVyOwogICAgICAgIGN1cnJlbmN5Pzogc3RyaW5nOwogICAgICAgIHJlZj86IHN0cmluZzsKICAgICAgICBjYWxsYmFjazogKHJlc3BvbnNlOiB7IHJlZmVyZW5jZTogc3RyaW5nOyBzdGF0dXM6IHN0cmluZyB9KSA9PiB2b2lkOwogICAgICAgIG9uQ2xvc2U6ICgpID0+IHZvaWQ7CiAgICAgICAgbWV0YWRhdGE/OiBSZWNvcmQ8c3RyaW5nLCB1bmtub3duPjsKICAgICAgfSkgPT4geyBvcGVuSWZyYW1lOiAoKSA9PiB2b2lkIH07CiAgICB9OwogIH0KfQoKZXhwb3J0IHR5cGUgQ2hlY2tvdXRQbGF0Zm9ybSA9ICJhdXRvIiB8ICJ3ZWJfcGF5c3RhY2siIHwgImdvb2dsZV9wbGF5IiB8ICJhcHBsZV9pYXAiOwpleHBvcnQgdHlwZSBFZmZlY3RpdmVDaGVja291dFBsYXRmb3JtID0gIndlYl9wYXlzdGFjayIgfCAiZ29vZ2xlX3BsYXkiIHwgImFwcGxlX2lhcCI7CgpleHBvcnQgaW50ZXJmYWNlIENoZWNrb3V0UmVxdWVzdCB7CiAgaXRlbTogQ29pblBhY2thZ2UgfCBWaXBQbGFuOwogIGl0ZW1UeXBlOiAiY29pbl9wYWNrYWdlIiB8ICJ2aXBfc3Vic2NyaXB0aW9uIjsKICB1c2VyRW1haWw/OiBzdHJpbmc7CiAgdXNlck5hbWU/OiBzdHJpbmc7CiAgcGF5c3RhY2tQdWJsaWNLZXk/OiBzdHJpbmc7CiAgZXhjaGFuZ2VSYXRlTmduPzogbnVtYmVyOwogIHByaWNpbmdDb25maWc/OiBQcmljaW5nQ29uZmlnOwp9CgpleHBvcnQgaW50ZXJmYWNlIENoZWNrb3V0UmVzdWx0IHsKICBzdWNjZXNzOiBib29sZWFuOwogIHBsYXRmb3JtVXNlZDogRWZmZWN0aXZlQ2hlY2tvdXRQbGF0Zm9ybTsKICByZWZlcmVuY2U/OiBzdHJpbmc7CiAgbWVzc2FnZT86IHN0cmluZzsKfQoKZnVuY3Rpb24gaXNJb3MoKTogYm9vbGVhbiB7CiAgaWYgKHR5cGVvZiBuYXZpZ2F0b3IgPT09ICJ1bmRlZmluZWQiKSByZXR1cm4gZmFsc2U7CiAgcmV0dXJuIC9pUGFkfGlQaG9uZXxpUG9kL2kudGVzdChuYXZpZ2F0b3IudXNlckFnZW50KSB8fAogICAgKG5hdmlnYXRvci5wbGF0Zm9ybSA9PT0gIk1hY0ludGVsIiAmJiBuYXZpZ2F0b3IubWF4VG91Y2hQb2ludHMgPiAxKTsKfQoKZnVuY3Rpb24gaXNBbmRyb2lkKCk6IGJvb2xlYW4gewogIGlmICh0eXBlb2YgbmF2aWdhdG9yID09PSAidW5kZWZpbmVkIikgcmV0dXJuIGZhbHNlOwogIHJldHVybiAvQW5kcm9pZC9pLnRlc3QobmF2aWdhdG9yLnVzZXJBZ2VudCk7Cn0KCmZ1bmN0aW9uIGdldEFuZHJvaWREaXN0cmlidXRpb24oKTogImdvb2dsZV9wbGF5IiB8ICJleHRlcm5hbCIgewogIGlmICh0eXBlb2Ygd2luZG93ICE9PSAidW5kZWZpbmVkIikgewogICAgY29uc3QgYnJpZGdlID0gd2luZG93LkFuZHJvaWRCcmlkZ2U/LmdldERpc3RyaWJ1dGlvbjsKICAgIGlmICh0eXBlb2YgYnJpZGdlID09PSAiZnVuY3Rpb24iKSB7CiAgICAgIHRyeSB7CiAgICAgICAgcmV0dXJuIGJyaWRnZSgpID09PSAiZ29vZ2xlX3BsYXkiID8gImdvb2dsZV9wbGF5IiA6ICJleHRlcm5hbCI7CiAgICAgIH0gY2F0Y2ggewogICAgICAgIHJldHVybiAiZXh0ZXJuYWwiOwogICAgICB9CiAgICB9CiAgfQogIHJldHVybiAiZXh0ZXJuYWwiOwp9CgpmdW5jdGlvbiBoYXNBbmRyb2lkTmF0aXZlQnJpZGdlKCk6IGJvb2xlYW4gewogIHJldHVybiB0eXBlb2Ygd2luZG93ICE9PSAidW5kZWZpbmVkIiAmJiAoCiAgICB0eXBlb2Ygd2luZG93LkFuZHJvaWRCcmlkZ2U/LnJlcXVlc3RHb29nbGVQbGF5UHVyY2hhc2UgPT09ICJmdW5jdGlvbiIgfHwKICAgIHR5cGVvZiB3aW5kb3cuQW5kcm9pZD8ucmVxdWVzdEdvb2dsZVBsYXlQdXJjaGFzZSA9PT0gImZ1bmN0aW9uIgogICk7Cn0KCmZ1bmN0aW9uIGhhc0lvc05hdGl2ZUJyaWRnZSgpOiBib29sZWFuIHsKICByZXR1cm4gdHlwZW9mIHdpbmRvdyAhPT0gInVuZGVmaW5lZCIgJiYKICAgIHR5cGVvZiB3aW5kb3cuQ2lyY2xlUGFuZGFJT1M/LnJlcXVlc3RBcHBsZVB1cmNoYXNlID09PSAiZnVuY3Rpb24iOwp9CgovKioKICogQXV0b21hdGljIHByb3ZpZGVyIHJvdXRpbmcuIE5hdGl2ZSBzdG9yZSBiaWxsaW5nIGlzIHNlbGVjdGVkIG9ubHkgd2hlbiB0aGUKICogaW5zdGFsbGVkIG5hdGl2ZSBzaGVsbCBleHBvc2VzIGEgcHVyY2hhc2UgYnJpZGdlOyBvdGhlcndpc2Ugd2ViL1BheXN0YWNrIGlzCiAqIHVzZWQuIFRoaXMgbGV0cyB0aGUgc2FtZSB3ZWIgY29kZSBiZSBwYWNrYWdlZCBvdXRzaWRlIGFuIGFwcCBzdG9yZSB3aXRob3V0CiAqIHJlcXVpcmluZyBhIG1hbnVhbCBhZG1pbiBzd2l0Y2guCiAqLwpleHBvcnQgZnVuY3Rpb24gcmVzb2x2ZUVmZmVjdGl2ZVBsYXRmb3JtKAogIHByZWZlcmVuY2U6IENoZWNrb3V0UGxhdGZvcm0gPSAiYXV0byIsCik6IEVmZmVjdGl2ZUNoZWNrb3V0UGxhdGZvcm0gewogIGlmIChwcmVmZXJlbmNlID09PSAid2ViX3BheXN0YWNrIikgcmV0dXJuICJ3ZWJfcGF5c3RhY2siOwogIGlmIChwcmVmZXJlbmNlID09PSAiZ29vZ2xlX3BsYXkiKSByZXR1cm4gImdvb2dsZV9wbGF5IjsKICBpZiAocHJlZmVyZW5jZSA9PT0gImFwcGxlX2lhcCIpIHJldHVybiAiYXBwbGVfaWFwIjsKICBpZiAoaXNJb3MoKSAmJiBoYXNJb3NOYXRpdmVCcmlkZ2UoKSkgcmV0dXJuICJhcHBsZV9pYXAiOwogIGlmIChpc0FuZHJvaWQoKSAmJiBnZXRBbmRyb2lkRGlzdHJpYnV0aW9uKCkgPT09ICJnb29nbGVfcGxheSIgJiYgaGFzQW5kcm9pZE5hdGl2ZUJyaWRnZSgpKSByZXR1cm4gImdvb2dsZV9wbGF5IjsKICByZXR1cm4gIndlYl9wYXlzdGFjayI7Cn0KCmZ1bmN0aW9uIG1ha2VSZWZlcmVuY2UocHJlZml4OiBzdHJpbmcpIHsKICByZXR1cm4gYCR7cHJlZml4fV8ke0RhdGUubm93KCl9XyR7TWF0aC5yYW5kb20oKS50b1N0cmluZygzNikuc2xpY2UoMiwgOCkudG9VcHBlckNhc2UoKX1gOwp9CgpleHBvcnQgYXN5bmMgZnVuY3Rpb24gZXhlY3V0ZU5hdGl2ZVN0b3JlQ2hlY2tvdXQoCiAgcmVxdWVzdDogQ2hlY2tvdXRSZXF1ZXN0LAogIHBsYXRmb3JtOiAiZ29vZ2xlX3BsYXkiIHwgImFwcGxlX2lhcCIsCiAgb25TdGF0dXM/OiAoc3RhdHVzOiBzdHJpbmcpID0+IHZvaWQsCik6IFByb21pc2U8Q2hlY2tvdXRSZXN1bHQ+IHsKICBjb25zdCB7IGl0ZW0sIGl0ZW1UeXBlLCB1c2VyRW1haWwgPSAiIiB9ID0gcmVxdWVzdDsKICBjb25zdCByZWZlcmVuY2UgPSBtYWtlUmVmZXJlbmNlKHBsYXRmb3JtID09PSAiZ29vZ2xlX3BsYXkiID8gIkNQX0dQTEFZIiA6ICJDUF9BUFBMRSIpOwogIGNvbnN0IGNhdGFsb2cgPSBwbGF0Zm9ybSA9PT0gImdvb2dsZV9wbGF5IiA/IHJlcXVlc3QucHJpY2luZ0NvbmZpZz8uZ29vZ2xlUGxheSA6IHJlcXVlc3QucHJpY2luZ0NvbmZpZz8uYXBwbGVJYXA7CiAgY29uc3QgcHJvZHVjdElkID0gaXRlbVR5cGUgPT09ICJ2aXBfc3Vic2NyaXB0aW9uIgogICAgPyBjYXRhbG9nPy5zdWJzY3JpcHRpb25JZHNbaXRlbS5pZF0KICAgIDogY2F0YWxvZz8ucHJvZHVjdElkc1tpdGVtLmlkXTsKCiAgaWYgKCFwcm9kdWN0SWQpIHsKICAgIHJldHVybiB7CiAgICAgIHN1Y2Nlc3M6IGZhbHNlLAogICAgICBwbGF0Zm9ybVVzZWQ6IHBsYXRmb3JtLAogICAgICByZWZlcmVuY2UsCiAgICAgIG1lc3NhZ2U6IGAke3BsYXRmb3JtID09PSAiZ29vZ2xlX3BsYXkiID8gIkdvb2dsZSBQbGF5IiA6ICJBcHBsZSBJQVAifSBwcm9kdWN0IElEIGlzIG5vdCBjb25maWd1cmVkIHlldC5gLAogICAgfTsKICB9CgogIGNvbnN0IHBheWxvYWQgPSBKU09OLnN0cmluZ2lmeSh7CiAgICByZWZlcmVuY2UsCiAgICBwcm9kdWN0SWQsCiAgICBpdGVtSWQ6IGl0ZW0uaWQsCiAgICBpdGVtVHlwZSwKICAgIGN1c3RvbWVyRW1haWw6IHVzZXJFbWFpbCwKICAgIHRpbWVzdGFtcDogRGF0ZS5ub3coKSwKICB9KTsKCiAgb25TdGF0dXM/LihgT3BlbmluZyAke3BsYXRmb3JtID09PSAiZ29vZ2xlX3BsYXkiID8gIkdvb2dsZSBQbGF5IiA6ICJBcHBsZSJ9IHB1cmNoYXNlLi4uYCk7CgogIHRyeSB7CiAgICBjb25zdCBkaXNwYXRjaGVkID0gcGxhdGZvcm0gPT09ICJnb29nbGVfcGxheSIKICAgICAgPyAod2luZG93LkFuZHJvaWRCcmlkZ2U/LnJlcXVlc3RHb29nbGVQbGF5UHVyY2hhc2U/LihwYXlsb2FkKSA/PyB3aW5kb3cuQW5kcm9pZD8ucmVxdWVzdEdvb2dsZVBsYXlQdXJjaGFzZT8uKHBheWxvYWQpID8/IGZhbHNlKQogICAgICA6ICh3aW5kb3cuQ2lyY2xlUGFuZGFJT1M/LnJlcXVlc3RBcHBsZVB1cmNoYXNlPy4ocGF5bG9hZCkgPz8gZmFsc2UpOwogICAgaWYgKCFkaXNwYXRjaGVkKSB7CiAgICAgIHJldHVybiB7IHN1Y2Nlc3M6IGZhbHNlLCBwbGF0Zm9ybVVzZWQ6IHBsYXRmb3JtLCByZWZlcmVuY2UsIG1lc3NhZ2U6ICJOYXRpdmUgc3RvcmUgcHVyY2hhc2UgYnJpZGdlIGlzIHVuYXZhaWxhYmxlLiIgfTsKICAgIH0KICAgIC8vIE5hdGl2ZSBzaGVsbHMgbXVzdCBjb21wbGV0ZSB0aGUgcHVyY2hhc2UgYW5kIHNlbmQgdGhlIHNpZ25lZCByZWNlaXB0L3Rva2VuCiAgICAvLyB0byB0aGUgYmFja2VuZC4gVGhlIGJyb3dzZXIgZG9lcyBub3QgYXdhcmQgY3VycmVuY3kgZnJvbSB0aGlzIGRpc3BhdGNoLgogICAgcmV0dXJuIHsgc3VjY2VzczogdHJ1ZSwgcGxhdGZvcm1Vc2VkOiBwbGF0Zm9ybSwgcmVmZXJlbmNlLCBtZXNzYWdlOiAiTmF0aXZlIHN0b3JlIHB1cmNoYXNlIHN0YXJ0ZWQuIFNlcnZlciByZWNlaXB0IHZlcmlmaWNhdGlvbiBpcyByZXF1aXJlZC4iIH07CiAgfSBjYXRjaCB7CiAgICByZXR1cm4geyBzdWNjZXNzOiBmYWxzZSwgcGxhdGZvcm1Vc2VkOiBwbGF0Zm9ybSwgcmVmZXJlbmNlLCBtZXNzYWdlOiAiTmF0aXZlIHN0b3JlIHB1cmNoYXNlIGNvdWxkIG5vdCBiZSBzdGFydGVkLiIgfTsKICB9Cn0KCmV4cG9ydCBhc3luYyBmdW5jdGlvbiBleGVjdXRlV2ViUGF5c3RhY2tDaGVja291dCgKICByZXF1ZXN0OiBDaGVja291dFJlcXVlc3QsCiAgb25TdGF0dXM/OiAoc3RhdHVzOiBzdHJpbmcpID0+IHZvaWQsCik6IFByb21pc2U8Q2hlY2tvdXRSZXN1bHQ+IHsKICBjb25zdCB7IGl0ZW0sIGl0ZW1UeXBlLCB1c2VyRW1haWwgPSAiIiB9ID0gcmVxdWVzdDsKICBjb25zdCBrZXkgPSByZXF1ZXN0LnBheXN0YWNrUHVibGljS2V5Py50cmltKCk7CiAgaWYgKCFrZXkpIHRocm93IG5ldyBFcnJvcigiUGF5c3RhY2sgcHVibGljIGtleSBpcyBub3QgY29uZmlndXJlZC4iKTsKICBpZiAodHlwZW9mIHdpbmRvdyA9PT0gInVuZGVmaW5lZCIpIHRocm93IG5ldyBFcnJvcigiV2ViIGNoZWNrb3V0IGlzIHVuYXZhaWxhYmxlLiIpOwogIGlmICghd2luZG93LlBheXN0YWNrUG9wPy5zZXR1cCkgdGhyb3cgbmV3IEVycm9yKCJQYXlzdGFjayBjaGVja291dCBpcyBub3QgbG9hZGVkLiIpOwogIGNvbnN0IHJlZmVyZW5jZSA9IG1ha2VSZWZlcmVuY2UoIkNQX1BTVEsiKTsKICBjb25zdCBhbW91bnQgPSBNYXRoLnJvdW5kKChpdGVtLnByaWNlTmduID8/IGl0ZW0ucHJpY2UgKiAocmVxdWVzdC5leGNoYW5nZVJhdGVOZ24gfHwgMTUwMCkpICogMTAwKTsKICBvblN0YXR1cz8uKCJPcGVuaW5nIHNlY3VyZSBQYXlzdGFjayBjaGVja291dC4uLiIpOwogIHJldHVybiBhd2FpdCBuZXcgUHJvbWlzZSgocmVzb2x2ZSwgcmVqZWN0KSA9PiB7CiAgICBjb25zdCBwb3B1cCA9IHdpbmRvdy5QYXlzdGFja1BvcCEuc2V0dXAoewogICAgICBrZXksCiAgICAgIGVtYWlsOiB1c2VyRW1haWwsCiAgICAgIGFtb3VudCwKICAgICAgY3VycmVuY3k6ICJOR04iLAogICAgICByZWY6IHJlZmVyZW5jZSwKICAgICAgbWV0YWRhdGE6IHsgaXRlbUlkOiBpdGVtLmlkLCBpdGVtVHlwZSB9LAogICAgICBjYWxsYmFjazogKHJlc3BvbnNlKSA9PiByZXNvbHZlKHsKICAgICAgICBzdWNjZXNzOiByZXNwb25zZS5zdGF0dXMgPT09ICJzdWNjZXNzIiwKICAgICAgICBwbGF0Zm9ybVVzZWQ6ICJ3ZWJfcGF5c3RhY2siLAogICAgICAgIHJlZmVyZW5jZTogcmVzcG9uc2UucmVmZXJlbmNlLAogICAgICAgIG1lc3NhZ2U6IHJlc3BvbnNlLnN0YXR1cyA9PT0gInN1Y2Nlc3MiID8gIlBheW1lbnQgYWNjZXB0ZWQgYnkgUGF5c3RhY2s7IHNlcnZlciB2ZXJpZmljYXRpb24gcmVxdWlyZWQuIiA6ICJQYXltZW50IHdhcyBub3QgY29uZmlybWVkLiIsCiAgICAgIH0pLAogICAgICBvbkNsb3NlOiAoKSA9PiByZXNvbHZlKHsgc3VjY2VzczogZmFsc2UsIHBsYXRmb3JtVXNlZDogIndlYl9wYXlzdGFjayIsIHJlZmVyZW5jZSwgbWVzc2FnZTogIkNoZWNrb3V0IHdhcyBjbG9zZWQgYmVmb3JlIGNvbmZpcm1hdGlvbi4iIH0pLAogICAgfSk7CiAgICB0cnkgeyBwb3B1cC5vcGVuSWZyYW1lKCk7IH0gY2F0Y2ggKGUpIHsgcmVqZWN0KGUpOyB9CiAgfSk7Cn0K
+import type { CoinPackage, PricingConfig, VipPlan } from "@/lib/pricingTypes";
+
+declare global {
+  interface Window {
+    AndroidBridge?: {
+      openUrl?: (url: string) => void;
+      initiatePayment?: (payloadJson: string) => boolean;
+      isWebView?: () => boolean;
+      onPaymentComplete?: (success: boolean, transactionId: string) => void;
+    getDistribution?: () => "google_play" | "external";
+      requestGooglePlayPurchase?: (payloadJson: string) => boolean;
+    };
+    Android?: {
+      openUrl?: (url: string) => void;
+      initiatePayment?: (payloadJson: string) => boolean;
+      requestGooglePlayPurchase?: (payloadJson: string) => boolean;
+    };
+    CirclePandaIOS?: {
+      requestApplePurchase?: (payloadJson: string) => boolean;
+    };
+    PaystackPop?: {
+      setup: (options: {
+        key: string;
+        email: string;
+        amount: number;
+        currency?: string;
+        ref?: string;
+        callback: (response: { reference: string; status: string }) => void;
+        onClose: () => void;
+        metadata?: Record<string, unknown>;
+      }) => { openIframe: () => void };
+    };
+  }
+}
+
+export type CheckoutPlatform = "auto" | "web_paystack" | "google_play" | "apple_iap";
+export type EffectiveCheckoutPlatform = "web_paystack" | "google_play" | "apple_iap";
+
+export interface CheckoutRequest {
+  item: CoinPackage | VipPlan;
+  itemType: "coin_package" | "vip_subscription";
+  userEmail?: string;
+  userName?: string;
+  paystackPublicKey?: string;
+  exchangeRateNgn?: number;
+  pricingConfig?: PricingConfig;
+}
+
+export interface CheckoutResult {
+  success: boolean;
+  platformUsed: EffectiveCheckoutPlatform;
+  reference?: string;
+  message?: string;
+}
+
+function isIos(): boolean {
+  if (typeof navigator === "undefined") return false;
+  return /iPad|iPhone|iPod/i.test(navigator.userAgent) ||
+    (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+}
+
+function isAndroid(): boolean {
+  if (typeof navigator === "undefined") return false;
+  return /Android/i.test(navigator.userAgent);
+}
+
+function getAndroidDistribution(): "google_play" | "external" {
+  if (typeof window !== "undefined") {
+    const bridge = window.AndroidBridge?.getDistribution;
+    if (typeof bridge === "function") {
+      try {
+        return bridge() === "google_play" ? "google_play" : "external";
+      } catch {
+        return "external";
+      }
+    }
+  }
+  return "external";
+}
+
+function hasAndroidNativeBridge(): boolean {
+  return typeof window !== "undefined" && (
+    typeof window.AndroidBridge?.requestGooglePlayPurchase === "function" ||
+    typeof window.Android?.requestGooglePlayPurchase === "function"
+  );
+}
+
+function hasIosNativeBridge(): boolean {
+  return typeof window !== "undefined" &&
+    typeof window.CirclePandaIOS?.requestApplePurchase === "function";
+}
+
+/**
+ * Automatic provider routing. Native store billing is selected only when the
+ * installed native shell exposes a purchase bridge; otherwise web/Paystack is
+ * used. This lets the same web code be packaged outside an app store without
+ * requiring a manual admin switch.
+ */
+export function resolveEffectivePlatform(
+  preference: CheckoutPlatform = "auto",
+): EffectiveCheckoutPlatform {
+  if (preference === "web_paystack") return "web_paystack";
+  if (preference === "google_play") return "google_play";
+  if (preference === "apple_iap") return "apple_iap";
+  if (isIos() && hasIosNativeBridge()) return "apple_iap";
+  if (isAndroid() && getAndroidDistribution() === "google_play" && hasAndroidNativeBridge()) return "google_play";
+  return "web_paystack";
+}
+
+function makeReference(prefix: string) {
+  return `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
+}
+
+export async function executeNativeStoreCheckout(
+  request: CheckoutRequest,
+  platform: "google_play" | "apple_iap",
+  onStatus?: (status: string) => void,
+): Promise<CheckoutResult> {
+  const { item, itemType, userEmail = "" } = request;
+  const reference = makeReference(platform === "google_play" ? "CP_GPLAY" : "CP_APPLE");
+  const catalog = platform === "google_play" ? request.pricingConfig?.googlePlay : request.pricingConfig?.appleIap;
+  const productId = itemType === "vip_subscription"
+    ? catalog?.subscriptionIds[item.id]
+    : catalog?.productIds[item.id];
+
+  if (!productId) {
+    return {
+      success: false,
+      platformUsed: platform,
+      reference,
+      message: `${platform === "google_play" ? "Google Play" : "Apple IAP"} product ID is not configured yet.`,
+    };
+  }
+
+  const payload = JSON.stringify({
+    reference,
+    productId,
+    itemId: item.id,
+    itemType,
+    customerEmail: userEmail,
+    timestamp: Date.now(),
+  });
+
+  onStatus?.(`Opening ${platform === "google_play" ? "Google Play" : "Apple"} purchase...`);
+
+  try {
+    const dispatched = platform === "google_play"
+      ? (window.AndroidBridge?.requestGooglePlayPurchase?.(payload) ?? window.Android?.requestGooglePlayPurchase?.(payload) ?? false)
+      : (window.CirclePandaIOS?.requestApplePurchase?.(payload) ?? false);
+    if (!dispatched) {
+      return { success: false, platformUsed: platform, reference, message: "Native store purchase bridge is unavailable." };
+    }
+    // Native shells must complete the purchase and send the signed receipt/token
+    // to the backend. The browser does not award currency from this dispatch.
+    return { success: true, platformUsed: platform, reference, message: "Native store purchase started. Server receipt verification is required." };
+  } catch {
+    return { success: false, platformUsed: platform, reference, message: "Native store purchase could not be started." };
+  }
+}
+
+export async function executeWebPaystackCheckout(
+  request: CheckoutRequest,
+  onStatus?: (status: string) => void,
+): Promise<CheckoutResult> {
+  const { item, itemType, userEmail = "" } = request;
+  const key = request.paystackPublicKey?.trim();
+  if (!key) throw new Error("Paystack public key is not configured.");
+  if (typeof window === "undefined") throw new Error("Web checkout is unavailable.");
+  if (!window.PaystackPop?.setup) throw new Error("Paystack checkout is not loaded.");
+  const reference = makeReference("CP_PSTK");
+  const amount = Math.round((item.priceNgn ?? item.price * (request.exchangeRateNgn || 1500)) * 100);
+  onStatus?.("Opening secure Paystack checkout...");
+  return await new Promise((resolve, reject) => {
+    const popup = window.PaystackPop!.setup({
+      key,
+      email: userEmail,
+      amount,
+      currency: "NGN",
+      ref: reference,
+      metadata: { itemId: item.id, itemType },
+      callback: (response) => resolve({
+        success: response.status === "success",
+        platformUsed: "web_paystack",
+        reference: response.reference,
+        message: response.status === "success" ? "Payment accepted by Paystack; server verification required." : "Payment was not confirmed.",
+      }),
+      onClose: () => resolve({ success: false, platformUsed: "web_paystack", reference, message: "Checkout was closed before confirmation." }),
+    });
+    try { popup.openIframe(); } catch (e) { reject(e); }
+  });
+}

@@ -1,1 +1,89 @@
-aW1wb3J0IHsgY3JlYXRlRmlsZVJvdXRlIH0gZnJvbSAiQHRhbnN0YWNrL3JlYWN0LXJvdXRlciI7CmltcG9ydCB7IENyb3duLCBTdGFyLCBUcm9waHkgfSBmcm9tICJsdWNpZGUtcmVhY3QiOwppbXBvcnQgeyBBcHBTaGVsbCB9IGZyb20gIkAvY29tcG9uZW50cy9BcHBTaGVsbCI7CmltcG9ydCB7IFRpZXJCYWRnZSB9IGZyb20gIkAvY29tcG9uZW50cy9UaWVyQmFkZ2UiOwppbXBvcnQgeyB1c2VTdG9yZSwgc3RhclJhdGluZyB9IGZyb20gIkAvbGliL3N0b3JlIjsKCmV4cG9ydCBjb25zdCBSb3V0ZSA9IGNyZWF0ZUZpbGVSb3V0ZSgiL2xlYWRlcnMiKSh7CiAgaGVhZDogKCkgPT4gKHsKICAgIG1ldGE6IFsKICAgICAgeyB0aXRsZTogIkxlYWRlcmJvYXJkIOKAlCBDaXJjbGUgUGFuZGEiIH0sCiAgICAgIHsKICAgICAgICBuYW1lOiAiZGVzY3JpcHRpb24iLAogICAgICAgIGNvbnRlbnQ6CiAgICAgICAgICAiU2VlIHRoZSB0b3AgYW5vbnltb3VzIHBhbmRhcyByYW5rZWQgYnkgcmVwdXRhdGlvbiBzY29yZSwgc3RhciByYXRpbmcsIGFuZCBQYW5kYSB0aWVyIGJhZGdlcy4iLAogICAgICB9LAogICAgICB7IHByb3BlcnR5OiAib2c6dGl0bGUiLCBjb250ZW50OiAiTGVhZGVyYm9hcmQg4oCUIENpcmNsZSBQYW5kYSIgfSwKICAgICAgewogICAgICAgIHByb3BlcnR5OiAib2c6ZGVzY3JpcHRpb24iLAogICAgICAgIGNvbnRlbnQ6ICJSZXB1dGF0aW9uIHNjb3Jlcywgc3RhciByYXRpbmdzLCBhbmQgUGFuZGEgdGllciBiYWRnZXMuIiwKICAgICAgfSwKICAgIF0sCiAgfSksCiAgY29tcG9uZW50OiBMZWFkZXJzUGFnZSwKfSk7Cgpjb25zdCBNRURBTFMgPSBbIvCfpYciLCAi8J+liCIsICLwn6WJIl07CgpmdW5jdGlvbiBMZWFkZXJzUGFnZSgpIHsKICBjb25zdCB7IGxlYWRlcmJvYXJkLCByZXB1dGF0aW9uLCBwb3N0cyB9ID0gdXNlU3RvcmUoKTsKCiAgY29uc3QgcmFua2VkID0gWy4uLmxlYWRlcmJvYXJkXS5zb3J0KChhLCBiKSA9PiBiLnNjb3JlIC0gYS5zY29yZSk7CiAgY29uc3QgbXlQb3N0cyA9IHBvc3RzLmZpbHRlcigocCkgPT4gcC5hdXRob3IgPT09ICJZb3UgKGFub255bW91cykiKS5sZW5ndGg7CiAgY29uc3QgaGFzQWN0aXZpdHkgPSByZXB1dGF0aW9uID4gMCB8fCBteVBvc3RzID4gMDsKICBjb25zdCBteVJhbmsgPSBoYXNBY3Rpdml0eSA/IHJhbmtlZC5maW5kSW5kZXgoKHIpID0+IHIuaWQgPT09ICJ5b3UiKSArIDEgOiAwOwoKICByZXR1cm4gKAogICAgPEFwcFNoZWxsCiAgICAgIHRpdGxlPSJMZWFkZXJib2FyZCIKICAgICAgc3VidGl0bGU9IlJlcHV0YXRpb24gaXMgZWFybmVkIGJ5IHBvc3RpbmcsIHJlcGx5aW5nLCBhbmQgc2hvd2luZyB1cC4iCiAgICA+CiAgICAgIHtoYXNBY3Rpdml0eSA/IDxkaXYgY2xhc3NOYW1lPSJwYW5kYS1wYW5lbCBtYi01IGZsZXggaXRlbXMtY2VudGVyIGdhcC0zIHJvdW5kZWQtMnhsIHAtNCI+CiAgICAgICAgPHNwYW4gY2xhc3NOYW1lPSJncmlkIHNpemUtMTIgc2hyaW5rLTAgcGxhY2UtaXRlbXMtY2VudGVyIHJvdW5kZWQtZnVsbCBiZy1wcmltYXJ5LzE1IGZvbnQtZGlzcGxheSB0ZXh0LWxnIGZvbnQtYm9sZCB0ZXh0LXByaW1hcnkgdGFidWxhci1udW1zIj4KICAgICAgICAgICN7bXlSYW5rIHx8ICLigJQifQogICAgICAgIDwvc3Bhbj4KICAgICAgICA8ZGl2IGNsYXNzTmFtZT0ibWluLXctMCBmbGV4LTEiPgogICAgICAgICAgPHAgY2xhc3NOYW1lPSJ0cnVuY2F0ZSBmb250LWRpc3BsYXkgdGV4dC1sZyBmb250LXNlbWlib2xkIj5Zb3VyIHJhbms8L3A+CiAgICAgICAgICA8cCBjbGFzc05hbWU9ImZsZXggaXRlbXMtY2VudGVyIGdhcC0xLjUgdGV4dC1zbSB0ZXh0LW11dGVkLWZvcmVncm91bmQiPgogICAgICAgICAgICA8U3RhciBjbGFzc05hbWU9InNpemUtMy41IGZpbGwtY3VycmVudCB0ZXh0LXByaW1hcnkiIC8+CiAgICAgICAgICAgIHtzdGFyUmF0aW5nKHJlcHV0YXRpb24pLnRvRml4ZWQoMSl9IMK3IHtyZXB1dGF0aW9ufSByZXAKICAgICAgICAgIDwvcD4KICAgICAgICA8L2Rpdj4KICAgICAgICA8VGllckJhZGdlIHNjb3JlPXtyZXB1dGF0aW9ufSAvPgogICAgICA8L2Rpdj4gOiBudWxsfQoKICAgICAgPGRpdiBjbGFzc05hbWU9InNwYWNlLXktMi41Ij4KICAgICAgICB7cmFua2VkLmxlbmd0aCA9PT0gMCA/IDxkaXYgY2xhc3NOYW1lPSJwYW5kYS1wYW5lbCByb3VuZGVkLTJ4bCBwLTggdGV4dC1jZW50ZXIgdGV4dC1zbSB0ZXh0LW11dGVkLWZvcmVncm91bmQiPk5vIHJhbmtpbmdzIHlldC48L2Rpdj4gOiBudWxsfQogICAgICAgIHtyYW5rZWQubWFwKChyLCBpKSA9PiAoCiAgICAgICAgICA8ZGl2CiAgICAgICAgICAgIGtleT17ci5pZH0KICAgICAgICAgICAgY2xhc3NOYW1lPXtgcGFuZGEtcGFuZWwgZ3JpZCBncmlkLWNvbHMtW2F1dG9fbWlubWF4KDAsMWZyKV9hdXRvXSBpdGVtcy1jZW50ZXIgZ2FwLTMgcm91bmRlZC0yeGwgcC0zLjUgJHsKICAgICAgICAgICAgICByLnlvdSA/ICJib3JkZXItcHJpbWFyeS81MCIgOiAiIgogICAgICAgICAgICB9YH0KICAgICAgICAgID4KICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPSJncmlkIHNpemUtOSBzaHJpbmstMCBwbGFjZS1pdGVtcy1jZW50ZXIgcm91bmRlZC1mdWxsIGJnLXNlY29uZGFyeSB0ZXh0LXNtIGZvbnQtc2VtaWJvbGQgdGFidWxhci1udW1zIj4KICAgICAgICAgICAgICB7TUVEQUxTW2ldID8/IGkgKyAxfQogICAgICAgICAgICA8L3NwYW4+CiAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJtaW4tdy0wIj4KICAgICAgICAgICAgICA8cCBjbGFzc05hbWU9ImZsZXggbWluLXctMCBpdGVtcy1jZW50ZXIgZ2FwLTIiPgogICAgICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPSJ0cnVuY2F0ZSBmb250LW1lZGl1bSI+e3IubmFtZX08L3NwYW4+CiAgICAgICAgICAgICAgICB7aSA9PT0gMCA/IDxDcm93biBjbGFzc05hbWU9InNpemUtMy41IHNocmluay0wIHRleHQtcHJpbWFyeSIgLz4gOiBudWxsfQogICAgICAgICAgICAgIDwvcD4KICAgICAgICAgICAgICA8cCBjbGFzc05hbWU9Im10LTAuNSBmbGV4IGl0ZW1zLWNlbnRlciBnYXAtMS41IHRydW5jYXRlIHRleHQteHMgdGV4dC1tdXRlZC1mb3JlZ3JvdW5kIj4KICAgICAgICAgICAgICAgIDxTdGFyIGNsYXNzTmFtZT0ic2l6ZS0zIGZpbGwtY3VycmVudCB0ZXh0LXByaW1hcnkiIC8+CiAgICAgICAgICAgICAgICB7c3RhclJhdGluZyhyLnNjb3JlKS50b0ZpeGVkKDEpfSDCtyB7ci5wb3N0c30gcG9zdHMKICAgICAgICAgICAgICA8L3A+CiAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleCBzaHJpbmstMCBmbGV4LWNvbCBpdGVtcy1lbmQgZ2FwLTEiPgogICAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT0iZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTEgZm9udC1kaXNwbGF5IHRleHQtc20gZm9udC1zZW1pYm9sZCB0YWJ1bGFyLW51bXMiPgogICAgICAgICAgICAgICAgPFRyb3BoeSBjbGFzc05hbWU9InNpemUtMy41IHRleHQtcHJpbWFyeSIgLz4KICAgICAgICAgICAgICAgIHtyLnNjb3JlfQogICAgICAgICAgICAgIDwvc3Bhbj4KICAgICAgICAgICAgICA8VGllckJhZGdlIHNjb3JlPXtyLnNjb3JlfSBjb21wYWN0IC8+CiAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgPC9kaXY+CiAgICAgICAgKSl9CiAgICAgIDwvZGl2PgogICAgPC9BcHBTaGVsbD4KICApOwp9Cg==
+import { createFileRoute } from "@tanstack/react-router";
+import { Crown, Star, Trophy } from "lucide-react";
+import { AppShell } from "@/components/AppShell";
+import { TierBadge } from "@/components/TierBadge";
+import { useStore, starRating } from "@/lib/store";
+
+export const Route = createFileRoute("/leaders")({
+  head: () => ({
+    meta: [
+      { title: "Leaderboard — Circle Panda" },
+      {
+        name: "description",
+        content:
+          "See the top anonymous pandas ranked by reputation score, star rating, and Panda tier badges.",
+      },
+      { property: "og:title", content: "Leaderboard — Circle Panda" },
+      {
+        property: "og:description",
+        content: "Reputation scores, star ratings, and Panda tier badges.",
+      },
+    ],
+  }),
+  component: LeadersPage,
+});
+
+const MEDALS = ["🥇", "🥈", "🥉"];
+
+function LeadersPage() {
+  const { leaderboard, reputation, posts } = useStore();
+
+  const ranked = [...leaderboard].sort((a, b) => b.score - a.score);
+  const myPosts = posts.filter((p) => p.author === "You (anonymous)").length;
+  const hasActivity = reputation > 0 || myPosts > 0;
+  const myRank = hasActivity ? ranked.findIndex((r) => r.id === "you") + 1 : 0;
+
+  return (
+    <AppShell
+      title="Leaderboard"
+      subtitle="Reputation is earned by posting, replying, and showing up."
+    >
+      {hasActivity ? <div className="panda-panel mb-5 flex items-center gap-3 rounded-2xl p-4">
+        <span className="grid size-12 shrink-0 place-items-center rounded-full bg-primary/15 font-display text-lg font-bold text-primary tabular-nums">
+          #{myRank || "—"}
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="truncate font-display text-lg font-semibold">Your rank</p>
+          <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+            <Star className="size-3.5 fill-current text-primary" />
+            {starRating(reputation).toFixed(1)} · {reputation} rep
+          </p>
+        </div>
+        <TierBadge score={reputation} />
+      </div> : null}
+
+      <div className="space-y-2.5">
+        {ranked.length === 0 ? <div className="panda-panel rounded-2xl p-8 text-center text-sm text-muted-foreground">No rankings yet.</div> : null}
+        {ranked.map((r, i) => (
+          <div
+            key={r.id}
+            className={`panda-panel grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 rounded-2xl p-3.5 ${
+              r.you ? "border-primary/50" : ""
+            }`}
+          >
+            <span className="grid size-9 shrink-0 place-items-center rounded-full bg-secondary text-sm font-semibold tabular-nums">
+              {MEDALS[i] ?? i + 1}
+            </span>
+            <div className="min-w-0">
+              <p className="flex min-w-0 items-center gap-2">
+                <span className="truncate font-medium">{r.name}</span>
+                {i === 0 ? <Crown className="size-3.5 shrink-0 text-primary" /> : null}
+              </p>
+              <p className="mt-0.5 flex items-center gap-1.5 truncate text-xs text-muted-foreground">
+                <Star className="size-3 fill-current text-primary" />
+                {starRating(r.score).toFixed(1)} · {r.posts} posts
+              </p>
+            </div>
+            <div className="flex shrink-0 flex-col items-end gap-1">
+              <span className="flex items-center gap-1 font-display text-sm font-semibold tabular-nums">
+                <Trophy className="size-3.5 text-primary" />
+                {r.score}
+              </span>
+              <TierBadge score={r.score} compact />
+            </div>
+          </div>
+        ))}
+      </div>
+    </AppShell>
+  );
+}
