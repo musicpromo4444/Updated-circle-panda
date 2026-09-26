@@ -1,1 +1,81 @@
-aW1wb3J0IHsgdXNlU3RhdGUgfSBmcm9tICJyZWFjdCI7CmltcG9ydCB7IENsYXBwZXJib2FyZCwgR2lmdCwgUGxheSwgU3BhcmtsZXMgfSBmcm9tICJsdWNpZGUtcmVhY3QiOwppbXBvcnQgeyBCdXR0b24gfSBmcm9tICJAL2NvbXBvbmVudHMvdWkvYnV0dG9uIjsKaW1wb3J0IHsgRGlhbG9nLCBEaWFsb2dDb250ZW50LCBEaWFsb2dEZXNjcmlwdGlvbiwgRGlhbG9nVGl0bGUgfSBmcm9tICJAL2NvbXBvbmVudHMvdWkvZGlhbG9nIjsKaW1wb3J0IHsgdG9hc3QgfSBmcm9tICJzb25uZXIiOwppbXBvcnQgeyB1c2VBY3RpdmVBZENyZWF0aXZlIH0gZnJvbSAiQC9jb21wb25lbnRzL2Fkcy9hZEludmVudG9yeVN0b3JhZ2UiOwppbXBvcnQgeyBub3RpZnlBZEV2ZW50IH0gZnJvbSAiQC9jb21wb25lbnRzL2Fkcy9wbGF0Zm9ybUFkQnJpZGdlIjsKCnR5cGUgUGhhc2UgPSAiaWRsZSIgfCAicGxheWluZyIgfCAiZG9uZSI7CgpleHBvcnQgZnVuY3Rpb24gU2V2ZW5EYXlQbGF5YWJsZUFkKCkgewogIGNvbnN0IGFkID0gdXNlQWN0aXZlQWRDcmVhdGl2ZSgic2V2ZW5fZGF5X3BsYXlhYmxlIik7CiAgY29uc3QgW29wZW4sIHNldE9wZW5dID0gdXNlU3RhdGUoZmFsc2UpOwogIGNvbnN0IFtwaGFzZSwgc2V0UGhhc2VdID0gdXNlU3RhdGU8UGhhc2U+KCJpZGxlIik7CiAgY29uc3QgW3Byb2dyZXNzLCBzZXRQcm9ncmVzc10gPSB1c2VTdGF0ZSgwKTsKCgogIGNvbnN0IGNsb3NlID0gKCkgPT4gewogICAgaWYgKCFjbGFpbWluZykgewogICAgICBzZXRPcGVuKGZhbHNlKTsKICAgICAgc2V0UGhhc2UoImlkbGUiKTsKICAgICAgc2V0UHJvZ3Jlc3MoMCk7CiAgICAgIH0KICB9OwoKICBjb25zdCBzdGFydCA9ICgpID0+IHsKICAgIGlmICghYWQ/LnZpZGVvVXJsKSByZXR1cm47CiAgICBzZXRPcGVuKHRydWUpOwogICAgc2V0UGhhc2UoInBsYXlpbmciKTsKICAgIHNldFByb2dyZXNzKDApOwogICAgdm9pZCBub3RpZnlBZEV2ZW50KCJpbXByZXNzaW9uIiwgeyBhZElkOiBhZC5pZCwgZm9ybWF0OiAidmlkZW8iIH0pOwogIH07CgogIHJldHVybiAoCiAgICA8PgogICAgICA8c2VjdGlvbiBjbGFzc05hbWU9InJvdW5kZWQtM3hsIGJvcmRlciBib3JkZXItcHJpbWFyeS8yMCBiZy1wcmltYXJ5LzUgcC00IHNtOnAtNSI+CiAgICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXggZmxleC1jb2wgZ2FwLTQgc206ZmxleC1yb3cgc206aXRlbXMtY2VudGVyIHNtOmp1c3RpZnktYmV0d2VlbiI+CiAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleCBpdGVtcy1zdGFydCBnYXAtMyI+CiAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT0iZ3JpZCBzaXplLTExIHNocmluay0wIHBsYWNlLWl0ZW1zLWNlbnRlciByb3VuZGVkLTJ4bCBiZy1wcmltYXJ5LzE1IHRleHQtcHJpbWFyeSI+PENsYXBwZXJib2FyZCBjbGFzc05hbWU9InNpemUtNSIgLz48L3NwYW4+CiAgICAgICAgICAgIDxkaXY+CiAgICAgICAgICAgICAgPHAgY2xhc3NOYW1lPSJ0ZXh0LVsxMXB4XSBmb250LWJvbGQgdXBwZXJjYXNlIHRyYWNraW5nLVswLjE2ZW1dIHRleHQtcHJpbWFyeSI+Qm9udXMgYWN0aXZpdHk8L3A+CiAgICAgICAgICAgICAgPGgzIGNsYXNzTmFtZT0ibXQtMSBmb250LWRpc3BsYXkgdGV4dC1sZyBmb250LWJvbGQiPlBsYXkgYSBzaG9ydCBzcG9uc29yZWQgYWQ8L2gzPgogICAgICAgICAgICAgIDxwIGNsYXNzTmFtZT0ibXQtMSB0ZXh0LXNtIHRleHQtbXV0ZWQtZm9yZWdyb3VuZCI+V2F0Y2ggdGhlIHNwb25zb3JlZCBwbGFjZW1lbnQgdG8gdGhlIGVuZC4gVGhpcyBhY3Rpdml0eSBpcyBhZC1vbmx5IGFuZCBkb2VzIG5vdCBhd2FyZCBCQy48L3A+CiAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgPC9kaXY+CiAgICAgICAgICA8QnV0dG9uIGNsYXNzTmFtZT0ic2hyaW5rLTAgZ2FwLTIiIG9uQ2xpY2s9e3N0YXJ0fSBkaXNhYmxlZD17IWFkPy52aWRlb1VybH0+PFBsYXkgY2xhc3NOYW1lPSJzaXplLTQiIC8+IHthZCA/ICJXYXRjaCAmIGVhcm4iIDogIlNwb25zb3JlZCBhZCB1bmF2YWlsYWJsZSJ9PC9CdXR0b24+CiAgICAgICAgPC9kaXY+CiAgICAgIDwvc2VjdGlvbj4KCiAgICAgIDxEaWFsb2cgb3Blbj17b3Blbn0gb25PcGVuQ2hhbmdlPXsodmFsdWUpID0+ICF2YWx1ZSAmJiBjbG9zZSgpfT4KICAgICAgICA8RGlhbG9nQ29udGVudCBjbGFzc05hbWU9Im1heC13LXNtIj4KICAgICAgICAgIDxEaWFsb2dUaXRsZSBjbGFzc05hbWU9ImZsZXggaXRlbXMtY2VudGVyIGdhcC0yIGZvbnQtZGlzcGxheSI+PENsYXBwZXJib2FyZCBjbGFzc05hbWU9InNpemUtNCB0ZXh0LXByaW1hcnkiIC8+IFNwb25zb3JlZCBwbGF5YWJsZTwvRGlhbG9nVGl0bGU+CiAgICAgICAgICA8RGlhbG9nRGVzY3JpcHRpb24+V2F0Y2ggdGhlIGNvbXBsZXRlIHBsYWNlbWVudCB0byB1bmxvY2sgdGhlIHJld2FyZC48L0RpYWxvZ0Rlc2NyaXB0aW9uPgogICAgICAgICAge3BoYXNlID09PSAicGxheWluZyIgJiYgYWQ/LnZpZGVvVXJsID8gKAogICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0ic3BhY2UteS00IHB5LTIiPgogICAgICAgICAgICAgIDx2aWRlbwogICAgICAgICAgICAgICAgc3JjPXthZC52aWRlb1VybH0KICAgICAgICAgICAgICAgIHBvc3Rlcj17YWQucG9zdGVyVXJsIHx8IGFkLmltYWdlVXJsfQogICAgICAgICAgICAgICAgYXV0b1BsYXkKICAgICAgICAgICAgICAgIG11dGVkCiAgICAgICAgICAgICAgICBwbGF5c0lubGluZQogICAgICAgICAgICAgICAgY2xhc3NOYW1lPSJoLTU2IHctZnVsbCByb3VuZGVkLTJ4bCBiZy1ibGFjayBvYmplY3QtY29udGFpbiIKICAgICAgICAgICAgICAgIG9uVGltZVVwZGF0ZT17KGUpID0+IHsgY29uc3Qgdj1lLmN1cnJlbnRUYXJnZXQ7IHNldFByb2dyZXNzKHYuZHVyYXRpb24gPyAodi5jdXJyZW50VGltZS92LmR1cmF0aW9uKSoxMDAgOiAwKTsgfX0KICAgICAgICAgICAgICAgIG9uRW5kZWQ9eygpID0+IHsgc2V0UHJvZ3Jlc3MoMTAwKTsgc2V0UGhhc2UoImRvbmUiKTsgfX0KICAgICAgICAgICAgICAvPgogICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJoLTIgb3ZlcmZsb3ctaGlkZGVuIHJvdW5kZWQtZnVsbCBiZy1zZWNvbmRhcnkiPjxkaXYgY2xhc3NOYW1lPSJoLWZ1bGwgYmctcHJpbWFyeSB0cmFuc2l0aW9uLWFsbCIgc3R5bGU9e3sgd2lkdGg6IGAke3Byb2dyZXNzfSVgIH19IC8+PC9kaXY+CiAgICAgICAgICAgICAgPHAgY2xhc3NOYW1lPSJ0ZXh0LWNlbnRlciB0ZXh0LXhzIHRleHQtbXV0ZWQtZm9yZWdyb3VuZCI+U3BvbnNvcmVkIHBsYWNlbWVudCDCtyB7YWQuc3BvbnNvcn08L3A+CiAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgKSA6IG51bGx9CiAgICAgICAgICB7cGhhc2UgPT09ICJkb25lIiA/ICgKICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9InNwYWNlLXktNCBweS0yIHRleHQtY2VudGVyIj4KICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0ibXgtYXV0byBncmlkIHNpemUtMjAgcGxhY2UtaXRlbXMtY2VudGVyIHJvdW5kZWQtZnVsbCBiZy1wcmltYXJ5LzE1IHRleHQtcHJpbWFyeSI+PEdpZnQgY2xhc3NOYW1lPSJzaXplLTkiIC8+PC9kaXY+CiAgICAgICAgICAgICAgPHAgY2xhc3NOYW1lPSJ0ZXh0LXNtIHRleHQtbXV0ZWQtZm9yZWdyb3VuZCI+VGhlIGFkIGlzIGNvbXBsZXRlLiBDbGFpbSB5b3VyIHNlcnZlci12ZXJpZmllZCByZXdhcmQuPC9wPgogICAgICAgICAgICAgIDxCdXR0b24gY2xhc3NOYW1lPSJ3LWZ1bGwgZ2FwLTIiIG9uQ2xpY2s9e2Nsb3NlfT48U3BhcmtsZXMgY2xhc3NOYW1lPSJzaXplLTQiIC8+IENvbnRpbnVlPC9CdXR0b24+CiAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgKSA6IG51bGx9CiAgICAgICAgPC9EaWFsb2dDb250ZW50PgogICAgICA8L0RpYWxvZz4KICAgIDwvPgogICk7Cn0K
+import { useState } from "react";
+import { Clapperboard, Gift, Play, Sparkles } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
+import { toast } from "sonner";
+import { useActiveAdCreative } from "@/components/ads/adInventoryStorage";
+import { notifyAdEvent } from "@/components/ads/platformAdBridge";
+
+type Phase = "idle" | "playing" | "done";
+
+export function SevenDayPlayableAd() {
+  const ad = useActiveAdCreative("seven_day_playable");
+  const [open, setOpen] = useState(false);
+  const [phase, setPhase] = useState<Phase>("idle");
+  const [progress, setProgress] = useState(0);
+
+
+  const close = () => {
+    if (!claiming) {
+      setOpen(false);
+      setPhase("idle");
+      setProgress(0);
+      }
+  };
+
+  const start = () => {
+    if (!ad?.videoUrl) return;
+    setOpen(true);
+    setPhase("playing");
+    setProgress(0);
+    void notifyAdEvent("impression", { adId: ad.id, format: "video" });
+  };
+
+  return (
+    <>
+      <section className="rounded-3xl border border-primary/20 bg-primary/5 p-4 sm:p-5">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-start gap-3">
+            <span className="grid size-11 shrink-0 place-items-center rounded-2xl bg-primary/15 text-primary"><Clapperboard className="size-5" /></span>
+            <div>
+              <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-primary">Bonus activity</p>
+              <h3 className="mt-1 font-display text-lg font-bold">Play a short sponsored ad</h3>
+              <p className="mt-1 text-sm text-muted-foreground">Watch the sponsored placement to the end. This activity is ad-only and does not award BC.</p>
+            </div>
+          </div>
+          <Button className="shrink-0 gap-2" onClick={start} disabled={!ad?.videoUrl}><Play className="size-4" /> {ad ? "Watch & earn" : "Sponsored ad unavailable"}</Button>
+        </div>
+      </section>
+
+      <Dialog open={open} onOpenChange={(value) => !value && close()}>
+        <DialogContent className="max-w-sm">
+          <DialogTitle className="flex items-center gap-2 font-display"><Clapperboard className="size-4 text-primary" /> Sponsored playable</DialogTitle>
+          <DialogDescription>Watch the complete placement to unlock the reward.</DialogDescription>
+          {phase === "playing" && ad?.videoUrl ? (
+            <div className="space-y-4 py-2">
+              <video
+                src={ad.videoUrl}
+                poster={ad.posterUrl || ad.imageUrl}
+                autoPlay
+                muted
+                playsInline
+                className="h-56 w-full rounded-2xl bg-black object-contain"
+                onTimeUpdate={(e) => { const v=e.currentTarget; setProgress(v.duration ? (v.currentTime/v.duration)*100 : 0); }}
+                onEnded={() => { setProgress(100); setPhase("done"); }}
+              />
+              <div className="h-2 overflow-hidden rounded-full bg-secondary"><div className="h-full bg-primary transition-all" style={{ width: `${progress}%` }} /></div>
+              <p className="text-center text-xs text-muted-foreground">Sponsored placement Â· {ad.sponsor}</p>
+            </div>
+          ) : null}
+          {phase === "done" ? (
+            <div className="space-y-4 py-2 text-center">
+              <div className="mx-auto grid size-20 place-items-center rounded-full bg-primary/15 text-primary"><Gift className="size-9" /></div>
+              <p className="text-sm text-muted-foreground">The ad is complete. Claim your server-verified reward.</p>
+              <Button className="w-full gap-2" onClick={close}><Sparkles className="size-4" /> Continue</Button>
+            </div>
+          ) : null}
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+}
