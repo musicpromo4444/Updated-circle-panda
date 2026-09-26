@@ -1,1 +1,115 @@
-aW1wb3J0IHsgdXNlRWZmZWN0LCB1c2VTdGF0ZSwgdXNlQ2FsbGJhY2sgfSBmcm9tICJyZWFjdCI7CmltcG9ydCB7IHN1cGFiYXNlIH0gZnJvbSAiQC9pbnRlZ3JhdGlvbnMvc3VwYWJhc2UvY2xpZW50IjsKCmV4cG9ydCBjb25zdCBDUF9BVVRIX1VTRVJfS0VZID0gImNwX2F1dGhfdXNlciI7CmV4cG9ydCBjb25zdCBBVVRIX0NIQU5HRV9FVkVOVCA9ICJjcF9hdXRoX2NoYW5nZWQiOwoKZXhwb3J0IGludGVyZmFjZSBBdXRoVXNlciB7CiAgaWQ6IHN0cmluZzsKICBlbWFpbDogc3RyaW5nIHwgbnVsbDsKICBuYW1lPzogc3RyaW5nOwogIHJvbGU/OiAiYWRtaW4iIHwgInVzZXIiIHwgc3RyaW5nOwp9CgovKiogUmV0cmlldmUgY3VycmVudGx5IHN0b3JlZCB1c2VyIGZyb20gbG9jYWxTdG9yYWdlICovCmV4cG9ydCBmdW5jdGlvbiBnZXRTdG9yZWRVc2VyKCk6IEF1dGhVc2VyIHwgbnVsbCB7CiAgaWYgKHR5cGVvZiB3aW5kb3cgPT09ICJ1bmRlZmluZWQiKSByZXR1cm4gbnVsbDsKICB0cnkgewogICAgY29uc3QgcmF3ID0gbG9jYWxTdG9yYWdlLmdldEl0ZW0oQ1BfQVVUSF9VU0VSX0tFWSk7CiAgICBpZiAoIXJhdykgcmV0dXJuIG51bGw7CiAgICByZXR1cm4gSlNPTi5wYXJzZShyYXcpIGFzIEF1dGhVc2VyOwogIH0gY2F0Y2ggewogICAgcmV0dXJuIG51bGw7CiAgfQp9CgovKiogUGVyc2lzdCB1c2VyIHRvIGxvY2FsU3RvcmFnZSBhbmQgZGlzcGF0Y2ggZXZlbnQgKi8KZXhwb3J0IGZ1bmN0aW9uIHNldFN0b3JlZFVzZXIodXNlcjogQXV0aFVzZXIgfCBudWxsKTogdm9pZCB7CiAgaWYgKHR5cGVvZiB3aW5kb3cgPT09ICJ1bmRlZmluZWQiKSByZXR1cm47CiAgaWYgKHVzZXIpIHsKICAgIGxvY2FsU3RvcmFnZS5zZXRJdGVtKENQX0FVVEhfVVNFUl9LRVksIEpTT04uc3RyaW5naWZ5KHVzZXIpKTsKICB9IGVsc2UgewogICAgbG9jYWxTdG9yYWdlLnJlbW92ZUl0ZW0oQ1BfQVVUSF9VU0VSX0tFWSk7CiAgfQogIHdpbmRvdy5kaXNwYXRjaEV2ZW50KG5ldyBDdXN0b21FdmVudChBVVRIX0NIQU5HRV9FVkVOVCwgeyBkZXRhaWw6IHVzZXIgfSkpOwp9CgovKioKICogSG9vayBwcm92aWRpbmcgdGhlIHJlYWN0aXZlIGN1cnJlbnQgdXNlciwgbG9hZGluZyBzdGF0ZSwKICogYW5kIHF1aWNrIGxvZ2luL2xvZ291dCBjb250cm9scyBmb3IgbWFzdGVyIGFkbWluIGFuZCBzdHVkZW50IGFjY291bnRzLgogKi8KZXhwb3J0IGZ1bmN0aW9uIHVzZUN1cnJlbnRVc2VyKCkgewogIGNvbnN0IFt1c2VyLCBzZXRVc2VyXSA9IHVzZVN0YXRlPEF1dGhVc2VyIHwgbnVsbD4oKCkgPT4gZ2V0U3RvcmVkVXNlcigpKTsKICBjb25zdCBbbG9hZGluZywgc2V0TG9hZGluZ10gPSB1c2VTdGF0ZTxib29sZWFuPih0cnVlKTsKCiAgY29uc3Qgc3luY1VzZXIgPSB1c2VDYWxsYmFjaygoKSA9PiB7CiAgICBjb25zdCBsb2NhbCA9IGdldFN0b3JlZFVzZXIoKTsKICAgIHNldFVzZXIobG9jYWwpOwogICAgc2V0TG9hZGluZyhmYWxzZSk7CiAgfSwgW10pOwoKICB1c2VFZmZlY3QoKCkgPT4gewogICAgc3luY1VzZXIoKTsKCiAgICAvLyBVc2UgU3VwYWJhc2UgQXV0aCBhcyB0aGUgc291cmNlIG9mIHRydXRoLiBBbm9ueW1vdXMgc2Vzc2lvbnMga2VlcCBDaXJjbGUgUGFuZGEKICAgIC8vIHByaXZhdGUtYnktZGVmYXVsdCB3aGlsZSBzdGlsbCBnaXZpbmcgZXZlcnkgZGV2aWNlIGEgcmVhbCBkYXRhYmFzZSBpZGVudGl0eS4KICAgIHZvaWQgc3VwYWJhc2UuYXV0aAogICAgICAuZ2V0U2Vzc2lvbigpCiAgICAgIC50aGVuKGFzeW5jICh7IGRhdGE6IHNlc3Npb25EYXRhIH0pID0+IHsKICAgICAgICBpZiAoIXNlc3Npb25EYXRhLnNlc3Npb24pIHsKICAgICAgICAgIGNvbnN0IHsgZGF0YSB9ID0gYXdhaXQgc3VwYWJhc2UuYXV0aC5zaWduSW5Bbm9ueW1vdXNseSgpOwogICAgICAgICAgaWYgKGRhdGEudXNlcikgewogICAgICAgICAgICBjb25zdCBzdXBhVXNlcjogQXV0aFVzZXIgPSB7IGlkOiBkYXRhLnVzZXIuaWQsIGVtYWlsOiBudWxsLCBuYW1lOiAiWW91IChhbm9ueW1vdXMpIiwgcm9sZTogInVzZXIiIH07CiAgICAgICAgICAgIHNldFN0b3JlZFVzZXIoc3VwYVVzZXIpOwogICAgICAgICAgICBzZXRVc2VyKHN1cGFVc2VyKTsKICAgICAgICAgIH0KICAgICAgICB9CiAgICAgIH0pCiAgICAgIC5jYXRjaCgoKSA9PiB7fSkKICAgICAgLnRoZW4oKCkgPT4gc3VwYWJhc2UuYXV0aAogICAgICAuZ2V0VXNlcigpKQogICAgICAudGhlbigoeyBkYXRhIH0pID0+IHsKICAgICAgICBpZiAoZGF0YT8udXNlcj8uZW1haWwpIHsKICAgICAgICAgIGNvbnN0IHN1cGFVc2VyOiBBdXRoVXNlciA9IHsKICAgICAgICAgICAgaWQ6IGRhdGEudXNlci5pZCwKICAgICAgICAgICAgZW1haWw6IGRhdGEudXNlci5lbWFpbCwKICAgICAgICAgICAgbmFtZTogKGRhdGEudXNlci51c2VyX21ldGFkYXRhPy5bIm5hbWUiXSBhcyBzdHJpbmcpIHx8IGRhdGEudXNlci5lbWFpbC5zcGxpdCgiQCIpWzBdLAogICAgICAgICAgICByb2xlOiAidXNlciIsCiAgICAgICAgICB9OwogICAgICAgICAgc2V0U3RvcmVkVXNlcihzdXBhVXNlcik7CiAgICAgICAgICBzZXRVc2VyKHN1cGFVc2VyKTsKICAgICAgICB9CiAgICAgIH0pCiAgICAgIC5jYXRjaCgoKSA9PiB7CiAgICAgICAgLy8gRmFsbGJhY2sgdG8gbG9jYWwgc2Vzc2lvbgogICAgICB9KQogICAgICAuZmluYWxseSgoKSA9PiB7CiAgICAgICAgc2V0TG9hZGluZyhmYWxzZSk7CiAgICAgIH0pOwoKICAgIGNvbnN0IGhhbmRsZUF1dGhDaGFuZ2UgPSAoZTogRXZlbnQpID0+IHsKICAgICAgY29uc3QgY3VzdG9tRXZlbnQgPSBlIGFzIEN1c3RvbUV2ZW50PEF1dGhVc2VyIHwgbnVsbD47CiAgICAgIHNldFVzZXIoY3VzdG9tRXZlbnQuZGV0YWlsID8/IGdldFN0b3JlZFVzZXIoKSk7CiAgICB9OwoKICAgIHdpbmRvdy5hZGRFdmVudExpc3RlbmVyKEFVVEhfQ0hBTkdFX0VWRU5ULCBoYW5kbGVBdXRoQ2hhbmdlKTsKICAgIHdpbmRvdy5hZGRFdmVudExpc3RlbmVyKCJzdG9yYWdlIiwgc3luY1VzZXIpOwoKICAgIHJldHVybiAoKSA9PiB7CiAgICAgIHdpbmRvdy5yZW1vdmVFdmVudExpc3RlbmVyKEFVVEhfQ0hBTkdFX0VWRU5ULCBoYW5kbGVBdXRoQ2hhbmdlKTsKICAgICAgd2luZG93LnJlbW92ZUV2ZW50TGlzdGVuZXIoInN0b3JhZ2UiLCBzeW5jVXNlcik7CiAgICB9OwogIH0sIFtzeW5jVXNlcl0pOwoKICBjb25zdCBsb2dvdXQgPSB1c2VDYWxsYmFjaygoKSA9PiB7CiAgICBzZXRTdG9yZWRVc2VyKG51bGwpOwogICAgc2V0VXNlcihudWxsKTsKICAgIHZvaWQgc3VwYWJhc2UuYXV0aC5zaWduT3V0KCkuY2F0Y2goKCkgPT4ge30pOwogIH0sIFtdKTsKCiAgcmV0dXJuIHsKICAgIHVzZXIsCiAgICBsb2FkaW5nLAogICAgbG9nb3V0LAogIH07Cn0K
+import { useEffect, useState, useCallback } from "react";
+import { supabase } from "@/integrations/supabase/client";
+
+export const CP_AUTH_USER_KEY = "cp_auth_user";
+export const AUTH_CHANGE_EVENT = "cp_auth_changed";
+
+export interface AuthUser {
+  id: string;
+  email: string | null;
+  name?: string;
+  role?: "admin" | "user" | string;
+}
+
+/** Retrieve currently stored user from localStorage */
+export function getStoredUser(): AuthUser | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = localStorage.getItem(CP_AUTH_USER_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw) as AuthUser;
+  } catch {
+    return null;
+  }
+}
+
+/** Persist user to localStorage and dispatch event */
+export function setStoredUser(user: AuthUser | null): void {
+  if (typeof window === "undefined") return;
+  if (user) {
+    localStorage.setItem(CP_AUTH_USER_KEY, JSON.stringify(user));
+  } else {
+    localStorage.removeItem(CP_AUTH_USER_KEY);
+  }
+  window.dispatchEvent(new CustomEvent(AUTH_CHANGE_EVENT, { detail: user }));
+}
+
+/**
+ * Hook providing the reactive current user, loading state,
+ * and quick login/logout controls for master admin and student accounts.
+ */
+export function useCurrentUser() {
+  const [user, setUser] = useState<AuthUser | null>(() => getStoredUser());
+  const [loading, setLoading] = useState<boolean>(true);
+
+  const syncUser = useCallback(() => {
+    const local = getStoredUser();
+    setUser(local);
+    setLoading(false);
+  }, []);
+
+  useEffect(() => {
+    syncUser();
+
+    // Use Supabase Auth as the source of truth. Anonymous sessions keep Circle Panda
+    // private-by-default while still giving every device a real database identity.
+    void supabase.auth
+      .getSession()
+      .then(async ({ data: sessionData }) => {
+        if (!sessionData.session) {
+          const { data } = await supabase.auth.signInAnonymously();
+          if (data.user) {
+            const supaUser: AuthUser = { id: data.user.id, email: null, name: "You (anonymous)", role: "user" };
+            setStoredUser(supaUser);
+            setUser(supaUser);
+          }
+        }
+      })
+      .catch(() => {})
+      .then(() => supabase.auth
+      .getUser())
+      .then(({ data }) => {
+        if (data?.user?.email) {
+          const supaUser: AuthUser = {
+            id: data.user.id,
+            email: data.user.email,
+            name: (data.user.user_metadata?.["name"] as string) || data.user.email.split("@")[0],
+            role: "user",
+          };
+          setStoredUser(supaUser);
+          setUser(supaUser);
+        }
+      })
+      .catch(() => {
+        // Fallback to local session
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+
+    const handleAuthChange = (e: Event) => {
+      const customEvent = e as CustomEvent<AuthUser | null>;
+      setUser(customEvent.detail ?? getStoredUser());
+    };
+
+    window.addEventListener(AUTH_CHANGE_EVENT, handleAuthChange);
+    window.addEventListener("storage", syncUser);
+
+    return () => {
+      window.removeEventListener(AUTH_CHANGE_EVENT, handleAuthChange);
+      window.removeEventListener("storage", syncUser);
+    };
+  }, [syncUser]);
+
+  const logout = useCallback(() => {
+    setStoredUser(null);
+    setUser(null);
+    void supabase.auth.signOut().catch(() => {});
+  }, []);
+
+  return {
+    user,
+    loading,
+    logout,
+  };
+}

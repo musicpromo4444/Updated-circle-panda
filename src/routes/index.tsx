@@ -1,1 +1,20 @@
-aW1wb3J0IHsgY3JlYXRlRmlsZVJvdXRlIH0gZnJvbSAiQHRhbnN0YWNrL3JlYWN0LXJvdXRlciI7CmltcG9ydCB7IENvbmZlc3Npb25zUGFnZSB9IGZyb20gIkAvcm91dGVzL2NvbmZlc3Npb25zIjsKCmV4cG9ydCBjb25zdCBSb3V0ZSA9IGNyZWF0ZUZpbGVSb3V0ZSgiLyIpKHsKICBoZWFkOiAoKSA9PiAoewogICAgbWV0YTogWwogICAgICB7IHRpdGxlOiAiQ2lyY2xlIFBhbmRhIOKAlCBDb25mZXNzaW9ucyIgfSwKICAgICAgewogICAgICAgIG5hbWU6ICJkZXNjcmlwdGlvbiIsCiAgICAgICAgY29udGVudDogIkNpcmNsZSBQYW5kYSBhbm9ueW1vdXMgY29uZmVzc2lvbnMgYW5kIGNvbW11bml0eSBmZWVkLiIsCiAgICAgIH0sCiAgICAgIHsgcHJvcGVydHk6ICJvZzp0aXRsZSIsIGNvbnRlbnQ6ICJDaXJjbGUgUGFuZGEg4oCUIENvbmZlc3Npb25zIiB9LAogICAgICB7CiAgICAgICAgcHJvcGVydHk6ICJvZzpkZXNjcmlwdGlvbiIsCiAgICAgICAgY29udGVudDogIlNoYXJlIGFub255bW91c2x5LCByZWFjdCwgYW5kIGV4cGxvcmUgQ2lyY2xlIFBhbmRhLiIsCiAgICAgIH0sCiAgICBdLAogIH0pLAogIGNvbXBvbmVudDogQ29uZmVzc2lvbnNQYWdlLAp9KTsK
+import { createFileRoute } from "@tanstack/react-router";
+import { ConfessionsPage } from "@/routes/confessions";
+
+export const Route = createFileRoute("/")({
+  head: () => ({
+    meta: [
+      { title: "Circle Panda — Confessions" },
+      {
+        name: "description",
+        content: "Circle Panda anonymous confessions and community feed.",
+      },
+      { property: "og:title", content: "Circle Panda — Confessions" },
+      {
+        property: "og:description",
+        content: "Share anonymously, react, and explore Circle Panda.",
+      },
+    ],
+  }),
+  component: ConfessionsPage,
+});
