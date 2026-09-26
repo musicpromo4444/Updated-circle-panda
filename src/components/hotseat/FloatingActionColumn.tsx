@@ -1,1 +1,148 @@
-aW1wb3J0IHsgQ2hlY2ssIEdpZnQsIEhlYXJ0LCBNZXNzYWdlQ2lyY2xlLCBQbHVzLCBTaGFyZTIgfSBmcm9tICJsdWNpZGUtcmVhY3QiOwppbXBvcnQgeyB1c2VTdGF0ZSB9IGZyb20gInJlYWN0IjsKaW1wb3J0IHsgdXNlU3RvcmUgfSBmcm9tICJAL2xpYi9zdG9yZSI7CgpleHBvcnQgZnVuY3Rpb24gRmxvYXRpbmdBY3Rpb25Db2x1bW4oewogIGxpa2VDb3VudCwKICBjb21tZW50Q291bnQsCiAgaXNGb2xsb3dpbmcsCiAgb25Ub2dnbGVGb2xsb3csCiAgb25PcGVuSG9zdFByb2ZpbGUsCiAgb25MaWtlLAogIG9uT3BlbkNvbW1lbnRzLAogIG9uT3BlbkdpZnRzLAogIG9uU2hhcmUsCn06IHsKICBsaWtlQ291bnQ6IG51bWJlcjsKICBjb21tZW50Q291bnQ6IG51bWJlcjsKICBpc0ZvbGxvd2luZzogYm9vbGVhbjsKICBvblRvZ2dsZUZvbGxvdzogKCkgPT4gdm9pZDsKICBvbk9wZW5Ib3N0UHJvZmlsZTogKCkgPT4gdm9pZDsKICBvbkxpa2U6IChlOiBSZWFjdC5Nb3VzZUV2ZW50PEhUTUxCdXR0b25FbGVtZW50PikgPT4gdm9pZDsKICBvbk9wZW5Db21tZW50czogKCkgPT4gdm9pZDsKICBvbk9wZW5HaWZ0czogKCkgPT4gdm9pZDsKICBvblNoYXJlOiAoKSA9PiB2b2lkOwp9KSB7CiAgY29uc3QgeyBjb2lucyB9ID0gdXNlU3RvcmUoKTsKICBjb25zdCBbaGVhcnRQdWxzaW5nLCBzZXRIZWFydFB1bHNpbmddID0gdXNlU3RhdGUoZmFsc2UpOwoKICBjb25zdCBmb3JtYXROdW1iZXIgPSAobnVtOiBudW1iZXIpID0+IHsKICAgIGlmIChudW0gPj0gMV8wMDBfMDAwKSByZXR1cm4gYCR7KG51bSAvIDFfMDAwXzAwMCkudG9GaXhlZCgxKX1NYDsKICAgIGlmIChudW0gPj0gMV8wMDApIHJldHVybiBgJHsobnVtIC8gMV8wMDApLnRvRml4ZWQoMSl9a2A7CiAgICByZXR1cm4gbnVtLnRvU3RyaW5nKCk7CiAgfTsKCiAgY29uc3QgaGFuZGxlSGVhcnRDbGljayA9IChlOiBSZWFjdC5Nb3VzZUV2ZW50PEhUTUxCdXR0b25FbGVtZW50PikgPT4gewogICAgc2V0SGVhcnRQdWxzaW5nKHRydWUpOwogICAgc2V0VGltZW91dCgoKSA9PiBzZXRIZWFydFB1bHNpbmcoZmFsc2UpLCAzMDApOwogICAgb25MaWtlKGUpOwogIH07CgogIHJldHVybiAoCiAgICA8ZGl2CiAgICAgIGlkPSJob3Qtc2l0LWZsb2F0aW5nLWFjdGlvbi1iYXIiCiAgICAgIGNsYXNzTmFtZT0iYWJzb2x1dGUgcmlnaHQtMy41IGJvdHRvbS0yNCBzbTpib3R0b20tMjAgei0zMCBmbGV4IGZsZXgtY29sIGl0ZW1zLWNlbnRlciBnYXAtNCBzZWxlY3Qtbm9uZSBwb2ludGVyLWV2ZW50cy1hdXRvIgogICAgPgogICAgICB7LyogMS4gUHJvZmlsZS9Ib3N0IEljb24gKFNob3dzIGhvc3QgYXZhdGFyIHdpdGggYSAiKyIgZm9sbG93IGJ1dHRvbikgKi99CiAgICAgIDxkaXYgY2xhc3NOYW1lPSJyZWxhdGl2ZSBmbGV4IGZsZXgtY29sIGl0ZW1zLWNlbnRlciI+CiAgICAgICAgPGJ1dHRvbgogICAgICAgICAgdHlwZT0iYnV0dG9uIgogICAgICAgICAgb25DbGljaz17b25PcGVuSG9zdFByb2ZpbGV9CiAgICAgICAgICBhcmlhLWxhYmVsPSJWaWV3IGxpdmUgaG9zdCBwcm9maWxlIgogICAgICAgICAgY2xhc3NOYW1lPSJyZWxhdGl2ZSBncmlkIHNpemUtMTIgcGxhY2UtaXRlbXMtY2VudGVyIHJvdW5kZWQtZnVsbCBib3JkZXItMiBib3JkZXItb3JhbmdlLTUwMC84MCBiZy1uZXV0cmFsLTkwMCB0ZXh0LTJ4bCBzaGFkb3ctWzBfMF8yMHB4X3JnYmEoMjM0LDg4LDEyLDAuNDUpXSB0cmFuc2l0aW9uLXRyYW5zZm9ybSBob3ZlcjpzY2FsZS0xMDUgYWN0aXZlOnNjYWxlLTk1IGN1cnNvci1wb2ludGVyIgogICAgICAgID4KICAgICAgICAgIPCfkLwKICAgICAgICA8L2J1dHRvbj4KCiAgICAgICAgey8qIFBsdXMgLyBGb2xsb3cgYmFkZ2UgcG9zaXRpb25lZCBvdmVyIHRoZSBib3R0b20gb2YgdGhlIGF2YXRhciAqL30KICAgICAgICA8YnV0dG9uCiAgICAgICAgICB0eXBlPSJidXR0b24iCiAgICAgICAgICBvbkNsaWNrPXsoZSkgPT4gewogICAgICAgICAgICBlLnN0b3BQcm9wYWdhdGlvbigpOwogICAgICAgICAgICBvblRvZ2dsZUZvbGxvdygpOwogICAgICAgICAgfX0KICAgICAgICAgIGFyaWEtbGFiZWw9e2lzRm9sbG93aW5nID8gIkZvbGxvd2luZyBob3N0IiA6ICJGb2xsb3cgaG9zdCJ9CiAgICAgICAgICBjbGFzc05hbWU9e2BhYnNvbHV0ZSAtYm90dG9tLTIgei0xMCBncmlkIHNpemUtNSBwbGFjZS1pdGVtcy1jZW50ZXIgcm91bmRlZC1mdWxsIHRleHQtWzEwcHhdIGZvbnQtYmxhY2sgdGV4dC13aGl0ZSBzaGFkb3ctbWQgdHJhbnNpdGlvbi1hbGwgY3Vyc29yLXBvaW50ZXIgJHsKICAgICAgICAgICAgaXNGb2xsb3dpbmcKICAgICAgICAgICAgICA/ICJiZy1lbWVyYWxkLTYwMCBzY2FsZS0xMDAgcmluZy0yIHJpbmctbmV1dHJhbC05MDAiCiAgICAgICAgICAgICAgOiAiYmctcmVkLTYwMCBob3ZlcjpiZy1yZWQtNTAwIGhvdmVyOnNjYWxlLTExMCBhY3RpdmU6c2NhbGUtOTAiCiAgICAgICAgICB9YH0KICAgICAgICA+CiAgICAgICAgICB7aXNGb2xsb3dpbmcgPyAoCiAgICAgICAgICAgIDxDaGVjayBjbGFzc05hbWU9InNpemUtMyBzdHJva2UtWzNdIiAvPgogICAgICAgICAgKSA6ICgKICAgICAgICAgICAgPFBsdXMgY2xhc3NOYW1lPSJzaXplLTMuNSBzdHJva2UtWzNdIiAvPgogICAgICAgICAgKX0KICAgICAgICA8L2J1dHRvbj4KICAgICAgPC9kaXY+CgogICAgICB7LyogMi4gSGVhcnQvTGlrZSBJY29uIChEaXNwbGF5cyByZWFsLXRpbWUgbGlrZSBjb3VudCB3aXRoIGZsb2F0aW5nIGhlYXJ0IGFuaW1hdGlvbiBvbiB0YXApICovfQogICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleCBmbGV4LWNvbCBpdGVtcy1jZW50ZXIgZ2FwLTEiPgogICAgICAgIDxidXR0b24KICAgICAgICAgIHR5cGU9ImJ1dHRvbiIKICAgICAgICAgIG9uQ2xpY2s9e2hhbmRsZUhlYXJ0Q2xpY2t9CiAgICAgICAgICBhcmlhLWxhYmVsPSJMaWtlIEhvdCBTZWF0IGxpdmUgc3RyZWFtIgogICAgICAgICAgY2xhc3NOYW1lPXtgZ3JpZCBzaXplLTEyIHBsYWNlLWl0ZW1zLWNlbnRlciByb3VuZGVkLWZ1bGwgYm9yZGVyIGJvcmRlci13aGl0ZS8yMCBiZy1ibGFjay80NSB0ZXh0LXdoaXRlIGJhY2tkcm9wLWJsdXItbWQgc2hhZG93LWxnIHRyYW5zaXRpb24tdHJhbnNmb3JtIGhvdmVyOmJnLWJsYWNrLzY1IGN1cnNvci1wb2ludGVyICR7CiAgICAgICAgICAgIGhlYXJ0UHVsc2luZyA/ICJzY2FsZS0xMjUiIDogImhvdmVyOnNjYWxlLTEwNSBhY3RpdmU6c2NhbGUtOTAiCiAgICAgICAgICB9YH0KICAgICAgICA+CiAgICAgICAgICA8SGVhcnQKICAgICAgICAgICAgY2xhc3NOYW1lPXtgc2l6ZS02IHRyYW5zaXRpb24tY29sb3JzICR7CiAgICAgICAgICAgICAgaGVhcnRQdWxzaW5nID8gInRleHQtcmVkLTUwMCBmaWxsLXJlZC01MDAiIDogInRleHQtd2hpdGUgZmlsbC13aGl0ZS8xMCIKICAgICAgICAgICAgfWB9CiAgICAgICAgICAvPgogICAgICAgIDwvYnV0dG9uPgogICAgICAgIDxzcGFuIGNsYXNzTmFtZT0iZm9udC1kaXNwbGF5IHRleHQtWzExcHhdIGZvbnQtYm9sZCB0ZXh0LXdoaXRlIGRyb3Atc2hhZG93LVswXzFweF8zcHhfcmdiYSgwLDAsMCwwLjgpXSB0YWJ1bGFyLW51bXMiPgogICAgICAgICAge2Zvcm1hdE51bWJlcihsaWtlQ291bnQpfQogICAgICAgIDwvc3Bhbj4KICAgICAgPC9kaXY+CgogICAgICB7LyogMy4gQ29tbWVudHMgSWNvbiAoRGlzcGxheXMgY29tbWVudCBjb3VudDsgb3BlbnMgbGl2ZSBjaGF0IG92ZXJsYXkgZHJhd2VyKSAqL30KICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXggZmxleC1jb2wgaXRlbXMtY2VudGVyIGdhcC0xIj4KICAgICAgICA8YnV0dG9uCiAgICAgICAgICB0eXBlPSJidXR0b24iCiAgICAgICAgICBvbkNsaWNrPXtvbk9wZW5Db21tZW50c30KICAgICAgICAgIGFyaWEtbGFiZWw9Ik9wZW4gbGl2ZSBjb21tZW50cyBhbmQgcXVlc3Rpb25zIgogICAgICAgICAgY2xhc3NOYW1lPSJncmlkIHNpemUtMTIgcGxhY2UtaXRlbXMtY2VudGVyIHJvdW5kZWQtZnVsbCBib3JkZXIgYm9yZGVyLXdoaXRlLzIwIGJnLWJsYWNrLzQ1IHRleHQtd2hpdGUgYmFja2Ryb3AtYmx1ci1tZCBzaGFkb3ctbGcgdHJhbnNpdGlvbi10cmFuc2Zvcm0gaG92ZXI6c2NhbGUtMTA1IGhvdmVyOmJnLWJsYWNrLzY1IGFjdGl2ZTpzY2FsZS05MCBjdXJzb3ItcG9pbnRlciIKICAgICAgICA+CiAgICAgICAgICA8TWVzc2FnZUNpcmNsZSBjbGFzc05hbWU9InNpemUtNiB0ZXh0LXdoaXRlIiAvPgogICAgICAgIDwvYnV0dG9uPgogICAgICAgIDxzcGFuIGNsYXNzTmFtZT0iZm9udC1kaXNwbGF5IHRleHQtWzExcHhdIGZvbnQtYm9sZCB0ZXh0LXdoaXRlIGRyb3Atc2hhZG93LVswXzFweF8zcHhfcmdiYSgwLDAsMCwwLjgpXSB0YWJ1bGFyLW51bXMiPgogICAgICAgICAge2NvbW1lbnRDb3VudH0KICAgICAgICA8L3NwYW4+CiAgICAgIDwvZGl2PgoKICAgICAgey8qIDQuIEdpZnQvQmxhY2sgQ29pbnMgSWNvbiAoT3BlbnMgbG93LWJhbGFuY2UvcmV3YXJkZWQgYWQgcG9wLXVwIG9yIGdpZnQgZHJhd2VyKSAqL30KICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXggZmxleC1jb2wgaXRlbXMtY2VudGVyIGdhcC0xIj4KICAgICAgICA8YnV0dG9uCiAgICAgICAgICB0eXBlPSJidXR0b24iCiAgICAgICAgICBvbkNsaWNrPXtvbk9wZW5HaWZ0c30KICAgICAgICAgIGFyaWEtbGFiZWw9IlNlbmQgZ2lmdCBvciBnZXQgQmxhY2sgQ29pbnMiCiAgICAgICAgICBjbGFzc05hbWU9InJlbGF0aXZlIGdyaWQgc2l6ZS0xMiBwbGFjZS1pdGVtcy1jZW50ZXIgcm91bmRlZC1mdWxsIGJvcmRlciBib3JkZXItYW1iZXItNTAwLzUwIGJnLWJsYWNrLzQ1IHRleHQtYW1iZXItNDAwIGJhY2tkcm9wLWJsdXItbWQgc2hhZG93LVswXzBfMTZweF9yZ2JhKDI0NSwxNTgsMTEsMC4yNSldIHRyYW5zaXRpb24tdHJhbnNmb3JtIGhvdmVyOnNjYWxlLTEwNSBob3ZlcjpiZy1ibGFjay82NSBhY3RpdmU6c2NhbGUtOTAgY3Vyc29yLXBvaW50ZXIiCiAgICAgICAgPgogICAgICAgICAgPEdpZnQgY2xhc3NOYW1lPSJzaXplLTYgdGV4dC1hbWJlci00MDAgZHJvcC1zaGFkb3ctWzBfMF84cHhfcmdiYSgyNDUsMTU4LDExLDAuNildIiAvPgogICAgICAgICAgey8qIFN1YnRsZSBnbG93aW5nIGRvdCAqL30KICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT0iYWJzb2x1dGUgdG9wLTEgcmlnaHQtMSBzaXplLTIgcm91bmRlZC1mdWxsIGJnLWFtYmVyLTQwMCBhbmltYXRlLXBpbmcgcG9pbnRlci1ldmVudHMtbm9uZSIgLz4KICAgICAgICA8L2J1dHRvbj4KICAgICAgICA8c3BhbiBjbGFzc05hbWU9ImZvbnQtZGlzcGxheSB0ZXh0LVsxMXB4XSBmb250LWJvbGQgdGV4dC1hbWJlci0zMDAgZHJvcC1zaGFkb3ctWzBfMXB4XzNweF9yZ2JhKDAsMCwwLDAuOCldIj4KICAgICAgICAgIEdpZnQKICAgICAgICA8L3NwYW4+CiAgICAgIDwvZGl2PgoKICAgICAgey8qIDUuIFVuaXZlcnNhbCBTaGFyZSBJY29uIChUcmlnZ2VycyBuYXRpdmUgc2hhcmUgc2hlZXQgLyBmYWxsYmFjayBzaGFyZSBtb2RhbCkgKi99CiAgICAgIDxkaXYgY2xhc3NOYW1lPSJmbGV4IGZsZXgtY29sIGl0ZW1zLWNlbnRlciBnYXAtMSI+CiAgICAgICAgPGJ1dHRvbgogICAgICAgICAgdHlwZT0iYnV0dG9uIgogICAgICAgICAgb25DbGljaz17b25TaGFyZX0KICAgICAgICAgIGFyaWEtbGFiZWw9IlNoYXJlIEhvdCBTZWF0IGxpdmUgc3RyZWFtIgogICAgICAgICAgY2xhc3NOYW1lPSJncmlkIHNpemUtMTIgcGxhY2UtaXRlbXMtY2VudGVyIHJvdW5kZWQtZnVsbCBib3JkZXIgYm9yZGVyLXdoaXRlLzIwIGJnLWJsYWNrLzQ1IHRleHQtd2hpdGUgYmFja2Ryb3AtYmx1ci1tZCBzaGFkb3ctbGcgdHJhbnNpdGlvbi10cmFuc2Zvcm0gaG92ZXI6c2NhbGUtMTA1IGhvdmVyOmJnLWJsYWNrLzY1IGFjdGl2ZTpzY2FsZS05MCBjdXJzb3ItcG9pbnRlciIKICAgICAgICA+CiAgICAgICAgICA8U2hhcmUyIGNsYXNzTmFtZT0ic2l6ZS01LjUgdGV4dC13aGl0ZSIgLz4KICAgICAgICA8L2J1dHRvbj4KICAgICAgICA8c3BhbiBjbGFzc05hbWU9ImZvbnQtZGlzcGxheSB0ZXh0LVsxMXB4XSBmb250LWJvbGQgdGV4dC13aGl0ZSBkcm9wLXNoYWRvdy1bMF8xcHhfM3B4X3JnYmEoMCwwLDAsMC44KV0iPgogICAgICAgICAgU2hhcmUKICAgICAgICA8L3NwYW4+CiAgICAgIDwvZGl2PgogICAgPC9kaXY+CiAgKTsKfQo=
+import { Check, Gift, Heart, MessageCircle, Plus, Share2 } from "lucide-react";
+import { useState } from "react";
+import { useStore } from "@/lib/store";
+
+export function FloatingActionColumn({
+  likeCount,
+  commentCount,
+  isFollowing,
+  onToggleFollow,
+  onOpenHostProfile,
+  onLike,
+  onOpenComments,
+  onOpenGifts,
+  onShare,
+}: {
+  likeCount: number;
+  commentCount: number;
+  isFollowing: boolean;
+  onToggleFollow: () => void;
+  onOpenHostProfile: () => void;
+  onLike: (e: React.MouseEvent<HTMLButtonElement>) => void;
+  onOpenComments: () => void;
+  onOpenGifts: () => void;
+  onShare: () => void;
+}) {
+  const { coins } = useStore();
+  const [heartPulsing, setHeartPulsing] = useState(false);
+
+  const formatNumber = (num: number) => {
+    if (num >= 1_000_000) return `${(num / 1_000_000).toFixed(1)}M`;
+    if (num >= 1_000) return `${(num / 1_000).toFixed(1)}k`;
+    return num.toString();
+  };
+
+  const handleHeartClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    setHeartPulsing(true);
+    setTimeout(() => setHeartPulsing(false), 300);
+    onLike(e);
+  };
+
+  return (
+    <div
+      id="hot-sit-floating-action-bar"
+      className="absolute right-3.5 bottom-24 sm:bottom-20 z-30 flex flex-col items-center gap-4 select-none pointer-events-auto"
+    >
+      {/* 1. Profile/Host Icon (Shows host avatar with a "+" follow button) */}
+      <div className="relative flex flex-col items-center">
+        <button
+          type="button"
+          onClick={onOpenHostProfile}
+          aria-label="View live host profile"
+          className="relative grid size-12 place-items-center rounded-full border-2 border-orange-500/80 bg-neutral-900 text-2xl shadow-[0_0_20px_rgba(234,88,12,0.45)] transition-transform hover:scale-105 active:scale-95 cursor-pointer"
+        >
+          🐼
+        </button>
+
+        {/* Plus / Follow badge positioned over the bottom of the avatar */}
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggleFollow();
+          }}
+          aria-label={isFollowing ? "Following host" : "Follow host"}
+          className={`absolute -bottom-2 z-10 grid size-5 place-items-center rounded-full text-[10px] font-black text-white shadow-md transition-all cursor-pointer ${
+            isFollowing
+              ? "bg-emerald-600 scale-100 ring-2 ring-neutral-900"
+              : "bg-red-600 hover:bg-red-500 hover:scale-110 active:scale-90"
+          }`}
+        >
+          {isFollowing ? (
+            <Check className="size-3 stroke-[3]" />
+          ) : (
+            <Plus className="size-3.5 stroke-[3]" />
+          )}
+        </button>
+      </div>
+
+      {/* 2. Heart/Like Icon (Displays real-time like count with floating heart animation on tap) */}
+      <div className="flex flex-col items-center gap-1">
+        <button
+          type="button"
+          onClick={handleHeartClick}
+          aria-label="Like Hot Seat live stream"
+          className={`grid size-12 place-items-center rounded-full border border-white/20 bg-black/45 text-white backdrop-blur-md shadow-lg transition-transform hover:bg-black/65 cursor-pointer ${
+            heartPulsing ? "scale-125" : "hover:scale-105 active:scale-90"
+          }`}
+        >
+          <Heart
+            className={`size-6 transition-colors ${
+              heartPulsing ? "text-red-500 fill-red-500" : "text-white fill-white/10"
+            }`}
+          />
+        </button>
+        <span className="font-display text-[11px] font-bold text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)] tabular-nums">
+          {formatNumber(likeCount)}
+        </span>
+      </div>
+
+      {/* 3. Comments Icon (Displays comment count; opens live chat overlay drawer) */}
+      <div className="flex flex-col items-center gap-1">
+        <button
+          type="button"
+          onClick={onOpenComments}
+          aria-label="Open live comments and questions"
+          className="grid size-12 place-items-center rounded-full border border-white/20 bg-black/45 text-white backdrop-blur-md shadow-lg transition-transform hover:scale-105 hover:bg-black/65 active:scale-90 cursor-pointer"
+        >
+          <MessageCircle className="size-6 text-white" />
+        </button>
+        <span className="font-display text-[11px] font-bold text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)] tabular-nums">
+          {commentCount}
+        </span>
+      </div>
+
+      {/* 4. Gift/Black Coins Icon (Opens low-balance/rewarded ad pop-up or gift drawer) */}
+      <div className="flex flex-col items-center gap-1">
+        <button
+          type="button"
+          onClick={onOpenGifts}
+          aria-label="Send gift or get Black Coins"
+          className="relative grid size-12 place-items-center rounded-full border border-amber-500/50 bg-black/45 text-amber-400 backdrop-blur-md shadow-[0_0_16px_rgba(245,158,11,0.25)] transition-transform hover:scale-105 hover:bg-black/65 active:scale-90 cursor-pointer"
+        >
+          <Gift className="size-6 text-amber-400 drop-shadow-[0_0_8px_rgba(245,158,11,0.6)]" />
+          {/* Subtle glowing dot */}
+          <span className="absolute top-1 right-1 size-2 rounded-full bg-amber-400 animate-ping pointer-events-none" />
+        </button>
+        <span className="font-display text-[11px] font-bold text-amber-300 drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]">
+          Gift
+        </span>
+      </div>
+
+      {/* 5. Universal Share Icon (Triggers native share sheet / fallback share modal) */}
+      <div className="flex flex-col items-center gap-1">
+        <button
+          type="button"
+          onClick={onShare}
+          aria-label="Share Hot Seat live stream"
+          className="grid size-12 place-items-center rounded-full border border-white/20 bg-black/45 text-white backdrop-blur-md shadow-lg transition-transform hover:scale-105 hover:bg-black/65 active:scale-90 cursor-pointer"
+        >
+          <Share2 className="size-5.5 text-white" />
+        </button>
+        <span className="font-display text-[11px] font-bold text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]">
+          Share
+        </span>
+      </div>
+    </div>
+  );
+}

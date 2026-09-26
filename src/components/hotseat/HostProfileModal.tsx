@@ -1,1 +1,132 @@
-aW1wb3J0IHsgQ2xvY2szLCBGbGFtZSwgTG9jaywgU2hpZWxkQ2hlY2ssIFRyb3BoeSwgWCB9IGZyb20gImx1Y2lkZS1yZWFjdCI7CmltcG9ydCB7IEJ1dHRvbiB9IGZyb20gIkAvY29tcG9uZW50cy91aS9idXR0b24iOwppbXBvcnQgewogIERpYWxvZywKICBEaWFsb2dDb250ZW50LAogIERpYWxvZ0Rlc2NyaXB0aW9uLAogIERpYWxvZ0hlYWRlciwKICBEaWFsb2dUaXRsZSwKfSBmcm9tICJAL2NvbXBvbmVudHMvdWkvZGlhbG9nIjsKCmV4cG9ydCBmdW5jdGlvbiBIb3N0UHJvZmlsZU1vZGFsKHsKICBvcGVuLAogIG9uT3BlbkNoYW5nZSwKICB3aW5kb3dTZWNvbmRzLAogIGlzRm9sbG93aW5nLAogIG9uVG9nZ2xlRm9sbG93LAogIG9uT3BlbldhaXRpbmdSb29tLAogIGhvc3ROYW1lID0gIiIsCiAgcmVwdXRhdGlvbiA9IDAsCiAgbG9jYXRpb24gPSAiIiwKICBhbnN3ZXJlZENvdW50ID0gMCwKICB2aWV3ZXJDb3VudCA9IDAsCiAgdG9waWMgPSAiIiwKfTogewogIG9wZW46IGJvb2xlYW47CiAgb25PcGVuQ2hhbmdlOiAob3BlbjogYm9vbGVhbikgPT4gdm9pZDsKICB3aW5kb3dTZWNvbmRzOiBudW1iZXI7CiAgaXNGb2xsb3dpbmc6IGJvb2xlYW47CiAgb25Ub2dnbGVGb2xsb3c6ICgpID0+IHZvaWQ7CiAgb25PcGVuV2FpdGluZ1Jvb206ICgpID0+IHZvaWQ7CiAgaG9zdE5hbWU/OiBzdHJpbmc7CiAgcmVwdXRhdGlvbj86IG51bWJlcjsKICBsb2NhdGlvbj86IHN0cmluZzsKICBhbnN3ZXJlZENvdW50PzogbnVtYmVyOwogIHZpZXdlckNvdW50PzogbnVtYmVyOwogIHRvcGljPzogc3RyaW5nOwp9KSB7CiAgY29uc3QgZm9ybWF0VGltZXIgPSAodG90YWxTZWNvbmRzOiBudW1iZXIpID0+IHsKICAgIGNvbnN0IHNlY29uZHMgPSBNYXRoLm1heCgwLCB0b3RhbFNlY29uZHMpOwogICAgY29uc3QgaG91cnMgPSBNYXRoLmZsb29yKHNlY29uZHMgLyAzNjAwKTsKICAgIGNvbnN0IG1pbnV0ZXMgPSBNYXRoLmZsb29yKChzZWNvbmRzICUgMzYwMCkgLyA2MCk7CiAgICBjb25zdCByZXN0ID0gc2Vjb25kcyAlIDYwOwogICAgcmV0dXJuIFtob3VycywgbWludXRlcywgcmVzdF0ubWFwKCh2KSA9PiBTdHJpbmcodikucGFkU3RhcnQoMiwgIjAiKSkuam9pbigiOiIpOwogIH07CgogIHJldHVybiAoCiAgICA8RGlhbG9nIG9wZW49e29wZW59IG9uT3BlbkNoYW5nZT17b25PcGVuQ2hhbmdlfT4KICAgICAgPERpYWxvZ0NvbnRlbnQgY2xhc3NOYW1lPSJzbTptYXgtdy1tZCByb3VuZGVkLTN4bCBib3JkZXItd2hpdGUvMTAgYmctbmV1dHJhbC05NTAvOTUgdGV4dC13aGl0ZSBiYWNrZHJvcC1ibHVyLTJ4bCBwLTYgc2hhZG93LTJ4bCI+CiAgICAgICAgPERpYWxvZ0hlYWRlciBjbGFzc05hbWU9InJlbGF0aXZlIHRleHQtY2VudGVyIHNtOnRleHQtY2VudGVyIHBiLTIiPgogICAgICAgICAgey8qIEF2YXRhciBIZXJvICovfQogICAgICAgICAgPGRpdiBjbGFzc05hbWU9Im14LWF1dG8gcmVsYXRpdmUgZmxleCBzaXplLTIwIGl0ZW1zLWNlbnRlciBqdXN0aWZ5LWNlbnRlciByb3VuZGVkLTJ4bCBib3JkZXItMiBib3JkZXItb3JhbmdlLTUwMC83MCBiZy1uZXV0cmFsLTkwMCB0ZXh0LTR4bCBzaGFkb3ctWzBfMF8zMHB4X3JnYmEoMjM0LDg4LDEyLDAuNCldIG1iLTMiPgogICAgICAgICAgICDwn5C8CiAgICAgICAgICAgIHtob3N0TmFtZSA/IDxzcGFuIGNsYXNzTmFtZT0iYWJzb2x1dGUgLWJvdHRvbS0yIHJvdW5kZWQtZnVsbCBiZy1yZWQtNjAwIHB4LTIgcHktMC41IHRleHQtWzlweF0gZm9udC1ibGFjayB1cHBlcmNhc2UgdHJhY2tpbmctd2lkZXIgdGV4dC13aGl0ZSBzaGFkb3ciPgogICAgICAgICAgICAgIExJVkUgSE9TVAogICAgICAgICAgICA8L3NwYW4+IDogbnVsbH0KICAgICAgICAgIDwvZGl2PgoKICAgICAgICAgIDxEaWFsb2dUaXRsZSBjbGFzc05hbWU9ImZvbnQtZGlzcGxheSB0ZXh0LTJ4bCBmb250LWJvbGQgdGV4dC13aGl0ZSBmbGV4IGl0ZW1zLWNlbnRlciBqdXN0aWZ5LWNlbnRlciBnYXAtMS41Ij4KICAgICAgICAgICAge2hvc3ROYW1lIHx8ICJIb3QgU2VhdCJ9CiAgICAgICAgICAgIHtob3N0TmFtZSA/IDxTaGllbGRDaGVjayBjbGFzc05hbWU9InNpemUtNSB0ZXh0LW9yYW5nZS00MDAgZmlsbC1vcmFuZ2UtNDAwLzIwIiAvPiA6IG51bGx9CiAgICAgICAgICA8L0RpYWxvZ1RpdGxlPgogICAgICAgICAgPERpYWxvZ0Rlc2NyaXB0aW9uIGNsYXNzTmFtZT0idGV4dC14cyB0ZXh0LW5ldXRyYWwtNDAwIj4KICAgICAgICAgICAgUGFuZGEgSG9zdHtyZXB1dGF0aW9uID8gYCDCtyAke3JlcHV0YXRpb24udG9Mb2NhbGVTdHJpbmcoKX0gUmVwdXRhdGlvbmAgOiAiIn17bG9jYXRpb24gPyBgIMK3ICR7bG9jYXRpb259YCA6ICIifQogICAgICAgICAgPC9EaWFsb2dEZXNjcmlwdGlvbj4KICAgICAgICA8L0RpYWxvZ0hlYWRlcj4KCiAgICAgICAgey8qIFN0YXRzIEdyaWQgKi99CiAgICAgICAgPGRpdiBjbGFzc05hbWU9ImdyaWQgZ3JpZC1jb2xzLTMgZ2FwLTIuNSBteS0yIj4KICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJyb3VuZGVkLTJ4bCBib3JkZXIgYm9yZGVyLXdoaXRlLzEwIGJnLW5ldXRyYWwtOTAwLzcwIHAtMyB0ZXh0LWNlbnRlciI+CiAgICAgICAgICAgIDxwIGNsYXNzTmFtZT0idGV4dC1bMTBweF0gdXBwZXJjYXNlIGZvbnQtYm9sZCB0cmFja2luZy13aWRlciB0ZXh0LW5ldXRyYWwtNDAwIj4KICAgICAgICAgICAgICBUaW1lIExlZnQKICAgICAgICAgICAgPC9wPgogICAgICAgICAgICA8cCBjbGFzc05hbWU9Im10LTEgZm9udC1kaXNwbGF5IHRleHQtc20gZm9udC1ib2xkIHRleHQtb3JhbmdlLTQwMCB0YWJ1bGFyLW51bXMiPgogICAgICAgICAgICAgIHtmb3JtYXRUaW1lcih3aW5kb3dTZWNvbmRzKX0KICAgICAgICAgICAgPC9wPgogICAgICAgICAgPC9kaXY+CiAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0icm91bmRlZC0yeGwgYm9yZGVyIGJvcmRlci13aGl0ZS8xMCBiZy1uZXV0cmFsLTkwMC83MCBwLTMgdGV4dC1jZW50ZXIiPgogICAgICAgICAgICA8cCBjbGFzc05hbWU9InRleHQtWzEwcHhdIHVwcGVyY2FzZSBmb250LWJvbGQgdHJhY2tpbmctd2lkZXIgdGV4dC1uZXV0cmFsLTQwMCI+CiAgICAgICAgICAgICAgQW5zd2VyZWQKICAgICAgICAgICAgPC9wPgogICAgICAgICAgICA8cCBjbGFzc05hbWU9Im10LTEgZm9udC1kaXNwbGF5IHRleHQtYmFzZSBmb250LWJvbGQgdGV4dC13aGl0ZSI+e2Fuc3dlcmVkQ291bnR9PC9wPgogICAgICAgICAgPC9kaXY+CiAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0icm91bmRlZC0yeGwgYm9yZGVyIGJvcmRlci13aGl0ZS8xMCBiZy1uZXV0cmFsLTkwMC83MCBwLTMgdGV4dC1jZW50ZXIiPgogICAgICAgICAgICA8cCBjbGFzc05hbWU9InRleHQtWzEwcHhdIHVwcGVyY2FzZSBmb250LWJvbGQgdHJhY2tpbmctd2lkZXIgdGV4dC1uZXV0cmFsLTQwMCI+CiAgICAgICAgICAgICAgVmlld2VycwogICAgICAgICAgICA8L3A+CiAgICAgICAgICAgIDxwIGNsYXNzTmFtZT0ibXQtMSBmb250LWRpc3BsYXkgdGV4dC1iYXNlIGZvbnQtYm9sZCB0ZXh0LWVtZXJhbGQtNDAwIj57dmlld2VyQ291bnQudG9Mb2NhbGVTdHJpbmcoKX08L3A+CiAgICAgICAgICA8L2Rpdj4KICAgICAgICA8L2Rpdj4KCiAgICAgICAgey8qIEhvc3QgQmlvICYgVG9waWMgKi99CiAgICAgICAgPGRpdiBjbGFzc05hbWU9InJvdW5kZWQtMnhsIGJvcmRlciBib3JkZXItd2hpdGUvMTAgYmctbmV1dHJhbC05MDAvNTAgcC0zLjUgc3BhY2UteS0yIHRleHQteHMiPgogICAgICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXggaXRlbXMtY2VudGVyIGdhcC0xLjUgZm9udC1ib2xkIHRleHQtb3JhbmdlLTMwMCB1cHBlcmNhc2UgdHJhY2tpbmctd2lkZXIgdGV4dC1bMTBweF0iPgogICAgICAgICAgICA8RmxhbWUgY2xhc3NOYW1lPSJzaXplLTMuNSIgLz4gQ3VycmVudCBIb3QgVG9waWMKICAgICAgICAgIDwvZGl2PgogICAgICAgICAgPHAgY2xhc3NOYW1lPSJ0ZXh0LXNtIGZvbnQtbWVkaXVtIHRleHQtbmV1dHJhbC0yMDAiPgogICAgICAgICAgICB7dG9waWMgPyBg4oCcJHt0b3BpY33igJ1gIDogIk5vIGxpdmUgdG9waWMgaGFzIGJlZW4gcHVibGlzaGVkIHlldC4ifQogICAgICAgICAgPC9wPgogICAgICAgICAgPHAgY2xhc3NOYW1lPSJ0ZXh0LVsxMXB4XSB0ZXh0LW5ldXRyYWwtNDAwIj4KICAgICAgICAgICAge2hvc3ROYW1lID8gIkhvc3QgaGFzIGEgc3RyaWN0IDItbWludXRlIFNMQSB0byByZXBseSB0byB1cHZvdGVkIGFub255bW91cyBjb21tdW5pdHkgcXVlc3Rpb25zLiIgOiAiQSBsaXZlIGhvc3QgcHJvZmlsZSB3aWxsIGFwcGVhciBoZXJlIHdoZW4gdGhlIG5leHQgSG90IFNlYXQgc2Vzc2lvbiBzdGFydHMuIn0KICAgICAgICAgIDwvcD4KICAgICAgICA8L2Rpdj4KCiAgICAgICAgey8qIEFjdGlvbiBCdXR0b25zICovfQogICAgICAgIDxkaXYgY2xhc3NOYW1lPSJncmlkIGdyaWQtY29scy0yIGdhcC0yLjUgcHQtMiI+CiAgICAgICAgICA8QnV0dG9uCiAgICAgICAgICAgIHZhcmlhbnQ9Im91dGxpbmUiCiAgICAgICAgICAgIG9uQ2xpY2s9e29uVG9nZ2xlRm9sbG93fQogICAgICAgICAgICBjbGFzc05hbWU9e2Byb3VuZGVkLXhsIGJvcmRlci13aGl0ZS8yMCBmb250LWJvbGQgdHJhbnNpdGlvbi1hbGwgY3Vyc29yLXBvaW50ZXIgJHsKICAgICAgICAgICAgICBpc0ZvbGxvd2luZwogICAgICAgICAgICAgICAgPyAiYmctZW1lcmFsZC02MDAvMjAgYm9yZGVyLWVtZXJhbGQtNTAwLzUwIHRleHQtZW1lcmFsZC00MDAgaG92ZXI6YmctZW1lcmFsZC02MDAvMzAiCiAgICAgICAgICAgICAgICA6ICJiZy1uZXV0cmFsLTkwMCB0ZXh0LXdoaXRlIGhvdmVyOmJnLW5ldXRyYWwtODAwIgogICAgICAgICAgICB9YH0KICAgICAgICAgID4KICAgICAgICAgICAge2lzRm9sbG93aW5nID8gIuKckyBGb2xsb3dpbmcgSG9zdCIgOiAiKyBGb2xsb3cgSG9zdCJ9CiAgICAgICAgICA8L0J1dHRvbj4KCiAgICAgICAgICA8QnV0dG9uCiAgICAgICAgICAgIG9uQ2xpY2s9eygpID0+IHsKICAgICAgICAgICAgICBvbk9wZW5DaGFuZ2UoZmFsc2UpOwogICAgICAgICAgICAgIG9uT3BlbldhaXRpbmdSb29tKCk7CiAgICAgICAgICAgIH19CiAgICAgICAgICAgIGNsYXNzTmFtZT0iZ2FwLTEuNSByb3VuZGVkLXhsIGJnLWdyYWRpZW50LXRvLXIgZnJvbS1vcmFuZ2UtNjAwIHRvLWFtYmVyLTUwMCBmb250LWJvbGQgdGV4dC13aGl0ZSBzaGFkb3ctWzBfMF8yMHB4X3JnYmEoMjM0LDg4LDEyLDAuNCldIGhvdmVyOm9wYWNpdHktOTUgY3Vyc29yLXBvaW50ZXIiCiAgICAgICAgICA+CiAgICAgICAgICAgIDxGbGFtZSBjbGFzc05hbWU9InNpemUtNCIgLz4KICAgICAgICAgICAgU2l0IG9uIEhvdCBTZWF0CiAgICAgICAgICA8L0J1dHRvbj4KICAgICAgICA8L2Rpdj4KICAgICAgPC9EaWFsb2dDb250ZW50PgogICAgPC9EaWFsb2c+CiAgKTsKfQo=
+import { Clock3, Flame, Lock, ShieldCheck, Trophy, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+
+export function HostProfileModal({
+  open,
+  onOpenChange,
+  windowSeconds,
+  isFollowing,
+  onToggleFollow,
+  onOpenWaitingRoom,
+  hostName = "",
+  reputation = 0,
+  location = "",
+  answeredCount = 0,
+  viewerCount = 0,
+  topic = "",
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  windowSeconds: number;
+  isFollowing: boolean;
+  onToggleFollow: () => void;
+  onOpenWaitingRoom: () => void;
+  hostName?: string;
+  reputation?: number;
+  location?: string;
+  answeredCount?: number;
+  viewerCount?: number;
+  topic?: string;
+}) {
+  const formatTimer = (totalSeconds: number) => {
+    const seconds = Math.max(0, totalSeconds);
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const rest = seconds % 60;
+    return [hours, minutes, rest].map((v) => String(v).padStart(2, "0")).join(":");
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md rounded-3xl border-white/10 bg-neutral-950/95 text-white backdrop-blur-2xl p-6 shadow-2xl">
+        <DialogHeader className="relative text-center sm:text-center pb-2">
+          {/* Avatar Hero */}
+          <div className="mx-auto relative flex size-20 items-center justify-center rounded-2xl border-2 border-orange-500/70 bg-neutral-900 text-4xl shadow-[0_0_30px_rgba(234,88,12,0.4)] mb-3">
+            🐼
+            {hostName ? <span className="absolute -bottom-2 rounded-full bg-red-600 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-white shadow">
+              LIVE HOST
+            </span> : null}
+          </div>
+
+          <DialogTitle className="font-display text-2xl font-bold text-white flex items-center justify-center gap-1.5">
+            {hostName || "Hot Seat"}
+            {hostName ? <ShieldCheck className="size-5 text-orange-400 fill-orange-400/20" /> : null}
+          </DialogTitle>
+          <DialogDescription className="text-xs text-neutral-400">
+            Panda Host{reputation ? ` · ${reputation.toLocaleString()} Reputation` : ""}{location ? ` · ${location}` : ""}
+          </DialogDescription>
+        </DialogHeader>
+
+        {/* Stats Grid */}
+        <div className="grid grid-cols-3 gap-2.5 my-2">
+          <div className="rounded-2xl border border-white/10 bg-neutral-900/70 p-3 text-center">
+            <p className="text-[10px] uppercase font-bold tracking-wider text-neutral-400">
+              Time Left
+            </p>
+            <p className="mt-1 font-display text-sm font-bold text-orange-400 tabular-nums">
+              {formatTimer(windowSeconds)}
+            </p>
+          </div>
+          <div className="rounded-2xl border border-white/10 bg-neutral-900/70 p-3 text-center">
+            <p className="text-[10px] uppercase font-bold tracking-wider text-neutral-400">
+              Answered
+            </p>
+            <p className="mt-1 font-display text-base font-bold text-white">{answeredCount}</p>
+          </div>
+          <div className="rounded-2xl border border-white/10 bg-neutral-900/70 p-3 text-center">
+            <p className="text-[10px] uppercase font-bold tracking-wider text-neutral-400">
+              Viewers
+            </p>
+            <p className="mt-1 font-display text-base font-bold text-emerald-400">{viewerCount.toLocaleString()}</p>
+          </div>
+        </div>
+
+        {/* Host Bio & Topic */}
+        <div className="rounded-2xl border border-white/10 bg-neutral-900/50 p-3.5 space-y-2 text-xs">
+          <div className="flex items-center gap-1.5 font-bold text-orange-300 uppercase tracking-wider text-[10px]">
+            <Flame className="size-3.5" /> Current Hot Topic
+          </div>
+          <p className="text-sm font-medium text-neutral-200">
+            {topic ? `“${topic}”` : "No live topic has been published yet."}
+          </p>
+          <p className="text-[11px] text-neutral-400">
+            {hostName ? "Host has a strict 2-minute SLA to reply to upvoted anonymous community questions." : "A live host profile will appear here when the next Hot Seat session starts."}
+          </p>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="grid grid-cols-2 gap-2.5 pt-2">
+          <Button
+            variant="outline"
+            onClick={onToggleFollow}
+            className={`rounded-xl border-white/20 font-bold transition-all cursor-pointer ${
+              isFollowing
+                ? "bg-emerald-600/20 border-emerald-500/50 text-emerald-400 hover:bg-emerald-600/30"
+                : "bg-neutral-900 text-white hover:bg-neutral-800"
+            }`}
+          >
+            {isFollowing ? "✓ Following Host" : "+ Follow Host"}
+          </Button>
+
+          <Button
+            onClick={() => {
+              onOpenChange(false);
+              onOpenWaitingRoom();
+            }}
+            className="gap-1.5 rounded-xl bg-gradient-to-r from-orange-600 to-amber-500 font-bold text-white shadow-[0_0_20px_rgba(234,88,12,0.4)] hover:opacity-95 cursor-pointer"
+          >
+            <Flame className="size-4" />
+            Sit on Hot Seat
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}

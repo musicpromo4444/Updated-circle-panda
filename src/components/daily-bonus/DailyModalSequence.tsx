@@ -1,1 +1,114 @@
-aW1wb3J0IHsgdXNlRWZmZWN0LCB1c2VTdGF0ZSB9IGZyb20gInJlYWN0IjsKaW1wb3J0IHsgdXNlTmF2aWdhdGUgfSBmcm9tICJAdGFuc3RhY2svcmVhY3Qtcm91dGVyIjsKaW1wb3J0IHsgdG9hc3QgfSBmcm9tICJzb25uZXIiOwppbXBvcnQgeyB1c2VTdG9yZSB9IGZyb20gIkAvbGliL3N0b3JlIjsKaW1wb3J0IHsgY2xhaW1EYWlseVJld2FyZCB9IGZyb20gIkAvbGliL3Byb2R1Y3Rpb24vZmVhdHVyZXMiOwppbXBvcnQgeyBzdXBhYmFzZSB9IGZyb20gIkAvaW50ZWdyYXRpb25zL3N1cGFiYXNlL2NsaWVudCI7CmltcG9ydCB7IERhaWx5Qm9udXNNb2RhbCB9IGZyb20gIi4vRGFpbHlCb251c01vZGFsIjsKaW1wb3J0IHsgU2V2ZW5EYXlBY3Rpdml0aWVzTW9kYWwgfSBmcm9tICJAL2NvbXBvbmVudHMvc2V2ZW4tZGF5L1NldmVuRGF5QWN0aXZpdGllc01vZGFsIjsKaW1wb3J0IHsgaGFzRGFpbHlNb2RhbHNDb21wbGV0ZWQsIG1hcmtEYWlseU1vZGFsc0NvbXBsZXRlZCB9IGZyb20gIi4vZGFpbHlCb251c1N0b3JhZ2UiOwoKZXhwb3J0IGludGVyZmFjZSBEYWlseU1vZGFsU2VxdWVuY2VQcm9wcyB7CiAgLyoqIElmIHRydWUsIGZvcmNlcyB0aGUgbW9kYWwgdG8gb3BlbiByZWdhcmRsZXNzIG9mIHRvZGF5J3MgY29tcGxldGVkIHN0YXRlIChlLmcuIGZvciB0ZXN0aW5nKSAqLwogIGZvcmNlT3Blbj86IGJvb2xlYW47Cn0KCi8qKgogKiBTZXF1ZW50aWFsIERhaWx5IE1vZGFsIFN5c3RlbSBmb3IgQ2lyY2xlIFBhbmRhLgogKgogKiBTZXF1ZW5jZSBGbG93OgogKiAxLiBMb2FkcyB0aGUgbG9naW4gc3RyZWFrIGFuZCByZXdhcmQgc2NoZWR1bGUgZnJvbSBTdXBhYmFzZS4KICogMi4gT24gZmlyc3QgYXBwIG9wZW4gb2YgdGhlIGRheSwgb3BlbnMgTW9kYWwgMSAoRGFpbHkgTG9naW4gQm9udXMgd2l0aCBzdHJlYWsgdHJhY2tlciAmIHRvcCBiYW5uZXIgYWQpLgogKiAzLiBUaGUgZGFpbHkgbG9naW4gY2xhaW0gaXMgc2VydmVyLWF1dGhvcml0YXRpdmUuIFRoZSBEYWlseSBBY3Rpdml0eSBwb3B1cCBzaG93cyBvbmx5IHRoZSBzaW5nbGUgYWN0aXZpdHkgYXNzaWduZWQgdG8gdGhlIGN1cnJlbnQgZGF5IGJ5IEFkbWluLgogKi8KZXhwb3J0IGZ1bmN0aW9uIERhaWx5TW9kYWxTZXF1ZW5jZSh7IGZvcmNlT3BlbiA9IGZhbHNlIH06IERhaWx5TW9kYWxTZXF1ZW5jZVByb3BzKSB7CiAgY29uc3QgeyBzeW5jQ29pbnMgfSA9IHVzZVN0b3JlKCk7CiAgY29uc3QgbmF2aWdhdGUgPSB1c2VOYXZpZ2F0ZSgpOwoKICAvLyAwOiBub25lIG9wZW4sIDE6IERhaWx5IEJvbnVzLCAyOiA3LURheSBBY3Rpdml0aWVzCiAgY29uc3QgW2FjdGl2ZVN0ZXAsIHNldEFjdGl2ZVN0ZXBdID0gdXNlU3RhdGU8MCB8IDEgfCAyPigwKTsKICBjb25zdCBbc3RyZWFrU3RhdGUsIHNldFN0cmVha1N0YXRlXSA9IHVzZVN0YXRlPHsKICAgIHN0cmVhazogbnVtYmVyOwogICAgcmV3YXJkOiBudW1iZXI7CiAgICBkYXk6IG51bWJlcjsKICAgIHJld2FyZF9sYWJlbD86IHN0cmluZzsKICAgIGNsYWltZWQ6IGJvb2xlYW47CiAgICBjYWxlbmRhcj86IEFycmF5PHsgZGF5X251bWJlcjogbnVtYmVyOyByZXdhcmRfYmM6IG51bWJlcjsgcmV3YXJkX2xhYmVsOiBzdHJpbmcgfT47CiAgfSB8IG51bGw+KG51bGwpOwoKICB1c2VFZmZlY3QoKCkgPT4gewogICAgbGV0IGNhbmNlbGxlZCA9IGZhbHNlOwogICAgY29uc3QgbG9hZCA9IGFzeW5jICgpID0+IHsKICAgICAgY29uc3QgeyBkYXRhLCBlcnJvciB9ID0gYXdhaXQgKHN1cGFiYXNlIGFzIGFueSkucnBjKCJnZXRfZGFpbHlfcmV3YXJkX3N0YXR1cyIpOwogICAgICBpZiAoY2FuY2VsbGVkKSByZXR1cm47CiAgICAgIGlmIChlcnJvcikgewogICAgICAgIHRvYXN0LmVycm9yKGVycm9yLm1lc3NhZ2UgPz8gIkRhaWx5IHJld2FyZCBjb3VsZCBub3QgYmUgbG9hZGVkIik7CiAgICAgICAgcmV0dXJuOwogICAgICB9CiAgICAgIGNvbnN0IHN0YXR1cyA9IGRhdGEgPz8gbnVsbDsKICAgICAgc2V0U3RyZWFrU3RhdGUoc3RhdHVzKTsKICAgICAgaWYgKGZvcmNlT3BlbiB8fCAoIXN0YXR1cz8uY2xhaW1lZCAmJiAhaGFzRGFpbHlNb2RhbHNDb21wbGV0ZWQoKSkpIHsKICAgICAgICBjb25zdCB0aW1lciA9IHNldFRpbWVvdXQoKCkgPT4gc2V0QWN0aXZlU3RlcCgxKSwgNzAwKTsKICAgICAgICByZXR1cm4gKCkgPT4gY2xlYXJUaW1lb3V0KHRpbWVyKTsKICAgICAgfQogICAgICByZXR1cm4gdW5kZWZpbmVkOwogICAgfTsKICAgIHZvaWQgbG9hZCgpOwogICAgcmV0dXJuICgpID0+IHsgY2FuY2VsbGVkID0gdHJ1ZTsgfTsKICB9LCBbZm9yY2VPcGVuXSk7CgogIC8vIE1vZGFsIDE6IENsYWltIHJld2FyZCBoYW5kbGVyCiAgY29uc3QgaGFuZGxlQ2xhaW1SZXdhcmQgPSBhc3luYyAoKSA9PiB7CiAgICBpZiAoIXN0cmVha1N0YXRlKSByZXR1cm47CiAgICB0cnkgewogICAgICBjb25zdCByZXN1bHQgPSBhd2FpdCBjbGFpbURhaWx5UmV3YXJkKCk7CiAgICAgIGlmIChyZXN1bHQuY2xhaW1lZCkgewogICAgICAgIGF3YWl0IHN5bmNDb2lucygpOwogICAgICAgIHRvYXN0LnN1Y2Nlc3MoYENsYWltZWQgKyR7cmVzdWx0LnJld2FyZH0gQkMhIPCfjolgLCB7IGRlc2NyaXB0aW9uOiBgRGF5ICR7cmVzdWx0LmRheX0gb2YgeW91ciBDaXJjbGUgUGFuZGEgbG9naW4gc3RyZWFrIGlzIHNlY3VyZWQgb24gdGhpcyBhY2NvdW50LmAgfSk7CiAgICAgICAgc2V0U3RyZWFrU3RhdGUoKGN1cnJlbnQpID0+IGN1cnJlbnQgPyB7IC4uLmN1cnJlbnQsIGNsYWltZWQ6IHRydWUsIHN0cmVhazogcmVzdWx0LnN0cmVhaywgcmV3YXJkOiByZXN1bHQucmV3YXJkLCBkYXk6IHJlc3VsdC5kYXkgfSA6IGN1cnJlbnQpOwogICAgICB9IGVsc2UgewogICAgICAgIHRvYXN0LmluZm8oIlRvZGF5J3MgcmV3YXJkIGhhcyBhbHJlYWR5IGJlZW4gY2xhaW1lZC4iKTsKICAgICAgfQogICAgICBzZXRBY3RpdmVTdGVwKDIpOwogICAgfSBjYXRjaCAoZXJyb3I6IGFueSkgewogICAgICB0b2FzdC5lcnJvcihlcnJvcj8ubWVzc2FnZSA/PyAiQ291bGQgbm90IGNsYWltIHRoZSBkYWlseSByZXdhcmQuIFBsZWFzZSB0cnkgYWdhaW4uIik7CiAgICB9CiAgfTsKCiAgLy8gTW9kYWwgMTogRGlzbWlzcyAvIENsb3NlIGhhbmRsZXIgKGFsc28gaW1tZWRpYXRlbHkgb3BlbnMgTW9kYWwgMikKICBjb25zdCBoYW5kbGVDbG9zZU1vZGFsMSA9ICgpID0+IHsKICAgIHNldEFjdGl2ZVN0ZXAoMCk7CiAgfTsKCgoKICBjb25zdCBoYW5kbGVBY3Rpdml0aWVzQ2xvc2UgPSAoKSA9PiB7CiAgICBtYXJrRGFpbHlNb2RhbHNDb21wbGV0ZWQoKTsKICAgIHNldEFjdGl2ZVN0ZXAoMCk7CiAgfTsKCiAgY29uc3QgaGFuZGxlQWN0aXZpdGllc0NvbXBsZXRlID0gKCkgPT4gewogICAgbWFya0RhaWx5TW9kYWxzQ29tcGxldGVkKCk7CiAgICBzZXRBY3RpdmVTdGVwKDApOwogICAgdm9pZCBuYXZpZ2F0ZSh7IHRvOiAiLyIgfSk7CiAgfTsKCiAgaWYgKCFzdHJlYWtTdGF0ZSB8fCBhY3RpdmVTdGVwID09PSAwKSB7CiAgICByZXR1cm4gbnVsbDsKICB9CgogIHJldHVybiAoCiAgICA8PgogICAgICB7LyogTW9kYWwgMTogRGFpbHkgTG9naW4gQm9udXMgKi99CiAgICAgIDxEYWlseUJvbnVzTW9kYWwKICAgICAgICBvcGVuPXthY3RpdmVTdGVwID09PSAxfQogICAgICAgIHN0cmVhaz17c3RyZWFrU3RhdGUuc3RyZWFrfQogICAgICAgIHJld2FyZEFtb3VudD17c3RyZWFrU3RhdGUucmV3YXJkfQogICAgICAgIGNhbGVuZGFyPXtzdHJlYWtTdGF0ZS5jYWxlbmRhcn0KICAgICAgICBvbkNsYWltPXtoYW5kbGVDbGFpbVJld2FyZH0KICAgICAgICBvbkNsb3NlPXtoYW5kbGVDbG9zZU1vZGFsMX0KICAgICAgLz4KICAgICAgPFNldmVuRGF5QWN0aXZpdGllc01vZGFsIG9wZW49e2FjdGl2ZVN0ZXAgPT09IDJ9IG9uQ2xvc2U9e2hhbmRsZUFjdGl2aXRpZXNDbG9zZX0gb25Db21wbGV0ZT17aGFuZGxlQWN0aXZpdGllc0NvbXBsZXRlfSAvPgogICAgPC8+CiAgKTsKfQo=
+import { useEffect, useState } from "react";
+import { useNavigate } from "@tanstack/react-router";
+import { toast } from "sonner";
+import { useStore } from "@/lib/store";
+import { claimDailyReward } from "@/lib/production/features";
+import { supabase } from "@/integrations/supabase/client";
+import { DailyBonusModal } from "./DailyBonusModal";
+import { SevenDayActivitiesModal } from "@/components/seven-day/SevenDayActivitiesModal";
+import { hasDailyModalsCompleted, markDailyModalsCompleted } from "./dailyBonusStorage";
+
+export interface DailyModalSequenceProps {
+  /** If true, forces the modal to open regardless of today's completed state (e.g. for testing) */
+  forceOpen?: boolean;
+}
+
+/**
+ * Sequential Daily Modal System for Circle Panda.
+ *
+ * Sequence Flow:
+ * 1. Loads the login streak and reward schedule from Supabase.
+ * 2. On first app open of the day, opens Modal 1 (Daily Login Bonus with streak tracker & top banner ad).
+ * 3. The daily login claim is server-authoritative. The Daily Activity popup shows only the single activity assigned to the current day by Admin.
+ */
+export function DailyModalSequence({ forceOpen = false }: DailyModalSequenceProps) {
+  const { syncCoins } = useStore();
+  const navigate = useNavigate();
+
+  // 0: none open, 1: Daily Bonus, 2: 7-Day Activities
+  const [activeStep, setActiveStep] = useState<0 | 1 | 2>(0);
+  const [streakState, setStreakState] = useState<{
+    streak: number;
+    reward: number;
+    day: number;
+    reward_label?: string;
+    claimed: boolean;
+    calendar?: Array<{ day_number: number; reward_bc: number; reward_label: string }>;
+  } | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    const load = async () => {
+      const { data, error } = await (supabase as any).rpc("get_daily_reward_status");
+      if (cancelled) return;
+      if (error) {
+        toast.error(error.message ?? "Daily reward could not be loaded");
+        return;
+      }
+      const status = data ?? null;
+      setStreakState(status);
+      if (forceOpen || (!status?.claimed && !hasDailyModalsCompleted())) {
+        const timer = setTimeout(() => setActiveStep(1), 700);
+        return () => clearTimeout(timer);
+      }
+      return undefined;
+    };
+    void load();
+    return () => { cancelled = true; };
+  }, [forceOpen]);
+
+  // Modal 1: Claim reward handler
+  const handleClaimReward = async () => {
+    if (!streakState) return;
+    try {
+      const result = await claimDailyReward();
+      if (result.claimed) {
+        await syncCoins();
+        toast.success(`Claimed +${result.reward} BC! 🎉`, { description: `Day ${result.day} of your Circle Panda login streak is secured on this account.` });
+        setStreakState((current) => current ? { ...current, claimed: true, streak: result.streak, reward: result.reward, day: result.day } : current);
+      } else {
+        toast.info("Today's reward has already been claimed.");
+      }
+      setActiveStep(2);
+    } catch (error: any) {
+      toast.error(error?.message ?? "Could not claim the daily reward. Please try again.");
+    }
+  };
+
+  // Modal 1: Dismiss / Close handler (also immediately opens Modal 2)
+  const handleCloseModal1 = () => {
+    setActiveStep(0);
+  };
+
+
+
+  const handleActivitiesClose = () => {
+    markDailyModalsCompleted();
+    setActiveStep(0);
+  };
+
+  const handleActivitiesComplete = () => {
+    markDailyModalsCompleted();
+    setActiveStep(0);
+    void navigate({ to: "/" });
+  };
+
+  if (!streakState || activeStep === 0) {
+    return null;
+  }
+
+  return (
+    <>
+      {/* Modal 1: Daily Login Bonus */}
+      <DailyBonusModal
+        open={activeStep === 1}
+        streak={streakState.streak}
+        rewardAmount={streakState.reward}
+        calendar={streakState.calendar}
+        onClaim={handleClaimReward}
+        onClose={handleCloseModal1}
+      />
+      <SevenDayActivitiesModal open={activeStep === 2} onClose={handleActivitiesClose} onComplete={handleActivitiesComplete} />
+    </>
+  );
+}

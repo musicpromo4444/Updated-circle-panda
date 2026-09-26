@@ -1,1 +1,247 @@
-aW1wb3J0IHsgdXNlU3RhdGUgfSBmcm9tICJyZWFjdCI7CmltcG9ydCB7IEdpZnQsIFBsYXksIFNwYXJrbGVzLCBYIH0gZnJvbSAibHVjaWRlLXJlYWN0IjsKaW1wb3J0IHsgdG9hc3QgfSBmcm9tICJzb25uZXIiOwppbXBvcnQgeyBCdXR0b24gfSBmcm9tICJAL2NvbXBvbmVudHMvdWkvYnV0dG9uIjsKaW1wb3J0IHsKICBEaWFsb2csCiAgRGlhbG9nQ29udGVudCwKICBEaWFsb2dEZXNjcmlwdGlvbiwKICBEaWFsb2dIZWFkZXIsCiAgRGlhbG9nVGl0bGUsCn0gZnJvbSAiQC9jb21wb25lbnRzL3VpL2RpYWxvZyI7CmltcG9ydCB7IHVzZVN0b3JlIH0gZnJvbSAiQC9saWIvc3RvcmUiOwppbXBvcnQgeyBzdXBhYmFzZSB9IGZyb20gIkAvaW50ZWdyYXRpb25zL3N1cGFiYXNlL2NsaWVudCI7CgpleHBvcnQgdHlwZSBWaXJ0dWFsR2lmdCA9IHsKICBpZDogc3RyaW5nOwogIG5hbWU6IHN0cmluZzsKICBlbW9qaTogc3RyaW5nOwogIGNvc3Q6IG51bWJlcjsKICBlZmZlY3Q6IHN0cmluZzsKfTsKCmV4cG9ydCBjb25zdCBWSVJUVUFMX0dJRlRTOiBWaXJ0dWFsR2lmdFtdID0gWwogIHsgaWQ6ICJiYW1ib28iLCBuYW1lOiAiRnJlc2ggQmFtYm9vIiwgZW1vamk6ICLwn46LIiwgY29zdDogNSwgZWZmZWN0OiAiQ3Jpc3B5IGNydW5jaCIgfSwKICB7IGlkOiAibWF0Y2hhIiwgbmFtZTogIk1hdGNoYSBMYXR0ZSIsIGVtb2ppOiAi8J+NtSIsIGNvc3Q6IDE1LCBlZmZlY3Q6ICJXYXJtIGNvenkgdmliZXMiIH0sCiAgeyBpZDogInRvcmNoIiwgbmFtZTogIkZpcmUgVG9yY2giLCBlbW9qaTogIvCflKUiLCBjb3N0OiAzMCwgZWZmZWN0OiAiSG90IFNlYXQgb24gZmlyZSIgfSwKICB7IGlkOiAiY3Jvd24iLCBuYW1lOiAiUGFuZGEgQ3Jvd24iLCBlbW9qaTogIvCfkZEiLCBjb3N0OiA1MCwgZWZmZWN0OiAiUm95YWwgaG9ub3IiIH0sCiAgeyBpZDogInJvY2tldCIsIG5hbWU6ICJTdXBlciBSb2NrZXQiLCBlbW9qaTogIvCfmoAiLCBjb3N0OiAxMDAsIGVmZmVjdDogIlRvIHRoZSBtb29uIiB9LApdOwoKZXhwb3J0IGZ1bmN0aW9uIEdpZnREcmF3ZXIoewogIG9wZW4sCiAgb25PcGVuQ2hhbmdlLAogIG9uU2VuZEdpZnQsCiAgaG9zdE5hbWUgPSAidGhlIGhvc3QiLAp9OiB7CiAgb3BlbjogYm9vbGVhbjsKICBvbk9wZW5DaGFuZ2U6IChvcGVuOiBib29sZWFuKSA9PiB2b2lkOwogIG9uU2VuZEdpZnQ6IChnaWZ0OiBWaXJ0dWFsR2lmdCkgPT4gdm9pZDsKICBob3N0TmFtZT86IHN0cmluZzsKfSkgewogIGNvbnN0IHsgY29pbnMsIHN5bmNDb2lucyB9ID0gdXNlU3RvcmUoKTsKICBjb25zdCBbc2VsZWN0ZWRHaWZ0LCBzZXRTZWxlY3RlZEdpZnRdID0gdXNlU3RhdGU8VmlydHVhbEdpZnQ+KFZJUlRVQUxfR0lGVFNbMF0pOwogIGNvbnN0IFtzaG93UmV3YXJkZWRBZCwgc2V0U2hvd1Jld2FyZGVkQWRdID0gdXNlU3RhdGUoZmFsc2UpOwogIGNvbnN0IFt3YXRjaGluZywgc2V0V2F0Y2hpbmddID0gdXNlU3RhdGUoZmFsc2UpOwogIGNvbnN0IFtjb3VudGRvd24sIHNldENvdW50ZG93bl0gPSB1c2VTdGF0ZSg1KTsKICBjb25zdCBbcHJvZ3Jlc3MsIHNldFByb2dyZXNzXSA9IHVzZVN0YXRlKDApOwoKICBjb25zdCBoYW5kbGVTZW5kID0gKCkgPT4gewogICAgaWYgKGNvaW5zIDwgc2VsZWN0ZWRHaWZ0LmNvc3QpIHsKICAgICAgdG9hc3QuZXJyb3IoIkxvdyBCbGFjayBDb2luIGJhbGFuY2UhIiwgewogICAgICAgIGRlc2NyaXB0aW9uOiBgWW91IG5lZWQgJHtzZWxlY3RlZEdpZnQuY29zdH0gQkMgdG8gc2VuZCAke3NlbGVjdGVkR2lmdC5uYW1lfS4gV2F0Y2ggYSBzaG9ydCBhZCB0byBlYXJuIGZyZWUgY29pbnMhYCwKICAgICAgfSk7CiAgICAgIHNldFNob3dSZXdhcmRlZEFkKHRydWUpOwogICAgICByZXR1cm47CiAgICB9CgogICAgb25TZW5kR2lmdChzZWxlY3RlZEdpZnQpOwogICAgdG9hc3Quc3VjY2Vzcyhg8J+OiSBTZW50ICR7c2VsZWN0ZWRHaWZ0LmVtb2ppfSAke3NlbGVjdGVkR2lmdC5uYW1lfSFgLCB7CiAgICAgIGRlc2NyaXB0aW9uOiBgQ2hlZXJlZCBvbiAke2hvc3ROYW1lfSB3aXRoICR7c2VsZWN0ZWRHaWZ0LmNvc3R9IEJDLmAsCiAgICB9KTsKICAgIG9uT3BlbkNoYW5nZShmYWxzZSk7CiAgfTsKCiAgY29uc3Qgc3RhcnRBZCA9ICgpID0+IHsKICAgIHNldFdhdGNoaW5nKHRydWUpOwogICAgc2V0Q291bnRkb3duKDUpOwogICAgc2V0UHJvZ3Jlc3MoMCk7CgogICAgY29uc3QgdG90YWxTZWNvbmRzID0gNTsKICAgIGNvbnN0IGludGVydmFsTXMgPSAxMDA7CiAgICBsZXQgZWxhcHNlZE1zID0gMDsKCiAgICBjb25zdCB0aW1lciA9IHNldEludGVydmFsKCgpID0+IHsKICAgICAgZWxhcHNlZE1zICs9IGludGVydmFsTXM7CiAgICAgIGNvbnN0IGN1cnJlbnRQcm9ncmVzcyA9IE1hdGgubWluKDEwMCwgTWF0aC5yb3VuZCgoZWxhcHNlZE1zIC8gKHRvdGFsU2Vjb25kcyAqIDEwMDApKSAqIDEwMCkpOwogICAgICBjb25zdCByZW1haW5pbmdTZWMgPSBNYXRoLm1heCgwLCBNYXRoLmNlaWwodG90YWxTZWNvbmRzIC0gZWxhcHNlZE1zIC8gMTAwMCkpOwoKICAgICAgc2V0UHJvZ3Jlc3MoY3VycmVudFByb2dyZXNzKTsKICAgICAgc2V0Q291bnRkb3duKHJlbWFpbmluZ1NlYyk7CgogICAgICBpZiAoZWxhcHNlZE1zID49IHRvdGFsU2Vjb25kcyAqIDEwMDApIHsKICAgICAgICBjbGVhckludGVydmFsKHRpbWVyKTsKICAgICAgICB2b2lkIChzdXBhYmFzZSBhcyBhbnkpLnJwYygiY2xhaW1fcmV3YXJkZWRfYWRfc2VjdXJlIiwgeyBwX3N1cmZhY2U6ICJob3RzZWF0IiB9KS50aGVuKGFzeW5jICh7IGRhdGEsIGVycm9yIH06IGFueSkgPT4gewogICAgICAgICAgaWYgKGVycm9yKSB0aHJvdyBlcnJvcjsKICAgICAgICAgIGF3YWl0IHN5bmNDb2lucygpOwogICAgICAgICAgc2V0V2F0Y2hpbmcoZmFsc2UpOwogICAgICAgICAgc2V0U2hvd1Jld2FyZGVkQWQoZmFsc2UpOwogICAgICAgICAgdG9hc3Quc3VjY2Vzcyhg8J+OiSArJHtOdW1iZXIoZGF0YT8ucmV3YXJkID8/IDEwKX0gQkMgQWRkZWQgdG8gWW91ciBCYWxhbmNlIWAsIHsKICAgICAgICAgICAgZGVzY3JpcHRpb246ICJZb3Ugbm93IGhhdmUgZXh0cmEgY29pbnMgdG8gZ2lmdCB0aGUgaG9zdCEiLAogICAgICAgICAgfSk7CiAgICAgICAgfSkuY2F0Y2goKGVycm9yOmFueSkgPT4geyBzZXRXYXRjaGluZyhmYWxzZSk7IHRvYXN0LmVycm9yKGVycm9yPy5tZXNzYWdlID8/ICJSZXdhcmQgY291bGQgbm90IGJlIGNsYWltZWQuIik7IH0pOwogICAgICB9CiAgICB9LCBpbnRlcnZhbE1zKTsKICB9OwoKICByZXR1cm4gKAogICAgPD4KICAgICAgPERpYWxvZyBvcGVuPXtvcGVufSBvbk9wZW5DaGFuZ2U9e29uT3BlbkNoYW5nZX0+CiAgICAgICAgPERpYWxvZ0NvbnRlbnQgY2xhc3NOYW1lPSJzbTptYXgtdy1tZCByb3VuZGVkLTN4bCBib3JkZXItd2hpdGUvMTAgYmctbmV1dHJhbC05NTAvOTUgdGV4dC13aGl0ZSBiYWNrZHJvcC1ibHVyLTJ4bCBwLTYgc2hhZG93LTJ4bCI+CiAgICAgICAgICA8RGlhbG9nSGVhZGVyPgogICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleCBpdGVtcy1jZW50ZXIganVzdGlmeS1iZXR3ZWVuIj4KICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTIuNSI+CiAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZ3JpZCBzaXplLTEwIHBsYWNlLWl0ZW1zLWNlbnRlciByb3VuZGVkLXhsIGJnLWFtYmVyLTUwMC8yMCB0ZXh0LWFtYmVyLTQwMCI+CiAgICAgICAgICAgICAgICAgIDxHaWZ0IGNsYXNzTmFtZT0ic2l6ZS01IiAvPgogICAgICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICAgICAgICA8ZGl2PgogICAgICAgICAgICAgICAgICA8RGlhbG9nVGl0bGUgY2xhc3NOYW1lPSJmb250LWRpc3BsYXkgdGV4dC14bCBmb250LWJvbGQgdGV4dC13aGl0ZSI+CiAgICAgICAgICAgICAgICAgICAgU2VuZCBHaWZ0IHRvIEhvc3QKICAgICAgICAgICAgICAgICAgPC9EaWFsb2dUaXRsZT4KICAgICAgICAgICAgICAgICAgPERpYWxvZ0Rlc2NyaXB0aW9uIGNsYXNzTmFtZT0idGV4dC14cyB0ZXh0LW5ldXRyYWwtNDAwIj4KICAgICAgICAgICAgICAgICAgICBDaGVlciBvbiAke2hvc3ROYW1lfSBkdXJpbmcgdGhlIEhvdCBTZWF0IHN0cmVhbS4KICAgICAgICAgICAgICAgICAgPC9EaWFsb2dEZXNjcmlwdGlvbj4KICAgICAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgICAgIDwvZGl2PgoKICAgICAgICAgICAgICB7LyogQ29pbiBCYWxhbmNlIENoaXAgKi99CiAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXggaXRlbXMtY2VudGVyIGdhcC0xLjUgcm91bmRlZC1mdWxsIGJvcmRlciBib3JkZXItYW1iZXItNTAwLzMwIGJnLWFtYmVyLTUwMC8xMCBweC0zIHB5LTEgdGV4dC14cyBmb250LWJvbGQgdGV4dC1hbWJlci0zMDAiPgogICAgICAgICAgICAgICAgPHNwYW4+8J+qmTwvc3Bhbj4KICAgICAgICAgICAgICAgIDxzcGFuPntjb2luc30gQkM8L3NwYW4+CiAgICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgPC9EaWFsb2dIZWFkZXI+CgogICAgICAgICAgey8qIFZpcnR1YWwgR2lmdHMgU2VsZWN0b3IgKi99CiAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZ3JpZCBncmlkLWNvbHMtMyBnYXAtMi41IG15LTMiPgogICAgICAgICAgICB7VklSVFVBTF9HSUZUUy5tYXAoKGcpID0+IHsKICAgICAgICAgICAgICBjb25zdCBpc1NlbGVjdGVkID0gc2VsZWN0ZWRHaWZ0LmlkID09PSBnLmlkOwogICAgICAgICAgICAgIGNvbnN0IGNhbkFmZm9yZCA9IGNvaW5zID49IGcuY29zdDsKICAgICAgICAgICAgICByZXR1cm4gKAogICAgICAgICAgICAgICAgPGJ1dHRvbgogICAgICAgICAgICAgICAgICBrZXk9e2cuaWR9CiAgICAgICAgICAgICAgICAgIHR5cGU9ImJ1dHRvbiIKICAgICAgICAgICAgICAgICAgb25DbGljaz17KCkgPT4gc2V0U2VsZWN0ZWRHaWZ0KGcpfQogICAgICAgICAgICAgICAgICBjbGFzc05hbWU9e2BmbGV4IGZsZXgtY29sIGl0ZW1zLWNlbnRlciBnYXAtMS41IHJvdW5kZWQtMnhsIHAtMyBib3JkZXIgdHJhbnNpdGlvbi1hbGwgY3Vyc29yLXBvaW50ZXIgJHsKICAgICAgICAgICAgICAgICAgICBpc1NlbGVjdGVkCiAgICAgICAgICAgICAgICAgICAgICA/ICJib3JkZXItYW1iZXItNTAwIGJnLWFtYmVyLTUwMC8yMCBzaGFkb3ctWzBfMF8yMHB4X3JnYmEoMjQ1LDE1OCwxMSwwLjMpXSBzY2FsZS0xMDUiCiAgICAgICAgICAgICAgICAgICAgICA6ICJib3JkZXItd2hpdGUvMTAgYmctbmV1dHJhbC05MDAvODAgaG92ZXI6YmctbmV1dHJhbC04MDAiCiAgICAgICAgICAgICAgICAgIH1gfQogICAgICAgICAgICAgICAgPgogICAgICAgICAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9InRleHQtM3hsIGZpbHRlciBkcm9wLXNoYWRvdyI+e2cuZW1vaml9PC9zcGFuPgogICAgICAgICAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9InRleHQteHMgZm9udC1zZW1pYm9sZCB0ZXh0LXdoaXRlIHRydW5jYXRlIG1heC13LWZ1bGwiPgogICAgICAgICAgICAgICAgICAgIHtnLm5hbWV9CiAgICAgICAgICAgICAgICAgIDwvc3Bhbj4KICAgICAgICAgICAgICAgICAgPHNwYW4KICAgICAgICAgICAgICAgICAgICBjbGFzc05hbWU9e2B0ZXh0LVsxMXB4XSBmb250LWJvbGQgdGFidWxhci1udW1zICR7CiAgICAgICAgICAgICAgICAgICAgICBjYW5BZmZvcmQgPyAidGV4dC1hbWJlci00MDAiIDogInRleHQtbmV1dHJhbC01MDAgbGluZS10aHJvdWdoIgogICAgICAgICAgICAgICAgICAgIH1gfQogICAgICAgICAgICAgICAgICA+CiAgICAgICAgICAgICAgICAgICAge2cuY29zdH0gQkMKICAgICAgICAgICAgICAgICAgPC9zcGFuPgogICAgICAgICAgICAgICAgPC9idXR0b24+CiAgICAgICAgICAgICAgKTsKICAgICAgICAgICAgfSl9CiAgICAgICAgICA8L2Rpdj4KCiAgICAgICAgICB7LyogRWFybiBGcmVlIENvaW5zIEJhbm5lciAqL30KICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJmbGV4IGl0ZW1zLWNlbnRlciBqdXN0aWZ5LWJldHdlZW4gcm91bmRlZC0yeGwgYm9yZGVyIGJvcmRlci1lbWVyYWxkLTUwMC8zMCBiZy1lbWVyYWxkLTk1MC80MCBwLTMgdGV4dC14cyI+CiAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJmbGV4IGl0ZW1zLWNlbnRlciBnYXAtMiI+CiAgICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPSJncmlkIHNpemUtNyBwbGFjZS1pdGVtcy1jZW50ZXIgcm91bmRlZC1sZyBiZy1lbWVyYWxkLTUwMC8yMCB0ZXh0LWVtZXJhbGQtNDAwIj4KICAgICAgICAgICAgICAgIDxTcGFya2xlcyBjbGFzc05hbWU9InNpemUtNCIgLz4KICAgICAgICAgICAgICA8L3NwYW4+CiAgICAgICAgICAgICAgPGRpdj4KICAgICAgICAgICAgICAgIDxwIGNsYXNzTmFtZT0iZm9udC1zZW1pYm9sZCB0ZXh0LWVtZXJhbGQtMzAwIj5Mb3cgb24gQmxhY2sgQ29pbnM/PC9wPgogICAgICAgICAgICAgICAgPHAgY2xhc3NOYW1lPSJ0ZXh0LVsxMXB4XSB0ZXh0LWVtZXJhbGQtNDAwLzgwIj5XYXRjaCBhIDVzIGFkIHRvIGdldCArMTAgQkM8L3A+CiAgICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgICA8QnV0dG9uCiAgICAgICAgICAgICAgc2l6ZT0ic20iCiAgICAgICAgICAgICAgb25DbGljaz17KCkgPT4gc2V0U2hvd1Jld2FyZGVkQWQodHJ1ZSl9CiAgICAgICAgICAgICAgY2xhc3NOYW1lPSJnYXAtMSBiZy1lbWVyYWxkLTYwMCBob3ZlcjpiZy1lbWVyYWxkLTUwMCB0ZXh0LXdoaXRlIGZvbnQtYm9sZCBoLTcgdGV4dC14cyBweC0yLjUgcm91bmRlZC1sZyIKICAgICAgICAgICAgPgogICAgICAgICAgICAgIDxQbGF5IGNsYXNzTmFtZT0ic2l6ZS0zIGZpbGwtY3VycmVudCIgLz4gKyBGUkVFIEJDCiAgICAgICAgICAgIDwvQnV0dG9uPgogICAgICAgICAgPC9kaXY+CgogICAgICAgICAgey8qIEZvb3RlciBBY3Rpb24gKi99CiAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0icHQtMiI+CiAgICAgICAgICAgIDxCdXR0b24KICAgICAgICAgICAgICBvbkNsaWNrPXtoYW5kbGVTZW5kfQogICAgICAgICAgICAgIGNsYXNzTmFtZT0idy1mdWxsIGdhcC0yIHJvdW5kZWQteGwgYmctZ3JhZGllbnQtdG8tciBmcm9tLWFtYmVyLTUwMCB0by1vcmFuZ2UtNjAwIGZvbnQtYm9sZCB0ZXh0LXdoaXRlIHNoYWRvdy1sZyBob3ZlcjpvcGFjaXR5LTk1IGN1cnNvci1wb2ludGVyIHB5LTUgdGV4dC1zbSIKICAgICAgICAgICAgPgogICAgICAgICAgICAgIDxHaWZ0IGNsYXNzTmFtZT0ic2l6ZS00IiAvPgogICAgICAgICAgICAgIFNlbmQge3NlbGVjdGVkR2lmdC5lbW9qaX0ge3NlbGVjdGVkR2lmdC5uYW1lfSAoe3NlbGVjdGVkR2lmdC5jb3N0fSBCQykKICAgICAgICAgICAgPC9CdXR0b24+CiAgICAgICAgICA8L2Rpdj4KICAgICAgICA8L0RpYWxvZ0NvbnRlbnQ+CiAgICAgIDwvRGlhbG9nPgoKICAgICAgey8qIFJld2FyZGVkIFZpZGVvIEFkIE1vZGFsIGZvciBGcmVlIENvaW5zICovfQogICAgICA8RGlhbG9nIG9wZW49e3Nob3dSZXdhcmRlZEFkfSBvbk9wZW5DaGFuZ2U9eyhvKSA9PiAhd2F0Y2hpbmcgJiYgc2V0U2hvd1Jld2FyZGVkQWQobyl9PgogICAgICAgIDxEaWFsb2dDb250ZW50IGNsYXNzTmFtZT0ic206bWF4LXctc20gcm91bmRlZC0zeGwgYm9yZGVyLXdoaXRlLzEwIGJnLW5ldXRyYWwtOTUwLzk1IHRleHQtd2hpdGUgYmFja2Ryb3AtYmx1ci0yeGwgcC02IHNoYWRvdy0yeGwiPgogICAgICAgICAgPERpYWxvZ0hlYWRlcj4KICAgICAgICAgICAgPERpYWxvZ1RpdGxlIGNsYXNzTmFtZT0iZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTIgZm9udC1kaXNwbGF5IHRleHQtbGcgZm9udC1ib2xkIHRleHQtd2hpdGUiPgogICAgICAgICAgICAgIDxTcGFya2xlcyBjbGFzc05hbWU9InNpemUtNSB0ZXh0LWVtZXJhbGQtNDAwIiAvPiBGcmVlIFBhbmRhIENvaW5zCiAgICAgICAgICAgIDwvRGlhbG9nVGl0bGU+CiAgICAgICAgICAgIDxEaWFsb2dEZXNjcmlwdGlvbiBjbGFzc05hbWU9InRleHQteHMgdGV4dC1uZXV0cmFsLTQwMCI+CiAgICAgICAgICAgICAgV2F0Y2ggYSBxdWljayA1LXNlY29uZCByZXdhcmRlZCB2aWRlbyBhZCB0byByZWNlaXZlIDEwIEJDIGltbWVkaWF0ZWx5IGludG8geW91cgogICAgICAgICAgICAgIGJhbGFuY2UuCiAgICAgICAgICAgIDwvRGlhbG9nRGVzY3JpcHRpb24+CiAgICAgICAgICA8L0RpYWxvZ0hlYWRlcj4KCiAgICAgICAgICB7LyogUGxheWVyIFN0YWdlICovfQogICAgICAgICAgPGRpdiBjbGFzc05hbWU9InJlbGF0aXZlIG92ZXJmbG93LWhpZGRlbiByb3VuZGVkLTJ4bCBib3JkZXIgYm9yZGVyLXdoaXRlLzEwIGJnLWJsYWNrIHAtNCB0ZXh0LWNlbnRlciBhc3BlY3QtdmlkZW8gZmxleCBmbGV4LWNvbCBpdGVtcy1jZW50ZXIganVzdGlmeS1jZW50ZXIgbXktMiI+CiAgICAgICAgICAgIHt3YXRjaGluZyA/ICgKICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleCBmbGV4LWNvbCBpdGVtcy1jZW50ZXIgZ2FwLTIiPgogICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9InJlbGF0aXZlIGZsZXggc2l6ZS0xMiBpdGVtcy1jZW50ZXIganVzdGlmeS1jZW50ZXIgcm91bmRlZC1mdWxsIGJnLWVtZXJhbGQtNTAwLzIwIHRleHQtZW1lcmFsZC00MDAiPgogICAgICAgICAgICAgICAgICA8UGxheSBjbGFzc05hbWU9InNpemUtNiBmaWxsLWN1cnJlbnQgYW5pbWF0ZS1wdWxzZSIgLz4KICAgICAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9InNwYWNlLXktMSI+CiAgICAgICAgICAgICAgICAgIDxwIGNsYXNzTmFtZT0idGV4dC14cyBmb250LXNlbWlib2xkIHRleHQtbmV1dHJhbC0yMDAiPgogICAgICAgICAgICAgICAgICAgIFNwb25zb3JlZCBBZCBQbGF5aW5n4oCmIHtjb3VudGRvd259cwogICAgICAgICAgICAgICAgICA8L3A+CiAgICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJteC1hdXRvIGgtMS41IHctNDQgcm91bmRlZC1mdWxsIGJnLW5ldXRyYWwtODAwIG92ZXJmbG93LWhpZGRlbiI+CiAgICAgICAgICAgICAgICAgICAgPGRpdgogICAgICAgICAgICAgICAgICAgICAgY2xhc3NOYW1lPSJoLWZ1bGwgYmctZW1lcmFsZC01MDAgdHJhbnNpdGlvbi1hbGwgZHVyYXRpb24tMTAwIgogICAgICAgICAgICAgICAgICAgICAgc3R5bGU9e3sgd2lkdGg6IGAke3Byb2dyZXNzfSVgIH19CiAgICAgICAgICAgICAgICAgICAgLz4KICAgICAgICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgICAgKSA6ICgKICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleCBmbGV4LWNvbCBpdGVtcy1jZW50ZXIgZ2FwLTIuNSI+CiAgICAgICAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9ImdyaWQgc2l6ZS0xMiBwbGFjZS1pdGVtcy1jZW50ZXIgcm91bmRlZC1mdWxsIGJnLWVtZXJhbGQtNTAwLzIwIHRleHQtZW1lcmFsZC00MDAgc2hhZG93LWlubmVyIj4KICAgICAgICAgICAgICAgICAgPFNwYXJrbGVzIGNsYXNzTmFtZT0ic2l6ZS02IGFuaW1hdGUtYm91bmNlIiAvPgogICAgICAgICAgICAgICAgPC9zcGFuPgogICAgICAgICAgICAgICAgPGRpdj4KICAgICAgICAgICAgICAgICAgPHAgY2xhc3NOYW1lPSJ0ZXh0LXNtIGZvbnQtc2VtaWJvbGQgdGV4dC1uZXV0cmFsLTIwMCI+RWFybiArMTAgQkMgSW5zdGFudGx5PC9wPgogICAgICAgICAgICAgICAgICA8cCBjbGFzc05hbWU9InRleHQtWzExcHhdIHRleHQtbmV1dHJhbC00MDAiPk5vIHB1cmNoYXNlIHJlcXVpcmVkPC9wPgogICAgICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICAgICl9CiAgICAgICAgICA8L2Rpdj4KCiAgICAgICAgICA8QnV0dG9uCiAgICAgICAgICAgIGNsYXNzTmFtZT0idy1mdWxsIGdhcC0yIHJvdW5kZWQteGwgYmctZW1lcmFsZC02MDAgaG92ZXI6YmctZW1lcmFsZC01MDAgdGV4dC13aGl0ZSBmb250LWJvbGQiCiAgICAgICAgICAgIG9uQ2xpY2s9e3N0YXJ0QWR9CiAgICAgICAgICAgIGRpc2FibGVkPXt3YXRjaGluZ30KICAgICAgICAgID4KICAgICAgICAgICAgPFBsYXkgY2xhc3NOYW1lPSJzaXplLTQgZmlsbC1jdXJyZW50IiAvPgogICAgICAgICAgICB7d2F0Y2hpbmcgPyBgUGxheWluZyBhZCAoJHtjb3VudGRvd259cynigKZgIDogIldhdGNoIEFkICYgRWFybiAxMCBCQyJ9CiAgICAgICAgICA8L0J1dHRvbj4KICAgICAgICA8L0RpYWxvZ0NvbnRlbnQ+CiAgICAgIDwvRGlhbG9nPgogICAgPC8+CiAgKTsKfQo=
+import { useState } from "react";
+import { Gift, Play, Sparkles, X } from "lucide-react";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { useStore } from "@/lib/store";
+import { supabase } from "@/integrations/supabase/client";
+
+export type VirtualGift = {
+  id: string;
+  name: string;
+  emoji: string;
+  cost: number;
+  effect: string;
+};
+
+export const VIRTUAL_GIFTS: VirtualGift[] = [
+  { id: "bamboo", name: "Fresh Bamboo", emoji: "🎋", cost: 5, effect: "Crispy crunch" },
+  { id: "matcha", name: "Matcha Latte", emoji: "🍵", cost: 15, effect: "Warm cozy vibes" },
+  { id: "torch", name: "Fire Torch", emoji: "🔥", cost: 30, effect: "Hot Seat on fire" },
+  { id: "crown", name: "Panda Crown", emoji: "👑", cost: 50, effect: "Royal honor" },
+  { id: "rocket", name: "Super Rocket", emoji: "🚀", cost: 100, effect: "To the moon" },
+];
+
+export function GiftDrawer({
+  open,
+  onOpenChange,
+  onSendGift,
+  hostName = "the host",
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSendGift: (gift: VirtualGift) => void;
+  hostName?: string;
+}) {
+  const { coins, syncCoins } = useStore();
+  const [selectedGift, setSelectedGift] = useState<VirtualGift>(VIRTUAL_GIFTS[0]);
+  const [showRewardedAd, setShowRewardedAd] = useState(false);
+  const [watching, setWatching] = useState(false);
+  const [countdown, setCountdown] = useState(5);
+  const [progress, setProgress] = useState(0);
+
+  const handleSend = () => {
+    if (coins < selectedGift.cost) {
+      toast.error("Low Black Coin balance!", {
+        description: `You need ${selectedGift.cost} BC to send ${selectedGift.name}. Watch a short ad to earn free coins!`,
+      });
+      setShowRewardedAd(true);
+      return;
+    }
+
+    onSendGift(selectedGift);
+    toast.success(`🎉 Sent ${selectedGift.emoji} ${selectedGift.name}!`, {
+      description: `Cheered on ${hostName} with ${selectedGift.cost} BC.`,
+    });
+    onOpenChange(false);
+  };
+
+  const startAd = () => {
+    setWatching(true);
+    setCountdown(5);
+    setProgress(0);
+
+    const totalSeconds = 5;
+    const intervalMs = 100;
+    let elapsedMs = 0;
+
+    const timer = setInterval(() => {
+      elapsedMs += intervalMs;
+      const currentProgress = Math.min(100, Math.round((elapsedMs / (totalSeconds * 1000)) * 100));
+      const remainingSec = Math.max(0, Math.ceil(totalSeconds - elapsedMs / 1000));
+
+      setProgress(currentProgress);
+      setCountdown(remainingSec);
+
+      if (elapsedMs >= totalSeconds * 1000) {
+        clearInterval(timer);
+        void (supabase as any).rpc("claim_rewarded_ad_secure", { p_surface: "hotseat" }).then(async ({ data, error }: any) => {
+          if (error) throw error;
+          await syncCoins();
+          setWatching(false);
+          setShowRewardedAd(false);
+          toast.success(`🎉 +${Number(data?.reward ?? 10)} BC Added to Your Balance!`, {
+            description: "You now have extra coins to gift the host!",
+          });
+        }).catch((error:any) => { setWatching(false); toast.error(error?.message ?? "Reward could not be claimed."); });
+      }
+    }, intervalMs);
+  };
+
+  return (
+    <>
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="sm:max-w-md rounded-3xl border-white/10 bg-neutral-950/95 text-white backdrop-blur-2xl p-6 shadow-2xl">
+          <DialogHeader>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="grid size-10 place-items-center rounded-xl bg-amber-500/20 text-amber-400">
+                  <Gift className="size-5" />
+                </div>
+                <div>
+                  <DialogTitle className="font-display text-xl font-bold text-white">
+                    Send Gift to Host
+                  </DialogTitle>
+                  <DialogDescription className="text-xs text-neutral-400">
+                    Cheer on ${hostName} during the Hot Seat stream.
+                  </DialogDescription>
+                </div>
+              </div>
+
+              {/* Coin Balance Chip */}
+              <div className="flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-xs font-bold text-amber-300">
+                <span>🪙</span>
+                <span>{coins} BC</span>
+              </div>
+            </div>
+          </DialogHeader>
+
+          {/* Virtual Gifts Selector */}
+          <div className="grid grid-cols-3 gap-2.5 my-3">
+            {VIRTUAL_GIFTS.map((g) => {
+              const isSelected = selectedGift.id === g.id;
+              const canAfford = coins >= g.cost;
+              return (
+                <button
+                  key={g.id}
+                  type="button"
+                  onClick={() => setSelectedGift(g)}
+                  className={`flex flex-col items-center gap-1.5 rounded-2xl p-3 border transition-all cursor-pointer ${
+                    isSelected
+                      ? "border-amber-500 bg-amber-500/20 shadow-[0_0_20px_rgba(245,158,11,0.3)] scale-105"
+                      : "border-white/10 bg-neutral-900/80 hover:bg-neutral-800"
+                  }`}
+                >
+                  <span className="text-3xl filter drop-shadow">{g.emoji}</span>
+                  <span className="text-xs font-semibold text-white truncate max-w-full">
+                    {g.name}
+                  </span>
+                  <span
+                    className={`text-[11px] font-bold tabular-nums ${
+                      canAfford ? "text-amber-400" : "text-neutral-500 line-through"
+                    }`}
+                  >
+                    {g.cost} BC
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Earn Free Coins Banner */}
+          <div className="flex items-center justify-between rounded-2xl border border-emerald-500/30 bg-emerald-950/40 p-3 text-xs">
+            <div className="flex items-center gap-2">
+              <span className="grid size-7 place-items-center rounded-lg bg-emerald-500/20 text-emerald-400">
+                <Sparkles className="size-4" />
+              </span>
+              <div>
+                <p className="font-semibold text-emerald-300">Low on Black Coins?</p>
+                <p className="text-[11px] text-emerald-400/80">Watch a 5s ad to get +10 BC</p>
+              </div>
+            </div>
+            <Button
+              size="sm"
+              onClick={() => setShowRewardedAd(true)}
+              className="gap-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold h-7 text-xs px-2.5 rounded-lg"
+            >
+              <Play className="size-3 fill-current" /> + FREE BC
+            </Button>
+          </div>
+
+          {/* Footer Action */}
+          <div className="pt-2">
+            <Button
+              onClick={handleSend}
+              className="w-full gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 font-bold text-white shadow-lg hover:opacity-95 cursor-pointer py-5 text-sm"
+            >
+              <Gift className="size-4" />
+              Send {selectedGift.emoji} {selectedGift.name} ({selectedGift.cost} BC)
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Rewarded Video Ad Modal for Free Coins */}
+      <Dialog open={showRewardedAd} onOpenChange={(o) => !watching && setShowRewardedAd(o)}>
+        <DialogContent className="sm:max-w-sm rounded-3xl border-white/10 bg-neutral-950/95 text-white backdrop-blur-2xl p-6 shadow-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 font-display text-lg font-bold text-white">
+              <Sparkles className="size-5 text-emerald-400" /> Free Panda Coins
+            </DialogTitle>
+            <DialogDescription className="text-xs text-neutral-400">
+              Watch a quick 5-second rewarded video ad to receive 10 BC immediately into your
+              balance.
+            </DialogDescription>
+          </DialogHeader>
+
+          {/* Player Stage */}
+          <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-black p-4 text-center aspect-video flex flex-col items-center justify-center my-2">
+            {watching ? (
+              <div className="flex flex-col items-center gap-2">
+                <div className="relative flex size-12 items-center justify-center rounded-full bg-emerald-500/20 text-emerald-400">
+                  <Play className="size-6 fill-current animate-pulse" />
+                </div>
+                <div className="space-y-1">
+                  <p className="text-xs font-semibold text-neutral-200">
+                    Sponsored Ad Playing… {countdown}s
+                  </p>
+                  <div className="mx-auto h-1.5 w-44 rounded-full bg-neutral-800 overflow-hidden">
+                    <div
+                      className="h-full bg-emerald-500 transition-all duration-100"
+                      style={{ width: `${progress}%` }}
+                    />
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center gap-2.5">
+                <span className="grid size-12 place-items-center rounded-full bg-emerald-500/20 text-emerald-400 shadow-inner">
+                  <Sparkles className="size-6 animate-bounce" />
+                </span>
+                <div>
+                  <p className="text-sm font-semibold text-neutral-200">Earn +10 BC Instantly</p>
+                  <p className="text-[11px] text-neutral-400">No purchase required</p>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <Button
+            className="w-full gap-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold"
+            onClick={startAd}
+            disabled={watching}
+          >
+            <Play className="size-4 fill-current" />
+            {watching ? `Playing ad (${countdown}s)…` : "Watch Ad & Earn 10 BC"}
+          </Button>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+}

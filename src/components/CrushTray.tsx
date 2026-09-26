@@ -1,1 +1,42 @@
-aW1wb3J0IHsgTGluayB9IGZyb20gIkB0YW5zdGFjay9yZWFjdC1yb3V0ZXIiOwppbXBvcnQgeyBDcm93biwgUGx1cyB9IGZyb20gImx1Y2lkZS1yZWFjdCI7CmltcG9ydCB7IHVzZVN0YXRlIH0gZnJvbSAicmVhY3QiOwppbXBvcnQgeyB1c2VTdG9yZSB9IGZyb20gIkAvbGliL3N0b3JlIjsKaW1wb3J0IHsgQ3J1c2hTdWJtaXNzaW9uRGlhbG9nIH0gZnJvbSAiQC9jb21wb25lbnRzL0NydXNoU3VibWlzc2lvbkRpYWxvZyI7CgovKiogUm91bmQsIHRhcHBhYmxlIE1DTS9XQ1cgc3Rvcnkgcm93IGZvciB0aGUgQ2lyY2xlIFBhbmRhIGhvbWUgZmVlZC4gKi8KZXhwb3J0IGZ1bmN0aW9uIENydXNoVHJheSgpIHsKICBjb25zdCB7IG5vbWluZWVzIH0gPSB1c2VTdG9yZSgpOwogIGNvbnN0IFtjb21wb3NlT3Blbiwgc2V0Q29tcG9zZU9wZW5dID0gdXNlU3RhdGUoZmFsc2UpOwogIGNvbnN0IHJhbmtlZCA9IFsuLi5ub21pbmVlc10uZmlsdGVyKChuKSA9PiBuLm1lZGlhVXJsKS5zb3J0KChhLCBiKSA9PiBiLnZvdGVzIC0gYS52b3Rlcyk7CgogIHJldHVybiAoCiAgICA8PgogICAgICA8c2VjdGlvbiBjbGFzc05hbWU9InBhbmRhLXBhbmVsIG1iLTQgb3ZlcmZsb3ctaGlkZGVuIHJvdW5kZWQtMnhsIHAtMyI+CiAgICAgICAgPGRpdiBjbGFzc05hbWU9Im1iLTIgZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTIgcHgtMSI+CiAgICAgICAgICA8Q3Jvd24gY2xhc3NOYW1lPSJzaXplLTQgdGV4dC1bdmFyKC0tY29pbildIiAvPgogICAgICAgICAgPGgyIGNsYXNzTmFtZT0iZm9udC1kaXNwbGF5IHRleHQtc20gZm9udC1ib2xkIj5NQ00gJiBXQ1c8L2gyPgogICAgICAgICAgPExpbmsgdG89Ii9jcnVzaCIgY2xhc3NOYW1lPSJtbC1hdXRvIHRleHQtWzExcHhdIGZvbnQtc2VtaWJvbGQgdGV4dC1wcmltYXJ5Ij5PcGVuPC9MaW5rPgogICAgICAgIDwvZGl2PgogICAgICAgIDxkaXYgY2xhc3NOYW1lPSItbXgtMSBmbGV4IGdhcC00IG92ZXJmbG93LXgtYXV0byBweC0xIHBiLTEiPgogICAgICAgICAgPGJ1dHRvbiB0eXBlPSJidXR0b24iIG9uQ2xpY2s9eygpID0+IHNldENvbXBvc2VPcGVuKHRydWUpfSBjbGFzc05hbWU9ImZsZXggdy1bNzJweF0gc2hyaW5rLTAgZmxleC1jb2wgaXRlbXMtY2VudGVyIGdhcC0xLjUiPgogICAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9InJlbGF0aXZlIGdyaWQgc2l6ZS1bNjZweF0gcGxhY2UtaXRlbXMtY2VudGVyIHJvdW5kZWQtZnVsbCBib3JkZXItNCBib3JkZXItcHJpbWFyeSBiZy1zZWNvbmRhcnkgc2hhZG93LVswXzBfMF8ycHhfaHNsKHZhcigtLWJhY2tncm91bmQpKV0iPgogICAgICAgICAgICAgIDxQbHVzIGNsYXNzTmFtZT0ic2l6ZS04IHRleHQtcHJpbWFyeSIgc3Ryb2tlV2lkdGg9ezIuN30gLz4KICAgICAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9ImFic29sdXRlIC1ib3R0b20tMSAtcmlnaHQtMSBncmlkIHNpemUtNiBwbGFjZS1pdGVtcy1jZW50ZXIgcm91bmRlZC1mdWxsIGJnLXByaW1hcnkgdGV4dC1bMTFweF0gZm9udC1ibGFjayB0ZXh0LXByaW1hcnktZm9yZWdyb3VuZCI+Kzwvc3Bhbj4KICAgICAgICAgICAgPC9zcGFuPgogICAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9InRleHQtWzExcHhdIGZvbnQtYm9sZCI+QWRkIHlvdXJzPC9zcGFuPgogICAgICAgICAgPC9idXR0b24+CiAgICAgICAgICB7cmFua2VkLm1hcCgobikgPT4gKAogICAgICAgICAgICA8TGluayBrZXk9e24uaWR9IHRvPSIvY3J1c2giIGNsYXNzTmFtZT0iZmxleCB3LVs3MnB4XSBzaHJpbmstMCBmbGV4LWNvbCBpdGVtcy1jZW50ZXIgZ2FwLTEuNSIgYXJpYS1sYWJlbD17YE9wZW4gJHtuLmtpbmQgPT09ICJ3Y3ciID8gIldDVyIgOiAiTUNNIn0gcGljdHVyZWB9PgogICAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT17YHJlbGF0aXZlIGdyaWQgc2l6ZS1bNjZweF0gcGxhY2UtaXRlbXMtY2VudGVyIG92ZXJmbG93LWhpZGRlbiByb3VuZGVkLWZ1bGwgYm9yZGVyLTQgc2hhZG93LVswXzBfMF8ycHhfaHNsKHZhcigtLWJhY2tncm91bmQpKV0gJHtuLmtpbmQgPT09ICJ3Y3ciID8gImJvcmRlci1bdmFyKC0tZGF0aW5nKV0iIDogImJvcmRlci1wcmltYXJ5In1gfT4KICAgICAgICAgICAgICAgIHtuLm1lZGlhVHlwZSA9PT0gInZpZGVvIiA/IDxzcGFuIGNsYXNzTmFtZT0idGV4dC0yeGwiPuKWtu+4jzwvc3Bhbj4gOiBuLm1lZGlhVXJsID8gPGltZyBzcmM9e24ubWVkaWFVcmx9IGFsdD0iIiBjbGFzc05hbWU9InNpemUtZnVsbCBvYmplY3QtY292ZXIiIC8+IDogPHNwYW4gY2xhc3NOYW1lPSJ0ZXh0LTJ4bCI+e24uZW1vaml9PC9zcGFuPn0KICAgICAgICAgICAgICA8L3NwYW4+CiAgICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPSJ3LWZ1bGwgdHJ1bmNhdGUgdGV4dC1jZW50ZXIgdGV4dC1bMTBweF0gZm9udC1zZW1pYm9sZCB0ZXh0LW11dGVkLWZvcmVncm91bmQiPntuLmtpbmQgPT09ICJ3Y3ciID8gIldDVyIgOiAiTUNNIn08L3NwYW4+CiAgICAgICAgICAgIDwvTGluaz4KICAgICAgICAgICkpfQogICAgICAgIDwvZGl2PgogICAgICA8L3NlY3Rpb24+CiAgICAgIDxDcnVzaFN1Ym1pc3Npb25EaWFsb2cgb3Blbj17Y29tcG9zZU9wZW59IG9uT3BlbkNoYW5nZT17c2V0Q29tcG9zZU9wZW59IC8+CiAgICA8Lz4KICApOwp9Cg==
+import { Link } from "@tanstack/react-router";
+import { Crown, Plus } from "lucide-react";
+import { useState } from "react";
+import { useStore } from "@/lib/store";
+import { CrushSubmissionDialog } from "@/components/CrushSubmissionDialog";
+
+/** Round, tappable MCM/WCW story row for the Circle Panda home feed. */
+export function CrushTray() {
+  const { nominees } = useStore();
+  const [composeOpen, setComposeOpen] = useState(false);
+  const ranked = [...nominees].filter((n) => n.mediaUrl).sort((a, b) => b.votes - a.votes);
+
+  return (
+    <>
+      <section className="panda-panel mb-4 overflow-hidden rounded-2xl p-3">
+        <div className="mb-2 flex items-center gap-2 px-1">
+          <Crown className="size-4 text-[var(--coin)]" />
+          <h2 className="font-display text-sm font-bold">MCM & WCW</h2>
+          <Link to="/crush" className="ml-auto text-[11px] font-semibold text-primary">Open</Link>
+        </div>
+        <div className="-mx-1 flex gap-4 overflow-x-auto px-1 pb-1">
+          <button type="button" onClick={() => setComposeOpen(true)} className="flex w-[72px] shrink-0 flex-col items-center gap-1.5">
+            <span className="relative grid size-[66px] place-items-center rounded-full border-4 border-primary bg-secondary shadow-[0_0_0_2px_hsl(var(--background))]">
+              <Plus className="size-8 text-primary" strokeWidth={2.7} />
+              <span className="absolute -bottom-1 -right-1 grid size-6 place-items-center rounded-full bg-primary text-[11px] font-black text-primary-foreground">+</span>
+            </span>
+            <span className="text-[11px] font-bold">Add yours</span>
+          </button>
+          {ranked.map((n) => (
+            <Link key={n.id} to="/crush" className="flex w-[72px] shrink-0 flex-col items-center gap-1.5" aria-label={`Open ${n.kind === "wcw" ? "WCW" : "MCM"} picture`}>
+              <span className={`relative grid size-[66px] place-items-center overflow-hidden rounded-full border-4 shadow-[0_0_0_2px_hsl(var(--background))] ${n.kind === "wcw" ? "border-[var(--dating)]" : "border-primary"}`}>
+                {n.mediaType === "video" ? <span className="text-2xl">▶️</span> : n.mediaUrl ? <img src={n.mediaUrl} alt="" className="size-full object-cover" /> : <span className="text-2xl">{n.emoji}</span>}
+              </span>
+              <span className="w-full truncate text-center text-[10px] font-semibold text-muted-foreground">{n.kind === "wcw" ? "WCW" : "MCM"}</span>
+            </Link>
+          ))}
+        </div>
+      </section>
+      <CrushSubmissionDialog open={composeOpen} onOpenChange={setComposeOpen} />
+    </>
+  );
+}
