@@ -1,1 +1,141 @@
-aW1wb3J0IHsgRmxhbWUsIE1lc3NhZ2VDaXJjbGUsIFJhZGlvLCBTZW5kLCBTaGllbGRDaGVjaywgU3BhcmtsZXMgfSBmcm9tICJsdWNpZGUtcmVhY3QiOwppbXBvcnQgeyB1c2VFZmZlY3QsIHVzZVN0YXRlIH0gZnJvbSAicmVhY3QiOwppbXBvcnQgdHlwZSB7IExpdmVDaGF0TWVzc2FnZSB9IGZyb20gIi4vTGl2ZUNoYXREcmF3ZXIiOwoKZXhwb3J0IGZ1bmN0aW9uIEJvdHRvbUxpdmVPdmVybGF5KHsKICBob3N0SGFuZGxlID0gIiIsCiAgaG9zdE5hbWUgPSAiIiwKICB0b3BpY1RpdGxlID0gIiIsCiAgY2hhdE1lc3NhZ2VzLAogIG9uT3BlbkNoYXREcmF3ZXIsCiAgb25RdWlja0NvbW1lbnQsCiAgcmVwdXRhdGlvbiA9IDAsCn06IHsKICBob3N0SGFuZGxlPzogc3RyaW5nOwogIGhvc3ROYW1lPzogc3RyaW5nOwogIHRvcGljVGl0bGU/OiBzdHJpbmc7CiAgY2hhdE1lc3NhZ2VzOiBMaXZlQ2hhdE1lc3NhZ2VbXTsKICBvbk9wZW5DaGF0RHJhd2VyOiAoKSA9PiB2b2lkOwogIG9uUXVpY2tDb21tZW50PzogKHRleHQ6IHN0cmluZykgPT4gdm9pZDsKICByZXB1dGF0aW9uPzogbnVtYmVyOwp9KSB7CiAgY29uc3QgW3F1aWNrSW5wdXQsIHNldFF1aWNrSW5wdXRdID0gdXNlU3RhdGUoIiIpOwoKICAvLyBEZWZhdWx0IGxpdmUgcm9sbGluZyBjb21tZW50cyB0aWNrZXIKICBjb25zdCB0aWNrZXJJdGVtcyA9IGNoYXRNZXNzYWdlcy5zbGljZSgtOCk7CgogIGNvbnN0IGhhbmRsZVF1aWNrU3VibWl0ID0gKGU6IFJlYWN0LkZvcm1FdmVudCkgPT4gewogICAgZS5wcmV2ZW50RGVmYXVsdCgpOwogICAgaWYgKCFxdWlja0lucHV0LnRyaW0oKSkgewogICAgICBvbk9wZW5DaGF0RHJhd2VyKCk7CiAgICAgIHJldHVybjsKICAgIH0KICAgIGlmIChvblF1aWNrQ29tbWVudCkgewogICAgICBvblF1aWNrQ29tbWVudChxdWlja0lucHV0LnRyaW0oKSk7CiAgICAgIHNldFF1aWNrSW5wdXQoIiIpOwogICAgfSBlbHNlIHsKICAgICAgb25PcGVuQ2hhdERyYXdlcigpOwogICAgfQogIH07CgogIHJldHVybiAoCiAgICA8ZGl2CiAgICAgIGlkPSJob3Qtc2l0LWJvdHRvbS1vdmVybGF5IgogICAgICBjbGFzc05hbWU9ImFic29sdXRlIGJvdHRvbS00IHNtOmJvdHRvbS02IGxlZnQtMy41IHJpZ2h0LTIwIHNtOnJpZ2h0LTI0IHotMzAgZmxleCBmbGV4LWNvbCBnYXAtMi41IG1heC13LVtjYWxjKDEwMCUtNS43NXJlbSldIHNtOm1heC13LWxnIHBvaW50ZXItZXZlbnRzLWF1dG8gc2VsZWN0LW5vbmUiCiAgICA+CiAgICAgIHsvKiAxLiBIb3N0IEhhbmRsZSBhbmQgQmFkZ2VzICovfQogICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleCBmbGV4LXdyYXAgaXRlbXMtY2VudGVyIGdhcC0yIj4KICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTEuNSBmb250LWRpc3BsYXkgdGV4dC1zbSBzbTp0ZXh0LWJhc2UgZm9udC1ib2xkIHRleHQtd2hpdGUgZHJvcC1zaGFkb3ctWzBfMXB4XzRweF9yZ2JhKDAsMCwwLDAuOSldIj4KICAgICAgICAgIDxzcGFuPntob3N0SGFuZGxlIHx8ICJIb3QgU2VhdCJ9PC9zcGFuPgogICAgICAgICAge2hvc3RIYW5kbGUgJiYgPFNoaWVsZENoZWNrIGNsYXNzTmFtZT0ic2l6ZS00IHRleHQtb3JhbmdlLTQwMCBmaWxsLW9yYW5nZS00MDAvMjAiIC8+fQogICAgICAgIDwvZGl2PgoKICAgICAgICA8c3BhbiBjbGFzc05hbWU9InJvdW5kZWQtZnVsbCBiZy1ncmFkaWVudC10by1yIGZyb20tb3JhbmdlLTYwMCB0by1hbWJlci01MDAgcHgtMiBweS0wLjUgdGV4dC1bOXB4XSBzbTp0ZXh0LVsxMHB4XSBmb250LWJsYWNrIHVwcGVyY2FzZSB0cmFja2luZy13aWRlciB0ZXh0LXdoaXRlIHNoYWRvdy1zbSI+CiAgICAgICAgICBIT1NUCiAgICAgICAgPC9zcGFuPgoKICAgICAgICB7cmVwdXRhdGlvbiA+IDAgJiYgPHNwYW4gY2xhc3NOYW1lPSJ0ZXh0LVsxMXB4XSBmb250LW1lZGl1bSB0ZXh0LXdoaXRlLzcwIGRyb3Atc2hhZG93Ij57cmVwdXRhdGlvbi50b0xvY2FsZVN0cmluZygpfSByZXA8L3NwYW4+fQogICAgICA8L2Rpdj4KCiAgICAgIHsvKiAyLiBMaXZlIFRvcGljIFRpdGxlICovfQogICAgICA8ZGl2IGNsYXNzTmFtZT0icm91bmRlZC14bCBib3JkZXIgYm9yZGVyLXdoaXRlLzEwIGJnLWJsYWNrLzQwIHB4LTMgcHktMiBiYWNrZHJvcC1ibHVyLW1kIHNoYWRvdy1sZyI+CiAgICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXggaXRlbXMtY2VudGVyIGdhcC0xLjUgdGV4dC1bMTBweF0gZm9udC1ib2xkIHVwcGVyY2FzZSB0cmFja2luZy13aWRlciB0ZXh0LW9yYW5nZS00MDAgbWItMC41Ij4KICAgICAgICAgIDxGbGFtZSBjbGFzc05hbWU9InNpemUtMyB0ZXh0LW9yYW5nZS00MDAgZmlsbC1vcmFuZ2UtNDAwIGFuaW1hdGUtcHVsc2UiIC8+CiAgICAgICAgICA8c3Bhbj5DdXJyZW50IEhvdCBUb3BpYzwvc3Bhbj4KICAgICAgICA8L2Rpdj4KICAgICAgICA8cCBjbGFzc05hbWU9ImZvbnQtc2FucyB0ZXh0LXhzIHNtOnRleHQtc20gZm9udC1zZW1pYm9sZCB0ZXh0LXdoaXRlLzk1IGxlYWRpbmctc251ZyBkcm9wLXNoYWRvdyBsaW5lLWNsYW1wLTIiPgogICAgICAgICAge3RvcGljVGl0bGUgPyA8PiAmbGRxdW87e3RvcGljVGl0bGV9JnJkcXVvOyA8Lz4gOiAiV2FpdGluZyBmb3IgdGhlIG5leHQgbGl2ZSB0b3BpYy4ifQogICAgICAgIDwvcD4KICAgICAgPC9kaXY+CgogICAgICB7LyogMy4gU2luZ2xlLUxpbmUgU2Nyb2xsaW5nIExpdmUgQ29tbWVudCBGZWVkICovfQogICAgICA8ZGl2CiAgICAgICAgb25DbGljaz17b25PcGVuQ2hhdERyYXdlcn0KICAgICAgICByb2xlPSJidXR0b24iCiAgICAgICAgdGFiSW5kZXg9ezB9CiAgICAgICAgYXJpYS1sYWJlbD0iT3BlbiBsaXZlIGNvbW1lbnRzIGRyYXdlciIKICAgICAgICBjbGFzc05hbWU9Imdyb3VwIHJlbGF0aXZlIGZsZXggaC03IHNtOmgtOCB3LWZ1bGwgaXRlbXMtY2VudGVyIG92ZXJmbG93LWhpZGRlbiByb3VuZGVkLWZ1bGwgYm9yZGVyIGJvcmRlci13aGl0ZS8xNSBiZy1ibGFjay81NSBweC0yLjUgYmFja2Ryb3AtYmx1ci1tZCBzaGFkb3ctbWQgY3Vyc29yLXBvaW50ZXIgdHJhbnNpdGlvbi1jb2xvcnMgaG92ZXI6YmctYmxhY2svNzAgYWN0aXZlOnNjYWxlLVswLjk5XSIKICAgICAgPgogICAgICAgIHsvKiBMZWZ0IExpdmUgSW5kaWNhdG9yIEljb24gKi99CiAgICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXggc2hyaW5rLTAgaXRlbXMtY2VudGVyIGdhcC0xLjUgcHItMiB0ZXh0LW9yYW5nZS00MDAiPgogICAgICAgICAgPFJhZGlvIGNsYXNzTmFtZT0ic2l6ZS0zIGFuaW1hdGUtcHVsc2UiIC8+CiAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9InRleHQtWzEwcHhdIGZvbnQtYmxhY2sgdXBwZXJjYXNlIHRyYWNraW5nLXdpZGVyIHRleHQtb3JhbmdlLTMwMCI+CiAgICAgICAgICAgIENIQVQ6CiAgICAgICAgICA8L3NwYW4+CiAgICAgICAgPC9kaXY+CgogICAgICAgIHsvKiBTY3JvbGxpbmcgVGlja2VyIFN0cmVhbSAqL30KICAgICAgICA8ZGl2IGNsYXNzTmFtZT0icmVsYXRpdmUgZmxleC0xIG92ZXJmbG93LWhpZGRlbiBoLWZ1bGwgZmxleCBpdGVtcy1jZW50ZXIiPgogICAgICAgICAgPGRpdiBjbGFzc05hbWU9ImFuaW1hdGUtbWFycXVlZS1zdHJlYW0gZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTYgdGV4dC1bMTFweF0gc206dGV4dC14cyB0ZXh0LXdoaXRlLzkwIj4KICAgICAgICAgICAge3RpY2tlckl0ZW1zLm1hcCgoaXRlbSwgaWR4KSA9PiAoCiAgICAgICAgICAgICAgPHNwYW4KICAgICAgICAgICAgICAgIGtleT17YCR7aXRlbS5pZH0tJHtpZHh9YH0KICAgICAgICAgICAgICAgIGNsYXNzTmFtZT0iaW5saW5lLWZsZXggaXRlbXMtY2VudGVyIGdhcC0xLjUgd2hpdGVzcGFjZS1ub3dyYXAiCiAgICAgICAgICAgICAgPgogICAgICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPSJmb250LWJvbGQgdGV4dC1vcmFuZ2UtMjAwIj57aXRlbS51c2VyfTo8L3NwYW4+CiAgICAgICAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9InRleHQtd2hpdGUvODAiPntpdGVtLnRleHR9PC9zcGFuPgogICAgICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPSJ0ZXh0LXdoaXRlLzMwIG1sLTIiPsK3PC9zcGFuPgogICAgICAgICAgICAgIDwvc3Bhbj4KICAgICAgICAgICAgKSl9CiAgICAgICAgICAgIHsvKiBEdXBsaWNhdGUgc2V0IGZvciBzZWFtbGVzcyBjb250aW51b3VzIGxvb3AgKi99CiAgICAgICAgICAgIHt0aWNrZXJJdGVtcy5tYXAoKGl0ZW0sIGlkeCkgPT4gKAogICAgICAgICAgICAgIDxzcGFuCiAgICAgICAgICAgICAgICBrZXk9e2BkdXAtJHtpdGVtLmlkfS0ke2lkeH1gfQogICAgICAgICAgICAgICAgY2xhc3NOYW1lPSJpbmxpbmUtZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTEuNSB3aGl0ZXNwYWNlLW5vd3JhcCIKICAgICAgICAgICAgICA+CiAgICAgICAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9ImZvbnQtYm9sZCB0ZXh0LW9yYW5nZS0yMDAiPntpdGVtLnVzZXJ9Ojwvc3Bhbj4KICAgICAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT0idGV4dC13aGl0ZS84MCI+e2l0ZW0udGV4dH08L3NwYW4+CiAgICAgICAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9InRleHQtd2hpdGUvMzAgbWwtMiI+wrc8L3NwYW4+CiAgICAgICAgICAgICAgPC9zcGFuPgogICAgICAgICAgICApKX0KICAgICAgICAgIDwvZGl2PgogICAgICAgIDwvZGl2PgogICAgICA8L2Rpdj4KCiAgICAgIHsvKiA0LiBRdWljayBBbm9ueW1vdXMgQ29tbWVudCBJbnB1dCBQaWxsICovfQogICAgICA8Zm9ybSBvblN1Ym1pdD17aGFuZGxlUXVpY2tTdWJtaXR9IGNsYXNzTmFtZT0iZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTIiPgogICAgICAgIDxkaXYKICAgICAgICAgIG9uQ2xpY2s9e29uT3BlbkNoYXREcmF3ZXJ9CiAgICAgICAgICBjbGFzc05hbWU9InJlbGF0aXZlIGZsZXgtMSBmbGV4IGl0ZW1zLWNlbnRlciByb3VuZGVkLWZ1bGwgYm9yZGVyIGJvcmRlci13aGl0ZS8yMCBiZy1ibGFjay81MCBweC0zIHB5LTEuNSBiYWNrZHJvcC1ibHVyLW1kIHRyYW5zaXRpb24tYWxsIGhvdmVyOmJvcmRlci1vcmFuZ2UtNTAwLzUwIGN1cnNvci1wb2ludGVyIHNoYWRvdy1tZCIKICAgICAgICA+CiAgICAgICAgICA8TWVzc2FnZUNpcmNsZSBjbGFzc05hbWU9InNpemUtMy41IHRleHQtd2hpdGUvNjAgbXItMiBzaHJpbmstMCIgLz4KICAgICAgICAgIDxpbnB1dAogICAgICAgICAgICB0eXBlPSJ0ZXh0IgogICAgICAgICAgICB2YWx1ZT17cXVpY2tJbnB1dH0KICAgICAgICAgICAgb25DaGFuZ2U9eyhlKSA9PiBzZXRRdWlja0lucHV0KGUudGFyZ2V0LnZhbHVlKX0KICAgICAgICAgICAgcGxhY2Vob2xkZXI9IkFzayBvciBjb21tZW50IGFub255bW91c2x5Li4uIgogICAgICAgICAgICBjbGFzc05hbWU9InctZnVsbCBiZy10cmFuc3BhcmVudCB0ZXh0LXhzIHRleHQtd2hpdGUgcGxhY2Vob2xkZXI6dGV4dC13aGl0ZS81MCBvdXRsaW5lLW5vbmUiCiAgICAgICAgICAvPgogICAgICAgIDwvZGl2PgoKICAgICAgICA8YnV0dG9uCiAgICAgICAgICB0eXBlPSJzdWJtaXQiCiAgICAgICAgICBhcmlhLWxhYmVsPSJTZW5kIGxpdmUgcXVlc3Rpb24gb3IgY29tbWVudCIKICAgICAgICAgIGNsYXNzTmFtZT0iZ3JpZCBzaXplLTggcGxhY2UtaXRlbXMtY2VudGVyIHJvdW5kZWQtZnVsbCBiZy1ncmFkaWVudC10by10ciBmcm9tLW9yYW5nZS02MDAgdG8tYW1iZXItNTAwIHRleHQtd2hpdGUgc2hhZG93LW1kIHRyYW5zaXRpb24tdHJhbnNmb3JtIGhvdmVyOnNjYWxlLTEwNSBhY3RpdmU6c2NhbGUtOTUgY3Vyc29yLXBvaW50ZXIgc2hyaW5rLTAiCiAgICAgICAgPgogICAgICAgICAgPFNlbmQgY2xhc3NOYW1lPSJzaXplLTMuNSIgLz4KICAgICAgICA8L2J1dHRvbj4KICAgICAgPC9mb3JtPgogICAgPC9kaXY+CiAgKTsKfQo=
+import { Flame, MessageCircle, Radio, Send, ShieldCheck, Sparkles } from "lucide-react";
+import { useEffect, useState } from "react";
+import type { LiveChatMessage } from "./LiveChatDrawer";
+
+export function BottomLiveOverlay({
+  hostHandle = "",
+  hostName = "",
+  topicTitle = "",
+  chatMessages,
+  onOpenChatDrawer,
+  onQuickComment,
+  reputation = 0,
+}: {
+  hostHandle?: string;
+  hostName?: string;
+  topicTitle?: string;
+  chatMessages: LiveChatMessage[];
+  onOpenChatDrawer: () => void;
+  onQuickComment?: (text: string) => void;
+  reputation?: number;
+}) {
+  const [quickInput, setQuickInput] = useState("");
+
+  // Default live rolling comments ticker
+  const tickerItems = chatMessages.slice(-8);
+
+  const handleQuickSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!quickInput.trim()) {
+      onOpenChatDrawer();
+      return;
+    }
+    if (onQuickComment) {
+      onQuickComment(quickInput.trim());
+      setQuickInput("");
+    } else {
+      onOpenChatDrawer();
+    }
+  };
+
+  return (
+    <div
+      id="hot-sit-bottom-overlay"
+      className="absolute bottom-4 sm:bottom-6 left-3.5 right-20 sm:right-24 z-30 flex flex-col gap-2.5 max-w-[calc(100%-5.75rem)] sm:max-w-lg pointer-events-auto select-none"
+    >
+      {/* 1. Host Handle and Badges */}
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="flex items-center gap-1.5 font-display text-sm sm:text-base font-bold text-white drop-shadow-[0_1px_4px_rgba(0,0,0,0.9)]">
+          <span>{hostHandle || "Hot Seat"}</span>
+          {hostHandle && <ShieldCheck className="size-4 text-orange-400 fill-orange-400/20" />}
+        </div>
+
+        <span className="rounded-full bg-gradient-to-r from-orange-600 to-amber-500 px-2 py-0.5 text-[9px] sm:text-[10px] font-black uppercase tracking-wider text-white shadow-sm">
+          HOST
+        </span>
+
+        {reputation > 0 && <span className="text-[11px] font-medium text-white/70 drop-shadow">{reputation.toLocaleString()} rep</span>}
+      </div>
+
+      {/* 2. Live Topic Title */}
+      <div className="rounded-xl border border-white/10 bg-black/40 px-3 py-2 backdrop-blur-md shadow-lg">
+        <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-orange-400 mb-0.5">
+          <Flame className="size-3 text-orange-400 fill-orange-400 animate-pulse" />
+          <span>Current Hot Topic</span>
+        </div>
+        <p className="font-sans text-xs sm:text-sm font-semibold text-white/95 leading-snug drop-shadow line-clamp-2">
+          {topicTitle ? <> &ldquo;{topicTitle}&rdquo; </> : "Waiting for the next live topic."}
+        </p>
+      </div>
+
+      {/* 3. Single-Line Scrolling Live Comment Feed */}
+      <div
+        onClick={onOpenChatDrawer}
+        role="button"
+        tabIndex={0}
+        aria-label="Open live comments drawer"
+        className="group relative flex h-7 sm:h-8 w-full items-center overflow-hidden rounded-full border border-white/15 bg-black/55 px-2.5 backdrop-blur-md shadow-md cursor-pointer transition-colors hover:bg-black/70 active:scale-[0.99]"
+      >
+        {/* Left Live Indicator Icon */}
+        <div className="flex shrink-0 items-center gap-1.5 pr-2 text-orange-400">
+          <Radio className="size-3 animate-pulse" />
+          <span className="text-[10px] font-black uppercase tracking-wider text-orange-300">
+            CHAT:
+          </span>
+        </div>
+
+        {/* Scrolling Ticker Stream */}
+        <div className="relative flex-1 overflow-hidden h-full flex items-center">
+          <div className="animate-marquee-stream flex items-center gap-6 text-[11px] sm:text-xs text-white/90">
+            {tickerItems.map((item, idx) => (
+              <span
+                key={`${item.id}-${idx}`}
+                className="inline-flex items-center gap-1.5 whitespace-nowrap"
+              >
+                <span className="font-bold text-orange-200">{item.user}:</span>
+                <span className="text-white/80">{item.text}</span>
+                <span className="text-white/30 ml-2">Â·</span>
+              </span>
+            ))}
+            {/* Duplicate set for seamless continuous loop */}
+            {tickerItems.map((item, idx) => (
+              <span
+                key={`dup-${item.id}-${idx}`}
+                className="inline-flex items-center gap-1.5 whitespace-nowrap"
+              >
+                <span className="font-bold text-orange-200">{item.user}:</span>
+                <span className="text-white/80">{item.text}</span>
+                <span className="text-white/30 ml-2">Â·</span>
+              </span>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* 4. Quick Anonymous Comment Input Pill */}
+      <form onSubmit={handleQuickSubmit} className="flex items-center gap-2">
+        <div
+          onClick={onOpenChatDrawer}
+          className="relative flex-1 flex items-center rounded-full border border-white/20 bg-black/50 px-3 py-1.5 backdrop-blur-md transition-all hover:border-orange-500/50 cursor-pointer shadow-md"
+        >
+          <MessageCircle className="size-3.5 text-white/60 mr-2 shrink-0" />
+          <input
+            type="text"
+            value={quickInput}
+            onChange={(e) => setQuickInput(e.target.value)}
+            placeholder="Ask or comment anonymously..."
+            className="w-full bg-transparent text-xs text-white placeholder:text-white/50 outline-none"
+          />
+        </div>
+
+        <button
+          type="submit"
+          aria-label="Send live question or comment"
+          className="grid size-8 place-items-center rounded-full bg-gradient-to-tr from-orange-600 to-amber-500 text-white shadow-md transition-transform hover:scale-105 active:scale-95 cursor-pointer shrink-0"
+        >
+          <Send className="size-3.5" />
+        </button>
+      </form>
+    </div>
+  );
+}
