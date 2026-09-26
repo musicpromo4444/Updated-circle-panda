@@ -1,1 +1,68 @@
-aW1wb3J0IHsgdXNlRWZmZWN0IH0gZnJvbSAicmVhY3QiOwppbXBvcnQgeyBFeHRlcm5hbExpbmssIEluZm8gfSBmcm9tICJsdWNpZGUtcmVhY3QiOwppbXBvcnQgeyB1c2VBY3RpdmVBZENyZWF0aXZlIH0gZnJvbSAiLi9hZEludmVudG9yeVN0b3JhZ2UiOwppbXBvcnQgeyBub3RpZnlBZEV2ZW50LCBvcGVuQWRFeHRlcm5hbFVybCB9IGZyb20gIi4vcGxhdGZvcm1BZEJyaWRnZSI7CgpleHBvcnQgZnVuY3Rpb24gQ3J1c2hBZEZyYW1lKHsgb25Db250aW51ZSB9OiB7IG9uQ29udGludWU6ICgpID0+IHZvaWQgfSkgewogIGNvbnN0IGFkID0gdXNlQWN0aXZlQWRDcmVhdGl2ZSgiY3J1c2hfaW50ZXJzdGl0aWFsIik7CgogIHVzZUVmZmVjdCgoKSA9PiB7CiAgICBpZiAoYWQpIG5vdGlmeUFkRXZlbnQoImltcHJlc3Npb24iLCB7IGFkSWQ6IGFkLmlkLCBmb3JtYXQ6IGFkLnZpZGVvVXJsID8gInZpZGVvIiA6ICJiYW5uZXIiIH0pOwogIH0sIFthZF0pOwoKICB1c2VFZmZlY3QoKCkgPT4gewogICAgaWYgKCFhZCkgb25Db250aW51ZSgpOwogIH0sIFthZCwgb25Db250aW51ZV0pOwoKICBpZiAoIWFkKSByZXR1cm4gbnVsbDsKCiAgY29uc3QgY2xpY2sgPSAoKSA9PiB7CiAgICBub3RpZnlBZEV2ZW50KCJjbGljayIsIHsgYWRJZDogYWQuaWQsIGZvcm1hdDogYWQudmlkZW9VcmwgPyAidmlkZW8iIDogImJhbm5lciIgfSk7CiAgICBvcGVuQWRFeHRlcm5hbFVybChhZC5kZXN0aW5hdGlvblVybCwgYWQuc3BvbnNvcik7CiAgfTsKCiAgcmV0dXJuICgKICAgIDxkaXYgY2xhc3NOYW1lPSJmbGV4IG1pbi1oLVtjYWxjKDEwMHZoLThyZW0pXSBmbGV4LWNvbCBiZy1ibGFjayB0ZXh0LXdoaXRlIj4KICAgICAgPGRpdiBjbGFzc05hbWU9InJlbGF0aXZlIGZsZXggbWluLWgtWzYydmhdIGZsZXgtMSBpdGVtcy1jZW50ZXIganVzdGlmeS1jZW50ZXIgb3ZlcmZsb3ctaGlkZGVuIGJnLWJsYWNrIj4KICAgICAgICB7YWQudmlkZW9VcmwgPyAoCiAgICAgICAgICA8dmlkZW8KICAgICAgICAgICAgc3JjPXthZC52aWRlb1VybH0KICAgICAgICAgICAgcG9zdGVyPXthZC5wb3N0ZXJVcmwgfHwgYWQuaW1hZ2VVcmx9CiAgICAgICAgICAgIGF1dG9QbGF5CiAgICAgICAgICAgIG11dGVkCiAgICAgICAgICAgIHBsYXlzSW5saW5lCiAgICAgICAgICAgIGNvbnRyb2xzCiAgICAgICAgICAgIGNsYXNzTmFtZT0ibWF4LWgtWzcydmhdIHctZnVsbCBvYmplY3QtY29udGFpbiIKICAgICAgICAgICAgb25FbmRlZD17KCkgPT4gbm90aWZ5QWRFdmVudCgiY29tcGxldGVkIiwgeyBhZElkOiBhZC5pZCwgZm9ybWF0OiAidmlkZW8iIH0pfQogICAgICAgICAgLz4KICAgICAgICApIDogYWQuaW1hZ2VVcmwgPyAoCiAgICAgICAgICA8YnV0dG9uIHR5cGU9ImJ1dHRvbiIgb25DbGljaz17Y2xpY2t9IGNsYXNzTmFtZT0ic2l6ZS1mdWxsIG1heC1oLVs3MnZoXSI+CiAgICAgICAgICAgIDxpbWcgc3JjPXthZC5pbWFnZVVybH0gYWx0PXthZC5oZWFkbGluZX0gY2xhc3NOYW1lPSJzaXplLWZ1bGwgb2JqZWN0LWNvbnRhaW4iIC8+CiAgICAgICAgICA8L2J1dHRvbj4KICAgICAgICApIDogbnVsbH0KCiAgICAgICAgPGRpdiBjbGFzc05hbWU9ImFic29sdXRlIGluc2V0LXgtMCB0b3AtMCBmbGV4IGl0ZW1zLWNlbnRlciBqdXN0aWZ5LWJldHdlZW4gYmctZ3JhZGllbnQtdG8tYiBmcm9tLWJsYWNrLzgwIHZpYS1ibGFjay8zMCB0by10cmFuc3BhcmVudCBweC0zIHB5LTMiPgogICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPSJyb3VuZGVkLWZ1bGwgYmctYmxhY2svNjAgcHgtMyBweS0xLjUgdGV4dC1bMTBweF0gZm9udC1ibGFjayB1cHBlcmNhc2UgdHJhY2tpbmctd2lkZXIgYmFja2Ryb3AtYmx1ci1zbSI+U3BvbnNvcmVkPC9zcGFuPgogICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPSJtYXgtdy1bNTUlXSB0cnVuY2F0ZSB0ZXh0LXhzIGZvbnQtc2VtaWJvbGQiPnthZC5zcG9uc29yfTwvc3Bhbj4KICAgICAgICA8L2Rpdj4KICAgICAgPC9kaXY+CgogICAgICA8ZGl2IGNsYXNzTmFtZT0iYmctYmFja2dyb3VuZCBweC0zIHB5LTMgdGV4dC1mb3JlZ3JvdW5kIj4KICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTIiPgogICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPSJncmlkIHNpemUtMTAgc2hyaW5rLTAgcGxhY2UtaXRlbXMtY2VudGVyIHJvdW5kZWQtZnVsbCBiZy1zZWNvbmRhcnkgdGV4dC1sZyI+4q2QPC9zcGFuPgogICAgICAgICAgPGRpdiBjbGFzc05hbWU9Im1pbi13LTAgZmxleC0xIj4KICAgICAgICAgICAgPHAgY2xhc3NOYW1lPSJ0cnVuY2F0ZSB0ZXh0LXNtIGZvbnQtYm9sZCI+e2FkLmhlYWRsaW5lfTwvcD4KICAgICAgICAgICAgPHAgY2xhc3NOYW1lPSJtdC0wLjUgbGluZS1jbGFtcC0yIHRleHQteHMgdGV4dC1tdXRlZC1mb3JlZ3JvdW5kIj57YWQuZGVzY3JpcHRpb24gfHwgYWQudGFnbGluZX08L3A+CiAgICAgICAgICA8L2Rpdj4KICAgICAgICAgIDxidXR0b24gdHlwZT0iYnV0dG9uIiBvbkNsaWNrPXtjbGlja30gY2xhc3NOYW1lPSJmbGV4IHNocmluay0wIGl0ZW1zLWNlbnRlciBnYXAtMSByb3VuZGVkLXhsIGJnLXByaW1hcnkgcHgtMyBweS0yIHRleHQtWzExcHhdIGZvbnQtYm9sZCB0ZXh0LXByaW1hcnktZm9yZWdyb3VuZCI+CiAgICAgICAgICAgIHthZC5jYWxsVG9BY3Rpb259PEV4dGVybmFsTGluayBjbGFzc05hbWU9InNpemUtMyIgLz4KICAgICAgICAgIDwvYnV0dG9uPgogICAgICAgIDwvZGl2PgogICAgICAgIDxkaXYgY2xhc3NOYW1lPSJtdC0yIGZsZXggaXRlbXMtY2VudGVyIGp1c3RpZnktYmV0d2VlbiB0ZXh0LVsxMHB4XSB0ZXh0LW11dGVkLWZvcmVncm91bmQiPgogICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPSJmbGV4IGl0ZW1zLWNlbnRlciBnYXAtMSI+PEluZm8gY2xhc3NOYW1lPSJzaXplLTMiIC8+IFNwb25zb3JlZCBwbGFjZW1lbnQ8L3NwYW4+CiAgICAgICAgICA8YnV0dG9uIHR5cGU9ImJ1dHRvbiIgb25DbGljaz17b25Db250aW51ZX0gY2xhc3NOYW1lPSJmb250LWJvbGQgdGV4dC1wcmltYXJ5Ij5Db250aW51ZSB0byBwaWN0dXJlcyDihpI8L2J1dHRvbj4KICAgICAgICA8L2Rpdj4KICAgICAgPC9kaXY+CiAgICA8L2Rpdj4KICApOwp9Cg==
+import { useEffect } from "react";
+import { ExternalLink, Info } from "lucide-react";
+import { useActiveAdCreative } from "./adInventoryStorage";
+import { notifyAdEvent, openAdExternalUrl } from "./platformAdBridge";
+
+export function CrushAdFrame({ onContinue }: { onContinue: () => void }) {
+  const ad = useActiveAdCreative("crush_interstitial");
+
+  useEffect(() => {
+    if (ad) notifyAdEvent("impression", { adId: ad.id, format: ad.videoUrl ? "video" : "banner" });
+  }, [ad]);
+
+  useEffect(() => {
+    if (!ad) onContinue();
+  }, [ad, onContinue]);
+
+  if (!ad) return null;
+
+  const click = () => {
+    notifyAdEvent("click", { adId: ad.id, format: ad.videoUrl ? "video" : "banner" });
+    openAdExternalUrl(ad.destinationUrl, ad.sponsor);
+  };
+
+  return (
+    <div className="flex min-h-[calc(100vh-8rem)] flex-col bg-black text-white">
+      <div className="relative flex min-h-[62vh] flex-1 items-center justify-center overflow-hidden bg-black">
+        {ad.videoUrl ? (
+          <video
+            src={ad.videoUrl}
+            poster={ad.posterUrl || ad.imageUrl}
+            autoPlay
+            muted
+            playsInline
+            controls
+            className="max-h-[72vh] w-full object-contain"
+            onEnded={() => notifyAdEvent("completed", { adId: ad.id, format: "video" })}
+          />
+        ) : ad.imageUrl ? (
+          <button type="button" onClick={click} className="size-full max-h-[72vh]">
+            <img src={ad.imageUrl} alt={ad.headline} className="size-full object-contain" />
+          </button>
+        ) : null}
+
+        <div className="absolute inset-x-0 top-0 flex items-center justify-between bg-gradient-to-b from-black/80 via-black/30 to-transparent px-3 py-3">
+          <span className="rounded-full bg-black/60 px-3 py-1.5 text-[10px] font-black uppercase tracking-wider backdrop-blur-sm">Sponsored</span>
+          <span className="max-w-[55%] truncate text-xs font-semibold">{ad.sponsor}</span>
+        </div>
+      </div>
+
+      <div className="bg-background px-3 py-3 text-foreground">
+        <div className="flex items-center gap-2">
+          <span className="grid size-10 shrink-0 place-items-center rounded-full bg-secondary text-lg">â­</span>
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm font-bold">{ad.headline}</p>
+            <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">{ad.description || ad.tagline}</p>
+          </div>
+          <button type="button" onClick={click} className="flex shrink-0 items-center gap-1 rounded-xl bg-primary px-3 py-2 text-[11px] font-bold text-primary-foreground">
+            {ad.callToAction}<ExternalLink className="size-3" />
+          </button>
+        </div>
+        <div className="mt-2 flex items-center justify-between text-[10px] text-muted-foreground">
+          <span className="flex items-center gap-1"><Info className="size-3" /> Sponsored placement</span>
+          <button type="button" onClick={onContinue} className="font-bold text-primary">Continue to pictures â</button>
+        </div>
+      </div>
+    </div>
+  );
+}
