@@ -1,1 +1,64 @@
-aW1wb3J0IHsgc3VwYWJhc2UgfSBmcm9tICJAL2ludGVncmF0aW9ucy9zdXBhYmFzZS9jbGllbnQiOwoKZXhwb3J0IGFzeW5jIGZ1bmN0aW9uIGN1cnJlbnRVc2VySWQoKSB7CiAgY29uc3QgeyBkYXRhIH0gPSBhd2FpdCBzdXBhYmFzZS5hdXRoLmdldFNlc3Npb24oKTsKICByZXR1cm4gZGF0YS5zZXNzaW9uPy51c2VyPy5pZCA/PyBudWxsOwp9CgpleHBvcnQgYXN5bmMgZnVuY3Rpb24gbm90aWZ5KF91c2VySWQ6IHN0cmluZywgX3RpdGxlOiBzdHJpbmcsIF9ib2R5OiBzdHJpbmcsIF9raW5kID0gInN5c3RlbSIpIHsKICB0aHJvdyBuZXcgRXJyb3IoIkNsaWVudCBub3RpZmljYXRpb24gY3JlYXRpb24gaXMgc2VydmVyLWF1dGhvcml0YXRpdmUgaW4gQ2lyY2xlIFBhbmRhLiIpOwp9CgpleHBvcnQgYXN5bmMgZnVuY3Rpb24gZ2V0Tm90aWZpY2F0aW9ucyhsaW1pdCA9IDMwKSB7CiAgY29uc3QgeyBkYXRhLCBlcnJvciB9ID0gYXdhaXQgKHN1cGFiYXNlIGFzIGFueSkucnBjKCJnZXRfbXlfbm90aWZpY2F0aW9ucyIsIHsgcF9saW1pdDogTWF0aC5taW4oTWF0aC5tYXgobGltaXQsIDEpLCAxMDApIH0pOwogIGlmIChlcnJvcikgdGhyb3cgZXJyb3I7CiAgcmV0dXJuIGRhdGEgPz8gW107Cn0KCmV4cG9ydCBhc3luYyBmdW5jdGlvbiBtYXJrTm90aWZpY2F0aW9uUmVhZChpZDogc3RyaW5nKSB7CiAgcmV0dXJuIChzdXBhYmFzZSBhcyBhbnkpLnJwYygibWFya19ub3RpZmljYXRpb25fcmVhZCIsIHsgcF9ub3RpZmljYXRpb25faWQ6IGlkIH0pOwp9CgpleHBvcnQgYXN5bmMgZnVuY3Rpb24gY2xhaW1EYWlseVJld2FyZCgpIHsKICBjb25zdCB1aWQgPSBhd2FpdCBjdXJyZW50VXNlcklkKCk7CiAgaWYgKCF1aWQpIHRocm93IG5ldyBFcnJvcigiU2lnbiBpbiB0byBjbGFpbSB5b3VyIGRhaWx5IHJld2FyZC4iKTsKICBjb25zdCB7IGRhdGEsIGVycm9yIH0gPSBhd2FpdCAoc3VwYWJhc2UgYXMgYW55KS5ycGMoImNsYWltX2RhaWx5X3Jld2FyZF9zZWN1cmUiKTsKICBpZiAoZXJyb3IpIHRocm93IGVycm9yOwogIHJldHVybiB7CiAgICBjbGFpbWVkOiBCb29sZWFuKGRhdGE/LmNsYWltZWQpLAogICAgc3RyZWFrOiBOdW1iZXIoZGF0YT8uc3RyZWFrID8/IDApLAogICAgcmV3YXJkOiBOdW1iZXIoZGF0YT8ucmV3YXJkID8/IDApLAogICAgZGF5OiBOdW1iZXIoZGF0YT8uZGF5ID8/IDApLAogIH07Cn0KCmV4cG9ydCBhc3luYyBmdW5jdGlvbiBsaXN0TGl2ZVN0cmVhbXMobGltaXQgPSAyMCkgewogIGNvbnN0IHsgZGF0YSwgZXJyb3IgfSA9IGF3YWl0IChzdXBhYmFzZSBhcyBhbnkpLnJwYygibGlzdF9saXZlX3N0cmVhbXNfc2VjdXJlIik7CiAgaWYgKGVycm9yKSB0aHJvdyBlcnJvcjsKICByZXR1cm4gKGRhdGEgPz8gW10pLnNsaWNlKDAsIGxpbWl0KTsKfQoKZXhwb3J0IGFzeW5jIGZ1bmN0aW9uIGpvaW5MaXZlU3RyZWFtKHN0cmVhbUlkOiBzdHJpbmcpIHsKICBjb25zdCB1aWQgPSBhd2FpdCBjdXJyZW50VXNlcklkKCk7CiAgaWYgKCF1aWQpIHRocm93IG5ldyBFcnJvcigiU2lnbiBpbiB0byBqb2luIGEgbGl2ZSBzdHJlYW0uIik7CiAgY29uc3QgeyBkYXRhLCBlcnJvciB9ID0gYXdhaXQgKHN1cGFiYXNlIGFzIGFueSkucnBjKCJqb2luX2xpdmVfc3RyZWFtX3NlY3VyZSIsIHsgcF9zdHJlYW1faWQ6IHN0cmVhbUlkIH0pOwogIGlmIChlcnJvcikgdGhyb3cgZXJyb3I7CiAgcmV0dXJuIGRhdGE7Cn0KCmV4cG9ydCBhc3luYyBmdW5jdGlvbiBsZWF2ZUxpdmVTdHJlYW0oc3RyZWFtSWQ6IHN0cmluZykgewogIGNvbnN0IHVpZCA9IGF3YWl0IGN1cnJlbnRVc2VySWQoKTsKICBpZiAoIXVpZCkgcmV0dXJuIG51bGw7CiAgY29uc3QgeyBkYXRhLCBlcnJvciB9ID0gYXdhaXQgKHN1cGFiYXNlIGFzIGFueSkucnBjKCJsZWF2ZV9saXZlX3N0cmVhbV9zZWN1cmUiLCB7IHBfc3RyZWFtX2lkOiBzdHJlYW1JZCB9KTsKICBpZiAoZXJyb3IpIHRocm93IGVycm9yOwogIHJldHVybiBkYXRhOwp9CgpleHBvcnQgYXN5bmMgZnVuY3Rpb24gaGVhcnRiZWF0TGl2ZVN0cmVhbShzdHJlYW1JZDogc3RyaW5nKSB7CiAgY29uc3QgdWlkID0gYXdhaXQgY3VycmVudFVzZXJJZCgpOwogIGlmICghdWlkKSByZXR1cm4gbnVsbDsKICBjb25zdCB7IGRhdGEsIGVycm9yIH0gPSBhd2FpdCAoc3VwYWJhc2UgYXMgYW55KS5ycGMoImhlYXJ0YmVhdF9saXZlX3N0cmVhbV9zZWN1cmUiLCB7IHBfc3RyZWFtX2lkOiBzdHJlYW1JZCB9KTsKICBpZiAoZXJyb3IpIHRocm93IGVycm9yOwogIHJldHVybiBkYXRhOwp9Cgo=
+import { supabase } from "@/integrations/supabase/client";
+
+export async function currentUserId() {
+  const { data } = await supabase.auth.getSession();
+  return data.session?.user?.id ?? null;
+}
+
+export async function notify(_userId: string, _title: string, _body: string, _kind = "system") {
+  throw new Error("Client notification creation is server-authoritative in Circle Panda.");
+}
+
+export async function getNotifications(limit = 30) {
+  const { data, error } = await (supabase as any).rpc("get_my_notifications", { p_limit: Math.min(Math.max(limit, 1), 100) });
+  if (error) throw error;
+  return data ?? [];
+}
+
+export async function markNotificationRead(id: string) {
+  return (supabase as any).rpc("mark_notification_read", { p_notification_id: id });
+}
+
+export async function claimDailyReward() {
+  const uid = await currentUserId();
+  if (!uid) throw new Error("Sign in to claim your daily reward.");
+  const { data, error } = await (supabase as any).rpc("claim_daily_reward_secure");
+  if (error) throw error;
+  return {
+    claimed: Boolean(data?.claimed),
+    streak: Number(data?.streak ?? 0),
+    reward: Number(data?.reward ?? 0),
+    day: Number(data?.day ?? 0),
+  };
+}
+
+export async function listLiveStreams(limit = 20) {
+  const { data, error } = await (supabase as any).rpc("list_live_streams_secure");
+  if (error) throw error;
+  return (data ?? []).slice(0, limit);
+}
+
+export async function joinLiveStream(streamId: string) {
+  const uid = await currentUserId();
+  if (!uid) throw new Error("Sign in to join a live stream.");
+  const { data, error } = await (supabase as any).rpc("join_live_stream_secure", { p_stream_id: streamId });
+  if (error) throw error;
+  return data;
+}
+
+export async function leaveLiveStream(streamId: string) {
+  const uid = await currentUserId();
+  if (!uid) return null;
+  const { data, error } = await (supabase as any).rpc("leave_live_stream_secure", { p_stream_id: streamId });
+  if (error) throw error;
+  return data;
+}
+
+export async function heartbeatLiveStream(streamId: string) {
+  const uid = await currentUserId();
+  if (!uid) return null;
+  const { data, error } = await (supabase as any).rpc("heartbeat_live_stream_secure", { p_stream_id: streamId });
+  if (error) throw error;
+  return data;
+}
+
