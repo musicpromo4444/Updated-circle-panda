@@ -1,1 +1,126 @@
-aW1wb3J0IHsgY3JlYXRlRmlsZVJvdXRlLCBMaW5rIH0gZnJvbSAiQHRhbnN0YWNrL3JlYWN0LXJvdXRlciI7CmltcG9ydCB7IHVzZUVmZmVjdCwgdXNlTWVtbywgdXNlU3RhdGUgfSBmcm9tICJyZWFjdCI7CmltcG9ydCB7IEFycm93UmlnaHQsIENoZWNrQ2lyY2xlMiwgQ29pbnMsIEdhbWVwYWQyLCBHaWZ0LCBMb2FkZXIyLCBTcGFya2xlcywgVXNlcnMsIENhbGVuZGFyRGF5cywgSGVhcnQsIE11c2ljMiwgVHJvcGh5LCBMb2NrS2V5aG9sZSwgQ3Jvd24gfSBmcm9tICJsdWNpZGUtcmVhY3QiOwppbXBvcnQgeyB0b2FzdCB9IGZyb20gInNvbm5lciI7CmltcG9ydCB7IEFwcFNoZWxsIH0gZnJvbSAiQC9jb21wb25lbnRzL0FwcFNoZWxsIjsKaW1wb3J0IHsgQnV0dG9uIH0gZnJvbSAiQC9jb21wb25lbnRzL3VpL2J1dHRvbiI7CmltcG9ydCB7IHN1cGFiYXNlIH0gZnJvbSAiQC9pbnRlZ3JhdGlvbnMvc3VwYWJhc2UvY2xpZW50IjsKaW1wb3J0IHsgU3BpbldoZWVsIH0gZnJvbSAiQC9jb21wb25lbnRzL1NwaW5XaGVlbCI7CmltcG9ydCB7IHVzZVN0b3JlIH0gZnJvbSAiQC9saWIvc3RvcmUiOwoKZXhwb3J0IGNvbnN0IFJvdXRlID0gY3JlYXRlRmlsZVJvdXRlKCIvYWN0aXZpdGllcyIpKHsKICBoZWFkOiAoKSA9PiAoeyBtZXRhOiBbeyB0aXRsZTogIkFjdGl2aXRpZXMgJiBHYW1lcyDigJQgQ2lyY2xlIFBhbmRhIiB9XSB9KSwKICBjb21wb25lbnQ6IEFjdGl2aXRpZXNQYWdlLAp9KTsKCnR5cGUgQWN0aXZpdHkgPSB7CiAgaWQ6IHN0cmluZzsKICB0aXRsZTogc3RyaW5nOwogIGRlc2NyaXB0aW9uOiBzdHJpbmc7CiAgYWN0aXZpdHlfdHlwZTogc3RyaW5nOwogIHJld2FyZF9iYzogbnVtYmVyOwogIHJlcXVpcmVzX2FkOiBib29sZWFuOwogIGNvbXBsZXRlZDogYm9vbGVhbjsKICBsYXN0X2NvbXBsZXRlZF9hdDogc3RyaW5nIHwgbnVsbDsKfTsKCmNvbnN0IGFjdGlvbk1hcDogUmVjb3JkPHN0cmluZywgeyB0bzogc3RyaW5nOyBsYWJlbDogc3RyaW5nIH0+ID0gewogIGNyZWF0ZV9ldmVudDogeyB0bzogIi9ldmVudHMiLCBsYWJlbDogIkNyZWF0ZSBldmVudCIgfSwKICBldmVudF9jcmVhdGVkOiB7IHRvOiAiL2V2ZW50cyIsIGxhYmVsOiAiQ3JlYXRlIGV2ZW50IiB9LAogIHBvc3RfY29uZmVzc2lvbjogeyB0bzogIi9jb25mZXNzaW9ucyIsIGxhYmVsOiAiV3JpdGUgY29uZmVzc2lvbiIgfSwKICBjb25mZXNzaW9uX2NyZWF0ZWQ6IHsgdG86ICIvY29uZmVzc2lvbnMiLCBsYWJlbDogIldyaXRlIGNvbmZlc3Npb24iIH0sCiAgYXR0ZW5kX2V2ZW50OiB7IHRvOiAiL2V2ZW50cyIsIGxhYmVsOiAiRmluZCBhbiBldmVudCIgfSwKICBldmVudF9hdHRlbmRlZDogeyB0bzogIi9ldmVudHMiLCBsYWJlbDogIkZpbmQgYW4gZXZlbnQiIH0sCiAgam9pbl9ncm91cDogeyB0bzogIi9ncm91cHMiLCBsYWJlbDogIkZpbmQgYSBncm91cCIgfSwKICByZWFjdF9jb250ZW50OiB7IHRvOiAiLyIsIGxhYmVsOiAiRXhwbG9yZSBmZWVkIiB9LAogIGludml0ZV9mcmllbmQ6IHsgdG86ICIvcHJvZmlsZSIsIGxhYmVsOiAiT3BlbiBwcm9maWxlIiB9LAogIHBsYXlhYmxlX2FkOiB7IHRvOiAiL3N3ZWVwc3Rha2VzIiwgbGFiZWw6ICJQbGF5ICYgY29sbGVjdCIgfSwKfTsKCmNvbnN0IEdBTUVTX0ZPUl9VSSA9IFsKICB7IG1hdGNoOiAid2hlZWwiLCBpY29uOiAi8J+OoSIgfSwgeyBtYXRjaDogIm15c3RlcnkiLCBpY29uOiAi8J+OgSIgfSwgeyBtYXRjaDogInRhcmdldCIsIGljb246ICLwn46vIiB9LAogIHsgbWF0Y2g6ICJzcG9uc29yIiwgaWNvbjogIvCfg48iIH0sIHsgbWF0Y2g6ICJwdXp6bGUiLCBpY29uOiAi8J+nqSIgfSwgeyBtYXRjaDogImNvaW4iLCBpY29uOiAi8J+qmSIgfSwKICB7IG1hdGNoOiAic2xvdCIsIGljb246ICLwn46wIiB9LCB7IG1hdGNoOiAicHJpemUiLCBpY29uOiAi8J+PhiIgfSwgeyBtYXRjaDogInBsYXlibyIsIGljb246ICLilrbvuI8iIH0sCiAgeyBtYXRjaDogInNlY3JldCIsIGljb246ICLwn5W177iPIiB9LCB7IG1hdGNoOiAiY3VwIiwgaWNvbjogIvCfpaQiIH0sCl07CgpmdW5jdGlvbiBpY29uRm9yKHR5cGU6IHN0cmluZykgewogIGlmICh0eXBlLmluY2x1ZGVzKCJncm91cCIpKSByZXR1cm4gVXNlcnM7CiAgaWYgKHR5cGUuaW5jbHVkZXMoImV2ZW50IikpIHJldHVybiBDYWxlbmRhckRheXM7CiAgaWYgKHR5cGUuaW5jbHVkZXMoImNvbmZlc3Npb24iKSkgcmV0dXJuIEhlYXJ0OwogIGlmICh0eXBlLmluY2x1ZGVzKCJtdXNpYyIpKSByZXR1cm4gTXVzaWMyOwogIGlmICh0eXBlLmluY2x1ZGVzKCJwbGF5IikpIHJldHVybiBHYW1lcGFkMjsKICBpZiAodHlwZS5pbmNsdWRlcygibG9naW4iKSkgcmV0dXJuIEdpZnQ7CiAgcmV0dXJuIFNwYXJrbGVzOwp9CgpmdW5jdGlvbiBBY3Rpdml0aWVzUGFnZSgpIHsKICBjb25zdCB7IHN5bmNDb2lucyB9ID0gdXNlU3RvcmUoKTsKICBjb25zdCBbYWN0aXZpdGllcywgc2V0QWN0aXZpdGllc10gPSB1c2VTdGF0ZTxBY3Rpdml0eVtdPihbXSk7CiAgY29uc3QgW2xvYWRpbmcsIHNldExvYWRpbmddID0gdXNlU3RhdGUodHJ1ZSk7CiAgY29uc3QgW2NsYWltaW5nLCBzZXRDbGFpbWluZ10gPSB1c2VTdGF0ZTxzdHJpbmcgfCBudWxsPihudWxsKTsKICBjb25zdCBbc3Bpbk9wZW4sIHNldFNwaW5PcGVuXSA9IHVzZVN0YXRlKGZhbHNlKTsKICBjb25zdCBsb2FkID0gYXN5bmMgKCkgPT4gewogICAgc2V0TG9hZGluZyh0cnVlKTsKICAgIGNvbnN0IHsgZGF0YSwgZXJyb3IgfSA9IGF3YWl0IChzdXBhYmFzZSBhcyBhbnkpLnJwYygiZ2V0X2FjdGl2aXR5X2h1YiIpOwogICAgaWYgKGVycm9yKSB0b2FzdC5lcnJvcihlcnJvci5tZXNzYWdlID8/ICJBY3Rpdml0aWVzIGNvdWxkIG5vdCBiZSBsb2FkZWQiKTsKICAgIGVsc2Ugc2V0QWN0aXZpdGllcygoZGF0YSA/PyBbXSkgYXMgQWN0aXZpdHlbXSk7CiAgICBzZXRMb2FkaW5nKGZhbHNlKTsKICB9OwoKICB1c2VFZmZlY3QoKCkgPT4geyB2b2lkIGxvYWQoKTsgfSwgW10pOwoKICBjb25zdCBjb21wbGV0ZWQgPSB1c2VNZW1vKCgpID0+IGFjdGl2aXRpZXMuZmlsdGVyKGEgPT4gYS5jb21wbGV0ZWQpLmxlbmd0aCwgW2FjdGl2aXRpZXNdKTsKICBjb25zdCB0b3RhbCA9IGFjdGl2aXRpZXMubGVuZ3RoOwoKICBjb25zdCBjbGFpbSA9IGFzeW5jIChhY3Rpdml0eTogQWN0aXZpdHkpID0+IHsKICAgIHNldENsYWltaW5nKGFjdGl2aXR5LmlkKTsKICAgIGNvbnN0IHsgZGF0YSwgZXJyb3IgfSA9IGF3YWl0IChzdXBhYmFzZSBhcyBhbnkpLnJwYygiY2xhaW1fYWN0aXZpdHkiLCB7IHBfYWN0aXZpdHlfaWQ6IGFjdGl2aXR5LmlkIH0pOwogICAgc2V0Q2xhaW1pbmcobnVsbCk7CiAgICBpZiAoZXJyb3IpIHJldHVybiB0b2FzdC5lcnJvcihlcnJvci5tZXNzYWdlID8/ICJBY3Rpdml0eSBjb3VsZCBub3QgYmUgY29tcGxldGVkIik7CiAgICBhd2FpdCBzeW5jQ29pbnMoKTsKICAgIHRvYXN0LnN1Y2Nlc3MoZGF0YT8uYWxyZWFkeV9jb21wbGV0ZWQgPyAiQWxyZWFkeSBjb21wbGV0ZWQiIDogYEFjdGl2aXR5IGNvbXBsZXRlIPCfjokgKyR7TnVtYmVyKGRhdGE/LmJjX2F3YXJkZWQgPz8gMCl9IEJDYCwgewogICAgICBkZXNjcmlwdGlvbjogZGF0YT8uYWxyZWFkeV9jb21wbGV0ZWQgPyAiQ29tZSBiYWNrIHdoZW4gdGhpcyBhY3Rpdml0eSByZWZyZXNoZXMuIiA6IGArJHtOdW1iZXIoZGF0YT8ueHBfYXdhcmRlZCA/PyAwKX0gWFBgLAogICAgfSk7CiAgICB2b2lkIGxvYWQoKTsKICB9OwoKICByZXR1cm4gKAogICAgPEFwcFNoZWxsIHRpdGxlPSJUb2RheeKAmXMgQWN0aXZpdHkiIHN1YnRpdGxlPSJPbmUgQ2lyY2xlIFBhbmRhIGFjdGl2aXR5IGlzIHNlbGVjdGVkIGVhY2ggZGF5IGJ5IEFkbWluLiI+CiAgICAgIDxkaXYgY2xhc3NOYW1lPSJjcC1hY3Rpdml0eS1wYWdlIG14LWF1dG8gdy1mdWxsIG1heC13LTN4bCI+CiAgICAgICAgPHNlY3Rpb24gY2xhc3NOYW1lPSJjcC1hY3Rpdml0eS1oZXJvIj4KICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJjcC1hY3Rpdml0eS1wYW5kYSI+8J+QvDwvZGl2PgogICAgICAgICAgPGRpdiBjbGFzc05hbWU9Im1pbi13LTAgZmxleC0xIj4KICAgICAgICAgICAgPHAgY2xhc3NOYW1lPSJjcC1leWVicm93Ij5DSVJDTEUgUEFOREE8L3A+CiAgICAgICAgICAgIDxoMT5QbGF5IMK3IENvbm5lY3QgwrcgRWFybjwvaDE+CiAgICAgICAgICAgIDxwPkNvbXBsZXRlIHRvZGF54oCZcyBhY3Rpdml0eSwgZm9sbG93IHRoZSByZXZlYWwgZmxvdywgYW5kIGNvbGxlY3QgeW91ciB2ZXJpZmllZCBCQyBhbmQgWFAuPC9wPgogICAgICAgICAgPC9kaXY+CiAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iY3AtYWN0aXZpdHktcHJvZ3Jlc3MiPjxUcm9waHkgY2xhc3NOYW1lPSJzaXplLTQiIC8+PGI+e2NvbXBsZXRlZH0ve3RvdGFsfTwvYj48c3Bhbj5kb25lPC9zcGFuPjwvZGl2PgogICAgICAgIDwvc2VjdGlvbj4KCiAgICAgICAgPHNlY3Rpb24gY2xhc3NOYW1lPSJjcC1hY3Rpdml0eS1saXN0Ij4KICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJjcC1hY3Rpdml0eS1zZWN0aW9uLWhlYWQiPjxkaXY+PHAgY2xhc3NOYW1lPSJjcC1leWVicm93Ij5ZT1VSIEdBTUVTPC9wPjxoMj5Ub2RheeKAmXMgQWN0aXZpdHk8L2gyPjwvZGl2PjxzcGFuPlNlcnZlciB2ZXJpZmllZDwvc3Bhbj48L2Rpdj4KICAgICAgICAgIHtsb2FkaW5nID8gPGRpdiBjbGFzc05hbWU9ImNwLWFjdGl2aXR5LWxvYWRpbmciPjxMb2FkZXIyIGNsYXNzTmFtZT0ic2l6ZS02IGFuaW1hdGUtc3BpbiIgLz5Mb2FkaW5n4oCmPC9kaXY+IDogbnVsbH0KICAgICAgICAgIHshbG9hZGluZyAmJiBhY3Rpdml0aWVzLmxlbmd0aCA9PT0gMCA/IDxkaXYgY2xhc3NOYW1lPSJjcC1hY3Rpdml0eS1sb2FkaW5nIj5ObyBhY3Rpdml0aWVzIGFyZSBlbmFibGVkIHJpZ2h0IG5vdy48L2Rpdj4gOiBudWxsfQogICAgICAgICAgeyFsb2FkaW5nID8gYWN0aXZpdGllcy5tYXAoYWN0aXZpdHkgPT4gewogICAgICAgICAgICBjb25zdCBJY29uID0gaWNvbkZvcihhY3Rpdml0eS5hY3Rpdml0eV90eXBlKTsKICAgICAgICAgICAgY29uc3QgYWN0aW9uID0gYWN0aW9uTWFwW2FjdGl2aXR5LmFjdGl2aXR5X3R5cGVdOwogICAgICAgICAgICBjb25zdCBnYW1lID0gR0FNRVNfRk9SX1VJLmZpbmQoZyA9PiBhY3Rpdml0eS50aXRsZS50b0xvd2VyQ2FzZSgpLmluY2x1ZGVzKGcubWF0Y2gpKTsKICAgICAgICAgICAgcmV0dXJuIDxhcnRpY2xlIGtleT17YWN0aXZpdHkuaWR9IGNsYXNzTmFtZT0iY3AtYWN0aXZpdHktY2FyZCI+CiAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9ImNwLWFjdGl2aXR5LWFydCI+e2dhbWU/Lmljb24gPz8gPEljb24gY2xhc3NOYW1lPSJzaXplLTYiIC8+fTwvZGl2PgogICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJtaW4tdy0wIGZsZXgtMSI+CiAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleCBmbGV4LXdyYXAgaXRlbXMtY2VudGVyIGdhcC0yIj48aDM+e2FjdGl2aXR5LnRpdGxlfTwvaDM+e2FjdGl2aXR5LmNvbXBsZXRlZCA/IDxzcGFuIGNsYXNzTmFtZT0iY3AtZG9uZS1waWxsIj48Q2hlY2tDaXJjbGUyIGNsYXNzTmFtZT0ic2l6ZS0zIiAvPiBDb21wbGV0ZWQ8L3NwYW4+IDogbnVsbH08L2Rpdj4KICAgICAgICAgICAgICAgIDxwPnthY3Rpdml0eS5kZXNjcmlwdGlvbn08L3A+CiAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iY3AtcmV3YXJkLXJvdyI+PHNwYW4+PENvaW5zIGNsYXNzTmFtZT0ic2l6ZS0zLjUiIC8+ICt7YWN0aXZpdHkucmV3YXJkX2JjfSBCQzwvc3Bhbj48c3Bhbj4rNSBYUDwvc3Bhbj48L2Rpdj4KICAgICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0ic2hyaW5rLTAiPgogICAgICAgICAgICAgICAge2FjdGl2aXR5LmNvbXBsZXRlZCA/IDxCdXR0b24gY2xhc3NOYW1lPSJjcC1zZWNvbmRhcnktYnV0dG9uIiBzaXplPSJzbSIgZGlzYWJsZWQ+RG9uZTwvQnV0dG9uPiA6IGFjdGlvbiA/IDxMaW5rIHRvPXthY3Rpb24udG99PjxCdXR0b24gY2xhc3NOYW1lPSJjcC1uZW9uLWJ1dHRvbiIgc2l6ZT0ic20iPnthY3Rpb24ubGFiZWx9PEFycm93UmlnaHQgY2xhc3NOYW1lPSJzaXplLTMuNSIgLz48L0J1dHRvbj48L0xpbms+IDogPEJ1dHRvbiBjbGFzc05hbWU9ImNwLW5lb24tYnV0dG9uIiBzaXplPSJzbSIgb25DbGljaz17KCkgPT4gdm9pZCBjbGFpbShhY3Rpdml0eSl9IGRpc2FibGVkPXtjbGFpbWluZz09PWFjdGl2aXR5LmlkfT57Y2xhaW1pbmc9PT1hY3Rpdml0eS5pZCA/IDxMb2FkZXIyIGNsYXNzTmFtZT0ic2l6ZS00IGFuaW1hdGUtc3BpbiIgLz4gOiAiUGxheSBOb3cifTwvQnV0dG9uPn0KICAgICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgICAgPC9hcnRpY2xlPjsKICAgICAgICAgIH0pIDogbnVsbH0KICAgICAgICA8L3NlY3Rpb24+CiAgICAgIDwvZGl2PgogICAgICA8U3BpbldoZWVsIG9wZW49e3NwaW5PcGVufSBvbk9wZW5DaGFuZ2U9e3NldFNwaW5PcGVufSAvPgogICAgPC9BcHBTaGVsbD4KICApOwp9Cg==
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect, useMemo, useState } from "react";
+import { ArrowRight, CheckCircle2, Coins, Gamepad2, Gift, Loader2, Sparkles, Users, CalendarDays, Heart, Music2, Trophy, LockKeyhole, Crown } from "lucide-react";
+import { toast } from "sonner";
+import { AppShell } from "@/components/AppShell";
+import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
+import { SpinWheel } from "@/components/SpinWheel";
+import { useStore } from "@/lib/store";
+
+export const Route = createFileRoute("/activities")({
+  head: () => ({ meta: [{ title: "Activities & Games — Circle Panda" }] }),
+  component: ActivitiesPage,
+});
+
+type Activity = {
+  id: string;
+  title: string;
+  description: string;
+  activity_type: string;
+  reward_bc: number;
+  requires_ad: boolean;
+  completed: boolean;
+  last_completed_at: string | null;
+};
+
+const actionMap: Record<string, { to: string; label: string }> = {
+  create_event: { to: "/events", label: "Create event" },
+  event_created: { to: "/events", label: "Create event" },
+  post_confession: { to: "/confessions", label: "Write confession" },
+  confession_created: { to: "/confessions", label: "Write confession" },
+  attend_event: { to: "/events", label: "Find an event" },
+  event_attended: { to: "/events", label: "Find an event" },
+  join_group: { to: "/groups", label: "Find a group" },
+  react_content: { to: "/", label: "Explore feed" },
+  invite_friend: { to: "/profile", label: "Open profile" },
+  playable_ad: { to: "/sweepstakes", label: "Play & collect" },
+};
+
+const GAMES_FOR_UI = [
+  { match: "wheel", icon: "🎡" }, { match: "mystery", icon: "🎁" }, { match: "target", icon: "🎯" },
+  { match: "sponsor", icon: "🃏" }, { match: "puzzle", icon: "🧩" }, { match: "coin", icon: "🪙" },
+  { match: "slot", icon: "🎰" }, { match: "prize", icon: "🏆" }, { match: "playbo", icon: "▶️" },
+  { match: "secret", icon: "🕵️" }, { match: "cup", icon: "🥤" },
+];
+
+function iconFor(type: string) {
+  if (type.includes("group")) return Users;
+  if (type.includes("event")) return CalendarDays;
+  if (type.includes("confession")) return Heart;
+  if (type.includes("music")) return Music2;
+  if (type.includes("play")) return Gamepad2;
+  if (type.includes("login")) return Gift;
+  return Sparkles;
+}
+
+function ActivitiesPage() {
+  const { syncCoins } = useStore();
+  const [activities, setActivities] = useState<Activity[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [claiming, setClaiming] = useState<string | null>(null);
+  const [spinOpen, setSpinOpen] = useState(false);
+  const load = async () => {
+    setLoading(true);
+    const { data, error } = await (supabase as any).rpc("get_activity_hub");
+    if (error) toast.error(error.message ?? "Activities could not be loaded");
+    else setActivities((data ?? []) as Activity[]);
+    setLoading(false);
+  };
+
+  useEffect(() => { void load(); }, []);
+
+  const completed = useMemo(() => activities.filter(a => a.completed).length, [activities]);
+  const total = activities.length;
+
+  const claim = async (activity: Activity) => {
+    setClaiming(activity.id);
+    const { data, error } = await (supabase as any).rpc("claim_activity", { p_activity_id: activity.id });
+    setClaiming(null);
+    if (error) return toast.error(error.message ?? "Activity could not be completed");
+    await syncCoins();
+    toast.success(data?.already_completed ? "Already completed" : `Activity complete 🎉 +${Number(data?.bc_awarded ?? 0)} BC`, {
+      description: data?.already_completed ? "Come back when this activity refreshes." : `+${Number(data?.xp_awarded ?? 0)} XP`,
+    });
+    void load();
+  };
+
+  return (
+    <AppShell title="Today’s Activity" subtitle="One Circle Panda activity is selected each day by Admin.">
+      <div className="cp-activity-page mx-auto w-full max-w-3xl">
+        <section className="cp-activity-hero">
+          <div className="cp-activity-panda">🐼</div>
+          <div className="min-w-0 flex-1">
+            <p className="cp-eyebrow">CIRCLE PANDA</p>
+            <h1>Play · Connect · Earn</h1>
+            <p>Complete today’s activity, follow the reveal flow, and collect your verified BC and XP.</p>
+          </div>
+          <div className="cp-activity-progress"><Trophy className="size-4" /><b>{completed}/{total}</b><span>done</span></div>
+        </section>
+
+        <section className="cp-activity-list">
+          <div className="cp-activity-section-head"><div><p className="cp-eyebrow">YOUR GAMES</p><h2>Today’s Activity</h2></div><span>Server verified</span></div>
+          {loading ? <div className="cp-activity-loading"><Loader2 className="size-6 animate-spin" />Loading…</div> : null}
+          {!loading && activities.length === 0 ? <div className="cp-activity-loading">No activities are enabled right now.</div> : null}
+          {!loading ? activities.map(activity => {
+            const Icon = iconFor(activity.activity_type);
+            const action = actionMap[activity.activity_type];
+            const game = GAMES_FOR_UI.find(g => activity.title.toLowerCase().includes(g.match));
+            return <article key={activity.id} className="cp-activity-card">
+              <div className="cp-activity-art">{game?.icon ?? <Icon className="size-6" />}</div>
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-center gap-2"><h3>{activity.title}</h3>{activity.completed ? <span className="cp-done-pill"><CheckCircle2 className="size-3" /> Completed</span> : null}</div>
+                <p>{activity.description}</p>
+                <div className="cp-reward-row"><span><Coins className="size-3.5" /> +{activity.reward_bc} BC</span><span>+5 XP</span></div>
+              </div>
+              <div className="shrink-0">
+                {activity.completed ? <Button className="cp-secondary-button" size="sm" disabled>Done</Button> : action ? <Link to={action.to}><Button className="cp-neon-button" size="sm">{action.label}<ArrowRight className="size-3.5" /></Button></Link> : <Button className="cp-neon-button" size="sm" onClick={() => void claim(activity)} disabled={claiming===activity.id}>{claiming===activity.id ? <Loader2 className="size-4 animate-spin" /> : "Play Now"}</Button>}
+              </div>
+            </article>;
+          }) : null}
+        </section>
+      </div>
+      <SpinWheel open={spinOpen} onOpenChange={setSpinOpen} />
+    </AppShell>
+  );
+}
