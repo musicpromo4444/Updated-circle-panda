@@ -1,1 +1,99 @@
-aW1wb3J0IHsgdXNlRWZmZWN0LCB1c2VTdGF0ZSB9IGZyb20gInJlYWN0IjsKaW1wb3J0IHsgSW1hZ2VQbHVzLCBMb2FkZXIyLCBWaWRlbyB9IGZyb20gImx1Y2lkZS1yZWFjdCI7CmltcG9ydCB7IHRvYXN0IH0gZnJvbSAic29ubmVyIjsKaW1wb3J0IHsgRGlhbG9nLCBEaWFsb2dDb250ZW50LCBEaWFsb2dEZXNjcmlwdGlvbiwgRGlhbG9nVGl0bGUgfSBmcm9tICJAL2NvbXBvbmVudHMvdWkvZGlhbG9nIjsKaW1wb3J0IHsgQnV0dG9uIH0gZnJvbSAiQC9jb21wb25lbnRzL3VpL2J1dHRvbiI7CmltcG9ydCB7IFRleHRhcmVhIH0gZnJvbSAiQC9jb21wb25lbnRzL3VpL3RleHRhcmVhIjsKaW1wb3J0IHsgc3VwYWJhc2UgfSBmcm9tICJAL2ludGVncmF0aW9ucy9zdXBhYmFzZS9jbGllbnQiOwppbXBvcnQgdHlwZSB7IENydXNoS2luZCB9IGZyb20gIkAvbGliL3N0b3JlIjsKCmV4cG9ydCBmdW5jdGlvbiBDcnVzaFN1Ym1pc3Npb25EaWFsb2coeyBvcGVuLCBvbk9wZW5DaGFuZ2UgfTogeyBvcGVuOiBib29sZWFuOyBvbk9wZW5DaGFuZ2U6IChvcGVuOiBib29sZWFuKSA9PiB2b2lkIH0pIHsKICBjb25zdCBbZ2VuZGVyLCBzZXRHZW5kZXJdID0gdXNlU3RhdGU8Im1hbGUiIHwgImZlbWFsZSIgfCBudWxsPihudWxsKTsKICBjb25zdCBbcGVuZGluZ0dlbmRlciwgc2V0UGVuZGluZ0dlbmRlcl0gPSB1c2VTdGF0ZTwibWFsZSIgfCAiZmVtYWxlIj4oImZlbWFsZSIpOwogIGNvbnN0IFtmaWxlLCBzZXRGaWxlXSA9IHVzZVN0YXRlPEZpbGUgfCBudWxsPihudWxsKTsKICBjb25zdCBbY2FwdGlvbiwgc2V0Q2FwdGlvbl0gPSB1c2VTdGF0ZSgiIik7CiAgY29uc3QgW2Vtb2ppLCBzZXRFbW9qaV0gPSB1c2VTdGF0ZSgi8J+QvCIpOwogIGNvbnN0IFtzYXZpbmcsIHNldFNhdmluZ10gPSB1c2VTdGF0ZShmYWxzZSk7CgogIHVzZUVmZmVjdCgoKSA9PiB7CiAgICBpZiAoIW9wZW4pIHJldHVybjsKICAgIHZvaWQgKHN1cGFiYXNlIGFzIGFueSkucnBjKCJnZXRfbXlfcHJvZmlsZV9nZW5kZXIiKS50aGVuKCh7IGRhdGEgfTogYW55KSA9PiB7CiAgICAgIHNldEdlbmRlcihkYXRhID09PSAibWFsZSIgfHwgZGF0YSA9PT0gImZlbWFsZSIgPyBkYXRhIDogbnVsbCk7CiAgICB9KTsKICB9LCBbb3Blbl0pOwoKICBjb25zdCBraW5kOiBDcnVzaEtpbmQgPSBnZW5kZXIgPT09ICJtYWxlIiA/ICJtY20iIDogIndjdyI7CiAgY29uc3Qgc2F2ZUdlbmRlciA9IGFzeW5jICgpID0+IHsKICAgIGNvbnN0IHsgZGF0YSwgZXJyb3IgfSA9IGF3YWl0IChzdXBhYmFzZSBhcyBhbnkpLnJwYygic2V0X3Byb2ZpbGVfZ2VuZGVyX3NlY3VyZSIsIHsgcF9nZW5kZXI6IHBlbmRpbmdHZW5kZXIgfSk7CiAgICBpZiAoZXJyb3IpIHsgdG9hc3QuZXJyb3IoZXJyb3IubWVzc2FnZSA/PyAiR2VuZGVyIGNvdWxkIG5vdCBiZSBzYXZlZCIpOyByZXR1cm47IH0KICAgIHNldEdlbmRlcihkYXRhID09PSAibWFsZSIgPyAibWFsZSIgOiAiZmVtYWxlIik7CiAgfTsKCiAgY29uc3Qgc3VibWl0ID0gYXN5bmMgKCkgPT4gewogICAgaWYgKCFmaWxlKSB7IHRvYXN0LmVycm9yKCJDaG9vc2UgYSBwaG90byBvciB2aWRlbyBmaXJzdCIpOyByZXR1cm47IH0KICAgIGlmICghZ2VuZGVyKSB7IHRvYXN0LmVycm9yKCJDaG9vc2UgeW91ciBhY2NvdW50IGdlbmRlciBmaXJzdCIpOyByZXR1cm47IH0KICAgIGNvbnN0IHsgZGF0YTogYXV0aERhdGEgfSA9IGF3YWl0IHN1cGFiYXNlLmF1dGguZ2V0VXNlcigpOwogICAgY29uc3QgdWlkID0gYXV0aERhdGEudXNlcj8uaWQ7CiAgICBpZiAoIXVpZCkgeyB0b2FzdC5lcnJvcigiUGxlYXNlIHNpZ24gaW4gZmlyc3QiKTsgcmV0dXJuOyB9CiAgICBzZXRTYXZpbmcodHJ1ZSk7CiAgICB0cnkgewogICAgICBjb25zdCBzYWZlTmFtZSA9IGZpbGUubmFtZS5yZXBsYWNlKC9bXmEtekEtWjAtOS5fLV0vZywgIi0iKTsKICAgICAgY29uc3QgcGF0aCA9IGAke3VpZH0vJHtjcnlwdG8ucmFuZG9tVVVJRCgpfS0ke3NhZmVOYW1lfWA7CiAgICAgIGNvbnN0IHsgZXJyb3I6IHVwbG9hZEVycm9yIH0gPSBhd2FpdCBzdXBhYmFzZS5zdG9yYWdlLmZyb20oImNpcmNsZS1wYW5kYS1jcnVzaCIpLnVwbG9hZChwYXRoLCBmaWxlLCB7IHVwc2VydDogZmFsc2UsIGNvbnRlbnRUeXBlOiBmaWxlLnR5cGUgfSk7CiAgICAgIGlmICh1cGxvYWRFcnJvcikgdGhyb3cgdXBsb2FkRXJyb3I7CiAgICAgIGNvbnN0IHsgZGF0YTogcHVibGljRGF0YSB9ID0gc3VwYWJhc2Uuc3RvcmFnZS5mcm9tKCJjaXJjbGUtcGFuZGEtY3J1c2giKS5nZXRQdWJsaWNVcmwocGF0aCk7CiAgICAgIGNvbnN0IG1lZGlhVHlwZSA9IGZpbGUudHlwZS5zdGFydHNXaXRoKCJ2aWRlby8iKSA/ICJ2aWRlbyIgOiAiaW1hZ2UiOwogICAgICBjb25zdCB7IGVycm9yIH0gPSBhd2FpdCAoc3VwYWJhc2UgYXMgYW55KS5ycGMoInN1Ym1pdF9jcnVzaF9tZWRpYV9zZWN1cmUiLCB7CiAgICAgICAgcF9tZWRpYV91cmw6IHB1YmxpY0RhdGEucHVibGljVXJsLAogICAgICAgIHBfbWVkaWFfdHlwZTogbWVkaWFUeXBlLAogICAgICAgIHBfY2FwdGlvbjogY2FwdGlvbi50cmltKCksCiAgICAgICAgcF9lbW9qaTogZW1vamksCiAgICAgIH0pOwogICAgICBpZiAoZXJyb3IpIHRocm93IGVycm9yOwogICAgICB0b2FzdC5zdWNjZXNzKGBQb3N0ZWQgdG8gJHtraW5kID09PSAibWNtIiA/ICJNYW4gQ3J1c2ggTW9uZGF5IiA6ICJXb21hbiBDcnVzaCBXZWRuZXNkYXkifSDwn5KrYCk7CiAgICAgIHNldEZpbGUobnVsbCk7IHNldENhcHRpb24oIiIpOyBzZXRFbW9qaSgi8J+QvCIpOyBvbk9wZW5DaGFuZ2UoZmFsc2UpOwogICAgICB3aW5kb3cuZGlzcGF0Y2hFdmVudChuZXcgRXZlbnQoImNpcmNsZS1wYW5kYS1jcnVzaC1yZWZyZXNoIikpOwogICAgfSBjYXRjaCAoZTogYW55KSB7CiAgICAgIHRvYXN0LmVycm9yKGU/Lm1lc3NhZ2UgPz8gIllvdXIgQ3J1c2ggcG9zdCBjb3VsZCBub3QgYmUgcHVibGlzaGVkIik7CiAgICB9IGZpbmFsbHkgeyBzZXRTYXZpbmcoZmFsc2UpOyB9CiAgfTsKCiAgcmV0dXJuICgKICAgIDxEaWFsb2cgb3Blbj17b3Blbn0gb25PcGVuQ2hhbmdlPXtvbk9wZW5DaGFuZ2V9PgogICAgICA8RGlhbG9nQ29udGVudCBjbGFzc05hbWU9Im1heC13LW1kIj4KICAgICAgICA8RGlhbG9nVGl0bGUgY2xhc3NOYW1lPSJmb250LWRpc3BsYXkgdGV4dC14bCI+UG9zdCB0byBNQ00gLyBXQ1c8L0RpYWxvZ1RpdGxlPgogICAgICAgIDxEaWFsb2dEZXNjcmlwdGlvbj4KICAgICAgICAgIENpcmNsZSBQYW5kYSBhdXRvbWF0aWNhbGx5IHBsYWNlcyB5b3VyIHN1Ym1pc3Npb24gaW4gdGhlIGNvcnJlY3Qgc2VjdGlvbiBmcm9tIHRoZSBnZW5kZXIgb24geW91ciBhY2NvdW50LgogICAgICAgIDwvRGlhbG9nRGVzY3JpcHRpb24+CgogICAgICAgIHshZ2VuZGVyID8gKAogICAgICAgICAgPGRpdiBjbGFzc05hbWU9InJvdW5kZWQtMnhsIGJvcmRlciBib3JkZXItcHJpbWFyeS8yMCBiZy1wcmltYXJ5LzUgcC00Ij4KICAgICAgICAgICAgPHAgY2xhc3NOYW1lPSJ0ZXh0LXNtIGZvbnQtc2VtaWJvbGQiPkNob29zZSB5b3VyIGFjY291bnQgZ2VuZGVyPC9wPgogICAgICAgICAgICA8cCBjbGFzc05hbWU9Im10LTEgdGV4dC14cyB0ZXh0LW11dGVkLWZvcmVncm91bmQiPk1hbGUgcG9zdHMgZ28gdG8gTUNNLiBGZW1hbGUgcG9zdHMgZ28gdG8gV0NXLiBUaGlzIGNvbnRyb2xzIHRoZSBkZXN0aW5hdGlvbiBhdXRvbWF0aWNhbGx5LjwvcD4KICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9Im10LTMgZ3JpZCBncmlkLWNvbHMtMiBnYXAtMiI+CiAgICAgICAgICAgICAgPEJ1dHRvbiB2YXJpYW50PXtwZW5kaW5nR2VuZGVyID09PSAiZmVtYWxlIiA/ICJkZWZhdWx0IiA6ICJvdXRsaW5lIn0gb25DbGljaz17KCkgPT4gc2V0UGVuZGluZ0dlbmRlcigiZmVtYWxlIil9PkZlbWFsZSDihpIgV0NXPC9CdXR0b24+CiAgICAgICAgICAgICAgPEJ1dHRvbiB2YXJpYW50PXtwZW5kaW5nR2VuZGVyID09PSAibWFsZSIgPyAiZGVmYXVsdCIgOiAib3V0bGluZSJ9IG9uQ2xpY2s9eygpID0+IHNldFBlbmRpbmdHZW5kZXIoIm1hbGUiKX0+TWFsZSDihpIgTUNNPC9CdXR0b24+CiAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgICA8QnV0dG9uIGNsYXNzTmFtZT0ibXQtMyB3LWZ1bGwiIG9uQ2xpY2s9eygpID0+IHZvaWQgc2F2ZUdlbmRlcigpfT5TYXZlICYgQ29udGludWU8L0J1dHRvbj4KICAgICAgICAgIDwvZGl2PgogICAgICAgICkgOiAoCiAgICAgICAgICA8PgogICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0icm91bmRlZC14bCBiZy1zZWNvbmRhcnkvNjAgcHgtMyBweS0yIHRleHQteHMgZm9udC1zZW1pYm9sZCI+CiAgICAgICAgICAgICAgUG9zdGluZyBkZXN0aW5hdGlvbjoge2tpbmQgPT09ICJtY20iID8gIk1hbiBDcnVzaCBNb25kYXkiIDogIldvbWFuIENydXNoIFdlZG5lc2RheSJ9CiAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgICA8bGFiZWwgY2xhc3NOYW1lPSJmbGV4IG1pbi1oLTI4IGN1cnNvci1wb2ludGVyIGZsZXgtY29sIGl0ZW1zLWNlbnRlciBqdXN0aWZ5LWNlbnRlciByb3VuZGVkLTJ4bCBib3JkZXIgYm9yZGVyLWRhc2hlZCBib3JkZXItcHJpbWFyeS80MCBiZy1zZWNvbmRhcnkvMzAgcC00IHRleHQtY2VudGVyIGhvdmVyOmJnLXNlY29uZGFyeS81MCI+CiAgICAgICAgICAgICAgPGlucHV0IHR5cGU9ImZpbGUiIGFjY2VwdD0iaW1hZ2UvKix2aWRlby8qIiBjbGFzc05hbWU9InNyLW9ubHkiIG9uQ2hhbmdlPXsoZSkgPT4gc2V0RmlsZShlLnRhcmdldC5maWxlcz8uWzBdID8/IG51bGwpfSAvPgogICAgICAgICAgICAgIHtmaWxlID8gPD48SW1hZ2VQbHVzIGNsYXNzTmFtZT0ic2l6ZS03IHRleHQtcHJpbWFyeSIgLz48c3BhbiBjbGFzc05hbWU9Im10LTIgbWF4LXctZnVsbCB0cnVuY2F0ZSB0ZXh0LXNtIGZvbnQtc2VtaWJvbGQiPntmaWxlLm5hbWV9PC9zcGFuPjxzcGFuIGNsYXNzTmFtZT0idGV4dC1bMTFweF0gdGV4dC1tdXRlZC1mb3JlZ3JvdW5kIj57ZmlsZS50eXBlLnN0YXJ0c1dpdGgoInZpZGVvLyIpID8gIlZpZGVvIiA6ICJQaG90byJ9IHNlbGVjdGVkPC9zcGFuPjwvPiA6IDw+PEltYWdlUGx1cyBjbGFzc05hbWU9InNpemUtNyB0ZXh0LXByaW1hcnkiIC8+PHNwYW4gY2xhc3NOYW1lPSJtdC0yIHRleHQtc20gZm9udC1zZW1pYm9sZCI+Q2hvb3NlIGEgcGhvdG8gb3IgdmlkZW88L3NwYW4+PHNwYW4gY2xhc3NOYW1lPSJ0ZXh0LVsxMXB4XSB0ZXh0LW11dGVkLWZvcmVncm91bmQiPllvdXIgcGVyc29uYWwgUGFuZGEgYXZhdGFyIHJlbWFpbnMgc2VwYXJhdGUuPC9zcGFuPjwvPn0KICAgICAgICAgICAgPC9sYWJlbD4KICAgICAgICAgICAgPFRleHRhcmVhIHZhbHVlPXtjYXB0aW9ufSBvbkNoYW5nZT17KGUpID0+IHNldENhcHRpb24oZS50YXJnZXQudmFsdWUpfSBwbGFjZWhvbGRlcj0iQWRkIGEgc2hvcnQgY2FwdGlvbiAob3B0aW9uYWwpIiBjbGFzc05hbWU9Im1pbi1oLTIwIHJlc2l6ZS1ub25lIiAvPgogICAgICAgICAgICA8ZGl2PgogICAgICAgICAgICAgIDxwIGNsYXNzTmFtZT0ibWItMiB0ZXh0LXhzIGZvbnQtc2VtaWJvbGQgdGV4dC1tdXRlZC1mb3JlZ3JvdW5kIj5Nb29kIGJhZGdlPC9wPgogICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJmbGV4IGdhcC0yIj57WyLwn5C8Iiwi4p2k77iPIiwi8J+UpSIsIuKcqCIsIvCfmI0iLCLwn4y4Il0ubWFwKChlKT0+PGJ1dHRvbiBrZXk9e2V9IHR5cGU9ImJ1dHRvbiIgb25DbGljaz17KCk9PnNldEVtb2ppKGUpfSBjbGFzc05hbWU9e2BncmlkIHNpemUtMTAgcGxhY2UtaXRlbXMtY2VudGVyIHJvdW5kZWQtZnVsbCBib3JkZXIgdGV4dC1sZyAke2Vtb2ppPT09ZT8iYm9yZGVyLXByaW1hcnkgYmctcHJpbWFyeS8xMCI6ImJvcmRlci1ib3JkZXIgYmctc2Vjb25kYXJ5LzQwIn1gfT57ZX08L2J1dHRvbj4pfTwvZGl2PgogICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgICAgPEJ1dHRvbiBkaXNhYmxlZD17c2F2aW5nIHx8ICFmaWxlfSBjbGFzc05hbWU9InctZnVsbCIgb25DbGljaz17KCkgPT4gdm9pZCBzdWJtaXQoKX0+e3NhdmluZyA/IDw+PExvYWRlcjIgY2xhc3NOYW1lPSJtci0yIHNpemUtNCBhbmltYXRlLXNwaW4iIC8+IFB1Ymxpc2hpbmfigKY8Lz4gOiA8PjxWaWRlbyBjbGFzc05hbWU9Im1yLTIgc2l6ZS00IiAvPiBQdWJsaXNoIHRvIHtraW5kLnRvVXBwZXJDYXNlKCl9PC8+fTwvQnV0dG9uPgogICAgICAgICAgPC8+CiAgICAgICAgKX0KICAgICAgPC9EaWFsb2dDb250ZW50PgogICAgPC9EaWFsb2c+CiAgKTsKfQo=
+import { useEffect, useState } from "react";
+import { ImagePlus, Loader2, Video } from "lucide-react";
+import { toast } from "sonner";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { supabase } from "@/integrations/supabase/client";
+import type { CrushKind } from "@/lib/store";
+
+export function CrushSubmissionDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
+  const [gender, setGender] = useState<"male" | "female" | null>(null);
+  const [pendingGender, setPendingGender] = useState<"male" | "female">("female");
+  const [file, setFile] = useState<File | null>(null);
+  const [caption, setCaption] = useState("");
+  const [emoji, setEmoji] = useState("ð¼");
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (!open) return;
+    void (supabase as any).rpc("get_my_profile_gender").then(({ data }: any) => {
+      setGender(data === "male" || data === "female" ? data : null);
+    });
+  }, [open]);
+
+  const kind: CrushKind = gender === "male" ? "mcm" : "wcw";
+  const saveGender = async () => {
+    const { data, error } = await (supabase as any).rpc("set_profile_gender_secure", { p_gender: pendingGender });
+    if (error) { toast.error(error.message ?? "Gender could not be saved"); return; }
+    setGender(data === "male" ? "male" : "female");
+  };
+
+  const submit = async () => {
+    if (!file) { toast.error("Choose a photo or video first"); return; }
+    if (!gender) { toast.error("Choose your account gender first"); return; }
+    const { data: authData } = await supabase.auth.getUser();
+    const uid = authData.user?.id;
+    if (!uid) { toast.error("Please sign in first"); return; }
+    setSaving(true);
+    try {
+      const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "-");
+      const path = `${uid}/${crypto.randomUUID()}-${safeName}`;
+      const { error: uploadError } = await supabase.storage.from("circle-panda-crush").upload(path, file, { upsert: false, contentType: file.type });
+      if (uploadError) throw uploadError;
+      const { data: publicData } = supabase.storage.from("circle-panda-crush").getPublicUrl(path);
+      const mediaType = file.type.startsWith("video/") ? "video" : "image";
+      const { error } = await (supabase as any).rpc("submit_crush_media_secure", {
+        p_media_url: publicData.publicUrl,
+        p_media_type: mediaType,
+        p_caption: caption.trim(),
+        p_emoji: emoji,
+      });
+      if (error) throw error;
+      toast.success(`Posted to ${kind === "mcm" ? "Man Crush Monday" : "Woman Crush Wednesday"} ð«`);
+      setFile(null); setCaption(""); setEmoji("ð¼"); onOpenChange(false);
+      window.dispatchEvent(new Event("circle-panda-crush-refresh"));
+    } catch (e: any) {
+      toast.error(e?.message ?? "Your Crush post could not be published");
+    } finally { setSaving(false); }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-md">
+        <DialogTitle className="font-display text-xl">Post to MCM / WCW</DialogTitle>
+        <DialogDescription>
+          Circle Panda automatically places your submission in the correct section from the gender on your account.
+        </DialogDescription>
+
+        {!gender ? (
+          <div className="rounded-2xl border border-primary/20 bg-primary/5 p-4">
+            <p className="text-sm font-semibold">Choose your account gender</p>
+            <p className="mt-1 text-xs text-muted-foreground">Male posts go to MCM. Female posts go to WCW. This controls the destination automatically.</p>
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              <Button variant={pendingGender === "female" ? "default" : "outline"} onClick={() => setPendingGender("female")}>Female â WCW</Button>
+              <Button variant={pendingGender === "male" ? "default" : "outline"} onClick={() => setPendingGender("male")}>Male â MCM</Button>
+            </div>
+            <Button className="mt-3 w-full" onClick={() => void saveGender()}>Save & Continue</Button>
+          </div>
+        ) : (
+          <>
+            <div className="rounded-xl bg-secondary/60 px-3 py-2 text-xs font-semibold">
+              Posting destination: {kind === "mcm" ? "Man Crush Monday" : "Woman Crush Wednesday"}
+            </div>
+            <label className="flex min-h-28 cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed border-primary/40 bg-secondary/30 p-4 text-center hover:bg-secondary/50">
+              <input type="file" accept="image/*,video/*" className="sr-only" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
+              {file ? <><ImagePlus className="size-7 text-primary" /><span className="mt-2 max-w-full truncate text-sm font-semibold">{file.name}</span><span className="text-[11px] text-muted-foreground">{file.type.startsWith("video/") ? "Video" : "Photo"} selected</span></> : <><ImagePlus className="size-7 text-primary" /><span className="mt-2 text-sm font-semibold">Choose a photo or video</span><span className="text-[11px] text-muted-foreground">Your personal Panda avatar remains separate.</span></>}
+            </label>
+            <Textarea value={caption} onChange={(e) => setCaption(e.target.value)} placeholder="Add a short caption (optional)" className="min-h-20 resize-none" />
+            <div>
+              <p className="mb-2 text-xs font-semibold text-muted-foreground">Mood badge</p>
+              <div className="flex gap-2">{["ð¼","â¤ï¸","ð¥","â¨","ð","ð¸"].map((e)=><button key={e} type="button" onClick={()=>setEmoji(e)} className={`grid size-10 place-items-center rounded-full border text-lg ${emoji===e?"border-primary bg-primary/10":"border-border bg-secondary/40"}`}>{e}</button>)}</div>
+            </div>
+            <Button disabled={saving || !file} className="w-full" onClick={() => void submit()}>{saving ? <><Loader2 className="mr-2 size-4 animate-spin" /> Publishingâ¦</> : <><Video className="mr-2 size-4" /> Publish to {kind.toUpperCase()}</>}</Button>
+          </>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
