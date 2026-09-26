@@ -1,1 +1,50 @@
-aW1wb3J0IHsgdXNlRWZmZWN0LCB1c2VTdGF0ZSB9IGZyb20gInJlYWN0IjsKaW1wb3J0IHsgQXJyb3dEb3duTGVmdCwgQXJyb3dVcFJpZ2h0LCBIaXN0b3J5LCBMb2FkZXIyIH0gZnJvbSAibHVjaWRlLXJlYWN0IjsKaW1wb3J0IHsgc3VwYWJhc2UgfSBmcm9tICJAL2ludGVncmF0aW9ucy9zdXBhYmFzZS9jbGllbnQiOwoKdHlwZSBMZWRnZXJSb3cgPSB7IGlkOnN0cmluZzsgYW1vdW50Om51bWJlcjsgcmVhc29uOnN0cmluZzsgcmVmZXJlbmNlX3R5cGU6c3RyaW5nOyBjcmVhdGVkX2F0OnN0cmluZyB9OwoKZXhwb3J0IGZ1bmN0aW9uIFdhbGxldEhpc3RvcnkoKSB7CiAgY29uc3QgW3Jvd3Msc2V0Um93c109dXNlU3RhdGU8TGVkZ2VyUm93W10+KFtdKTsKICBjb25zdCBbbG9hZGluZyxzZXRMb2FkaW5nXT11c2VTdGF0ZSh0cnVlKTsKICBjb25zdCBbZXJyb3Isc2V0RXJyb3JdPXVzZVN0YXRlKCIiKTsKCiAgdXNlRWZmZWN0KCgpPT57CiAgICBsZXQgY2FuY2VsbGVkPWZhbHNlOwogICAgKGFzeW5jKCk9PnsKICAgICAgc2V0TG9hZGluZyh0cnVlKTsgc2V0RXJyb3IoIiIpOwogICAgICBjb25zdCB7IGRhdGEsIGVycm9yIH0gPSBhd2FpdCAoc3VwYWJhc2UgYXMgYW55KQogICAgICAgIC5mcm9tKCJiY19sZWRnZXIiKQogICAgICAgIC5zZWxlY3QoImlkLGFtb3VudCxyZWFzb24scmVmZXJlbmNlX3R5cGUsY3JlYXRlZF9hdCIpCiAgICAgICAgLm9yZGVyKCJjcmVhdGVkX2F0Iix7YXNjZW5kaW5nOmZhbHNlfSkKICAgICAgICAubGltaXQoMTIpOwogICAgICBpZihjYW5jZWxsZWQpIHJldHVybjsKICAgICAgaWYoZXJyb3IpeyBzZXRFcnJvcigiV2FsbGV0IGhpc3RvcnkgaXMgdGVtcG9yYXJpbHkgdW5hdmFpbGFibGUuIik7IHNldFJvd3MoW10pOyB9CiAgICAgIGVsc2Ugc2V0Um93cygoZGF0YT8/W10pIGFzIExlZGdlclJvd1tdKTsKICAgICAgc2V0TG9hZGluZyhmYWxzZSk7CiAgICB9KSgpOwogICAgcmV0dXJuICgpPT57Y2FuY2VsbGVkPXRydWV9OwogIH0sW10pOwoKICByZXR1cm4gPHNlY3Rpb24gY2xhc3NOYW1lPSJyb3VuZGVkLTN4bCBib3JkZXIgYm9yZGVyLWJvcmRlci84MCBiZy1jYXJkIHAtNSBzaGFkb3ctc20iPgogICAgPGRpdiBjbGFzc05hbWU9ImZsZXggaXRlbXMtY2VudGVyIGp1c3RpZnktYmV0d2VlbiBnYXAtMyBtYi0zIj4KICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXggaXRlbXMtY2VudGVyIGdhcC0yIj4KICAgICAgICA8c3BhbiBjbGFzc05hbWU9ImdyaWQgc2l6ZS05IHBsYWNlLWl0ZW1zLWNlbnRlciByb3VuZGVkLXhsIGJnLXByaW1hcnkvMTAgdGV4dC1wcmltYXJ5Ij48SGlzdG9yeSBjbGFzc05hbWU9InNpemUtNCIvPjwvc3Bhbj4KICAgICAgICA8ZGl2PjxoMyBjbGFzc05hbWU9ImZvbnQtZGlzcGxheSB0ZXh0LWJhc2UgZm9udC1ib2xkIj5XYWxsZXQgQWN0aXZpdHk8L2gzPjxwIGNsYXNzTmFtZT0idGV4dC1bMTFweF0gdGV4dC1tdXRlZC1mb3JlZ3JvdW5kIj5Zb3VyIGxhdGVzdCBQYW5kYSBDb2luIGNyZWRpdHMgYW5kIGNoYXJnZXMuPC9wPjwvZGl2PgogICAgICA8L2Rpdj4KICAgIDwvZGl2PgogICAge2xvYWRpbmcgPyA8ZGl2IGNsYXNzTmFtZT0icHktNiBmbGV4IGp1c3RpZnktY2VudGVyIHRleHQtbXV0ZWQtZm9yZWdyb3VuZCI+PExvYWRlcjIgY2xhc3NOYW1lPSJzaXplLTUgYW5pbWF0ZS1zcGluIi8+PC9kaXY+CiAgICA6IGVycm9yID8gPHAgY2xhc3NOYW1lPSJ0ZXh0LXhzIHRleHQtbXV0ZWQtZm9yZWdyb3VuZCBweS0zIj57ZXJyb3J9PC9wPgogICAgOiByb3dzLmxlbmd0aD09PTAgPyA8cCBjbGFzc05hbWU9InRleHQteHMgdGV4dC1tdXRlZC1mb3JlZ3JvdW5kIHB5LTMiPk5vIHdhbGxldCB0cmFuc2FjdGlvbnMgeWV0LjwvcD4KICAgIDogPGRpdiBjbGFzc05hbWU9ImRpdmlkZS15IGRpdmlkZS1ib3JkZXIvNzAiPntyb3dzLm1hcChyPT57CiAgICAgIGNvbnN0IHBvc2l0aXZlPXIuYW1vdW50Pj0wOwogICAgICByZXR1cm4gPGRpdiBrZXk9e3IuaWR9IGNsYXNzTmFtZT0iZmxleCBpdGVtcy1jZW50ZXIganVzdGlmeS1iZXR3ZWVuIGdhcC0zIHB5LTMgZmlyc3Q6cHQtMSBsYXN0OnBiLTEiPgogICAgICAgIDxkaXYgY2xhc3NOYW1lPSJmbGV4IGl0ZW1zLWNlbnRlciBnYXAtMyBtaW4tdy0wIj4KICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT17YGdyaWQgc2l6ZS04IHNocmluay0wIHBsYWNlLWl0ZW1zLWNlbnRlciByb3VuZGVkLWZ1bGwgJHtwb3NpdGl2ZT8iYmctZW1lcmFsZC01MDAvMTAgdGV4dC1lbWVyYWxkLTYwMCI6ImJnLXJlZC01MDAvMTAgdGV4dC1yZWQtNjAwIn1gfT57cG9zaXRpdmU/PEFycm93RG93bkxlZnQgY2xhc3NOYW1lPSJzaXplLTQiLz46PEFycm93VXBSaWdodCBjbGFzc05hbWU9InNpemUtNCIvPn08L3NwYW4+CiAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0ibWluLXctMCI+PHAgY2xhc3NOYW1lPSJ0ZXh0LXhzIGZvbnQtc2VtaWJvbGQgdHJ1bmNhdGUiPntyLnJlYXNvbn08L3A+PHAgY2xhc3NOYW1lPSJ0ZXh0LVsxMHB4XSB0ZXh0LW11dGVkLWZvcmVncm91bmQiPntuZXcgRGF0ZShyLmNyZWF0ZWRfYXQpLnRvTG9jYWxlU3RyaW5nKCl9PC9wPjwvZGl2PgogICAgICAgIDwvZGl2PgogICAgICAgIDxzcGFuIGNsYXNzTmFtZT17YHRleHQteHMgZm9udC1ibGFjayB0YWJ1bGFyLW51bXMgJHtwb3NpdGl2ZT8idGV4dC1lbWVyYWxkLTYwMCI6InRleHQtcmVkLTYwMCJ9YH0+e3Bvc2l0aXZlPyIrIjoiIn17TnVtYmVyKHIuYW1vdW50KS50b0xvY2FsZVN0cmluZygpfSBCQzwvc3Bhbj4KICAgICAgPC9kaXY+CiAgICB9KX08L2Rpdj59CiAgPC9zZWN0aW9uPjsKfQo=
+import { useEffect, useState } from "react";
+import { ArrowDownLeft, ArrowUpRight, History, Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+
+type LedgerRow = { id:string; amount:number; reason:string; reference_type:string; created_at:string };
+
+export function WalletHistory() {
+  const [rows,setRows]=useState<LedgerRow[]>([]);
+  const [loading,setLoading]=useState(true);
+  const [error,setError]=useState("");
+
+  useEffect(()=>{
+    let cancelled=false;
+    (async()=>{
+      setLoading(true); setError("");
+      const { data, error } = await (supabase as any)
+        .from("bc_ledger")
+        .select("id,amount,reason,reference_type,created_at")
+        .order("created_at",{ascending:false})
+        .limit(12);
+      if(cancelled) return;
+      if(error){ setError("Wallet history is temporarily unavailable."); setRows([]); }
+      else setRows((data??[]) as LedgerRow[]);
+      setLoading(false);
+    })();
+    return ()=>{cancelled=true};
+  },[]);
+
+  return <section className="rounded-3xl border border-border/80 bg-card p-5 shadow-sm">
+    <div className="flex items-center justify-between gap-3 mb-3">
+      <div className="flex items-center gap-2">
+        <span className="grid size-9 place-items-center rounded-xl bg-primary/10 text-primary"><History className="size-4"/></span>
+        <div><h3 className="font-display text-base font-bold">Wallet Activity</h3><p className="text-[11px] text-muted-foreground">Your latest Panda Coin credits and charges.</p></div>
+      </div>
+    </div>
+    {loading ? <div className="py-6 flex justify-center text-muted-foreground"><Loader2 className="size-5 animate-spin"/></div>
+    : error ? <p className="text-xs text-muted-foreground py-3">{error}</p>
+    : rows.length===0 ? <p className="text-xs text-muted-foreground py-3">No wallet transactions yet.</p>
+    : <div className="divide-y divide-border/70">{rows.map(r=>{
+      const positive=r.amount>=0;
+      return <div key={r.id} className="flex items-center justify-between gap-3 py-3 first:pt-1 last:pb-1">
+        <div className="flex items-center gap-3 min-w-0">
+          <span className={`grid size-8 shrink-0 place-items-center rounded-full ${positive?"bg-emerald-500/10 text-emerald-600":"bg-red-500/10 text-red-600"}`}>{positive?<ArrowDownLeft className="size-4"/>:<ArrowUpRight className="size-4"/>}</span>
+          <div className="min-w-0"><p className="text-xs font-semibold truncate">{r.reason}</p><p className="text-[10px] text-muted-foreground">{new Date(r.created_at).toLocaleString()}</p></div>
+        </div>
+        <span className={`text-xs font-black tabular-nums ${positive?"text-emerald-600":"text-red-600"}`}>{positive?"+":""}{Number(r.amount).toLocaleString()} BC</span>
+      </div>
+    })}</div>}
+  </section>;
+}
