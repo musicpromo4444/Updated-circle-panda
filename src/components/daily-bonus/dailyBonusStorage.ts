@@ -1,1 +1,35 @@
-LyoqIFVJLW9ubHkgcGVyc2lzdGVuY2UgZm9yIHRoZSBkYWlseSBtb2RhbCBzZXF1ZW5jZS4KICoKICogUmV3YXJkIGVsaWdpYmlsaXR5LCBzdHJlYWtzIGFuZCBCQyBhbW91bnRzIGFyZSBzZXJ2ZXItYXV0aG9yaXRhdGl2ZSBpbiBTdXBhYmFzZS4KICogbG9jYWxTdG9yYWdlIGlzIHVzZWQgb25seSB0byByZW1lbWJlciB0aGF0IHRoZSBwcmVzZW50YXRpb24gc2VxdWVuY2Ugd2FzIGNsb3NlZCB0b2RheS4KICovCmNvbnN0IE1PREFMU19DT01QTEVURURfS0VZID0gImNwX2RhaWx5X21vZGFsc19jb21wbGV0ZWRfZGF0ZSI7CgpmdW5jdGlvbiB0b2RheUtleSgpIHsKICBjb25zdCBkID0gbmV3IERhdGUoKTsKICByZXR1cm4gYCR7ZC5nZXRGdWxsWWVhcigpfS0ke1N0cmluZyhkLmdldE1vbnRoKCkgKyAxKS5wYWRTdGFydCgyLCAiMCIpfS0ke1N0cmluZyhkLmdldERhdGUoKSkucGFkU3RhcnQoMiwgIjAiKX1gOwp9CgpleHBvcnQgZnVuY3Rpb24gaGFzRGFpbHlNb2RhbHNDb21wbGV0ZWQoKTogYm9vbGVhbiB7CiAgdHJ5IHsKICAgIHJldHVybiB0eXBlb2Ygd2luZG93ICE9PSAidW5kZWZpbmVkIiAmJiB3aW5kb3cubG9jYWxTdG9yYWdlPy5nZXRJdGVtKE1PREFMU19DT01QTEVURURfS0VZKSA9PT0gdG9kYXlLZXkoKTsKICB9IGNhdGNoIHsKICAgIHJldHVybiBmYWxzZTsKICB9Cn0KCmV4cG9ydCBmdW5jdGlvbiBtYXJrRGFpbHlNb2RhbHNDb21wbGV0ZWQoKTogdm9pZCB7CiAgdHJ5IHsKICAgIHdpbmRvdy5sb2NhbFN0b3JhZ2U/LnNldEl0ZW0oTU9EQUxTX0NPTVBMRVRFRF9LRVksIHRvZGF5S2V5KCkpOwogIH0gY2F0Y2ggewogICAgLy8gUHJlc2VudGF0aW9uIHN0YXRlIGlzIGJlc3QtZWZmb3J0IG9ubHkuCiAgfQp9CgpleHBvcnQgZnVuY3Rpb24gcmVzZXREYWlseU1vZGFsU3RhdGUoKTogdm9pZCB7CiAgdHJ5IHsKICAgIHdpbmRvdy5sb2NhbFN0b3JhZ2U/LnJlbW92ZUl0ZW0oTU9EQUxTX0NPTVBMRVRFRF9LRVkpOwogIH0gY2F0Y2ggewogICAgLy8gUHJlc2VudGF0aW9uIHN0YXRlIGlzIGJlc3QtZWZmb3J0IG9ubHkuCiAgfQp9Cg==
+/** UI-only persistence for the daily modal sequence.
+ *
+ * Reward eligibility, streaks and BC amounts are server-authoritative in Supabase.
+ * localStorage is used only to remember that the presentation sequence was closed today.
+ */
+const MODALS_COMPLETED_KEY = "cp_daily_modals_completed_date";
+
+function todayKey() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+export function hasDailyModalsCompleted(): boolean {
+  try {
+    return typeof window !== "undefined" && window.localStorage?.getItem(MODALS_COMPLETED_KEY) === todayKey();
+  } catch {
+    return false;
+  }
+}
+
+export function markDailyModalsCompleted(): void {
+  try {
+    window.localStorage?.setItem(MODALS_COMPLETED_KEY, todayKey());
+  } catch {
+    // Presentation state is best-effort only.
+  }
+}
+
+export function resetDailyModalState(): void {
+  try {
+    window.localStorage?.removeItem(MODALS_COMPLETED_KEY);
+  } catch {
+    // Presentation state is best-effort only.
+  }
+}
