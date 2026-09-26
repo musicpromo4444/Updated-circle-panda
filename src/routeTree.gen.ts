@@ -22,6 +22,13 @@ import { Route as SweepstakesRouteImport } from './routes/sweepstakes'
 import { Route as GroupsIndexRouteImport } from './routes/groups.index'
 import { Route as GroupsGroupIdRouteImport } from './routes/groups.$groupId'
 import { Route as AdminDashboardRouteImport } from './routes/admin-dashboard'
+import { Route as AdminRouteImport } from './routes/admin'
+import { Route as ConfessionsRouteImport } from './routes/confessions'
+import { Route as FeedRouteImport } from './routes/feed'
+import { Route as LiveRouteImport } from './routes/live'
+import { Route as MusicTimeRouteImport } from './routes/music-time'
+import { Route as NotificationsRouteImport } from './routes/notifications'
+import { Route as StoreRouteImport } from './routes/store'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -83,6 +90,41 @@ const AdminDashboardRoute = AdminDashboardRouteImport.update({
   path: '/admin-dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ConfessionsRoute = ConfessionsRouteImport.update({
+  id: '/confessions',
+  path: '/confessions',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FeedRoute = FeedRouteImport.update({
+  id: '/feed',
+  path: '/feed',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LiveRoute = LiveRouteImport.update({
+  id: '/live',
+  path: '/live',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MusicTimeRoute = MusicTimeRouteImport.update({
+  id: '/music-time',
+  path: '/music-time',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NotificationsRoute = NotificationsRouteImport.update({
+  id: '/notifications',
+  path: '/notifications',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StoreRoute = StoreRouteImport.update({
+  id: '/store',
+  path: '/store',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const GroupsGroupIdRoute = GroupsGroupIdRouteImport.update({
   id: '/groups/$groupId',
   path: '/groups/$groupId',
@@ -90,6 +132,13 @@ const GroupsGroupIdRoute = GroupsGroupIdRouteImport.update({
 } as any)
 
 export interface FileRoutesByFullPath {
+  '/admin': typeof AdminRoute
+  '/confessions': typeof ConfessionsRoute
+  '/feed': typeof FeedRoute
+  '/live': typeof LiveRoute
+  '/music-time': typeof MusicTimeRoute
+  '/notifications': typeof NotificationsRoute
+  '/store': typeof StoreRoute
   '/': typeof IndexRoute
   '/activities': typeof ActivitiesRoute
   '/crush': typeof CrushRoute
@@ -105,6 +154,13 @@ export interface FileRoutesByFullPath {
   '/groups/': typeof GroupsIndexRoute
 }
 export interface FileRoutesByTo {
+  '/admin': typeof AdminRoute
+  '/confessions': typeof ConfessionsRoute
+  '/feed': typeof FeedRoute
+  '/live': typeof LiveRoute
+  '/music-time': typeof MusicTimeRoute
+  '/notifications': typeof NotificationsRoute
+  '/store': typeof StoreRoute
   '/': typeof IndexRoute
   '/activities': typeof ActivitiesRoute
   '/crush': typeof CrushRoute
@@ -120,6 +176,13 @@ export interface FileRoutesByTo {
   '/groups': typeof GroupsIndexRoute
 }
 export interface FileRoutesById {
+  '/admin': typeof AdminRoute
+  '/confessions': typeof ConfessionsRoute
+  '/feed': typeof FeedRoute
+  '/live': typeof LiveRoute
+  '/music-time': typeof MusicTimeRoute
+  '/notifications': typeof NotificationsRoute
+  '/store': typeof StoreRoute
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/activities': typeof ActivitiesRoute
@@ -138,6 +201,13 @@ export interface FileRoutesById {
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
+    | '/admin'
+    | '/confessions'
+    | '/feed'
+    | '/live'
+    | '/music-time'
+    | '/notifications'
+    | '/store'
     | '/'
     | '/activities'
     | '/crush'
@@ -153,6 +223,13 @@ export interface FileRouteTypes {
     | '/admin-dashboard'
   fileRoutesByTo: FileRoutesByTo
   to:
+    | '/admin'
+    | '/confessions'
+    | '/feed'
+    | '/live'
+    | '/music-time'
+    | '/notifications'
+    | '/store'
     | '/'
     | '/crush'
     | '/dating'
@@ -166,6 +243,13 @@ export interface FileRouteTypes {
     | '/groups'
     | '/admin-dashboard'
   id:
+    | '/admin'
+    | '/confessions'
+    | '/feed'
+    | '/live'
+    | '/music-time'
+    | '/notifications'
+    | '/store'
     | '__root__'
     | '/'
     | '/crush'
@@ -182,6 +266,13 @@ export interface FileRouteTypes {
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
+  AdminRoute: typeof AdminRoute
+  ConfessionsRoute: typeof ConfessionsRoute
+  FeedRoute: typeof FeedRoute
+  LiveRoute: typeof LiveRoute
+  MusicTimeRoute: typeof MusicTimeRoute
+  NotificationsRoute: typeof NotificationsRoute
+  StoreRoute: typeof StoreRoute
   IndexRoute: typeof IndexRoute
   CrushRoute: typeof CrushRoute
   DatingRoute: typeof DatingRoute
@@ -198,6 +289,55 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/confessions': {
+      id: '/confessions'
+      path: '/confessions'
+      fullPath: '/confessions'
+      preLoaderRoute: typeof ConfessionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/feed': {
+      id: '/feed'
+      path: '/feed'
+      fullPath: '/feed'
+      preLoaderRoute: typeof FeedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/live': {
+      id: '/live'
+      path: '/live'
+      fullPath: '/live'
+      preLoaderRoute: typeof LiveRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/music-time': {
+      id: '/music-time'
+      path: '/music-time'
+      fullPath: '/music-time'
+      preLoaderRoute: typeof MusicTimeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/notifications': {
+      id: '/notifications'
+      path: '/notifications'
+      fullPath: '/notifications'
+      preLoaderRoute: typeof NotificationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/store': {
+      id: '/store'
+      path: '/store'
+      fullPath: '/store'
+      preLoaderRoute: typeof StoreRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -293,6 +433,13 @@ declare module '@tanstack/react-router' {
 }
 
 const rootRouteChildren: RootRouteChildren = {
+  AdminRoute: AdminRoute,
+  ConfessionsRoute: ConfessionsRoute,
+  FeedRoute: FeedRoute,
+  LiveRoute: LiveRoute,
+  MusicTimeRoute: MusicTimeRoute,
+  NotificationsRoute: NotificationsRoute,
+  StoreRoute: StoreRoute,
   IndexRoute: IndexRoute,
   ActivitiesRoute: ActivitiesRoute,
   CrushRoute: CrushRoute,
