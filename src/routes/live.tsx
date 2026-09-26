@@ -1,1 +1,53 @@
-aW1wb3J0IHsgY3JlYXRlRmlsZVJvdXRlIH0gZnJvbSAiQHRhbnN0YWNrL3JlYWN0LXJvdXRlciI7CmltcG9ydCB7IHVzZUVmZmVjdCwgdXNlU3RhdGUgfSBmcm9tICJyZWFjdCI7CmltcG9ydCB7IEV5ZSwgUmFkaW8sIFVzZXJzICwgU3F1YXJlLCBQbHVzIH0gZnJvbSAibHVjaWRlLXJlYWN0IjsKaW1wb3J0IHsgQXBwU2hlbGwgfSBmcm9tICJAL2NvbXBvbmVudHMvQXBwU2hlbGwiOwppbXBvcnQgeyBCdXR0b24gfSBmcm9tICJAL2NvbXBvbmVudHMvdWkvYnV0dG9uIjsKaW1wb3J0IHsgaGVhcnRiZWF0TGl2ZVN0cmVhbSwgam9pbkxpdmVTdHJlYW0sIGxlYXZlTGl2ZVN0cmVhbSwgbGlzdExpdmVTdHJlYW1zIH0gZnJvbSAiQC9saWIvcHJvZHVjdGlvbi9mZWF0dXJlcyI7CmltcG9ydCB7IHN1cGFiYXNlIH0gZnJvbSAiQC9pbnRlZ3JhdGlvbnMvc3VwYWJhc2UvY2xpZW50IjsKaW1wb3J0IHsgdG9hc3QgfSBmcm9tICJzb25uZXIiOwoKZXhwb3J0IGNvbnN0IFJvdXRlID0gY3JlYXRlRmlsZVJvdXRlKCIvbGl2ZSIpKHsgY29tcG9uZW50OiBMaXZlUGFnZSB9KTsKZnVuY3Rpb24gTGl2ZVBhZ2UoKSB7CiAgY29uc3QgW3N0cmVhbXMsIHNldFN0cmVhbXNdID0gdXNlU3RhdGU8YW55W10+KFtdKTsKICBjb25zdCBbYWN0aXZlLCBzZXRBY3RpdmVdID0gdXNlU3RhdGU8YW55IHwgbnVsbD4obnVsbCk7CiAgY29uc3QgW2pvaW5lZCwgc2V0Sm9pbmVkXSA9IHVzZVN0YXRlKGZhbHNlKTsKICB1c2VFZmZlY3QoKCkgPT4geyB2b2lkIGxpc3RMaXZlU3RyZWFtcygpLnRoZW4oc2V0U3RyZWFtcyk7IH0sIFtdKTsKICB1c2VFZmZlY3QoKCkgPT4gewogICAgaWYgKCFhY3RpdmUpIHJldHVybjsKICAgIGxldCBjYW5jZWxsZWQgPSBmYWxzZTsKICAgIGxldCBoZWFydGJlYXRUaW1lcjogUmV0dXJuVHlwZTx0eXBlb2Ygc2V0SW50ZXJ2YWw+IHwgdW5kZWZpbmVkOwogICAgY29uc3QgcmVmcmVzaFByZXNlbmNlID0gYXN5bmMgKCkgPT4gewogICAgICB0cnkgewogICAgICAgIGNvbnN0IHJlc3VsdDphbnkgPSBhd2FpdCBoZWFydGJlYXRMaXZlU3RyZWFtKGFjdGl2ZS5pZCk7CiAgICAgICAgaWYgKCFjYW5jZWxsZWQpIHsKICAgICAgICAgIHNldEpvaW5lZCh0cnVlKTsKICAgICAgICAgIHNldEFjdGl2ZSgoY3VycmVudDphbnkpID0+IGN1cnJlbnQgPyB7IC4uLmN1cnJlbnQsIHZpZXdlcl9jb3VudDpOdW1iZXIocmVzdWx0Py52aWV3ZXJfY291bnQgPz8gY3VycmVudC52aWV3ZXJfY291bnQgPz8gMCkgfSA6IGN1cnJlbnQpOwogICAgICAgIH0KICAgICAgfSBjYXRjaCAoZTphbnkpIHsKICAgICAgICBpZiAoIWNhbmNlbGxlZCkgdG9hc3QuZXJyb3IoZT8ubWVzc2FnZSA/PyAiTGl2ZSB2aWV3ZXIgc2Vzc2lvbiBleHBpcmVkIik7CiAgICAgIH0KICAgIH07CiAgICB2b2lkIGpvaW5MaXZlU3RyZWFtKGFjdGl2ZS5pZCkudGhlbigocmVzdWx0OmFueSkgPT4gewogICAgICBpZiAoIWNhbmNlbGxlZCkgewogICAgICAgIHNldEpvaW5lZCh0cnVlKTsKICAgICAgICBzZXRBY3RpdmUoKGN1cnJlbnQ6YW55KSA9PiBjdXJyZW50ID8geyAuLi5jdXJyZW50LCB2aWV3ZXJfY291bnQ6TnVtYmVyKHJlc3VsdD8udmlld2VyX2NvdW50ID8/IGN1cnJlbnQudmlld2VyX2NvdW50ID8/IDApIH0gOiBjdXJyZW50KTsKICAgICAgICBoZWFydGJlYXRUaW1lciA9IHNldEludGVydmFsKCgpID0+IHZvaWQgcmVmcmVzaFByZXNlbmNlKCksIDMwXzAwMCk7CiAgICAgIH0KICAgIH0pLmNhdGNoKChlOmFueSkgPT4gdG9hc3QuZXJyb3IoZT8ubWVzc2FnZSA/PyAiQ291bGQgbm90IGpvaW4gbGl2ZSBzdHJlYW0iKSk7CiAgICByZXR1cm4gKCkgPT4gewogICAgICBjYW5jZWxsZWQgPSB0cnVlOwogICAgICBpZiAoaGVhcnRiZWF0VGltZXIpIGNsZWFySW50ZXJ2YWwoaGVhcnRiZWF0VGltZXIpOwogICAgICBzZXRKb2luZWQoZmFsc2UpOwogICAgICB2b2lkIGxlYXZlTGl2ZVN0cmVhbShhY3RpdmUuaWQpLmNhdGNoKCgpID0+IHt9KTsKICAgIH07CiAgfSwgW2FjdGl2ZT8uaWRdKTsKICB1c2VFZmZlY3QoKCkgPT4gewogICAgY29uc3QgY2hhbm5lbCA9IHN1cGFiYXNlLmNoYW5uZWwoImNpcmNsZS1wYW5kYS1saXZlLXN0cmVhbXMiKS5vbigicG9zdGdyZXNfY2hhbmdlcyIsIHsgZXZlbnQ6ICIqIiwgc2NoZW1hOiAicHVibGljIiwgdGFibGU6ICJsaXZlX3N0cmVhbXMiIH0sICgpID0+IHsgdm9pZCBsaXN0TGl2ZVN0cmVhbXMoKS50aGVuKHNldFN0cmVhbXMpOyB9KS5zdWJzY3JpYmUoKTsKICAgIHJldHVybiAoKSA9PiB7IHZvaWQgc3VwYWJhc2UucmVtb3ZlQ2hhbm5lbChjaGFubmVsKTsgfTsKICB9LCBbXSk7CiAgcmV0dXJuIDxBcHBTaGVsbCB0aXRsZT0iTGl2ZSIgc3VidGl0bGU9IkpvaW4gbGl2ZSBDaXJjbGUgUGFuZGEgYnJvYWRjYXN0cyBhbmQgd2F0Y2ggaW4gcmVhbCB0aW1lLiI+CiAgICB7c3RyZWFtcy5sZW5ndGggPT09IDAgPyA8ZGl2IGNsYXNzTmFtZT0icGFuZGEtcGFuZWwgcm91bmRlZC0yeGwgcC04IHRleHQtY2VudGVyIj48UmFkaW8gY2xhc3NOYW1lPSJteC1hdXRvIHNpemUtMTAgdGV4dC1wcmltYXJ5Ii8+PGgyIGNsYXNzTmFtZT0ibXQtMyBmb250LWRpc3BsYXkgdGV4dC14bCBmb250LXNlbWlib2xkIj5ObyBsaXZlIHN0cmVhbXMgcmlnaHQgbm93PC9oMj48cCBjbGFzc05hbWU9Im10LTEgdGV4dC1zbSB0ZXh0LW11dGVkLWZvcmVncm91bmQiPldoZW4gYW4gYXBwcm92ZWQgYnJvYWRjYXN0IHN0YXJ0cywgaXQgd2lsbCBhcHBlYXIgaGVyZSBhdXRvbWF0aWNhbGx5LjwvcD48L2Rpdj4gOiA8ZGl2IGNsYXNzTmFtZT0iZ3JpZCBnYXAtNCBtZDpncmlkLWNvbHMtMiI+e3N0cmVhbXMubWFwKChzKSA9PiA8YXJ0aWNsZSBrZXk9e3MuaWR9IGNsYXNzTmFtZT0icGFuZGEtcGFuZWwgb3ZlcmZsb3ctaGlkZGVuIHJvdW5kZWQtMnhsIj48ZGl2IGNsYXNzTmFtZT0iYXNwZWN0LXZpZGVvIGJnLWJsYWNrIj57cy5zdHJlYW1fdXJsID8gPHZpZGVvIHNyYz17cy5zdHJlYW1fdXJsfSBjb250cm9scyBwbGF5c0lubGluZSBjbGFzc05hbWU9InNpemUtZnVsbCBvYmplY3QtY292ZXIiLz4gOiA8ZGl2IGNsYXNzTmFtZT0iZ3JpZCBzaXplLWZ1bGwgcGxhY2UtaXRlbXMtY2VudGVyIHRleHQtbXV0ZWQtZm9yZWdyb3VuZCI+PFJhZGlvIGNsYXNzTmFtZT0ic2l6ZS0xMCIvPjwvZGl2Pn08L2Rpdj48ZGl2IGNsYXNzTmFtZT0icC00Ij48ZGl2IGNsYXNzTmFtZT0iZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTIiPjxzcGFuIGNsYXNzTmFtZT0icm91bmRlZC1mdWxsIGJnLXJlZC01MDAvMTUgcHgtMiBweS0xIHRleHQtWzEwcHhdIGZvbnQtYm9sZCB0ZXh0LXJlZC01MDAiPkxJVkU8L3NwYW4+PGgyIGNsYXNzTmFtZT0iZm9udC1kaXNwbGF5IHRleHQtbGcgZm9udC1zZW1pYm9sZCI+e3MudGl0bGV9PC9oMj48L2Rpdj48cCBjbGFzc05hbWU9Im10LTEgdGV4dC1zbSB0ZXh0LW11dGVkLWZvcmVncm91bmQiPntzLmRlc2NyaXB0aW9ufTwvcD48ZGl2IGNsYXNzTmFtZT0ibXQtNCBmbGV4IGdhcC0yIj48QnV0dG9uIG9uQ2xpY2s9eygpID0+IHNldEFjdGl2ZShzKX0+e2FjdGl2ZT8uaWQgPT09IHMuaWQgJiYgam9pbmVkID8gIldhdGNoaW5nIiA6ICJXYXRjaCBsaXZlIn08L0J1dHRvbj48L2Rpdj48L2Rpdj48L2FydGljbGU+KX08L2Rpdj59CiAgICB7YWN0aXZlID8gPGRpdiBjbGFzc05hbWU9Im10LTQgZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTQgdGV4dC14cyB0ZXh0LW11dGVkLWZvcmVncm91bmQiPjxFeWUgY2xhc3NOYW1lPSJzaXplLTQiLz4gTGl2ZSB2aWV3ZXIgc2Vzc2lvbiBhY3RpdmUgPFVzZXJzIGNsYXNzTmFtZT0ibWwtMyBzaXplLTQiLz4ge2FjdGl2ZS50aXRsZX0gwrcge051bWJlcihhY3RpdmUudmlld2VyX2NvdW50ID8/IDApfSB3YXRjaGluZzwvZGl2PiA6IG51bGx9CiAgPC9BcHBTaGVsbD47Cn0K
+import { createFileRoute } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { Eye, Radio, Users , Square, Plus } from "lucide-react";
+import { AppShell } from "@/components/AppShell";
+import { Button } from "@/components/ui/button";
+import { heartbeatLiveStream, joinLiveStream, leaveLiveStream, listLiveStreams } from "@/lib/production/features";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+
+export const Route = createFileRoute("/live")({ component: LivePage });
+function LivePage() {
+  const [streams, setStreams] = useState<any[]>([]);
+  const [active, setActive] = useState<any | null>(null);
+  const [joined, setJoined] = useState(false);
+  useEffect(() => { void listLiveStreams().then(setStreams); }, []);
+  useEffect(() => {
+    if (!active) return;
+    let cancelled = false;
+    let heartbeatTimer: ReturnType<typeof setInterval> | undefined;
+    const refreshPresence = async () => {
+      try {
+        const result:any = await heartbeatLiveStream(active.id);
+        if (!cancelled) {
+          setJoined(true);
+          setActive((current:any) => current ? { ...current, viewer_count:Number(result?.viewer_count ?? current.viewer_count ?? 0) } : current);
+        }
+      } catch (e:any) {
+        if (!cancelled) toast.error(e?.message ?? "Live viewer session expired");
+      }
+    };
+    void joinLiveStream(active.id).then((result:any) => {
+      if (!cancelled) {
+        setJoined(true);
+        setActive((current:any) => current ? { ...current, viewer_count:Number(result?.viewer_count ?? current.viewer_count ?? 0) } : current);
+        heartbeatTimer = setInterval(() => void refreshPresence(), 30_000);
+      }
+    }).catch((e:any) => toast.error(e?.message ?? "Could not join live stream"));
+    return () => {
+      cancelled = true;
+      if (heartbeatTimer) clearInterval(heartbeatTimer);
+      setJoined(false);
+      void leaveLiveStream(active.id).catch(() => {});
+    };
+  }, [active?.id]);
+  useEffect(() => {
+    const channel = supabase.channel("circle-panda-live-streams").on("postgres_changes", { event: "*", schema: "public", table: "live_streams" }, () => { void listLiveStreams().then(setStreams); }).subscribe();
+    return () => { void supabase.removeChannel(channel); };
+  }, []);
+  return <AppShell title="Live" subtitle="Join live Circle Panda broadcasts and watch in real time.">
+    {streams.length === 0 ? <div className="panda-panel rounded-2xl p-8 text-center"><Radio className="mx-auto size-10 text-primary"/><h2 className="mt-3 font-display text-xl font-semibold">No live streams right now</h2><p className="mt-1 text-sm text-muted-foreground">When an approved broadcast starts, it will appear here automatically.</p></div> : <div className="grid gap-4 md:grid-cols-2">{streams.map((s) => <article key={s.id} className="panda-panel overflow-hidden rounded-2xl"><div className="aspect-video bg-black">{s.stream_url ? <video src={s.stream_url} controls playsInline className="size-full object-cover"/> : <div className="grid size-full place-items-center text-muted-foreground"><Radio className="size-10"/></div>}</div><div className="p-4"><div className="flex items-center gap-2"><span className="rounded-full bg-red-500/15 px-2 py-1 text-[10px] font-bold text-red-500">LIVE</span><h2 className="font-display text-lg font-semibold">{s.title}</h2></div><p className="mt-1 text-sm text-muted-foreground">{s.description}</p><div className="mt-4 flex gap-2"><Button onClick={() => setActive(s)}>{active?.id === s.id && joined ? "Watching" : "Watch live"}</Button></div></div></article>)}</div>}
+    {active ? <div className="mt-4 flex items-center gap-4 text-xs text-muted-foreground"><Eye className="size-4"/> Live viewer session active <Users className="ml-3 size-4"/> {active.title} · {Number(active.viewer_count ?? 0)} watching</div> : null}
+  </AppShell>;
+}
