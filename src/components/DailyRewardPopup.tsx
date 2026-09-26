@@ -1,1 +1,12 @@
-aW1wb3J0IHsgRGFpbHlNb2RhbFNlcXVlbmNlIH0gZnJvbSAiQC9jb21wb25lbnRzL2RhaWx5LWJvbnVzIjsKCi8qKgogKiBTZXF1ZW50aWFsIERhaWx5IE1vZGFsIFN5c3RlbSBmb3IgQ2lyY2xlIFBhbmRhCiAqCiAqIFNlcXVlbmNlOgogKiAxLiBEYWlseSBMb2dpbiBCb251cyB1c2VzIHRoZSBsb2NrZWQgTW9u4oCTVGh1IDUvMTAvNS8xMCBCQyBzY2hlZHVsZSBhbmQgRnJp4oCTU3VuIDUwIEJDIHNjaGVkdWxlLgogKiAyLiBUaGUgc2VwYXJhdGUgOS1zbG90IDctRGF5IEFjdGl2aXRpZXMgcG9wdXAgaXMgYnVpbHQgaW5kZXBlbmRlbnRseSBhbmQgbXVzdCBub3QgYmUgcmVwbGFjZWQgYnkgdGhlIG9sZCBlbmdhZ2VtZW50IG1vZGFsLgogKi8KZXhwb3J0IGZ1bmN0aW9uIERhaWx5UmV3YXJkUG9wdXAoKSB7CiAgcmV0dXJuIDxEYWlseU1vZGFsU2VxdWVuY2UgLz47Cn0K
+import { DailyModalSequence } from "@/components/daily-bonus";
+
+/**
+ * Sequential Daily Modal System for Circle Panda
+ *
+ * Sequence:
+ * 1. Daily Login Bonus uses the locked MonâThu 5/10/5/10 BC schedule and FriâSun 50 BC schedule.
+ * 2. The separate 9-slot 7-Day Activities popup is built independently and must not be replaced by the old engagement modal.
+ */
+export function DailyRewardPopup() {
+  return <DailyModalSequence />;
+}
