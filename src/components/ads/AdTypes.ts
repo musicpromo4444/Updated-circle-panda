@@ -1,1 +1,93 @@
-ZXhwb3J0IHR5cGUgQWRQbGFjZW1lbnRUYXJnZXQgPQogICJwb3B1cF8xX2RhaWx5X2xvZ2luIiB8ICJwb3B1cF8xX2RhaWx5X2xvZ2luX2JvdHRvbSIgfCAicG9wdXBfMl9lbmdhZ2VtZW50IiB8ICJtYWluX2ZlZWRfY2FyZCIgfCAic3BlZWRfZGF0aW5nX2ludGVyc3RpdGlhbCIgfCAiY3J1c2hfaW50ZXJzdGl0aWFsIiB8ICJzZXZlbl9kYXlfYmFubmVyIiB8ICJzZXZlbl9kYXlfcGxheWFibGUiOwoKZXhwb3J0IGludGVyZmFjZSBCYW5uZXJBZERhdGEgewogIGlkOiBzdHJpbmc7CiAgc3BvbnNvcjogc3RyaW5nOwogIGhlYWRsaW5lOiBzdHJpbmc7CiAgZGVzY3JpcHRpb246IHN0cmluZzsKICBjYXRlZ29yeT86IHN0cmluZzsKICByYXRpbmc/OiBudW1iZXI7CiAgY2FsbFRvQWN0aW9uOiBzdHJpbmc7CiAgY3RhVXJsPzogc3RyaW5nOwogIGJhZGdlPzogc3RyaW5nOwogIGljb25CZz86IHN0cmluZzsKICBpY29uRW1vamk/OiBzdHJpbmc7CiAgaW1hZ2VVcmw/OiBzdHJpbmc7Cn0KCmV4cG9ydCBpbnRlcmZhY2UgVmlkZW9BZERhdGEgewogIGlkOiBzdHJpbmc7CiAgc3BvbnNvcjogc3RyaW5nOwogIGhlYWRsaW5lOiBzdHJpbmc7CiAgdGFnbGluZTogc3RyaW5nOwogIGNhbGxUb0FjdGlvbjogc3RyaW5nOwogIGN0YVVybD86IHN0cmluZzsKICBkdXJhdGlvblNlY29uZHM6IG51bWJlcjsKICBza2lwQWZ0ZXJTZWNvbmRzOiBudW1iZXI7CiAgdmlkZW9Vcmw6IHN0cmluZzsKICBwb3N0ZXJVcmw/OiBzdHJpbmc7CiAgY2F0ZWdvcnk/OiBzdHJpbmc7Cn0KCmV4cG9ydCBpbnRlcmZhY2UgQWRDcmVhdGl2ZSB7CiAgaWQ6IHN0cmluZzsKICBzcG9uc29yOiBzdHJpbmc7CiAgaGVhZGxpbmU6IHN0cmluZzsKICBkZXNjcmlwdGlvbjogc3RyaW5nOwogIGltYWdlVXJsPzogc3RyaW5nOwogIHBvc3RlclVybD86IHN0cmluZzsKICB2aWRlb1VybD86IHN0cmluZzsKICB0YWdsaW5lPzogc3RyaW5nOwogIGR1cmF0aW9uU2Vjb25kcz86IG51bWJlcjsKICBza2lwQWZ0ZXJTZWNvbmRzPzogbnVtYmVyOwogIGRlc3RpbmF0aW9uVXJsOiBzdHJpbmc7CiAgcGxhY2VtZW50OiBBZFBsYWNlbWVudFRhcmdldDsKICBjYXRlZ29yeTogc3RyaW5nOwogIGNhbGxUb0FjdGlvbjogc3RyaW5nOwogIHN0YXR1czogImFjdGl2ZSIgfCAicGF1c2VkIjsKICBpbXByZXNzaW9uczogbnVtYmVyOwogIGNsaWNrczogbnVtYmVyOwogIGNyZWF0ZWRBdDogc3RyaW5nOwp9CgpleHBvcnQgaW50ZXJmYWNlIEFkUGxhY2VtZW50Q29uZmlnIHsKICBkYWlseUxvZ2luUG9wdXBCYW5uZXI6IGJvb2xlYW47CiAgbWFpbkZlZWRCYW5uZXI6IGJvb2xlYW47CiAgZmVlZEJhbm5lckludGVydmFsOiBudW1iZXI7CiAgdmlkZW9BZENydXNoRnJlcXVlbmN5OiBudW1iZXI7CiAgYW5kcm9pZE5hdGl2ZUJyaWRnZUVuYWJsZWQ6IGJvb2xlYW47CiAgc3BvbnNvclBhcnRuZXJzOiB7IGlkOiBzdHJpbmc7IG5hbWU6IHN0cmluZzsgY2F0ZWdvcnk6IHN0cmluZzsgaGVhZGxpbmU6IHN0cmluZzsgYWN0aXZlOiBib29sZWFuOyBjdHI6IG51bWJlcjsgY2xpY2tzOiBudW1iZXIgfVtdOwogIGNyZWF0aXZlczogQWRDcmVhdGl2ZVtdOwp9CgpleHBvcnQgdHlwZSBFeHRlcm5hbFN1cnZleVByb3ZpZGVyID0gInRhcHJlc2VhcmNoIiB8ICJwb2xsZmlzaCIgfCAiYml0bGFicyIgfCAiY3VzdG9tIjsKZXhwb3J0IHR5cGUgU3VydmV5SW50ZWdyYXRpb25Nb2RlID0gImlmcmFtZV9vdmVybGF5IiB8ICJleHRlcm5hbF9yZWRpcmVjdCIgfCAibmF0aXZlX2JyaWRnZSI7CgpleHBvcnQgaW50ZXJmYWNlIEV4dGVybmFsU3VydmV5Q29uZmlnIHsKICBlbmFibGVkOiBib29sZWFuOwogIHByb3ZpZGVyOiBFeHRlcm5hbFN1cnZleVByb3ZpZGVyOwogIHByb3ZpZGVyTmFtZTogc3RyaW5nOwogIGFwaUtleTogc3RyaW5nOwogIGVuZHBvaW50VXJsOiBzdHJpbmc7CiAgaW50ZWdyYXRpb25Nb2RlOiBTdXJ2ZXlJbnRlZ3JhdGlvbk1vZGU7CiAgcmV3YXJkQmM6IG51bWJlcjsKICBzY3JlZW5vdXRSZXdhcmRCYzogbnVtYmVyOwogIGRhaWx5U3VydmV5Q2FwOiBudW1iZXI7CiAgc3VydmV5VG9waWNGaWx0ZXI6IHN0cmluZzsKfQoKZXhwb3J0IGludGVyZmFjZSBFbmdhZ2VtZW50Q29uZmlnIHsKICBzdGFuZGFyZERhaWx5UmV3YXJkOiBudW1iZXI7CiAgc3RyZWFrTWlsZXN0b25lUmV3YXJkOiBudW1iZXI7CiAgc3RyZWFrTWlsZXN0b25lRGF5czogbnVtYmVyOwogIGZyZWVTcGluc0FjdGl2ZTogYm9vbGVhbjsKICBkYWlseVF1aXp6ZXNBY3RpdmU6IGJvb2xlYW47CiAgaG90U2VhdEFjdGl2ZTogYm9vbGVhbjsKICBjcnVzaFN3aXBlc0FjdGl2ZTogYm9vbGVhbjsKICBxdWl6UXVlc3Rpb246IHN0cmluZzsKICBxdWl6T3B0aW9uczogc3RyaW5nW107CiAgcXVpekNvcnJlY3RJbmRleDogbnVtYmVyOwogIHF1aXpSZXdhcmRCYzogbnVtYmVyOwogIGV4dGVybmFsU3VydmV5OiBFeHRlcm5hbFN1cnZleUNvbmZpZzsKfQo=
+export type AdPlacementTarget =
+  "popup_1_daily_login" | "popup_1_daily_login_bottom" | "popup_2_engagement" | "main_feed_card" | "speed_dating_interstitial" | "crush_interstitial" | "seven_day_banner" | "seven_day_playable";
+
+export interface BannerAdData {
+  id: string;
+  sponsor: string;
+  headline: string;
+  description: string;
+  category?: string;
+  rating?: number;
+  callToAction: string;
+  ctaUrl?: string;
+  badge?: string;
+  iconBg?: string;
+  iconEmoji?: string;
+  imageUrl?: string;
+}
+
+export interface VideoAdData {
+  id: string;
+  sponsor: string;
+  headline: string;
+  tagline: string;
+  callToAction: string;
+  ctaUrl?: string;
+  durationSeconds: number;
+  skipAfterSeconds: number;
+  videoUrl: string;
+  posterUrl?: string;
+  category?: string;
+}
+
+export interface AdCreative {
+  id: string;
+  sponsor: string;
+  headline: string;
+  description: string;
+  imageUrl?: string;
+  posterUrl?: string;
+  videoUrl?: string;
+  tagline?: string;
+  durationSeconds?: number;
+  skipAfterSeconds?: number;
+  destinationUrl: string;
+  placement: AdPlacementTarget;
+  category: string;
+  callToAction: string;
+  status: "active" | "paused";
+  impressions: number;
+  clicks: number;
+  createdAt: string;
+}
+
+export interface AdPlacementConfig {
+  dailyLoginPopupBanner: boolean;
+  mainFeedBanner: boolean;
+  feedBannerInterval: number;
+  videoAdCrushFrequency: number;
+  androidNativeBridgeEnabled: boolean;
+  sponsorPartners: { id: string; name: string; category: string; headline: string; active: boolean; ctr: number; clicks: number }[];
+  creatives: AdCreative[];
+}
+
+export type ExternalSurveyProvider = "tapresearch" | "pollfish" | "bitlabs" | "custom";
+export type SurveyIntegrationMode = "iframe_overlay" | "external_redirect" | "native_bridge";
+
+export interface ExternalSurveyConfig {
+  enabled: boolean;
+  provider: ExternalSurveyProvider;
+  providerName: string;
+  apiKey: string;
+  endpointUrl: string;
+  integrationMode: SurveyIntegrationMode;
+  rewardBc: number;
+  screenoutRewardBc: number;
+  dailySurveyCap: number;
+  surveyTopicFilter: string;
+}
+
+export interface EngagementConfig {
+  standardDailyReward: number;
+  streakMilestoneReward: number;
+  streakMilestoneDays: number;
+  freeSpinsActive: boolean;
+  dailyQuizzesActive: boolean;
+  hotSeatActive: boolean;
+  crushSwipesActive: boolean;
+  quizQuestion: string;
+  quizOptions: string[];
+  quizCorrectIndex: number;
+  quizRewardBc: number;
+  externalSurvey: ExternalSurveyConfig;
+}
