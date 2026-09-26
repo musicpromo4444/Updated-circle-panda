@@ -21,6 +21,7 @@ import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as SweepstakesRouteImport } from './routes/sweepstakes'
 import { Route as GroupsIndexRouteImport } from './routes/groups.index'
 import { Route as GroupsGroupIdRouteImport } from './routes/groups.$groupId'
+import { Route as AdminDashboardRouteImport } from './routes/admin-dashboard'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
