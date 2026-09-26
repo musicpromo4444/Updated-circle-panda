@@ -1,14 +1,1 @@
-import { DailyModalSequence } from "@/components/daily-bonus";
-
-/**
- * Sequential Daily Modal System for Circle Panda
- *
- * Sequence:
- * 1. Modal 1: Daily Login Bonus (with streak tracking: 10 BC standard, 50 BC on 3-day streak,
- *    and a sleek static banner ad at the top safe for Web & Android WebView).
- * 2. Modal 2: Engagement Features (triggers immediately after Modal 1 is claimed or closed,
- *    showcasing Free Spins, Quizzes, Hot Seat, and Crush Swipes with instant actions).
- */
-export function DailyRewardPopup() {
-  return <DailyModalSequence />;
-}
+aW1wb3J0IHsgRGFpbHlNb2RhbFNlcXVlbmNlIH0gZnJvbSAiQC9jb21wb25lbnRzL2RhaWx5LWJvbnVzIjsKCi8qKgogKiBTZXF1ZW50aWFsIERhaWx5IE1vZGFsIFN5c3RlbSBmb3IgQ2lyY2xlIFBhbmRhCiAqCiAqIFNlcXVlbmNlOgogKiAxLiBEYWlseSBMb2dpbiBCb251cyB1c2VzIHRoZSBsb2NrZWQgTW9u4oCTVGh1IDUvMTAvNS8xMCBCQyBzY2hlZHVsZSBhbmQgRnJp4oCTU3VuIDUwIEJDIHNjaGVkdWxlLgogKiAyLiBUaGUgc2VwYXJhdGUgOS1zbG90IDctRGF5IEFjdGl2aXRpZXMgcG9wdXAgaXMgYnVpbHQgaW5kZXBlbmRlbnRseSBhbmQgbXVzdCBub3QgYmUgcmVwbGFjZWQgYnkgdGhlIG9sZCBlbmdhZ2VtZW50IG1vZGFsLgogKi8KZXhwb3J0IGZ1bmN0aW9uIERhaWx5UmV3YXJkUG9wdXAoKSB7CiAgcmV0dXJuIDxEYWlseU1vZGFsU2VxdWVuY2UgLz47Cn0K

@@ -1,16 +1,1 @@
-# Circle Panda
-
-A React + Vite application powered by Supabase.
-
-## Getting Started
-
-### Prerequisites
-
-Make sure you have Node.js installed on your machine.
-
-### Installation
-
-1. Clone the repository:
-   ```bash
-   git clone [https://github.com/musicpromo4444/New-circle-panda.git](https://github.com/musicpromo4444/New-circle-panda.git)
-   ```
+IyBDaXJjbGUgUGFuZGEKCkEgUmVhY3QgKyBWaXRlIGFwcGxpY2F0aW9uIHBvd2VyZWQgYnkgU3VwYWJhc2UuCgojIyBHZXR0aW5nIFN0YXJ0ZWQKCiMjIyBQcmVyZXF1aXNpdGVzCk1ha2Ugc3VyZSB5b3UgaGF2ZSBOb2RlLmpzIGluc3RhbGxlZCBvbiB5b3VyIG1hY2hpbmUuCgojIyMgSW5zdGFsbGF0aW9uCjEuIENsb25lIHRoZSByZXBvc2l0b3J5OgogICBgYGBiYXNoCiAgIGdpdCBjbG9uZSBbaHR0cHM6Ly9naXRodWIuY29tL211c2ljcHJvbW80NDQ0L05ldy1jaXJjbGUtcGFuZGEuZ2l0XShodHRwczovL2dpdGh1Yi5jb20vbXVzaWNwcm9tbzQ0NDQvTmV3LWNpcmNsZS1wYW5kYS5naXQpCg==
