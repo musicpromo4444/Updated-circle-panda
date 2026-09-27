@@ -34,7 +34,7 @@ const actionMap: Record<string, { to: string; label: string }> = {
   join_group: { to: "/groups", label: "Find a group" },
   react_content: { to: "/", label: "Explore feed" },
   invite_friend: { to: "/profile", label: "Open profile" },
-  playable_ad: { to: "/sweepstakes", label: "Play & collect" },
+  playable_ad: { to: "/sweepstakes", label: "Play & collect" },\n  coin_drop: { to: "/games/coin-drop", label: "Play Coin Drop" },\n  "coin-drop": { to: "/games/coin-drop", label: "Play Coin Drop" },
 };
 
 const GAMES_FOR_UI = [
