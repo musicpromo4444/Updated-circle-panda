@@ -1,9 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import {
-  Armchair,
   Bell,
   Calendar,
-  Flame,
   Gift,
   Heart,
   MessageSquare,
@@ -16,6 +14,7 @@ import {
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
+import { toast } from "sonner";
 import { useStore, pandaTier } from "@/lib/store";
 import { DailyRewardPopup } from "@/components/DailyRewardPopup";
 import { SweepstakeNavIcon } from "@/components/ads/SweepstakeNavIcon";
@@ -57,16 +56,16 @@ export function GlobalActionWidget() {
       to={config.destination as any}
       id="global-action-slot"
       aria-label={config.label}
-      className="fixed bottom-[4.75rem] left-4 sm:bottom-20 sm:left-6 z-40 flex flex-col items-center gap-1 group select-none transition-transform hover:scale-105 active:scale-95"
+      className="fixed bottom-[4.75rem] left-1/2 z-40 flex -translate-x-1/2 items-center gap-2 rounded-full border border-orange-400/40 bg-black/90 px-2 py-2 pr-3 shadow-[0_4px_28px_rgba(234,88,12,0.4)] backdrop-blur-xl transition-transform hover:scale-105 active:scale-95 group select-none"
     >
-      <div className="relative flex size-14 sm:size-16 items-center justify-center rounded-full bg-gradient-to-tr from-red-600 via-orange-500 to-amber-400 p-[2.5px] shadow-[0_4px_24px_rgba(234,88,12,0.65)] transition-all duration-300 group-hover:shadow-[0_4px_34px_rgba(234,88,12,0.9)]">
+      <div className="relative flex size-11 items-center justify-center rounded-full bg-gradient-to-tr from-red-600 via-orange-500 to-amber-400 p-[2px] shadow-[0_4px_24px_rgba(234,88,12,0.65)] transition-all duration-300 group-hover:shadow-[0_4px_34px_rgba(234,88,12,0.9)]">
         <div className="absolute inset-0 rounded-full bg-orange-500/20 animate-ping pointer-events-none duration-1000" />
         <div className="relative flex size-full items-center justify-center rounded-full bg-gradient-to-b from-[#240b04] via-[#140602] to-[#080201] border border-orange-400/50 overflow-hidden">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_75%,rgba(249,115,22,0.5),rgba(220,38,38,0.25)_50%,transparent_75%)]" />
-          <span className="relative text-2xl sm:text-3xl leading-none drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]" aria-hidden>{config.icon}</span>
+          <span className="relative text-2xl leading-none drop-shadow-[0_2px_5px_rgba(0,0,0,0.9)]" aria-hidden>{config.icon}</span>
         </div>
       </div>
-      <span className="max-w-28 truncate rounded-md border border-orange-500/50 bg-black/90 px-2 py-0.5 font-display text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-orange-400 shadow-[0_2px_8px_rgba(0,0,0,0.85)] backdrop-blur-md">
+      <span className="max-w-32 truncate font-display text-[10px] font-black uppercase tracking-wider text-orange-300">
         {config.label}
       </span>
     </Link>
@@ -364,7 +363,7 @@ export function AppShell({
 
       <main className={cn("mx-auto w-full px-4 pt-4", wide ? "max-w-6xl" : "max-w-3xl")}>
         {!hidePageHeader ? (
-          <div className="mb-4 grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
+          <div className="mb-3 flex items-center justify-between gap-3">
             <div className="min-w-0">
               <h1 className="truncate font-display text-2xl font-semibold">{title}</h1>
               {subtitle ? <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p> : null}
