@@ -1,0 +1,2 @@
+-- Circle Panda Hot Seat automatic 3h live / 1h water-break lifecycle
+-- Server clock is authoritative; the client mirrors the same 4-hour cycle.
