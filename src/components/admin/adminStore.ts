@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 import {
   DEFAULT_AD_CONFIG,
   DEFAULT_ENGAGEMENT_CONFIG,
@@ -31,140 +32,7 @@ import {
   savePricingConfig,
 } from "@/components/store/pricingStorage";
 
-const INITIAL_USERS: AdminUser[] = [
-  {
-    id: "usr-001",
-    username: "Chinedu_UniLag",
-    avatar: "🐼",
-    platform: "android_webview",
-    coins: 480,
-    streak: 3,
-    status: "active",
-    joinedDate: "2026-08-12",
-    lastActive: "Just now",
-    reputation: 92,
-    email: "chinedu.o@unilag.edu.ng",
-  },
-  {
-    id: "usr-002",
-    username: "Amara_UI_Chic",
-    avatar: "🦊",
-    platform: "android_webview",
-    coins: 1250,
-    streak: 5,
-    status: "active",
-    joinedDate: "2026-07-28",
-    lastActive: "12m ago",
-    reputation: 164,
-    email: "amara.k@gmail.com",
-  },
-  {
-    id: "usr-003",
-    username: "Tunde_DevCampus",
-    avatar: "🦁",
-    platform: "web_browser",
-    coins: 310,
-    streak: 2,
-    status: "active",
-    joinedDate: "2026-09-01",
-    lastActive: "45m ago",
-    reputation: 58,
-    email: "tunde.coder@campus.ng",
-  },
-  {
-    id: "usr-004",
-    username: "Zainab_OAU",
-    avatar: "🐯",
-    platform: "android_webview",
-    coins: 740,
-    streak: 7,
-    status: "active",
-    joinedDate: "2026-08-04",
-    lastActive: "2h ago",
-    reputation: 120,
-    email: "zainab.b@oau.edu.ng",
-  },
-  {
-    id: "usr-005",
-    username: "Burna_Vibes",
-    avatar: "🐵",
-    platform: "web_browser",
-    coins: 90,
-    streak: 1,
-    status: "banned",
-    joinedDate: "2026-09-10",
-    lastActive: "Yesterday",
-    reputation: 15,
-    email: "burna_fan99@yahoo.com",
-  },
-  {
-    id: "usr-006",
-    username: "Favour_Covenant",
-    avatar: "🐰",
-    platform: "android_webview",
-    coins: 620,
-    streak: 3,
-    status: "active",
-    joinedDate: "2026-08-20",
-    lastActive: "3h ago",
-    reputation: 88,
-    email: "favour.c@cu.edu.ng",
-  },
-  {
-    id: "usr-007",
-    username: "Kelechi_ABU",
-    avatar: "🐻",
-    platform: "web_browser",
-    coins: 180,
-    streak: 1,
-    status: "active",
-    joinedDate: "2026-09-08",
-    lastActive: "5h ago",
-    reputation: 40,
-    email: "kelechi.abu@gmail.com",
-  },
-  {
-    id: "usr-008",
-    username: "Ngozi_UNN_Lioness",
-    avatar: "🐨",
-    platform: "android_webview",
-    coins: 910,
-    streak: 4,
-    status: "active",
-    joinedDate: "2026-07-15",
-    lastActive: "1d ago",
-    reputation: 145,
-    email: "ngozi.lions@unn.edu.ng",
-  },
-  {
-    id: "usr-009",
-    username: "Spam_Bot_99",
-    avatar: "🤖",
-    platform: "web_browser",
-    coins: 10,
-    streak: 1,
-    status: "banned",
-    joinedDate: "2026-09-14",
-    lastActive: "3d ago",
-    reputation: 2,
-    email: "botnet_temp@mail.ru",
-  },
-  {
-    id: "usr-010",
-    username: "Emeka_FUTMinna",
-    avatar: "🦉",
-    platform: "android_webview",
-    coins: 390,
-    streak: 3,
-    status: "active",
-    joinedDate: "2026-08-30",
-    lastActive: "6h ago",
-    reputation: 76,
-    email: "emeka.eng@futminna.edu.ng",
-  },
-];
-
-const INITIAL_AD_METRICS: AdPerformanceMetrics = {
+const INITIAL_USERS: AdminUser[] = [];\n\nconst INITIAL_AD_METRICS: AdPerformanceMetrics = {
   impressionsWeb: 142500,
   impressionsAndroid: 198300,
   revenueWeb: 428.5,
@@ -303,6 +171,30 @@ export function useAdminStore() {
     ];
   });
 
+  const loadRealUsers = async () => {
+    const { data, error } = await (supabase as any).rpc("admin_list_users");
+    if (error) {
+      toast.error(error.message ?? "Could not load real users");
+      return;
+    }
+    const mapped: AdminUser[] = (data ?? []).map((u: any) => ({
+      id: String(u.id),
+      username: String(u.username ?? "Anonymous Panda"),
+      avatar: String(u.avatar ?? "🐼"),
+      platform: u.platform === "android_webview" ? "android_webview" : "web_browser",
+      coins: Number(u.coins ?? 0),
+      streak: Number(u.streak ?? 0),
+      status: u.status === "banned" ? "banned" : "active",
+      joinedDate: String(u.joined_date ?? ""),
+      lastActive: u.last_active ? new Date(u.last_active).toLocaleString() : "Never",
+      reputation: Number(u.reputation ?? 0),
+      email: u.email ?? undefined,
+    }));
+    setUsers(mapped);
+  };
+
+  useEffect(() => { void loadRealUsers(); }, []);
+
   // Sync users to storage
   useEffect(() => {
     try {
@@ -375,63 +267,32 @@ export function useAdminStore() {
 
   // Adjust User BC
   const adjustUserCoins = (userId: string, amount: number, reason: string) => {
-    setUsers((prev) =>
-      prev.map((u) => {
-        if (u.id === userId) {
-          const newBal = Math.max(0, u.coins + amount);
-          return { ...u, coins: newBal };
-        }
-        return u;
-      }),
-    );
-    const user = users.find((u) => u.id === userId);
-    addLog(
-      "ADJUST_COINS",
-      `${amount >= 0 ? "+" : ""}${amount} BC adjustment (${reason})`,
-      user?.username,
-    );
-    toast.success(
-      `Adjusted ${user?.username || "user"}'s balance by ${amount >= 0 ? "+" : ""}${amount} BC`,
-      { description: `Reason: ${reason}` },
-    );
+    void (async () => {
+      const { error } = await (supabase as any).rpc("admin_adjust_user_bc", { p_user_id: userId, p_amount: amount, p_reason: reason });
+      if (error) { toast.error(error.message); return; }
+      await loadRealUsers();
+      toast.success("BC balance updated");
+    })();
   };
 
   // Toggle Ban/Unban
   const toggleUserBan = (userId: string) => {
-    let nextStatus = "active";
-    let targetName = "";
-    setUsers((prev) =>
-      prev.map((u) => {
-        if (u.id === userId) {
-          nextStatus = u.status === "active" ? "banned" : "active";
-          targetName = u.username;
-          return { ...u, status: nextStatus as "active" | "banned" };
-        }
-        return u;
-      }),
-    );
-    addLog(
-      nextStatus === "banned" ? "BAN_USER" : "UNBAN_USER",
-      `Status changed to ${nextStatus.toUpperCase()}`,
-      targetName,
-    );
-    toast.info(`${targetName} is now ${nextStatus.toUpperCase()}`);
+    void (async () => {
+      const { error } = await (supabase as any).rpc("admin_toggle_user_ban", { p_user_id: userId });
+      if (error) { toast.error(error.message); return; }
+      await loadRealUsers();
+      toast.success("User security status updated");
+    })();
   };
 
   // Reset Streak
   const resetUserStreak = (userId: string) => {
-    let targetName = "";
-    setUsers((prev) =>
-      prev.map((u) => {
-        if (u.id === userId) {
-          targetName = u.username;
-          return { ...u, streak: 1 };
-        }
-        return u;
-      }),
-    );
-    addLog("RESET_STREAK", "Login streak reset to Day 1", targetName);
-    toast.warning(`Reset login streak for ${targetName} to Day 1`);
+    void (async () => {
+      const { error } = await (supabase as any).rpc("admin_reset_user_streak", { p_user_id: userId });
+      if (error) { toast.error(error.message); return; }
+      await loadRealUsers();
+      toast.success("Login streak reset to Day 1");
+    })();
   };
 
   // Update Ad Configuration
