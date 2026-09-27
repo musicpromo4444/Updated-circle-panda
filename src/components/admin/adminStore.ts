@@ -35,16 +35,8 @@ import {
 const INITIAL_USERS: AdminUser[] = [];
 
 const INITIAL_AD_METRICS: AdPerformanceMetrics = {
-  impressionsWeb: 142500,
-  impressionsAndroid: 198300,
-  revenueWeb: 428.5,
-  revenueAndroid: 672.1,
-  ctrWeb: 3.42,
-  ctrAndroid: 4.88,
-  fillRateWeb: 98.4,
-  fillRateAndroid: 99.2,
-  eCpmWeb: 1.85,
-  eCpmAndroid: 2.45,
+  impressionsWeb: 0, impressionsAndroid: 0, revenueWeb: 0, revenueAndroid: 0,
+  ctrWeb: 0, ctrAndroid: 0, fillRateWeb: 0, fillRateAndroid: 0, eCpmWeb: 0, eCpmAndroid: 0,
 };
 
 const INITIAL_AD_CONFIG: AdPlacementConfig = {
@@ -53,35 +45,7 @@ const INITIAL_AD_CONFIG: AdPlacementConfig = {
   feedBannerInterval: 4,
   videoAdCrushFrequency: 5,
   androidNativeBridgeEnabled: true,
-  sponsorPartners: [
-    {
-      id: "sp-mtn",
-      name: "MTN Pulse Campus",
-      category: "Telecom / Data Bundles",
-      headline: "Get 5GB Night & Weekend Data for ₦500",
-      active: true,
-      ctr: 4.85,
-      clicks: 9617,
-    },
-    {
-      id: "sp-chipper",
-      name: "Chipper Cash",
-      category: "Fintech / Student Banking",
-      headline: "Send & Receive Campus Money Instant 0% Fees",
-      active: true,
-      ctr: 3.92,
-      clicks: 7773,
-    },
-    {
-      id: "sp-spotify",
-      name: "Spotify Campus Sound",
-      category: "Entertainment / Streaming",
-      headline: "50% Off Premium for Verified University Students",
-      active: true,
-      ctr: 5.12,
-      clicks: 10153,
-    },
-  ],
+  sponsorPartners: [],
 };
 
 const STORAGE_KEY_ADMIN_USERS = "cp_admin_users_data";
