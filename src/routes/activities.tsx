@@ -89,10 +89,32 @@ function GameModal({ activity, onClose, onDone }: { activity: Activity; onClose:
   const [targetHits, setTargetHits] = useState(0);
   const [puzzle, setPuzzle] = useState<string[]>([]);
   const [answer, setAnswer] = useState<string[]>([]);
+  const [puzzleQuestion, setPuzzleQuestion] = useState("Loading puzzle…");
   const [secretPieces, setSecretPieces] = useState<string[]>([]);
   const [secretAnswer, setSecretAnswer] = useState<string[]>([]);
   const [secretSolved, setSecretSolved] = useState(false);
   const [adDone, setAdDone] = useState(false);
+
+  const completePuzzle = async () => {
+    setBusy(true);
+    const selectedAnswer = answer[0] ?? "";
+    const { data, error } = await (supabase as any).rpc("play_puzzle_activity", { p_answer: selectedAnswer });
+    setBusy(false);
+    if (error) { toast.error(error.message ?? "Puzzle could not be checked"); return; }
+    if (data?.result !== "completed") { toast.error("Not quite. Try again."); return; }
+    setReward(Number(data?.reward_bc ?? 0));
+    await syncCoins();
+    setPhase("ad");
+  };
+
+  const loadPuzzle = async () => {
+    setBusy(true);
+    const { data, error } = await (supabase as any).rpc("get_today_puzzle");
+    setBusy(false);
+    if (error) { toast.error(error.message ?? "Puzzle unavailable"); return; }
+    setPuzzleQuestion(String(data?.question ?? "Answer the Panda Puzzle."));
+    setMessage("Choose the correct answer.");
+  };
 
   const completeStandard = async () => {
     setBusy(true);
@@ -237,7 +259,7 @@ function GameModal({ activity, onClose, onDone }: { activity: Activity; onClose:
           {slug === "mystery_box" ? <div className="grid grid-cols-3 gap-3">{[0,1,2].map(i => <button key={i} className="grid aspect-square place-items-center rounded-2xl border border-border bg-card text-5xl active:scale-95" onClick={() => void choose(i)}>🎁</button>)}</div> : null}
           {slug === "target" ? <div className="space-y-3"><div className="grid min-h-64 place-items-center rounded-3xl border border-border bg-secondary/20"><button className="grid size-28 place-items-center rounded-full border-8 border-primary/40 bg-primary/10 text-5xl" onClick={() => setTargetHits(v => v+1)}>🎯</button></div><p className="text-center text-sm">Hits: {targetHits}</p><Button className="w-full" onClick={() => setPhase("ad")}>Lock Target</Button></div> : null}
           {slug === "guess_sponsor" ? <div className="grid gap-2">{["Panda Cola","Panda Mobile","Panda Fashion"].map((x,i)=><Button key={x} variant="outline" onClick={() => void choose(i)}>{x}</Button>)}</div> : null}
-          {slug === "puzzle" ? <div className="space-y-3"><div className="rounded-2xl border border-border p-4 text-center text-sm font-semibold">Panda → Circle → Fun</div>{(puzzle.length ? puzzle : ["Panda","Circle","Fun"]).map((x,i)=><Button key={x} variant={answer.includes(x) ? "secondary" : "outline"} disabled={answer.includes(x)} onClick={() => { const next=[...answer,x]; setAnswer(next); if(next.length===3) setPhase("ad"); }}>{x}</Button>)}</div> : null}
+          {slug === "puzzle" ? <div className="space-y-3"><div className="rounded-2xl border border-border p-4 text-center text-sm font-semibold">{puzzleQuestion}</div>{!puzzle.length ? <Button className="w-full" disabled={busy} onClick={() => void loadPuzzle()}>Load Puzzle</Button> : <><div className="grid gap-2">{puzzle.map((x)=><Button key={x} variant={answer[0]===x ? "secondary" : "outline"} disabled={busy} onClick={() => setAnswer([x])}>{x}</Button>)}</div><Button className="w-full" disabled={busy || answer.length!==1} onClick={() => void completePuzzle()}>Check Answer</Button></>}</div> : null}
           {(slug === "coin_drop" || slug === "slots") ? <div className="space-y-3 text-center"><div className="rounded-3xl border border-border bg-secondary/20 p-8"><Timer className="mx-auto size-8 text-primary"/><p className="mt-2 font-display text-4xl font-black">{started ? timer : 60}s</p><p className="text-sm text-muted-foreground">{slug === "coin_drop" ? "Catch coins 🪙 and avoid stones 🪨." : "Keep the neon reels running until the reveal."}</p></div>{!started ? <Button className="w-full" disabled={busy} onClick={() => void play()}>Start {title}</Button> : <p className="text-xs text-muted-foreground">Game running… the server controls the final reward.</p>}</div> : null}
           {slug === "lucky_card" ? <div className="grid grid-cols-3 gap-3">{[0,1,2].map(i=><button key={i} className="grid aspect-[3/4] place-items-center rounded-2xl border border-border bg-card text-4xl" disabled={busy} onClick={() => void choose(i)}>🃏</button>)}</div> : null}
           {slug === "cup_shuffle" ? <div className="grid grid-cols-3 gap-3">{[0,1,2].map(i=><button key={i} className="grid aspect-square place-items-center rounded-2xl border border-border bg-card text-5xl" onClick={() => void choose(i)}>🥤</button>)}</div> : null}
