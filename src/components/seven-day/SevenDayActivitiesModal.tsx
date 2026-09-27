@@ -17,6 +17,7 @@ const GAMES = [
   { slug:"coin_drop", title:"Coin Drop", icon:"🪙", description:"Catch falling coins for 60 seconds. Stones cost 3 BC." },
   { slug:"slots", title:"Panda Slots", icon:"🎰", description:"Play the neon reels for 60 seconds, then watch the calculating reveal." },
   { slug:"lucky_card", title:"Lucky Card", icon:"🃏", description:"Choose a glowing card and reveal the hidden reward." },
+  { slug:"guess_sponsor", title:"Guess the Sponsor", icon:"📣", description:"Study the sponsor choices and guess which active sponsor is behind today’s ad." },
   { slug:"secret_reveal", title:"Secret Reveal", icon:"🕵️", description:"Solve a real Secret Confession puzzle, then choose whether to reveal it." },
   { slug:"playable_ad", title:"Just Playbo Ads", icon:"▶️", description:"Sponsored experience only. No BC reward." },
 ] as const;
@@ -156,6 +157,18 @@ export function SevenDayActivitiesModal({open,onClose,onComplete}:{open:boolean;
   <Banner placement="seven_day_banner" className="cp-ad-banner"/></div>}
 
         {activity.slug==="secret_reveal"&&<div className="cp-game-card cp-secret-game"><div className="cp-secret-art"><div>🐼</div><span>?</span><span>?</span><span>?</span></div>{!secretPieces.length?<><p className="cp-question">Reconstruct today's real Secret Confession.</p><Button className="cp-neon-button cp-big-button" onClick={()=>void startSecret()} disabled={busy||completed||attemptLeft<=0}>START SECRET PUZZLE</Button></>:<><div className="cp-secret-timer">45s</div><p className="cp-section-label">PUT THE SECRET TOGETHER</p><div className="cp-secret-answer">{secretAnswer.length?secretAnswer.map((w,i)=><button key={i} type="button" onClick={()=>setSecretAnswer(a=>a.filter((_,j)=>j!==i))}>{w}</button>):<span>Tap pieces below</span>}</div><div className="cp-secret-pieces">{secretPieces.map((w,i)=>{const used=secretAnswer.filter(x=>x===w).length;const available=secretPieces.slice(0,i+1).filter(x=>x===w).length;return used<available?<button key={i} type="button" onClick={()=>setSecretAnswer(a=>[...a,w])}>{w}</button>:null})}</div><Button className="cp-neon-button cp-big-button" onClick={()=>void solveSecret()} disabled={busy||!secretAnswer.length}>SUBMIT SECRET</Button></>}{result?.result==="solved"&&<div className="cp-secret-win"><p>SECRET SOLVED!</p><span>Would you like to see today's secret?</span><div className="grid grid-cols-2 gap-3"><Button className="cp-neon-button" onClick={()=>void chooseSecret("yes")} disabled={busy}>YES</Button><Button variant="outline" className="cp-secondary-button" onClick={()=>void chooseSecret("no")} disabled={busy}>NO</Button></div></div>}{result?.result==="completed"&&<div className="cp-secret-win"><p>{secretChoice==="yes"?"SECRET REVEALED":"SECRET KEPT HIDDEN"}</p>{secretChoice==="yes"&&<div className="mt-3 rounded-xl border border-white/10 bg-black/20 p-3 text-left text-xs leading-relaxed">{result.secret}</div>}</div>}<Banner placement="seven_day_banner" className="cp-ad-banner"/></div>}
+
+        {activity.slug==="guess_sponsor"&&<div className="cp-game-card">
+          <Banner placement="seven_day_banner" className="cp-ad-banner cp-ad-top"/>
+          <div className="cp-section-label">GUESS THE SPONSOR</div>
+          <div className="mx-auto my-4 grid size-20 place-items-center rounded-full border border-primary/30 bg-primary/10 text-4xl shadow-[0_0_30px_rgba(80,255,197,.15)]">📣</div>
+          <p className="cp-question">Which sponsor is behind today’s Circle Panda sponsored experience?</p>
+          <div className="grid grid-cols-1 gap-2">
+            {sponsorChoices.map((choice)=><button key={choice.key} type="button" disabled={busy||attemptLeft<=0||completed||hasResult} onClick={()=>void play("guess",{sponsor:choice.sponsor})} className="rounded-2xl border border-border/70 bg-secondary/40 px-4 py-3 text-left text-sm font-semibold transition hover:border-primary/50 hover:bg-primary/10">{choice.sponsor}</button>)}
+          </div>
+          {!sponsorChoices.length&&<p className="mt-3 text-center text-xs text-muted-foreground">Sponsor choices will appear when at least two active sponsors are available.</p>}
+          <p className="mt-3 text-center text-[10px] text-muted-foreground">The answer is verified against the live sponsor inventory.</p>
+        </div>}
 
         {activity.slug==="playable_ad"&&<PlayableGate surface="seven_day_playable_only" onComplete={finish} onClose={onClose} required/>}
         {hasResult&&activity.slug!=="playable_ad"&&activity.slug!=="secret_reveal"&&activity.slug!=="lucky_card"&&<div className="cp-result-card"><div className="cp-result-icon"><Trophy className="size-7"/></div><p className="cp-result-kicker">RESULT REVEALED</p><p className="cp-result-title">{result?.reward_label||"Result revealed"}</p>{result?.reward_bc!==undefined&&<p className="cp-result-bc">{result.reward_bc>0?"+":""}{result.reward_bc} BC</p>}<p className="cp-result-detail">{result?.detail||result?.result}</p></div>}
