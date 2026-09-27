@@ -309,7 +309,7 @@ function ActivitiesPage() {
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-2"><h3>{activity.title}</h3>{activity.completed ? <span className="cp-done-pill"><CheckCircle2 className="size-3" /> Completed</span> : null}</div>
               <p>{activity.description}</p>
-              <div className="cp-reward-row"><span><Coins className="size-3.5" /> +{activity.reward_bc} BC</span><span>+5 XP</span></div>
+              <div className="cp-reward-row"><span><Coins className="size-3.5" /> Reward varies by game</span><span>+5 XP</span></div>
             </div>
             <div className="shrink-0">
               {activity.completed ? <Button className="cp-secondary-button" size="sm" disabled>Done</Button> : game ? <GameButton activity={activity} onOpen={() => setSelectedGame(activity)} /> : action ? <Link to={action.to}><Button className="cp-neon-button" size="sm">{action.label}<ArrowRight className="size-3.5" /></Button></Link> : <Button className="cp-neon-button" size="sm" onClick={async () => { const { error } = await (supabase as any).rpc("claim_activity", { p_activity_id: activity.id }); if (error) toast.error(error.message); else { await syncCoins(); void load(); } }}>Play Now</Button>}
