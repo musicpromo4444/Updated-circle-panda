@@ -58,9 +58,7 @@ function CoinDropPage() {
   const finishGame = async () => {
     if (busy || phase !== "playing") return;
     setBusy(true);
-    const { data, error } = await (supabase as any).rpc("claim_activity", {
-      p_activity_id: new URLSearchParams(window.location.search).get("activity") || "coin_drop",
-    });
+    const { data, error } = await (supabase as any).rpc("play_timed_daily_activity", { p_slug: "coin_drop", p_action: "finish" });
     if (error) {
       setBusy(false);
       toast.error(error.message ?? "Coin Drop could not be completed");
@@ -73,7 +71,11 @@ function CoinDropPage() {
     setPhase("ad");
   };
 
-  const start = () => {
+  const start = async () => {
+    setBusy(true);
+    const { error } = await (supabase as any).rpc("play_timed_daily_activity", { p_slug: "coin_drop", p_action: "start" });
+    setBusy(false);
+    if (error) { toast.error(error.message ?? "Coin Drop could not start"); return; }
     setSeconds(60);
     setDrops(0);
     setPicked(0);
@@ -125,7 +127,7 @@ function CoinDropPage() {
                   <div className="mx-auto grid size-20 place-items-center rounded-full bg-primary/10 text-5xl">🪙</div>
                   <h2 className="mt-4 font-display text-xl font-bold">60 seconds</h2>
                   <p className="mt-2 text-sm text-muted-foreground">Coins can give 1–2 BC. Stones cost 3 BC. A very rare blink can reveal 500 BC.</p>
-                  <Button className="mt-5 w-full" onClick={start}>Start Coin Drop</Button>
+                  <Button className="mt-5 w-full" onClick={() => void start()}>Start Coin Drop</Button>
                 </div>
               ) : phase === "playing" ? (
                 <div className="absolute inset-0 p-4">
