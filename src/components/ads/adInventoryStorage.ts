@@ -9,6 +9,9 @@ export const DEFAULT_AD_CONFIG = {
   feedBannerInterval: 4,
   videoAdCrushFrequency: 5,
   androidNativeBridgeEnabled: true,
+  hotSeatCommentsAdsEnabled: true,
+  hotSeatQuestionsAdsEnabled: true,
+  hotSeatWaterBreakAdsEnabled: false,
   sponsorPartners: [],
   creatives: INITIAL_CREATIVES,
 };
@@ -56,7 +59,10 @@ export function useActiveAdCreative(placement: AdPlacementTarget) {
         placement === "popup_2_engagement" ? config.engagement_popup_banner !== false :
         placement === "main_feed_card" ? config.main_feed_banner !== false :
         placement === "seven_day_banner" ? config.seven_day_banner_enabled !== false :
-        placement === "seven_day_playable" ? config.seven_day_playable_enabled !== false : true;
+        placement === "seven_day_playable" ? config.seven_day_playable_enabled !== false :
+        placement === "hot_seat_comments" ? config.hot_seat_comments_ads_enabled !== false :
+        placement === "hot_seat_questions" ? config.hot_seat_questions_ads_enabled !== false :
+        placement === "hot_seat_water_break" ? config.hot_seat_water_break_ads_enabled === true : true;
       if (!enabled) { setCreative(null); return; }
       const rows = Array.isArray(data?.creatives) ? data.creatives : [];
       const match = rows.find((row: any) => row.placement === placement && row.status === "active");
