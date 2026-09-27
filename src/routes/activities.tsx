@@ -113,6 +113,7 @@ function GameModal({ activity, onClose, onDone }: { activity: Activity; onClose:
     setBusy(false);
     if (error) { toast.error(error.message ?? "Puzzle unavailable"); return; }
     setPuzzleQuestion(String(data?.question ?? "Answer the Panda Puzzle."));
+    setPuzzle((data?.options ?? []) as string[]);
     setMessage("Choose the correct answer.");
   };
 
