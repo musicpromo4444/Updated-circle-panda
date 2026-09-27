@@ -101,7 +101,7 @@ function HotSeatPage() {
   const { syncCoins, isAdmin } = useStore();
   const [activeHost, setActiveHost] = useState<any>(null);
   const [loadingLiveData, setLoadingLiveData] = useState(true);
-  const [sessionPhase, setSessionPhase] = useState<"live" | "water-break" | "ended" | "waiting">("waiting");
+  const [sessionPhase, setSessionPhase] = useState<"live" | "water-break" | "paused" | "ended" | "waiting">("waiting");
   const [userId, setUserId] = useState<string | null>(null);
 
   // Video & HUD states
@@ -175,6 +175,12 @@ function HotSeatPage() {
         return;
       }
       const elapsed = Math.floor((Date.now() - new Date(activeHost.started_at).getTime()) / 1000);
+      const pauseUntil = activeHost.pause_until ? new Date(activeHost.pause_until).getTime() : 0;
+      if (pauseUntil > Date.now()) {
+        setSessionPhase("paused");
+        setWindowSeconds(Math.ceil((pauseUntil - Date.now()) / 1000));
+        return;
+      }
       const LIVE_SECONDS = 3 * 60 * 60;
       const BREAK_SECONDS = 60 * 60;
       const CYCLE_SECONDS = LIVE_SECONDS + BREAK_SECONDS;
@@ -359,6 +365,19 @@ function HotSeatPage() {
         src={activeHost?.media_url ?? undefined}
         className={`absolute inset-0 size-full object-cover select-none pointer-events-none ${sessionPhase === "live" ? "" : "opacity-0"}`}
       />
+
+      
+      {activeHost && sessionPhase === "paused" && (
+        <div className="absolute inset-0 z-25 grid place-items-center bg-neutral-950 px-6 text-center">
+          <div className="max-w-md rounded-3xl border border-orange-400/20 bg-black/60 p-8 shadow-2xl backdrop-blur-xl">
+            <div className="mx-auto mb-4 text-5xl">⏸️</div>
+            <div className="mb-2 inline-flex rounded-full border border-orange-400/30 bg-orange-400/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-orange-300">Optional pause</div>
+            <h2 className="text-2xl font-extrabold text-white">Hot Seat paused</h2>
+            <p className="mt-2 text-sm text-white/60">The live player is closed while the host takes a short break.</p>
+            <div className="mt-5 text-3xl font-black tabular-nums text-white">{formatLongTimer(windowSeconds)}</div>
+          </div>
+        </div>
+      )}
 
       {activeHost && sessionPhase === "water-break" && (
         <div className="absolute inset-0 z-25 grid place-items-center bg-neutral-950 px-6 text-center">
