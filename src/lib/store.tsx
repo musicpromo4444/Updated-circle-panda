@@ -879,25 +879,23 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     })();
   }, [dbUserId]);
 
-  const startDmWithAuthor = useCallback((userId: string, author: string, blurb: string) => {
+  const startDmWithAuthor = useCallback((userId: string, _author: string, _blurb: string) => {
     if (!dbUserId || !userId) { toast.error("This anonymous author cannot be contacted"); return Promise.resolve(null); }
     return (async () => {
-      const { data, error } = await (supabase as any).rpc("create_direct_thread", { p_other_user_id:userId, p_kind:"dm", p_blurb:blurb });
-      if (error) { toast.error(error.message ?? "Could not open chat"); return null; }
-      const id = data.id as string;
-      setState(s => s.threads.some(t=>t.id===id) ? s : {...s,threads:[{id,name:author,kind:"dm",blurb,messages:[]},...s.threads]});
-      return id;
+      const { error } = await (supabase as any).rpc("request_direct_message_secure", { p_recipient_id:userId, p_message:"" });
+      if (error) { toast.error(error.message ?? "Could not send message request"); return null; }
+      toast.success("Message request sent 💬");
+      return null;
     })();
   }, [dbUserId]);
 
-  const openPaidDm = useCallback((userId: string, author: string, blurb: string) => {
+  const openPaidDm = useCallback((userId: string, _author: string, blurb: string) => {
     if (!dbUserId || !userId) { toast.error("This anonymous author cannot be contacted"); return Promise.resolve(null); }
     return (async () => {
-      const { data, error } = await (supabase as any).rpc("create_direct_thread", { p_other_user_id:userId, p_kind:"dm", p_blurb:blurb });
-      if (error) { toast.error(error.message ?? "Could not open chat"); return null; }
-      const id = data.id as string;
-      setState(s => s.threads.some(t=>t.id===id) ? s : {...s,threads:[{id,name:author,kind:"dm",blurb,messages:[]},...s.threads]});
-      return id;
+      const { error } = await (supabase as any).rpc("request_direct_message_secure", { p_recipient_id:userId, p_message:blurb ?? "" });
+      if (error) { toast.error(error.message ?? "Could not send message request"); return null; }
+      toast.success("Message request sent 💬");
+      return null;
     })();
   }, [dbUserId]);
 
@@ -1203,6 +1201,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       createEvent,
       startEventBlast,
       registerDatingProfile,
+      requestDatingMatch,
     ],
   );
 
