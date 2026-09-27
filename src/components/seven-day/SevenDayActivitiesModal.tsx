@@ -90,18 +90,52 @@ export function SevenDayActivitiesModal({open,onClose,onComplete}:{open:boolean;
 
         {activity.slug==="target"&&<div className="cp-game-card"><div className="cp-section-label">PANDA TARGET</div><div onClick={fireTarget} className="cp-target-stage"><div className="cp-target-ring ring-one"/><div className="cp-target-ring ring-two"/><div className="cp-target-ring ring-three"/><div className="cp-target-bullseye"/>{targetPoint?<button type="button" className="cp-target-pin" style={{left:targetPoint.x+"%",top:targetPoint.y+"%"}}><TargetIcon className="size-5"/></button>:<TargetIcon className="cp-target-icon"/>}</div><p className="cp-game-instruction">{targetPoint?"Tap the target to fire":"Start the challenge to reveal Panda's target."}</p><Button className="cp-neon-button cp-big-button" disabled={busy||attemptLeft<=0||completed||Boolean(targetPoint)} onClick={startTarget}>{targetPoint?"FIRE":"START TARGET"}</Button></div>}
 
-        {activity.slug==="cup_shuffle"&&<div className="cp-game-card cp-cup-game">
-  <div className="cp-section-label">PANDA CUP SHUFFLE</div>
-  {cupPhase==="idle"&&<><p className="cp-question">Pick the prize Panda will hide.</p><div className="cp-prize-grid cp-prize-grid-three">{["💎 Crystal Prize","🎁 Mystery Gift","🪙 BC Jackpot"].map((p,i)=><button key={p} type="button" disabled={busy||attemptLeft<=0||completed} className="cp-prize-choice" onClick={()=>{setCupPrize(p);setSelectedCup(null);setCupPhase("placing");window.setTimeout(()=>setCupPhase("covering"),700);window.setTimeout(()=>setCupPhase("shuffling"),1250);window.setTimeout(()=>setCupPhase("ready"),2550);}}><span>{["💎","🎁","🪙"][i]}</span><small>{p.split(" ").slice(1).join(" ")}</small></button>)}</div></>}
-  {cupPhase!=="idle"&&<div className={"cp-cup-stage "+((cupPhase==="shuffling"||cupPhase==="covering")?"is-covered":"")+" "+(cupPhase==="shuffling"?"is-shuffling":"")+" "+(cupPhase==="revealing"?"is-revealing":"")}>
-    <div className="cp-cup-glow"/>
-    <div className={"cp-cup-prize "+(cupPhase!=="placing"?"is-hidden":"")}>{cupPrize.split(" ")[0]}</div>
-    <div className="cp-panda-hand cp-hand-left">🐼</div><div className="cp-panda-hand cp-hand-right">✋</div>
-    <div className="cp-cups-row">{[0,1,2].map(i=><button key={i} type="button" disabled={cupPhase!=="ready"||busy||completed} onClick={()=>{setSelectedCup(i);setCupPhase("revealing");window.setTimeout(()=>void play("play",{prize:cupPrize,cup:i}),650);}} className={"cp-cup-wrap cup-"+i+" "+(selectedCup===i?"is-selected":"")}><div className="cp-cup-shadow"/><div className="cp-cup"><div className="cp-cup-rim"/><div className="cp-cup-body"/><div className="cp-cup-shine"/></div></button>)}</div>
-    <div className="cp-shuffle-label">{cupPhase==="placing"?"Panda is placing your prize…":cupPhase==="covering"?"Covering the prize…":cupPhase==="shuffling"?"Panda is shuffling the cups…":cupPhase==="ready"?"Choose a cup!":cupPhase==="revealing"?"Panda is lifting your cup…":"SHUFFLE COMPLETE"}</div>
-  </div>
-  {hasResult ? <div className="cp-cup-reveal"><span>✨</span><strong>{result?.reward_label || "Prize Revealed"}</strong><b>{Number(result?.reward_bc || 0) > 0 ? "+" + result?.reward_bc + " BC" : ""}</b></div> : null}
-</div>}
+        {activity.slug === "cup_shuffle" ? (
+          <div className="cp-game-card cp-cup-game">
+            <div className="cp-section-label">PANDA CUP SHUFFLE</div>
+            {cupPhase === "idle" ? (
+              <div>
+                <p className="cp-question">Pick the prize Panda will hide.</p>
+                <div className="cp-prize-grid cp-prize-grid-three">
+                  {["💎 Crystal Prize", "🎁 Mystery Gift", "🪙 BC Jackpot"].map((p, i) => (
+                    <button key={p} type="button" disabled={busy || attemptLeft <= 0 || completed}
+                      className="cp-prize-choice"
+                      onClick={() => {
+                        setCupPrize(p); setSelectedCup(null); setCupPhase("placing");
+                        window.setTimeout(() => setCupPhase("covering"), 700);
+                        window.setTimeout(() => setCupPhase("shuffling"), 1250);
+                        window.setTimeout(() => setCupPhase("ready"), 2550);
+                      }}>
+                      <span>{["💎", "🎁", "🪙"][i]}</span><small>{p.split(" ").slice(1).join(" ")}</small>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+            {cupPhase !== "idle" ? (
+              <div className={"cp-cup-stage " + ((cupPhase === "shuffling" || cupPhase === "covering") ? "is-covered" : "") + " " + (cupPhase === "shuffling" ? "is-shuffling" : "") + " " + (cupPhase === "revealing" ? "is-revealing" : "")}>
+                <div className="cp-cup-glow" />
+                <div className={"cp-cup-prize " + (cupPhase !== "placing" ? "is-hidden" : "")}>{cupPrize.split(" ")[0]}</div>
+                <div className="cp-panda-hand cp-hand-left">🐼</div><div className="cp-panda-hand cp-hand-right">✋</div>
+                <div className="cp-cups-row">
+                  {[0, 1, 2].map(i => (
+                    <button key={i} type="button" disabled={cupPhase !== "ready" || busy || completed}
+                      onClick={() => { setSelectedCup(i); setCupPhase("revealing"); window.setTimeout(() => void play("play", { prize: cupPrize, cup: i }), 650); }}
+                      className={"cp-cup-wrap cup-" + i + " " + (selectedCup === i ? "is-selected" : "")}>
+                      <div className="cp-cup-shadow" /><div className="cp-cup"><div className="cp-cup-rim" /><div className="cp-cup-body" /><div className="cp-cup-shine" /></div>
+                    </button>
+                  ))}
+                </div>
+                <div className="cp-shuffle-label">
+                  {cupPhase === "placing" ? "Panda is placing your prize…" : cupPhase === "covering" ? "Covering the prize…" : cupPhase === "shuffling" ? "Panda is shuffling the cups…" : cupPhase === "ready" ? "Choose a cup!" : cupPhase === "revealing" ? "Panda is lifting your cup…" : "SHUFFLE COMPLETE"}
+                </div>
+              </div>
+            ) : null}
+            {hasResult ? (
+              <div className="cp-cup-reveal"><span>✨</span><strong>{result?.reward_label || "Prize Revealed"}</strong><b>{Number(result?.reward_bc || 0) > 0 ? "+" + result?.reward_bc + " BC" : ""}</b></div>
+            ) : null}
+          </div>
+        ) : null}
 
         {activity.slug==="puzzle"&&<><div className="cp-game-card"><div className="cp-puzzle-art"><div className="cp-puzzle-piece">✦</div><div className="cp-puzzle-piece">?</div><div className="cp-puzzle-piece">★</div><div className="cp-puzzle-piece">✦</div></div><div className="cp-section-label">PANDA PUZZLE</div><p className="cp-question">{puzzleQuestion}</p><input value={puzzleAnswer} onChange={e=>setPuzzleAnswer(e.target.value)} placeholder="Type your answer" className="cp-game-input"/><Button className="cp-neon-button cp-big-button" disabled={busy||attemptLeft<=0||!puzzleAnswer.trim()||completed} onClick={()=>void play("solve",{answer:puzzleAnswer.trim().toLowerCase()})}>SUBMIT PUZZLE</Button></div><Banner placement="seven_day_banner" className="cp-ad-banner"/></>}
 
