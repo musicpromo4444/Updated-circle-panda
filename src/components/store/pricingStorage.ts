@@ -15,8 +15,8 @@ export const DEFAULT_PRICING_CONFIG: PricingConfig = {
   vipPlans: DEFAULT_VIP_PLANS,
   paystack: {
     publicKey: (import.meta.env.VITE_PAYSTACK_PUBLIC_KEY as string | undefined) ?? "",
-    currency: "USD",
-    exchangeRateNgn: 1500, // ₦1,500 = $1.00 USD
+    currency: "NGN",
+    exchangeRateNgn: 1, // Store prices are maintained directly in NGN
     testMode: false,
     merchantName: "Circle Panda Campus Store",
   },
