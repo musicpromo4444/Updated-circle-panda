@@ -208,11 +208,6 @@ export function useAdminStore() {
         window.localStorage.setItem(STORAGE_KEY_ENGAGEMENT, JSON.stringify(engagementConfig));
         window.dispatchEvent(new CustomEvent(EVENT_ENGAGEMENT_UPDATED));
       }
-      saveBonusConfig({
-        standardReward: engagementConfig.standardDailyReward,
-        streakReward: engagementConfig.streakMilestoneReward,
-        streakMilestone: engagementConfig.streakMilestoneDays,
-      });
     } catch {
 
   useEffect(() => {
