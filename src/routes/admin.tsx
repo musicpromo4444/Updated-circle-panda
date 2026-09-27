@@ -23,7 +23,7 @@ import {
   AdminPricingManager,
   AdminUserManagement,
   AdminRoute,
-  AdminDailyGamesManager,
+  AdminDailyGamesManager,\n  AdminHotSeatManager,
   useAdminStore,
 } from "@/components/admin";
 import { MASTER_ADMIN_EMAIL } from "@/components/admin/AdminRoute";
@@ -55,7 +55,7 @@ export const Route = createFileRoute("/admin")({
   },
 });
 
-type AdminTab = "overview" | "users" | "pricing" | "monetization" | "engagement" | "games" | "audit";
+type AdminTab = "overview" | "users" | "pricing" | "monetization" | "engagement" | "games" | "hotseat" | "audit";
 
 function AdminDashboardPage() {
   const [activeTab, setActiveTab] = useState<AdminTab>("overview");
@@ -89,7 +89,7 @@ function AdminDashboardPage() {
       { id: "pricing", label: "Coin Store & VIP Pricing", icon: Coins },
       { id: "monetization", label: "Ad & Monetization", icon: Megaphone },
       { id: "engagement", label: "Engagement & Events", icon: Sparkles },
-      { id: "games", label: "7-Day Games", icon: Gamepad2 },
+      { id: "games", label: "7-Day Games", icon: Gamepad2 },\n      { id: "hotseat", label: "Hot Seat", icon: Radio },
       { id: "audit", label: "Audit Logs", icon: History },
     ];
 
@@ -235,7 +235,7 @@ function AdminDashboardPage() {
         ) : null}
 
         {/* TAB: 7-DAY GAMES */}
-        {activeTab === "games" ? <AdminDailyGamesManager /> : null}
+        {activeTab === "games" ? <AdminDailyGamesManager /> : null}\n        {activeTab === "hotseat" ? <AdminHotSeatManager /> : null}
 
         {/* TAB 6: AUDIT LOGS */}
         {activeTab === "audit" ? (
