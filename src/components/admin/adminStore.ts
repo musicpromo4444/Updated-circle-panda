@@ -549,11 +549,9 @@ export function useAdminStore() {
 
   // Reset to default mock data
   const resetToDefaultData = () => {
-    setUsers(INITIAL_USERS);
-    setAdConfig(DEFAULT_AD_CONFIG);
-    setEngagementConfig(DEFAULT_ENGAGEMENT_CONFIG);
-    setPricingConfig(DEFAULT_PRICING_CONFIG);
-    toast.info("Admin store reset to default data");
+    void loadRealUsers();
+    void loadPricingConfig().then(setPricingConfig);
+    toast.success("Live admin data refreshed");
   };
 
   return {
