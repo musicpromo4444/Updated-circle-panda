@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Check,
   ChevronDown,
@@ -23,6 +23,7 @@ import {
   Zap,
 } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -69,6 +70,9 @@ const PLACEMENT_OPTIONS: { id: AdPlacementTarget; label: string; tag: string }[]
     label: "Speed Dating Interstitial",
     tag: "Matching Event",
   },
+  { id: "hot_seat_comments", label: "Hot Seat Comments", tag: "After every 5 comments" },
+  { id: "hot_seat_questions", label: "Hot Seat Questions", tag: "After every 5 questions" },
+  { id: "hot_seat_water_break", label: "Hot Seat Water Break", tag: "Admin-controlled" },
 ];
 
 const PRESET_IMAGE_TEMPLATES = [
@@ -128,6 +132,23 @@ export function AdminMonetizationControl({
   const [searchQuery, setSearchQuery] = useState("");
 
   const creatives = adConfig.creatives || [];
+  const [hotSeatAdSettings, setHotSeatAdSettings] = useState({ comments: true, questions: true, waterBreak: false });
+  const [hotSeatAdSaving, setHotSeatAdSaving] = useState(false);
+
+  useEffect(() => {
+    void supabase.from("ad_placement_config").select("hot_seat_comments_ads_enabled,hot_seat_questions_ads_enabled,hot_seat_water_break_ads_enabled").eq("id", true).maybeSingle().then(({ data }) => {
+      if (data) setHotSeatAdSettings({ comments: data.hot_seat_comments_ads_enabled !== false, questions: data.hot_seat_questions_ads_enabled !== false, waterBreak: data.hot_seat_water_break_ads_enabled === true });
+    });
+  }, []);
+
+  const saveHotSeatAdSettings = async (next: typeof hotSeatAdSettings) => {
+    setHotSeatAdSaving(true);
+    const { error } = await (supabase as any).rpc("admin_set_hot_seat_ad_settings", { p_comments: next.comments, p_questions: next.questions, p_water_break: next.waterBreak });
+    setHotSeatAdSaving(false);
+    if (error) { toast.error(error.message); return; }
+    setHotSeatAdSettings(next);
+    toast.success("Hot Seat ad settings saved");
+  };
 
   const handleOpenNewForm = () => {
     setEditingId(null);
@@ -327,6 +348,19 @@ export function AdminMonetizationControl({
                 }
               />
             </div>
+          </div>
+        </div>
+
+        {/* HOT SEAT STRATEGIC AD CONTROLS */}
+        <div className="mb-4 rounded-2xl border border-orange-500/25 bg-orange-500/5 p-4 sm:p-5 space-y-3">
+          <div><h3 className="font-display text-base font-bold">Hot Seat Strategic Ads</h3><p className="text-xs text-muted-foreground">Only the three approved Hot Seat ad locations are controlled here.</p></div>
+          <div className="grid gap-2 sm:grid-cols-3">
+            {(["comments","questions","waterBreak"] as const).map((key) => (
+              <div key={key} className="flex items-center justify-between rounded-xl border border-border/70 bg-card p-3">
+                <span className="text-xs font-semibold">{key === "comments" ? "After every 5 comments" : key === "questions" ? "After every 5 questions" : "Water Break only"}</span>
+                <Switch checked={hotSeatAdSettings[key]} disabled={hotSeatAdSaving} onCheckedChange={(checked) => void saveHotSeatAdSettings({ ...hotSeatAdSettings, [key]: checked })} />
+              </div>
+            ))}
           </div>
         </div>
 
