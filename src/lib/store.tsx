@@ -329,47 +329,42 @@ export function starRating(score: number) {
   return Math.min(5, Math.round((1 + (score / 1400) * 4) * 10) / 10);
 }
 
-/** Level-based Panda tier ladder (XP progression). */
-export type LevelTier = {
-  levelReq: number;
-  title: string;
-  maxStars: number;
-  xpPerLevel: number;
-};
+/** Production Panda XP ladder. XP is cumulative and is used only for Panda rank. */
+export type PandaRank = { minXp: number; name: string; star: number };
 
-export const PANDA_LEVEL_TIERS: LevelTier[] = [
-  { levelReq: 1, title: "Panda Cub", maxStars: 5, xpPerLevel: 100 },
-  { levelReq: 5, title: "Novice Panda", maxStars: 5, xpPerLevel: 250 },
-  { levelReq: 10, title: "Panda Warrior", maxStars: 5, xpPerLevel: 500 },
-  { levelReq: 15, title: "Panda Master", maxStars: 5, xpPerLevel: 1000 },
-  { levelReq: 25, title: "Panda Legend", maxStars: 5, xpPerLevel: 2500 },
-  { levelReq: 50, title: "Panda General", maxStars: 5, xpPerLevel: 5000 },
+export const PANDA_RANKS: PandaRank[] = [
+  { minXp: 0, name: "Novice", star: 1 },
+  { minXp: 8000, name: "Growing", star: 2 },
+  { minXp: 27000, name: "Kung Fu", star: 3 },
+  { minXp: 60000, name: "Panda General", star: 4 },
+  { minXp: 110000, name: "Shadow", star: 5 },
+  { minXp: 250000, name: "Mysterious", star: 6 },
+  { minXp: 550000, name: "Legendary", star: 7 },
 ];
 
-export function levelTier(level: number): LevelTier {
-  return [...PANDA_LEVEL_TIERS].reverse().find((t) => level >= t.levelReq) ?? PANDA_LEVEL_TIERS[0]!;
-}
-
-export function levelProgress(level: number, xp: number) {
-  const tier = levelTier(level);
-  const levelsInTier = level - tier.levelReq + 1;
-  const starsEarned = Math.min(Math.max(levelsInTier, 1), tier.maxStars);
-  const xpForNext = tier.xpPerLevel;
-  const xpPct = Math.min((xp / xpForNext) * 100, 100);
-  return { tier, starsEarned, xpForNext, xpPct };
-}
-
-/** Apply an XP gain, leveling up across the tier ladder as needed. */
-export function gainXp(level: number, xp: number, gained: number) {
-  let nl = level;
-  let nx = xp + gained;
-  while (nx >= levelTier(nl).xpPerLevel) {
-    nx -= levelTier(nl).xpPerLevel;
-    nl += 1;
+export function pandaProgress(totalXp: number) {
+  const xp = Math.max(0, Math.floor(totalXp));
+  let index = 0;
+  for (let i = 0; i < PANDA_RANKS.length; i++) {
+    if (xp >= PANDA_RANKS[i]!.minXp) index = i;
   }
-  return { level: nl, xp: nx };
+  const current = PANDA_RANKS[index]!;
+  const next = PANDA_RANKS[index + 1] ?? null;
+  const progress = next
+    ? Math.max(0, Math.min(100, Math.round(((xp - current.minXp) / (next.minXp - current.minXp)) * 100)))
+    : 100;
+  return { current, next, index, stars: current.star, totalStars: 7, progress };
 }
 
+export function levelProgress(_level: number, totalXp: number) {
+  const p = pandaProgress(totalXp);
+  return {
+    tier: { title: p.current.name, maxStars: 7 },
+    starsEarned: p.stars,
+    xpForNext: p.next ? p.next.minXp : p.current.minXp,
+    xpPct: p.progress,
+  };
+}
 type State = {
   coins: number;
   reputation: number;
@@ -491,7 +486,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const persistUserState = useCallback((next: State) => {
     if (!dbUserId) return;
     void (supabase as any).from("user_app_state").upsert({
-      user_id: dbUserId, state: { coins: next.coins, reputation: next.reputation, level: next.level, xp: next.xp,
+      user_id: dbUserId, state: { reputation: next.reputation,
         datingProfile: next.datingProfile, isVip: next.isVip, vipExpiresAt: next.vipExpiresAt,
         lastSpinAt: next.lastSpinAt, skipPasses: next.skipPasses, lastAdShownAt: next.lastAdShownAt },
       updated_at: new Date().toISOString(),
@@ -513,7 +508,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       setDbUserId(session.user.id);
     void (supabase as any).rpc("get_my_admin_status").then(({data}: any) => setDbIsAdmin(data === true));
       const uid = session.user.id;
-      const [st, postsRes, repliesRes, groupsRes, groupMessagesRes, threadsRes, threadMessagesRes, groupSettingsRes, eventsRes, attendeesRes, datingRes, coinsRes, nomineesRes, crushResultsRes, winnersRes, ticketsRes, crushWinnersRes] = await Promise.all([
+      const [st, postsRes, repliesRes, groupsRes, groupMessagesRes, threadsRes, threadMessagesRes, groupSettingsRes, eventsRes, attendeesRes, datingRes, coinsRes, xpRes, nomineesRes, crushResultsRes, winnersRes, ticketsRes, crushWinnersRes] = await Promise.all([
         (supabase as any).from("user_app_state").select("state").eq("user_id", uid).maybeSingle(),
         (supabase as any).from("cp_posts").select("id,body,created_at,author_id").order("created_at", {ascending:false}).limit(100),
         (supabase as any).from("cp_post_replies").select("id,post_id,body,created_at,author_id").order("created_at", {ascending:true}).limit(500),
@@ -527,6 +522,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         (supabase as any).from("event_attendees").select("event_id,user_id"),
         (supabase as any).from("dating_profiles").select("user_id,name,age,vibe,emoji,bio,interests,location,relationship_goal,looking_for,lifestyle,personality,love_language,smoking,drinking,children,education,occupation,sexual_experience,intimacy_preference,relationship_status,height_cm,zodiac,favorite_date,updated_at").eq("enabled",true),
         (supabase as any).from("bc_accounts").select("balance").eq("user_id",uid).maybeSingle(),
+        (supabase as any).from("user_xp").select("xp").eq("user_id",uid).maybeSingle(),
         Promise.resolve({ data: [] as any[] }),
         (supabase as any).rpc("get_crush_results", { p_week_start: new Date(Date.now() - ((new Date().getDay() + 6) % 7) * 86400000).toISOString().slice(0,10) }),
         (supabase as any).from("sweep_winners").select("draw,name,prize,won_at").order("won_at", {ascending:false}).limit(20),
@@ -558,7 +554,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         id:t.id, name:profileNames.get(t.owner_id===uid?t.participant_id:t.owner_id) ?? "Anonymous Panda", kind:t.kind === "dating" ? "dating" : "dm", blurb:t.blurb ?? "",
         messages:rawThreadMessages.filter((m:any)=>m.thread_id===t.id).map((m:any)=>({id:m.id,body:m.body,at:new Date(m.created_at).getTime(),mine:m.user_id===uid})), startedAt:t.kind === "dating" ? new Date(t.created_at).getTime() : undefined
       }));
-      setState((prev)=>({...prev,...stData,coins:coinsRes.data?.balance??prev.coins,reputation:stData.reputation??0,level:stData.level??1,xp:stData.xp??0,posts,groups,threads,events,nominees,sweepWinners:(winnersRes.data??[]).map((w:any)=>({draw:w.draw,name:w.name,prize:w.prize,wonAt:new Date(w.won_at).getTime()})),sweepTickets:(ticketsRes.data??[]).map((t:any)=>({id:t.id,draw:t.draw,at:new Date(t.created_at).getTime()})),spotlights:(crushWinnersRes.data??[]).map((w:any)=>({kind:w.kind,name:w.display_name,wonAt:new Date(w.created_at).getTime()})),datingProfile:dating?{userId:dating.user_id,name:dating.name,age:dating.age,vibe:dating.vibe,emoji:dating.emoji,bio:dating.bio,interests:dating.interests??[],location:dating.location,relationshipGoal:dating.relationship_goal??"",lookingFor:dating.looking_for??[],lifestyle:dating.lifestyle??[],personality:dating.personality??[],loveLanguage:dating.love_language??"",smoking:dating.smoking??"",drinking:dating.drinking??"",children:dating.children??"",education:dating.education??"",occupation:dating.occupation??"",sexualExperience:dating.sexual_experience??"",intimacyPreference:dating.intimacy_preference??"",relationshipStatus:dating.relationship_status??"single",heightCm:dating.height_cm??null,zodiac:dating.zodiac??"",favoriteDate:dating.favorite_date??"",registeredAt:new Date(dating.updated_at).getTime()}:null,datingMatches:(datingRes.data??[]).filter((d:any)=>d.user_id!==uid).map((d:any)=>({userId:d.user_id,name:d.name,age:d.age,vibe:d.vibe,emoji:d.emoji,bio:d.bio,interests:d.interests??[],location:d.location,relationshipGoal:d.relationship_goal??"",lookingFor:d.looking_for??[],lifestyle:d.lifestyle??[],personality:d.personality??[],loveLanguage:d.love_language??"",smoking:d.smoking??"",drinking:d.drinking??"",children:d.children??"",education:d.education??"",occupation:d.occupation??"",sexualExperience:d.sexual_experience??"",intimacyPreference:d.intimacy_preference??"",relationshipStatus:d.relationship_status??"single",heightCm:d.height_cm??null,zodiac:d.zodiac??"",favoriteDate:d.favorite_date??"",registeredAt:new Date(d.updated_at).getTime()}))}));
+      const totalXp = Number(xpRes.data?.xp ?? 0);
+      setState((prev)=>({...prev,...stData,coins:Number(coinsRes.data?.balance ?? prev.coins),reputation:stData.reputation??0,level:pandaProgress(totalXp).index+1,xp:totalXp,posts,groups,threads,events,nominees,sweepWinners:(winnersRes.data??[]).map((w:any)=>({draw:w.draw,name:w.name,prize:w.prize,wonAt:new Date(w.won_at).getTime()})),sweepTickets:(ticketsRes.data??[]).map((t:any)=>({id:t.id,draw:t.draw,at:new Date(t.created_at).getTime()})),spotlights:(crushWinnersRes.data??[]).map((w:any)=>({kind:w.kind,name:w.display_name,wonAt:new Date(w.created_at).getTime()})),datingProfile:dating?{userId:dating.user_id,name:dating.name,age:dating.age,vibe:dating.vibe,emoji:dating.emoji,bio:dating.bio,interests:dating.interests??[],location:dating.location,relationshipGoal:dating.relationship_goal??"",lookingFor:dating.looking_for??[],lifestyle:dating.lifestyle??[],personality:dating.personality??[],loveLanguage:dating.love_language??"",smoking:dating.smoking??"",drinking:dating.drinking??"",children:dating.children??"",education:dating.education??"",occupation:dating.occupation??"",sexualExperience:dating.sexual_experience??"",intimacyPreference:dating.intimacy_preference??"",relationshipStatus:dating.relationship_status??"single",heightCm:dating.height_cm??null,zodiac:dating.zodiac??"",favoriteDate:dating.favorite_date??"",registeredAt:new Date(dating.updated_at).getTime()}:null,datingMatches:(datingRes.data??[]).filter((d:any)=>d.user_id!==uid).map((d:any)=>({userId:d.user_id,name:d.name,age:d.age,vibe:d.vibe,emoji:d.emoji,bio:d.bio,interests:d.interests??[],location:d.location,relationshipGoal:d.relationship_goal??"",lookingFor:d.looking_for??[],lifestyle:d.lifestyle??[],personality:d.personality??[],loveLanguage:d.love_language??"",smoking:d.smoking??"",drinking:d.drinking??"",children:d.children??"",education:d.education??"",occupation:d.occupation??"",sexualExperience:d.sexual_experience??"",intimacyPreference:d.intimacy_preference??"",relationshipStatus:d.relationship_status??"single",heightCm:d.height_cm??null,zodiac:d.zodiac??"",favoriteDate:d.favorite_date??"",registeredAt:new Date(d.updated_at).getTime()}))}));
     })().catch(()=>{});
     return () => { cancelled = true; };
   }, []);
@@ -823,8 +820,14 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const syncCoins = useCallback(async () => {
     if (!dbUserId) return;
-    const { data, error } = await (supabase as any).from("bc_accounts").select("balance").eq("user_id", dbUserId).maybeSingle();
-    if (!error && data) setState((s) => ({ ...s, coins: Number(data.balance ?? s.coins) }));
+    const [bcRes, xpRes] = await Promise.all([
+      (supabase as any).from("bc_accounts").select("balance").eq("user_id", dbUserId).maybeSingle(),
+      (supabase as any).from("user_xp").select("xp").eq("user_id", dbUserId).maybeSingle(),
+    ]);
+    setState((s) => {
+      const totalXp = Number(xpRes.data?.xp ?? s.xp);
+      return { ...s, coins: Number(bcRes.data?.balance ?? s.coins), xp: totalXp, level: pandaProgress(totalXp).index + 1 };
+    });
   }, [dbUserId]);
 
   const syncAccountEntitlements = useCallback(async () => {
