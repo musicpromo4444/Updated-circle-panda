@@ -23,6 +23,7 @@ export function ConfessionsPage() {
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [uploadCaption, setUploadCaption] = useState("");
   const [uploading, setUploading] = useState(false);
+  const [claimingVip, setClaimingVip] = useState<string | null>(null);
   const [items, setItems] = useState<Confession[]>([]);
   const [content, setContent] = useState("");
   const [anonymous, setAnonymous] = useState(true);
@@ -110,6 +111,22 @@ export function ConfessionsPage() {
     if (Array.isArray(data)) setWeekly({ wcw: data.filter((x:any)=>x.kind==="wcw"), mcm: data.filter((x:any)=>x.kind==="mcm") });
   };
 
+  const claimVip = async (kind: string) => {
+    setClaimingVip(kind);
+    const { error } = await (supabase as any).rpc("claim_crush_vip_secure", { p_kind: kind });
+    setClaimingVip(null);
+    if (error) return toast.error(error.message ?? "VIP could not be claimed.");
+    toast.success("Your free 7-day VIP is now active 👑");
+    const { data: winners } = await supabase.from("crush_winners").select("kind,display_name,vote_count,week_start,vip_claimed_at,created_at").order("created_at",{ascending:false}).limit(10);
+    const currentWeek = new Date();
+    const sunday = new Date(currentWeek); sunday.setDate(currentWeek.getDate()-currentWeek.getDay());
+    const week = sunday.toISOString().slice(0,10);
+    setWeeklyWinner({
+      wcw: (winners ?? []).find((x:any)=>x.kind==="wcw"&&x.week_start===week) ?? null,
+      mcm: (winners ?? []).find((x:any)=>x.kind==="mcm"&&x.week_start===week) ?? null,
+    });
+  };
+
   const submit = async () => {
     const trimmed = content.trim();
     if (trimmed.length < 3) return toast.error("Write at least 3 characters first.");
@@ -151,7 +168,7 @@ export function ConfessionsPage() {
             ].map((group) => (
               <div key={group.key} className="rounded-2xl bg-secondary/40 p-3">
                 <div className="flex items-center justify-between"><span className="font-bold">{group.title}</span><span className="text-[10px] text-muted-foreground">{group.subtitle}</span></div>
-                {group.winner ? <div className="mt-2 rounded-xl bg-primary/10 p-2 text-center"><p className="text-[10px] font-bold text-primary">👑 LAST WEEK WINNER</p><p className="text-xs font-bold">{group.winner.display_name}</p><p className="text-[10px] text-muted-foreground">{group.winner.vote_count} votes · 7-day VIP</p></div> : null}
+                {group.winner ? <div className="mt-2 rounded-xl bg-primary/10 p-2 text-center"><p className="text-[10px] font-bold text-primary">👑 LAST WEEK WINNER</p><p className="text-xs font-bold">{group.winner.display_name}</p><p className="text-[10px] text-muted-foreground">{group.winner.vote_count} votes · 7-day VIP</p>{group.winner.vip_claimed_at ? <p className="mt-1 text-[10px] font-bold text-primary">VIP claimed ✓</p> : <Button size="sm" className="mt-2 rounded-full" onClick={() => void claimVip(group.key)}>Claim free VIP</Button>}</div> : null}
                 <div className="mt-3 space-y-3">
                   {group.entries.length ? group.entries.map((entry, i) => (
                     <div key={entry.id} className="rounded-2xl bg-background/60 p-2">
