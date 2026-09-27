@@ -9,12 +9,9 @@ import {
   MessageSquare,
   Play,
   Sparkles,
-  Trophy,
   User,
   Users,
   Shield,
-  Music,
-  Radio,
 } from "lucide-react";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
@@ -32,13 +29,6 @@ const TABS = [
   { to: "/dating", label: "Dating", icon: Heart },
   { to: "/events", label: "Events", icon: Calendar },
   { to: "/groups", label: "Groups", icon: Users },
-] as const;
-
-const QUICK = [
-  { to: "/leaders", label: "Leaders", icon: Trophy },
-  { to: "/music-time", label: "Music Time", icon: Music },
-  { to: "/live", label: "Live", icon: Radio },
-  { to: "/activities", label: "Activities", icon: Sparkles },
 ] as const;
 
 /** Server-configured global action slot shown consistently above the bottom navigation. */
@@ -379,22 +369,13 @@ export function AppShell({
               <h1 className="truncate font-display text-2xl font-semibold">{title}</h1>
               {subtitle ? <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p> : null}
             </div>
-            <div className="flex shrink-0 gap-1.5">
-              {QUICK.map(({ to, label, icon: Icon }) => (
-                <Link
-                  key={to}
-                  to={to}
-                  className="flex items-center gap-1 rounded-full border border-border bg-secondary/50 px-2.5 py-1.5 text-[11px] font-medium text-muted-foreground transition-colors hover:text-foreground data-[status=active]:border-primary/50 data-[status=active]:text-primary"
-                >
-                  <Icon className="size-3.5" /> {label}
-                </Link>
-              ))}
-              {isAdmin ? (
+            {isAdmin ? (
+              <div className="flex shrink-0">
                 <Link to="/admin-dashboard" className="flex items-center gap-1 rounded-full border border-primary/30 bg-primary/5 px-2.5 py-1.5 text-[11px] font-semibold text-primary transition-colors hover:bg-primary/10">
                   <Shield className="size-3.5" /> Admin
                 </Link>
-              ) : null}
-            </div>
+              </div>
+            ) : null}
           </div>
         ) : null}
         {children}
