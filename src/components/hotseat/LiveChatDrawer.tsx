@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
+import { StandardBannerAd } from "@/components/ads/StandardBannerAd";
 
 export type HotSeatQuestion = {
   id: string;
@@ -46,7 +47,7 @@ export interface InFeedAd {
   type?: "playable" | "static";
 }
 
-const IN_FEED_ADS: InFeedAd[] = [];
+
 
 export function LiveChatDrawer({
   open,
@@ -147,8 +148,6 @@ export function LiveChatDrawer({
             <div className="space-y-3">
               {questions.map((q, idx) => {
                 const isEvery5 = (idx + 1) % 5 === 0;
-                const adIndex = Math.floor(idx / 5) % IN_FEED_ADS.length;
-                const ad = IN_FEED_ADS[adIndex];
 
                 return (
                   <div key={q.id} className="space-y-3">
@@ -238,58 +237,8 @@ export function LiveChatDrawer({
                       )}
                     </div>
 
-                    {/* Dynamically inserted native ad card after every 5 questions */}
-                    {isEvery5 && (
-                      <div
-                        id={`in-feed-ad-${idx + 1}`}
-                        className="rounded-2xl border border-white/10 bg-neutral-900/85 p-3.5 transition-all hover:border-amber-500/30 relative overflow-hidden"
-                      >
-                        {/* Header with SPONSORED / AD badge in place of user handle */}
-                        <div className="flex items-start justify-between gap-2">
-                          <div className="flex items-center gap-2 text-xs">
-                            <span className="grid size-6 place-items-center rounded-full bg-amber-500/20 text-xs border border-amber-500/30">
-                              {ad.icon}
-                            </span>
-                            <span className="rounded bg-amber-500/20 border border-amber-500/40 px-1.5 py-0.5 text-[10px] font-black uppercase tracking-wider text-amber-300">
-                              SPONSORED
-                            </span>
-                            <span className="font-semibold text-white">{ad.sponsorName}</span>
-                            <span className="text-[11px] text-neutral-400">· Promoted</span>
-                          </div>
-
-                          <span className="rounded border border-white/15 bg-neutral-800 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-widest text-neutral-400">
-                            AD
-                          </span>
-                        </div>
-
-                        {/* Ad Headline and Description */}
-                        <div className="mt-2.5">
-                          <h4 className="text-sm font-bold text-white flex items-center gap-1.5">
-                            {ad.headline}
-                          </h4>
-                          <p className="mt-1 text-xs text-neutral-300 leading-relaxed">
-                            {ad.description}
-                          </p>
-                        </div>
-
-                        {/* Ad CTA footer */}
-                        <div className="mt-3 flex items-center justify-between pt-2.5 border-t border-white/10 text-xs">
-                          <span className="text-[11px] text-neutral-400">{ad.tagline}</span>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              toast.info(`Opening ${ad.sponsorName}...`, {
-                                description: "Redirecting to sponsored partner.",
-                              });
-                            }}
-                            className="flex items-center gap-1.5 rounded-full border border-amber-500/50 bg-amber-500/15 hover:bg-amber-500/25 px-3 py-1 text-xs font-bold text-amber-300 transition-colors cursor-pointer"
-                          >
-                            <span>{ad.cta}</span>
-                            <ExternalLink className="size-3" />
-                          </button>
-                        </div>
-                      </div>
-                    )}
+                    {/* Admin-configured ad after every 5 questions */}
+                    {isEvery5 ? <StandardBannerAd variant="feed-card" placement="hot_seat_questions" /> : null}
                   </div>
                 );
               })}
@@ -297,9 +246,7 @@ export function LiveChatDrawer({
           ) : (
             <div className="space-y-2.5">
               {chatMessages.map((msg, idx) => {
-                const isEvery10 = (idx + 1) % 10 === 0;
-                const adIndex = Math.floor(idx / 10) % IN_FEED_ADS.length;
-                const ad = IN_FEED_ADS[adIndex];
+                const isEvery5 = (idx + 1) % 5 === 0;
 
                 return (
                   <div key={msg.id} className="space-y-2.5">
@@ -318,77 +265,8 @@ export function LiveChatDrawer({
                       </span>
                     </div>
 
-                    {/* Dynamically inserted styled banner ad after every 10 live chat messages */}
-                    {isEvery10 && (
-                      <div
-                        id={`chat-in-feed-ad-${idx + 1}`}
-                        className="my-3 rounded-2xl border border-white/15 bg-gradient-to-br from-neutral-900/95 via-neutral-900/85 to-neutral-950 p-3.5 shadow-xl relative overflow-hidden backdrop-blur-md transition-all hover:border-amber-500/40"
-                      >
-                        {/* Header with prominent SPONSORED badge matching dark aesthetic */}
-                        <div className="flex items-center justify-between gap-2">
-                          <div className="flex items-center gap-2 text-xs">
-                            <span className="grid size-7 place-items-center rounded-full bg-amber-500/20 text-sm border border-amber-500/30">
-                              {ad.icon}
-                            </span>
-                            <div className="flex items-center gap-1.5 flex-wrap">
-                              <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/20 border border-amber-500/40 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-amber-300 shadow-[0_0_10px_rgba(245,158,11,0.2)]">
-                                <Sparkles className="size-2.5" />
-                                SPONSORED
-                              </span>
-                              <span className="font-bold text-white text-xs">{ad.sponsorName}</span>
-                            </div>
-                          </div>
-
-                          <span className="rounded border border-white/15 bg-neutral-800/90 px-1.5 py-0.5 text-[9px] font-black uppercase tracking-widest text-neutral-400">
-                            {ad.type === "playable" ? "PLAYABLE" : "AD"}
-                          </span>
-                        </div>
-
-                        {/* Ad Headline and Description */}
-                        <div className="mt-2.5">
-                          <h4 className="text-xs sm:text-sm font-bold text-white flex items-center gap-1.5">
-                            {ad.headline}
-                          </h4>
-                          <p className="mt-1 text-[11px] sm:text-xs text-neutral-300 leading-relaxed">
-                            {ad.description}
-                          </p>
-                        </div>
-
-                        {/* CTA Footer with clear Call-To-Action button */}
-                        <div className="mt-3 flex items-center justify-between pt-2.5 border-t border-white/10 text-xs">
-                          <span className="text-[11px] text-neutral-400 truncate max-w-[130px] sm:max-w-none">
-                            {ad.tagline}
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              if (ad.type === "playable") {
-                                toast.success(`🎮 Launching ${ad.sponsorName} playable experience...`, {
-                                  description:
-                                    "Play the partner challenge and claim eligible Panda Coins when the partner verifies completion.",
-                                });
-                              } else {
-                                toast.info(`Opening ${ad.sponsorName}...`, {
-                                  description: "Redirecting to sponsored partner.",
-                                });
-                              }
-                            }}
-                            className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-bold transition-all shadow-md active:scale-95 cursor-pointer ${
-                              ad.type === "playable"
-                                ? "bg-gradient-to-r from-amber-500 to-orange-500 text-black hover:brightness-110 shadow-[0_0_15px_rgba(245,158,11,0.3)]"
-                                : "bg-white/10 hover:bg-white/20 border border-white/20 text-white"
-                            }`}
-                          >
-                            <span>{ad.cta}</span>
-                            {ad.type === "playable" ? (
-                              <Gamepad2 className="size-3.5" />
-                            ) : (
-                              <ExternalLink className="size-3" />
-                            )}
-                          </button>
-                        </div>
-                      </div>
-                    )}
+                    {/* Admin-configured ad after every 5 comments */}
+                    {isEvery5 ? <StandardBannerAd variant="feed-card" placement="hot_seat_comments" /> : null}
                   </div>
                 );
               })}
