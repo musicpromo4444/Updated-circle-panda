@@ -48,6 +48,7 @@ import {
   type LiveChatMessage,
 } from "@/components/hotseat/LiveChatDrawer";
 import { ShareModal } from "@/components/hotseat/ShareModal";
+import { StandardBannerAd } from "@/components/ads/StandardBannerAd";
 
 export const Route = createFileRoute("/hot-seat")({
   head: () => ({
@@ -389,6 +390,9 @@ function HotSeatPage() {
             <h2 className="text-2xl font-extrabold text-white">Hot Seat resumes soon</h2>
             <p className="mt-2 text-sm text-white/60">The 3-hour live block has ended. The live player is closed for 1 hour, then the next live block resumes automatically.</p>
             <div className="mt-5 text-3xl font-black tabular-nums text-white">{formatLongTimer(windowSeconds)}</div>
+            <div className="mt-5 w-full max-w-sm">
+              <StandardBannerAd variant="feed-card" placement="hot_seat_water_break" />
+            </div>
           </div>
         </div>
       )}
