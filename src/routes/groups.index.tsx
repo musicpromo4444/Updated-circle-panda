@@ -171,8 +171,8 @@ function GroupsPage() {
         {groups.map((g, idx) => (
           <div key={g.id} className="space-y-4">
             <GroupCard group={g} />
-            {/* Standard banner advertisement after every sequence of 5 items */}
-            {(idx + 1) % 5 === 0 ? <StandardBannerAd index={Math.floor(idx / 5)} /> : null}
+            {/* Standard banner advertisement after every sequence of 4 items */}
+            {(idx + 1) % 4 === 0 ? <StandardBannerAd index={Math.floor(idx / 4)} /> : null}
           </div>
         ))}
       </div>
