@@ -45,8 +45,9 @@ function DatingPage() {
   const [incoming, setIncoming] = useState<any[]>([]);
   const [connections, setConnections] = useState<any[]>([]);
   useEffect(() => {
-    void (supabase as any).from("dating_connections").select("id,requester_id,recipient_id,status,requester_confirmed,recipient_confirmed,reveal_at").then(({data,error}:any)=>{
-      if(!error){ setConnections(data??[]); setIncoming((data??[]).filter((x:any)=>x.status==="pending" && x.recipient_id)); }
+    void Promise.all([(supabase as any).auth.getUser(), (supabase as any).from("dating_connections").select("id,requester_id,recipient_id,status,requester_confirmed,recipient_confirmed,reveal_at")]).then(([userRes,connRes]:any)=>{
+      const uid=userRes?.data?.user?.id; const rows=connRes?.data??[];
+      if(!connRes?.error){ setConnections(rows); setIncoming(rows.filter((x:any)=>x.status==="pending" && x.recipient_id===uid)); }
     });
   }, []);
 
