@@ -148,10 +148,10 @@ function AdminDashboardPage() {
               size="sm"
               onClick={resetToDefaultData}
               className="h-8 rounded-xl border-border px-2.5 text-xs text-muted-foreground hover:text-foreground"
-              title="Reset state to initial mock data"
+              title="Refresh live admin data"
             >
               <RotateCcw className="size-3.5 sm:mr-1" />
-              <span className="hidden sm:inline">Reset Data</span>
+              <span className="hidden sm:inline">Refresh Data</span>
             </Button>
 
             <Button
