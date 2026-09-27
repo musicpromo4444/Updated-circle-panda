@@ -468,7 +468,7 @@ type StoreValue = State & {
   canSpin: boolean;
   nextSpinAt: number | null;
   activateVip: (days: number) => void;
-  createGroup: (name: string, topic: string) => GroupChat;
+  createGroup: (name: string, topic: string) => Promise<GroupChat | null>;
   createEvent: (event: Omit<PandaEvent, "id" | "rsvp">) => PandaEvent;
   requestDatingMatch: (userId: string) => Promise<string | null>;
   registerDatingProfile: (profile: Omit<DatingProfile, "registeredAt" | "userId">) => void;
@@ -968,16 +968,14 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     })();
   }, [dbUserId]);
 
-  const createGroup = useCallback((name: string, topic: string): GroupChat => {
-    const optimistic: GroupChat = { id: crypto.randomUUID(), name, topic, members: 1, ownerId: dbUserId ?? undefined, memberRole: "owner", editGroupInfo: "admins", sendMessages: true, approveNewMembers: false, joinPending: false, openedAt: null, messages: [] };
-    if (!dbUserId) { toast.error("Sign in to create a group"); return optimistic; }
-    void (async () => {
-      const { data, error } = await (supabase as any).rpc("create_group_secure", { p_name:name, p_topic:topic });
-      if (error) { toast.error(error.message ?? "Group could not be created"); return; }
-      setState((s) => ({ ...s, groups:[{...optimistic,id:data.id,members:Number(data.members ?? 1)}, ...s.groups] }));
-      toast.success("Group created 🐼", { description:"Invite members, then open it when 3+ members are ready." });
-    })();
-    return optimistic;
+  const createGroup = useCallback(async (name: string, topic: string): Promise<GroupChat | null> => {
+    if (!dbUserId) { toast.error("Sign in to create a group"); return null; }
+    const { data, error } = await (supabase as any).rpc("create_group_secure", { p_name:name, p_topic:topic });
+    if (error) { toast.error(error.message ?? "Group could not be created"); return null; }
+    const group: GroupChat = { id:data.id, name:data.name ?? name, topic:data.topic ?? topic, members:Number(data.members ?? 1), ownerId:dbUserId, memberRole:"owner", editGroupInfo:"admins", sendMessages:true, approveNewMembers:false, joinPending:false, openedAt:null, messages:[] };
+    setState((s) => ({ ...s, groups:[group, ...s.groups] }));
+    toast.success("Group created 🐼", { description:"Invite members, then open it when 3+ members are ready." });
+    return group;
   }, [dbUserId]);
 
   const createEvent = useCallback((eventData: Omit<PandaEvent, "id" | "rsvp">): PandaEvent => {
