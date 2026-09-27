@@ -263,7 +263,7 @@ function ActivitiesPage() {
 
   const load = async () => {
     setLoading(true);
-    const { data, error } = await (supabase as any).rpc("get_activity_hub");
+    const { data, error } = await (supabase as any).rpc("get_today_seven_day_activity");
     if (error) toast.error(error.message ?? "Activities could not be loaded");
     else setActivities((data ?? []) as Activity[]);
     setLoading(false);
