@@ -23,7 +23,8 @@ import {
   AdminPricingManager,
   AdminUserManagement,
   AdminRoute,
-  AdminDailyGamesManager,\n  AdminHotSeatManager,
+  AdminDailyGamesManager,
+  AdminHotSeatManager,
   useAdminStore,
 } from "@/components/admin";
 import { MASTER_ADMIN_EMAIL } from "@/components/admin/AdminRoute";
@@ -89,7 +90,8 @@ function AdminDashboardPage() {
       { id: "pricing", label: "Coin Store & VIP Pricing", icon: Coins },
       { id: "monetization", label: "Ad & Monetization", icon: Megaphone },
       { id: "engagement", label: "Engagement & Events", icon: Sparkles },
-      { id: "games", label: "7-Day Games", icon: Gamepad2 },\n      { id: "hotseat", label: "Hot Seat", icon: Radio },
+      { id: "games", label: "7-Day Games", icon: Gamepad2 },
+      { id: "hotseat", label: "Hot Seat", icon: Radio },
       { id: "audit", label: "Audit Logs", icon: History },
     ];
 
@@ -235,7 +237,8 @@ function AdminDashboardPage() {
         ) : null}
 
         {/* TAB: 7-DAY GAMES */}
-        {activeTab === "games" ? <AdminDailyGamesManager /> : null}\n        {activeTab === "hotseat" ? <AdminHotSeatManager /> : null}
+        {activeTab === "games" ? <AdminDailyGamesManager /> : null}
+        {activeTab === "hotseat" ? <AdminHotSeatManager /> : null}
 
         {/* TAB 6: AUDIT LOGS */}
         {activeTab === "audit" ? (
