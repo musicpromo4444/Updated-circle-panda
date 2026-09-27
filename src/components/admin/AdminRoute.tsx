@@ -9,7 +9,7 @@ export interface AdminRouteProps {
   children: ReactNode;
 }
 
-export default function AdminRoute({ user, children }: AdminRouteProps) {
+export function AdminRoute({ user, children }: AdminRouteProps) {
   const { user: currentAuthUser, loading } = useCurrentUser();
   const [checking, setChecking] = useState(user === undefined);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -38,3 +38,5 @@ export default function AdminRoute({ user, children }: AdminRouteProps) {
   if (!isAdmin) return <Navigate to="/feed" replace />;
   return <>{children}</>;
 }
+
+export default AdminRoute;
