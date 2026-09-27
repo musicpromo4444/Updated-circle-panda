@@ -89,7 +89,6 @@ export function useAdminStore() {
 
   const [engagementConfig, setEngagementConfig] = useState<EngagementConfig>(() => {
     const defaults: EngagementConfig = { ...DEFAULT_ENGAGEMENT_CONFIG };
-    };
 
     try {
       if (typeof window !== "undefined" && window.localStorage) {
