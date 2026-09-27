@@ -285,7 +285,7 @@ function ActivitiesPage() {
         <div className="cp-activity-progress"><Trophy className="size-4" /><b>{completed}/{total}</b><span>done</span></div>
       </section>
       <section className="cp-activity-list">
-        <div className="cp-activity-section-head"><div><p className="cp-eyebrow">YOUR GAMES</p><h2>Activity Library</h2></div><span>Server verified</span></div>
+        <div className="cp-activity-section-head"><div><p className="cp-eyebrow">YOUR GAMES</p><h2>Today’s Activity</h2></div><span>Server verified</span></div>
         {loading ? <div className="cp-activity-loading"><Loader2 className="size-6 animate-spin" />Loading…</div> : null}
         {!loading && activities.length === 0 ? <div className="cp-activity-loading">No activities are enabled right now.</div> : null}
         {!loading ? activities.map(activity => {
