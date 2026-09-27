@@ -1,4 +1,4 @@
-import { createFileRoute, useSearch } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { Check, ChevronLeft, Heart, Send, ShieldBan, X } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
@@ -31,6 +31,7 @@ export const Route = createFileRoute("/messages")({
 function MessagesPage() {
   const { threads, sendMessage, coins } = useStore();
   const search = useSearch({ from: "/messages" });
+  const navigate = useNavigate();
   const [activeId, setActiveId] = useState<string | null>(search.thread ?? null);
   const [draft, setDraft] = useState("");
   const [crushRequests, setCrushRequests] = useState<any[]>([]);
@@ -66,7 +67,7 @@ function MessagesPage() {
                     <p className="text-[10px] font-bold text-muted-foreground">Anonymous Panda · {r.kind === "dating" ? "Dating request" : "Message request"}</p>
                     {r.message ? <p className="mt-1 text-sm">{r.message}</p> : null}
                     <div className="mt-2 flex gap-2">
-                      <Button size="sm" className="gap-1" onClick={()=>void (supabase as any).rpc("respond_direct_message_request_secure",{p_request_id:r.id,p_accept:true}).then(({data,error}:any)=>{if(error)throw error;setMessageRequests(x=>x.filter(y=>y.id!==r.id));if(data?.thread_id)setActiveId(data.thread_id);})}><Check className="size-3.5"/>Accept</Button>
+                      <Button size="sm" className="gap-1" onClick={()=>void (supabase as any).rpc("respond_direct_message_request_secure",{p_request_id:r.id,p_accept:true}).then(({data,error}:any)=>{if(error)throw error;setMessageRequests(x=>x.filter(y=>y.id!==r.id));if(data?.thread_id) void navigate({to:"/messages",search:{thread:data.thread_id}});})}><Check className="size-3.5"/>Accept</Button>
                       <Button size="sm" variant="outline" className="gap-1" onClick={()=>void (supabase as any).rpc("respond_direct_message_request_secure",{p_request_id:r.id,p_accept:false}).then(({error}:any)=>{if(error)throw error;setMessageRequests(x=>x.filter(y=>y.id!==r.id));})}><X className="size-3.5"/>Decline</Button>
                       <Button size="sm" variant="ghost" className="gap-1 text-destructive" onClick={()=>void (supabase as any).rpc("block_user_secure",{p_user_id:r.sender_id}).then(({error}:any)=>{if(error)throw error;setMessageRequests(x=>x.filter(y=>y.id!==r.id));})}><ShieldBan className="size-3.5"/>Block</Button>
                     </div>
