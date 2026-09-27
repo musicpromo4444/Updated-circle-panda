@@ -32,7 +32,9 @@ import {
   savePricingConfig,
 } from "@/components/store/pricingStorage";
 
-const INITIAL_USERS: AdminUser[] = [];\n\nconst INITIAL_AD_METRICS: AdPerformanceMetrics = {
+const INITIAL_USERS: AdminUser[] = [];
+
+const INITIAL_AD_METRICS: AdPerformanceMetrics = {
   impressionsWeb: 142500,
   impressionsAndroid: 198300,
   revenueWeb: 428.5,
@@ -454,7 +456,8 @@ export function useAdminStore() {
     ]);
     const csvContent =
       "data:text/csv;charset=utf-8," +
-      [headers.join(","), ...rows.map((e) => e.join(","))].join("\n");
+      [headers.join(","), ...rows.map((e) => e.join(","))].join("
+");
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
