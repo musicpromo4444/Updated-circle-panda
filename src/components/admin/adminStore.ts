@@ -215,9 +215,13 @@ export function useAdminStore() {
   // Pricing & Subscription Config State
   const [pricingConfig, setPricingConfig] = useState<PricingConfig>(getPricingConfig);
 
-  // Sync pricingConfig to storage
+  // Load the real server catalog; never seed customer pricing from local demo data.
   useEffect(() => {
-    savePricingConfig(pricingConfig);
+    void loadPricingConfig().then(setPricingConfig).catch((err) => console.error("Failed to load pricing:", err));
+  }, []);
+
+  useEffect(() => {
+    if (pricingConfig.packages.length || pricingConfig.vipPlans.length) void savePricingConfig(pricingConfig);
   }, [pricingConfig]);
 
   const addLog = (adminAction: string, details: string, targetUser?: string) => {
