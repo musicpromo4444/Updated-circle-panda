@@ -94,6 +94,8 @@ export type DatingProfile = {
   bio: string;
   interests: string[];
   location: string;
+  country: string;
+  gender: string;
   relationshipGoal: string;
   lookingFor: string[];
   lifestyle: string[];
@@ -468,6 +470,7 @@ type StoreValue = State & {
   activateVip: (days: number) => void;
   createGroup: (name: string, topic: string) => GroupChat;
   createEvent: (event: Omit<PandaEvent, "id" | "rsvp">) => PandaEvent;
+  requestDatingMatch: (userId: string) => Promise<string | null>;
   registerDatingProfile: (profile: Omit<DatingProfile, "registeredAt" | "userId">) => void;
 };
 
@@ -520,7 +523,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         (supabase as any).from("group_settings").select("group_id,edit_group_info,send_messages,approve_new_members"),
         (supabase as any).from("events").select("id,title,description,location,starts_at,ends_at,category,entry_fee_bc,duration_minutes,reach_scope,reach_country,reach_state,reach_city,reach_area,cover_url,is_published,owner_id").eq("is_published",true).order("starts_at", {ascending:true}),
         (supabase as any).from("event_attendees").select("event_id,user_id"),
-        (supabase as any).from("dating_profiles").select("user_id,name,age,vibe,emoji,bio,interests,location,relationship_goal,looking_for,lifestyle,personality,love_language,smoking,drinking,children,education,occupation,sexual_experience,intimacy_preference,relationship_status,height_cm,zodiac,favorite_date,updated_at").eq("enabled",true),
+        (supabase as any).from("dating_profiles").select("user_id,name,age,vibe,emoji,bio,interests,location,country,gender,relationship_goal,looking_for,lifestyle,personality,love_language,smoking,drinking,children,education,occupation,sexual_experience,intimacy_preference,relationship_status,height_cm,zodiac,favorite_date,updated_at").eq("enabled",true),
         (supabase as any).from("bc_accounts").select("balance").eq("user_id",uid).maybeSingle(),
         (supabase as any).from("user_xp").select("xp").eq("user_id",uid).maybeSingle(),
         Promise.resolve({ data: [] as any[] }),
@@ -555,7 +558,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         messages:rawThreadMessages.filter((m:any)=>m.thread_id===t.id).map((m:any)=>({id:m.id,body:m.body,at:new Date(m.created_at).getTime(),mine:m.user_id===uid})), startedAt:t.kind === "dating" ? new Date(t.created_at).getTime() : undefined
       }));
       const totalXp = Number(xpRes.data?.xp ?? 0);
-      setState((prev)=>({...prev,...stData,coins:Number(coinsRes.data?.balance ?? prev.coins),reputation:stData.reputation??0,level:pandaProgress(totalXp).index+1,xp:totalXp,posts,groups,threads,events,nominees,sweepWinners:(winnersRes.data??[]).map((w:any)=>({draw:w.draw,name:w.name,prize:w.prize,wonAt:new Date(w.won_at).getTime()})),sweepTickets:(ticketsRes.data??[]).map((t:any)=>({id:t.id,draw:t.draw,at:new Date(t.created_at).getTime()})),spotlights:(crushWinnersRes.data??[]).map((w:any)=>({kind:w.kind,name:w.display_name,wonAt:new Date(w.created_at).getTime()})),datingProfile:dating?{userId:dating.user_id,name:dating.name,age:dating.age,vibe:dating.vibe,emoji:dating.emoji,bio:dating.bio,interests:dating.interests??[],location:dating.location,relationshipGoal:dating.relationship_goal??"",lookingFor:dating.looking_for??[],lifestyle:dating.lifestyle??[],personality:dating.personality??[],loveLanguage:dating.love_language??"",smoking:dating.smoking??"",drinking:dating.drinking??"",children:dating.children??"",education:dating.education??"",occupation:dating.occupation??"",sexualExperience:dating.sexual_experience??"",intimacyPreference:dating.intimacy_preference??"",relationshipStatus:dating.relationship_status??"single",heightCm:dating.height_cm??null,zodiac:dating.zodiac??"",favoriteDate:dating.favorite_date??"",registeredAt:new Date(dating.updated_at).getTime()}:null,datingMatches:(datingRes.data??[]).filter((d:any)=>d.user_id!==uid).map((d:any)=>({userId:d.user_id,name:d.name,age:d.age,vibe:d.vibe,emoji:d.emoji,bio:d.bio,interests:d.interests??[],location:d.location,relationshipGoal:d.relationship_goal??"",lookingFor:d.looking_for??[],lifestyle:d.lifestyle??[],personality:d.personality??[],loveLanguage:d.love_language??"",smoking:d.smoking??"",drinking:d.drinking??"",children:d.children??"",education:d.education??"",occupation:d.occupation??"",sexualExperience:d.sexual_experience??"",intimacyPreference:d.intimacy_preference??"",relationshipStatus:d.relationship_status??"single",heightCm:d.height_cm??null,zodiac:d.zodiac??"",favoriteDate:d.favorite_date??"",registeredAt:new Date(d.updated_at).getTime()}))}));
+      setState((prev)=>({...prev,...stData,coins:Number(coinsRes.data?.balance ?? prev.coins),reputation:stData.reputation??0,level:pandaProgress(totalXp).index+1,xp:totalXp,posts,groups,threads,events,nominees,sweepWinners:(winnersRes.data??[]).map((w:any)=>({draw:w.draw,name:w.name,prize:w.prize,wonAt:new Date(w.won_at).getTime()})),sweepTickets:(ticketsRes.data??[]).map((t:any)=>({id:t.id,draw:t.draw,at:new Date(t.created_at).getTime()})),spotlights:(crushWinnersRes.data??[]).map((w:any)=>({kind:w.kind,name:w.display_name,wonAt:new Date(w.created_at).getTime()})),datingProfile:dating?{userId:dating.user_id,name:dating.name,age:dating.age,vibe:dating.vibe,emoji:dating.emoji,bio:dating.bio,interests:dating.interests??[],location:dating.location,country:dating.country??dating.location??"",gender:dating.gender??"",relationshipGoal:dating.relationship_goal??"",lookingFor:dating.looking_for??[],lifestyle:dating.lifestyle??[],personality:dating.personality??[],loveLanguage:dating.love_language??"",smoking:dating.smoking??"",drinking:dating.drinking??"",children:dating.children??"",education:dating.education??"",occupation:dating.occupation??"",sexualExperience:dating.sexual_experience??"",intimacyPreference:dating.intimacy_preference??"",relationshipStatus:dating.relationship_status??"single",heightCm:dating.height_cm??null,zodiac:dating.zodiac??"",favoriteDate:dating.favorite_date??"",registeredAt:new Date(dating.updated_at).getTime()}:null,datingMatches:(datingRes.data??[]).filter((d:any)=>d.user_id!==uid).map((d:any)=>({userId:d.user_id,name:d.name,age:d.age,vibe:d.vibe,emoji:d.emoji,bio:d.bio,interests:d.interests??[],location:d.location,country:d.country??d.location??"",gender:d.gender??"",relationshipGoal:d.relationship_goal??"",lookingFor:d.looking_for??[],lifestyle:d.lifestyle??[],personality:d.personality??[],loveLanguage:d.love_language??"",smoking:d.smoking??"",drinking:d.drinking??"",children:d.children??"",education:d.education??"",occupation:d.occupation??"",sexualExperience:d.sexual_experience??"",intimacyPreference:d.intimacy_preference??"",relationshipStatus:d.relationship_status??"single",heightCm:d.height_cm??null,zodiac:d.zodiac??"",favoriteDate:d.favorite_date??"",registeredAt:new Date(d.updated_at).getTime()}))}));
     })().catch(()=>{});
     return () => { cancelled = true; };
   }, []);
@@ -1026,11 +1029,28 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const registerDatingProfile = useCallback((p: Omit<DatingProfile, "registeredAt" | "userId">) => {
     if (!dbUserId) { toast.error("Sign in to register for Dating"); return; }
     void (async () => {
-      const { error } = await (supabase as any).from("dating_profiles").upsert({user_id:dbUserId,name:p.name,age:p.age,vibe:p.vibe,emoji:p.emoji,bio:p.bio,interests:p.interests,location:p.location,relationship_goal:p.relationshipGoal,looking_for:p.lookingFor,lifestyle:p.lifestyle,personality:p.personality,love_language:p.loveLanguage,smoking:p.smoking,drinking:p.drinking,children:p.children,education:p.education,occupation:p.occupation,sexual_experience:p.sexualExperience,intimacy_preference:p.intimacyPreference,relationship_status:p.relationshipStatus,height_cm:p.heightCm ?? null,zodiac:p.zodiac,favorite_date:p.favoriteDate,updated_at:new Date().toISOString()},{onConflict:"user_id"});
+      const { data, error } = await (supabase as any).rpc("register_dating_profile_secure", {
+        p_age:p.age,p_gender:p.gender,p_country:p.country,p_vibe:p.vibe,p_bio:p.bio,p_interests:p.interests,
+        p_relationship_goal:p.relationshipGoal,p_looking_for:p.lookingFor,p_lifestyle:p.lifestyle,p_personality:p.personality,
+        p_love_language:p.loveLanguage,p_smoking:p.smoking,p_drinking:p.drinking,p_children:p.children,p_education:p.education,
+        p_occupation:p.occupation,p_sexual_experience:p.sexualExperience,p_intimacy_preference:p.intimacyPreference,
+        p_relationship_status:p.relationshipStatus,p_height_cm:p.heightCm??null,p_zodiac:p.zodiac,p_favorite_date:p.favoriteDate,p_emoji:p.emoji
+      });
       if (error) { toast.error(error.message ?? "Dating profile could not be saved"); return; }
-      setState(s => ({...s,datingProfile:{...p,userId:dbUserId,registeredAt:Date.now()}}));
+      setState(s => ({...s,datingProfile:{...p,name:data?.name??p.name,userId:dbUserId,registeredAt:Date.now()}}));
+      toast.success("Dating profile saved 💗");
     })();
   }, [dbUserId]);
+
+  const requestDatingMatch = useCallback((userId:string) => {
+    if (!dbUserId || !userId) { toast.error("Dating profile unavailable"); return Promise.resolve(null); }
+    return (async () => {
+      const {data,error}=await (supabase as any).rpc("request_dating_match_secure",{p_recipient_id:userId});
+      if(error){toast.error(error.message??"Could not send dating request");return null;}
+      toast.success(data?.status==="matched"?"It's a mutual match 💗":"Dating request sent 💗");
+      return String(data?.status??"pending");
+    })();
+  },[dbUserId]);
 
   const buyTicket = useCallback((draw: DrawKind) => {
     if (!dbUserId) { toast.error("Sign in to buy a ticket"); return false; }
@@ -1107,6 +1127,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       isGroupExpired,
       sendMessage,
       startDatingChat,
+      requestDatingMatch,
       startDmWithAuthor,
       openPaidDm,
       syncCoins,
@@ -1141,6 +1162,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       createEvent,
       startEventBlast,
       registerDatingProfile,
+      requestDatingMatch,
     }),
     [
       state,
