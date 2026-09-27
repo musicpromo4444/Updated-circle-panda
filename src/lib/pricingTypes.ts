@@ -1,1 +1,67 @@
-ZXhwb3J0IGludGVyZmFjZSBDb2luUGFja2FnZSB7CiAgaWQ6IHN0cmluZzsKICBuYW1lOiBzdHJpbmc7CiAgcHJpY2U6IG51bWJlcjsKICBwcmljZU5nbj86IG51bWJlcjsKICBjb2luczogbnVtYmVyOwogIGJvbnVzVGFnPzogc3RyaW5nOwogIGRlc2NyaXB0aW9uOiBzdHJpbmc7CiAgYmFkZ2U/OiBzdHJpbmc7CiAgZW5hYmxlZDogYm9vbGVhbjsKICBpc1BvcHVsYXI/OiBib29sZWFuOwogIGlzQmVzdFZhbHVlPzogYm9vbGVhbjsKICBpY29uPzogc3RyaW5nOwp9CgpleHBvcnQgaW50ZXJmYWNlIFZpcFBsYW4gewogIGlkOiBzdHJpbmc7CiAgbmFtZTogc3RyaW5nOwogIHByaWNlOiBudW1iZXI7CiAgcHJpY2VOZ24/OiBudW1iZXI7CiAgaW50ZXJ2YWw6ICJ3ZWVrIiB8ICJtb250aCI7CiAgZHVyYXRpb25EYXlzOiBudW1iZXI7CiAgYmlsbGluZ1BlcmlvZDogc3RyaW5nOwogIGRlc2NyaXB0aW9uOiBzdHJpbmc7CiAgYmFkZ2U/OiBzdHJpbmc7CiAgaXNIaWdobGlnaHRlZDogYm9vbGVhbjsKICBlbmFibGVkOiBib29sZWFuOwogIHBlcmtzOiBzdHJpbmdbXTsKfQoKZXhwb3J0IGludGVyZmFjZSBQYXlzdGFja0dhdGV3YXlDb25maWcgewogIHB1YmxpY0tleTogc3RyaW5nOwogIGN1cnJlbmN5OiAiVVNEIiB8ICJOR04iOwogIGV4Y2hhbmdlUmF0ZU5nbjogbnVtYmVyOwogIHRlc3RNb2RlOiBib29sZWFuOwogIG1lcmNoYW50TmFtZTogc3RyaW5nOwp9CgpleHBvcnQgaW50ZXJmYWNlIEFuZHJvaWRCcmlkZ2VHYXRld2F5Q29uZmlnIHsKICBlbmFibGVkOiBib29sZWFuOwogIGJyaWRnZUludGVyZmFjZU5hbWU6IHN0cmluZzsKICBmYWxsYmFja1RvQnJvd3NlcjogYm9vbGVhbjsKICBzYW5kYm94Q2hlY2tvdXRVcmw6IHN0cmluZzsKfQoKZXhwb3J0IGludGVyZmFjZSBOYXRpdmVTdG9yZVByb2R1Y3RDb25maWcgewogIHByb3ZpZGVyOiAiZ29vZ2xlX3BsYXkiIHwgImFwcGxlX2lhcCI7CiAgZW5hYmxlZDogYm9vbGVhbjsKICBwcm9kdWN0SWRzOiBSZWNvcmQ8c3RyaW5nLCBzdHJpbmc+OwogIHN1YnNjcmlwdGlvbklkczogUmVjb3JkPHN0cmluZywgc3RyaW5nPjsKfQoKZXhwb3J0IGludGVyZmFjZSBQcmljaW5nQ29uZmlnIHsKICBwYWNrYWdlczogQ29pblBhY2thZ2VbXTsKICB2aXBQbGFuczogVmlwUGxhbltdOwogIHBheXN0YWNrOiBQYXlzdGFja0dhdGV3YXlDb25maWc7CiAgYW5kcm9pZEJyaWRnZTogQW5kcm9pZEJyaWRnZUdhdGV3YXlDb25maWc7CiAgZ29vZ2xlUGxheTogTmF0aXZlU3RvcmVQcm9kdWN0Q29uZmlnOwogIGFwcGxlSWFwOiBOYXRpdmVTdG9yZVByb2R1Y3RDb25maWc7CiAgbGFzdFVwZGF0ZWQ/OiBzdHJpbmc7Cn0K
+export interface CoinPackage {
+  id: string;
+  name: string;
+  price: number;
+  priceNgn?: number;
+  coins: number;
+  bonusTag?: string;
+  description: string;
+  badge?: string;
+  enabled: boolean;
+  isPopular?: boolean;
+  isBestValue?: boolean;
+  icon?: string;
+  paystackProductCode?: string;
+  androidProductId?: string;
+  iosProductId?: string;
+}
+
+export interface VipPlan {
+  id: string;
+  name: string;
+  price: number;
+  priceNgn?: number;
+  interval: "week" | "month";
+  durationDays: number;
+  billingPeriod: string;
+  description: string;
+  badge?: string;
+  isHighlighted: boolean;
+  enabled: boolean;
+  perks: string[];
+  paystackProductCode?: string;
+  androidProductId?: string;
+  iosProductId?: string;
+}
+
+export interface PaystackGatewayConfig {
+  publicKey: string;
+  currency: "USD" | "NGN";
+  exchangeRateNgn: number;
+  testMode: boolean;
+  merchantName: string;
+}
+
+export interface AndroidBridgeGatewayConfig {
+  enabled: boolean;
+  bridgeInterfaceName: string;
+  fallbackToBrowser: boolean;
+  sandboxCheckoutUrl: string;
+}
+
+export interface NativeStoreProductConfig {
+  provider: "google_play" | "apple_iap";
+  enabled: boolean;
+  productIds: Record<string, string>;
+  subscriptionIds: Record<string, string>;
+}
+
+export interface PricingConfig {
+  packages: CoinPackage[];
+  vipPlans: VipPlan[];
+  paystack: PaystackGatewayConfig;
+  androidBridge: AndroidBridgeGatewayConfig;
+  googlePlay: NativeStoreProductConfig;
+  appleIap: NativeStoreProductConfig;
+  lastUpdated?: string;
+}
