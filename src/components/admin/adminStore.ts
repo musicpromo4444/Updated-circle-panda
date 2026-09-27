@@ -208,6 +208,9 @@ export function useAdminStore() {
         window.dispatchEvent(new CustomEvent(EVENT_ENGAGEMENT_UPDATED));
       }
     } catch {
+      // ignore
+    }
+  }, [engagementConfig]);
 
   useEffect(() => {
     try {
