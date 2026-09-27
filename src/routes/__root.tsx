@@ -4,6 +4,7 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
+  useLocation,
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
@@ -158,6 +159,8 @@ function ThemedToaster() {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const location = useLocation();
+  const hideHotSeatPresence = location.pathname === "/profile" || location.pathname.startsWith("/profile/");
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -165,7 +168,7 @@ function RootComponent() {
         <StoreProvider>
           {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
           <Outlet />
-          <HotSeatFloatingPresence />
+          {!hideHotSeatPresence ? <HotSeatFloatingPresence /> : null}
           <ThemedToaster />
         </StoreProvider>
       </ThemeProvider>
