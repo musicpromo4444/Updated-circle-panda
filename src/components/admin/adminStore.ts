@@ -160,6 +160,29 @@ export function useAdminStore() {
   };
 
   useEffect(() => { void loadRealUsers(); }, []);
+  useEffect(() => {
+    void (async () => {
+      const { data, error } = await (supabase as any).rpc("get_ad_runtime_config");
+      if (error) { toast.error(error.message ?? "Could not load live ad inventory"); return; }
+      const config = data?.config ?? {};
+      const creatives: AdCreative[] = (Array.isArray(data?.creatives) ? data.creatives : []).map((a: any) => ({
+        id: String(a.id),
+        sponsor: String(a.sponsor ?? ""),
+        headline: String(a.headline ?? ""),
+        description: String(a.description ?? ""),
+        imageUrl: a.image_url ?? undefined,
+        destinationUrl: String(a.destination_url ?? ""),
+        placement: a.placement as any,
+        category: String(a.category ?? "Sponsored Partner"),
+        callToAction: String(a.call_to_action ?? "Learn More"),
+        status: a.status === "paused" ? "paused" : "active",
+        impressions: Number(a.impressions ?? 0),
+        clicks: Number(a.clicks ?? 0),
+        createdAt: String(a.created_at ?? new Date().toISOString()),
+      }));
+      setAdConfig((prev) => ({ ...prev, dailyLoginPopupBanner: config.daily_login_popup_banner !== false, mainFeedBanner: config.main_feed_banner !== false, feedBannerInterval: Number(config.feed_banner_interval ?? prev.feedBannerInterval), videoAdCrushFrequency: Number(config.crush_video_frequency ?? prev.videoAdCrushFrequency), androidNativeBridgeEnabled: config.android_native_bridge_enabled !== false, hotSeatCommentsAdsEnabled: config.hot_seat_comments_ads_enabled !== false, hotSeatQuestionsAdsEnabled: config.hot_seat_questions_ads_enabled !== false, hotSeatWaterBreakAdsEnabled: config.hot_seat_water_break_ads_enabled === true, creatives }));
+    })();
+  }, []);
 
   // Sync users to storage
   useEffect(() => {
@@ -275,82 +298,70 @@ export function useAdminStore() {
     toast.success("Ad & monetization settings updated");
   };
 
-  // Add Creative
-  const addCreative = (
-    creativeData: Omit<AdCreative, "id" | "impressions" | "clicks" | "createdAt">,
-  ) => {
-    const newCreative: AdCreative = {
-      ...creativeData,
-      id: `cr-${Date.now()}`,
-      impressions: 0,
-      clicks: 0,
-      createdAt: new Date().toISOString().split("T")[0],
-    };
-
-    setAdConfig((prev) => ({
-      ...prev,
-      creatives: [newCreative, ...(prev.creatives || [])],
-    }));
-
-    addLog(
-      "ADD_AD_CREATIVE",
-      `Created ad creative "${newCreative.headline}" for ${newCreative.placement}`,
-    );
-    toast.success(`Creative "${newCreative.sponsor}" added to ${newCreative.placement}`);
+  // Live server-backed ad inventory
+  const addCreative = (creativeData: Omit<AdCreative, "id" | "impressions" | "clicks" | "createdAt">) => {
+    void (async () => {
+      const { data, error } = await (supabase as any).rpc("admin_upsert_ad_creative", {
+        p_id: null,
+        p_sponsor: creativeData.sponsor,
+        p_headline: creativeData.headline,
+        p_description: creativeData.description,
+        p_tagline: "",
+        p_image_url: creativeData.imageUrl ?? null,
+        p_destination_url: creativeData.destinationUrl,
+        p_video_url: null,
+        p_poster_url: null,
+        p_placement: creativeData.placement,
+        p_format: "banner",
+        p_category: creativeData.category,
+        p_call_to_action: creativeData.callToAction,
+        p_duration_seconds: 8,
+        p_skip_after_seconds: 5,
+        p_status: creativeData.status,
+      });
+      if (error) { toast.error(error.message); return; }
+      const created: AdCreative = { ...creativeData, id: String(data), impressions: 0, clicks: 0, createdAt: new Date().toISOString() };
+      setAdConfig((prev) => ({ ...prev, creatives: [created, ...(prev.creatives || [])] }));
+      addLog("ADD_AD_CREATIVE", `Created live ad creative "${created.headline}" for ${created.placement}`);
+      toast.success("Live ad creative added");
+    })();
   };
 
-  // Update Creative
   const updateCreative = (id: string, partial: Partial<AdCreative>) => {
-    setAdConfig((prev) => ({
-      ...prev,
-      creatives: (prev.creatives || []).map((c) => (c.id === id ? { ...c, ...partial } : c)),
-    }));
-
-    addLog("UPDATE_AD_CREATIVE", `Updated creative #${id}`);
-    toast.success("Creative updated successfully");
+    void (async () => {
+      const current = adConfig.creatives.find((x) => x.id === id);
+      if (!current) { toast.error("Ad creative not found"); return; }
+      const next = { ...current, ...partial };
+      const { error } = await (supabase as any).rpc("admin_upsert_ad_creative", {
+        p_id: id, p_sponsor: next.sponsor, p_headline: next.headline, p_description: next.description,
+        p_tagline: "", p_image_url: next.imageUrl ?? null, p_destination_url: next.destinationUrl,
+        p_video_url: null, p_poster_url: null, p_placement: next.placement, p_format: "banner",
+        p_category: next.category, p_call_to_action: next.callToAction, p_duration_seconds: 8,
+        p_skip_after_seconds: 5, p_status: next.status,
+      });
+      if (error) { toast.error(error.message); return; }
+      setAdConfig((prev) => ({ ...prev, creatives: (prev.creatives || []).map((x) => x.id === id ? next : x) }));
+      toast.success("Live ad creative updated");
+    })();
   };
 
-  // Toggle Creative Status
   const toggleCreativeStatus = (id: string) => {
-    let targetTitle = "";
-    let newStatus = "active";
-    setAdConfig((prev) => ({
-      ...prev,
-      creatives: (prev.creatives || []).map((c) => {
-        if (c.id === id) {
-          newStatus = c.status === "active" ? "paused" : "active";
-          targetTitle = c.sponsor;
-          return { ...c, status: newStatus as "active" | "paused" };
-        }
-        return c;
-      }),
-    }));
-
-    addLog(
-      "TOGGLE_AD_CREATIVE",
-      `Creative status changed to ${newStatus.toUpperCase()}`,
-      targetTitle,
-    );
-    toast.info(`${targetTitle || "Creative"} is now ${newStatus.toUpperCase()}`);
+    const current = adConfig.creatives.find((x) => x.id === id);
+    if (!current) return;
+    updateCreative(id, { status: current.status === "active" ? "paused" : "active" });
   };
 
-  // Delete Creative
   const deleteCreative = (id: string) => {
-    let removedTitle = "";
-    setAdConfig((prev) => {
-      const target = (prev.creatives || []).find((c) => c.id === id);
-      removedTitle = target?.sponsor || id;
-      return {
-        ...prev,
-        creatives: (prev.creatives || []).filter((c) => c.id !== id),
-      };
-    });
-
-    addLog("DELETE_AD_CREATIVE", `Deleted creative ${removedTitle}`);
-    toast.success(`Removed creative: ${removedTitle}`);
+    void (async () => {
+      const { error } = await (supabase as any).rpc("admin_delete_ad_creative", { p_id: id });
+      if (error) { toast.error(error.message); return; }
+      setAdConfig((prev) => ({ ...prev, creatives: (prev.creatives || []).filter((x) => x.id !== id) }));
+      addLog("DELETE_AD_CREATIVE", `Deleted live ad creative ${id}`);
+      toast.success("Live ad creative removed");
+    })();
   };
 
-  // Toggle Sponsor Partner
+  // Update Sponsor Partner
   const toggleSponsorPartner = (partnerId: string) => {
     setAdConfig((prev) => ({
       ...prev,
