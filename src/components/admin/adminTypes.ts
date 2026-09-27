@@ -127,6 +127,9 @@ export interface CoinPackage {
   isPopular?: boolean;
   isBestValue?: boolean;
   icon?: string;
+  paystackProductCode?: string;
+  androidProductId?: string;
+  iosProductId?: string;
 }
 
 export interface VipPlan {
