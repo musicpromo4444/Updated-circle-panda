@@ -67,3 +67,32 @@ grant execute on function public.play_timed_daily_activity(text,text) to authent
 update public.seven_day_activity_configs
 set is_enabled=true,updated_at=now()
 where slug='guess_sponsor';
+
+
+create or replace function public.play_instant_daily_activity(p_slug text)
+returns jsonb language plpgsql security definer set search_path=''
+as $$
+declare uid uuid:=auth.uid(); a public.seven_day_activity_attempts%rowtype; c public.seven_day_activity_configs%rowtype;
+attempts_left integer; reward bigint:=0; reward_label text:='Activity complete';
+begin
+if uid is null then raise exception 'Authentication required'; end if;
+if p_slug not in ('wheel_spin','mystery_box','target','guess_sponsor','puzzle','cup_shuffle','playable_ad') then raise exception 'Activity unavailable'; end if;
+select * into c from public.seven_day_activity_configs where slug=p_slug and is_enabled=true;
+if not found then raise exception 'Activity unavailable'; end if;
+insert into public.seven_day_activity_attempts(user_id,activity_slug,activity_date) values(uid,p_slug,current_date)
+on conflict(user_id,activity_slug,activity_date) do nothing;
+select * into a from public.seven_day_activity_attempts where user_id=uid and activity_slug=p_slug and activity_date=current_date for update;
+attempts_left:=greatest(0,c.free_attempts+a.extra_attempts-a.attempts_used);
+if attempts_left<=0 then raise exception 'No attempts remaining'; end if;
+update public.seven_day_activity_attempts set attempts_used=attempts_used+1,last_result=jsonb_build_object('result','completed'),updated_at=now() where id=a.id;
+if p_slug='playable_ad' then return jsonb_build_object('result','completed','reward_bc',0,'reward_label','Sponsored activity complete'); end if;
+select x->>'label',coalesce((x->>'amount')::bigint,0) into reward_label,reward from jsonb_array_elements(c.reward_pool) x order by random() limit 1;
+if reward<>0 then perform public.apply_bc_delta(uid,reward,'7-Day Activity: '||c.title,'seven_day_activity'); end if;
+update public.seven_day_activity_attempts set last_result=jsonb_build_object('result','completed','reward_bc',reward,'reward_label',reward_label),updated_at=now() where id=a.id;
+return jsonb_build_object('result','completed','reward_bc',reward,'reward_label',reward_label,'attempts_left',attempts_left-1);
+end;
+$$;
+revoke execute on function public.play_instant_daily_activity(text) from public;
+grant execute on function public.play_instant_daily_activity(text) to authenticated;
+
+update public.seven_day_activity_configs set is_enabled=true,updated_at=now() where slug='guess_sponsor';
