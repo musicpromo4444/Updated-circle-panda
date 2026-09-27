@@ -264,8 +264,20 @@ function ActivitiesPage() {
   const load = async () => {
     setLoading(true);
     const { data, error } = await (supabase as any).rpc("get_today_seven_day_activity");
-    if (error) toast.error(error.message ?? "Activities could not be loaded");
-    else setActivities((data ?? []) as Activity[]);
+    if (error) toast.error(error.message ?? "Today’s activity could not be loaded");
+    else {
+      const today = data?.activity;
+      setActivities(today ? [{
+        id: String(today.slug),
+        title: String(today.title),
+        description: String(today.description),
+        activity_type: String(today.slug),
+        reward_bc: 0,
+        requires_ad: true,
+        completed: Boolean(today.completed),
+        last_completed_at: null,
+      }] : []);
+    }
     setLoading(false);
   };
 
