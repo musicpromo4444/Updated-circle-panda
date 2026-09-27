@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/compone
 import { PlayableVideoAd } from "@/components/ads/PlayableVideoAd";
 import { RegisterDatingModal } from "@/components/dating/RegisterDatingModal";
 import { useStore } from "@/lib/store";
+import { supabase } from "@/integrations/supabase/client";
 
 type Match = {
   userId?: string;
@@ -41,6 +42,8 @@ function DatingPage() {
   const [openMatch, setOpenMatch] = useState<Match | null>(null);
   const [registerOpen, setRegisterOpen] = useState(false);
   const [sent, setSent] = useState<Record<string,string>>({});
+  const [incoming, setIncoming] = useState<any[]>([]);
+  useEffect(() => { void (supabase as any).from("dating_connections").select("id,requester_id,requested_at").eq("status","pending").then(({data,error}:any)=>{ if(!error) setIncoming(data??[]); }); }, []);
 
   // Pre-cache video ad units
 
@@ -73,6 +76,22 @@ function DatingPage() {
           Register for Dating
         </Button>
       </div>
+
+      {incoming.length ? (
+        <section className="mb-5 rounded-2xl border border-[var(--dating)]/25 bg-[var(--dating)]/5 p-4">
+          <p className="font-display font-bold">Dating requests</p>
+          <p className="mt-1 text-xs text-muted-foreground">Accepting creates the mutual 72-hour confirmation period.</p>
+          <div className="mt-3 space-y-2">
+            {incoming.map((r:any)=>(
+              <div key={r.id} className="flex items-center gap-2 rounded-xl bg-background/70 p-3">
+                <span className="grid size-9 place-items-center rounded-full bg-secondary">🐼</span><span className="flex-1 text-sm">Anonymous Panda</span>
+                <Button size="sm" onClick={()=>void (supabase as any).rpc("respond_dating_match_secure",{p_connection_id:r.id,p_accept:true}).then(({data,error}:any)=>{if(error)throw error;setIncoming(x=>x.filter(y=>y.id!==r.id));toast.success("Mutual match 💗",{description:"Your 72-hour confirmation period has started."});})}>Accept</Button>
+                <Button size="sm" variant="outline" onClick={()=>void (supabase as any).rpc("respond_dating_match_secure",{p_connection_id:r.id,p_accept:false}).then(({error}:any)=>{if(error)throw error;setIncoming(x=>x.filter(y=>y.id!==r.id));})}>Decline</Button>
+              </div>
+            ))}
+          </div>
+        </section>
+      ) : null}
 
       <div className="grid gap-4 sm:grid-cols-2">
         {allMatches.map((m, idx) => (
@@ -118,7 +137,7 @@ function DatingPage() {
                     className="w-full gap-2 bg-[var(--dating)] text-[var(--dating-foreground)] hover:bg-[var(--dating)]/90"
                     onClick={() => match(m)}
                   >
-                    <Heart className="size-4 fill-current" /> Send dating request
+                    <Heart className="size-4 fill-current" /> {m.userId && sent[m.userId] === "matched" ? "Mutual match 💗" : m.userId && sent[m.userId] === "pending" ? "Request sent" : "Send dating request"}
                   </Button>
                 )}
               </div>
@@ -135,8 +154,7 @@ function DatingPage() {
       </div>
 
       <p className="mt-5 flex items-center justify-center gap-2 text-xs text-muted-foreground">
-        <MessageCircle className="size-3.5" /> Dating chats never expire, but every message costs 1
-        BC.
+        <MessageCircle className="size-3.5" /> Chat unlocks only after mutual confirmation and the 72-hour waiting period. Normal messages then cost 1 BC; VIP is free.
       </p>
 
       {/* Dating Profile Registration & Edit Modal */}
