@@ -96,7 +96,7 @@ function GameModal({ activity, onClose, onDone }: { activity: Activity; onClose:
 
   const completeStandard = async () => {
     setBusy(true);
-    const { data, error } = await (supabase as any).rpc("claim_activity", { p_activity_id: activity.id });
+    const { data, error } = await (supabase as any).rpc("play_instant_daily_activity", { p_activity_id: activity.id });
     setBusy(false);
     if (error) { toast.error(error.message ?? "Activity could not be completed"); return; }
     const bc = Number(data?.bc_awarded ?? 0);
