@@ -36,21 +36,20 @@ export const Route = createFileRoute("/dating")({
 });
 
 function DatingPage() {
-  const { startDatingChat, threads, datingProfile, datingMatches } = useStore();
+  const { requestDatingMatch, threads, datingProfile, datingMatches } = useStore();
   const navigate = useNavigate();
   const [openMatch, setOpenMatch] = useState<Match | null>(null);
   const [registerOpen, setRegisterOpen] = useState(false);
+  const [sent, setSent] = useState<Record<string,string>>({});
 
   // Pre-cache video ad units
 
   const match = async (m: Match) => {
     if (!m.userId) return;
-    const existing = threads.find((t) => t.kind === "dating" && t.name === m.name);
-    const id = await startDatingChat(m.userId, m.name);
-    if (!id) return;
-    toast.success("Dating chat opened 💗", { description: "Messages cost 1 BC each." });
+    const status = await requestDatingMatch(m.userId);
+    if (!status) return;
+    setSent((s) => ({...s,[m.userId!]:status}));
     setOpenMatch(null);
-    void navigate({ to: "/messages", search: { thread: existing?.id ?? id } });
   };
 
   const allMatches: Match[] = [
@@ -61,7 +60,7 @@ function DatingPage() {
   return (
     <AppShell
       title="Dating"
-      subtitle="Tap a card for the full profile. Chats open with a DATING CHAT badge."
+      subtitle="Tap a card for the full profile. Send a request first. Mutual matches follow the 72-hour confirmation flow before chat unlocks."
     >
       {/* Primary CTA button immediately below subtitle description and above main content cards */}
       <div className="mb-5">
@@ -119,7 +118,7 @@ function DatingPage() {
                     className="w-full gap-2 bg-[var(--dating)] text-[var(--dating-foreground)] hover:bg-[var(--dating)]/90"
                     onClick={() => match(m)}
                   >
-                    <Heart className="size-4 fill-current" /> Start dating chat
+                    <Heart className="size-4 fill-current" /> Send dating request
                   </Button>
                 )}
               </div>
@@ -180,7 +179,7 @@ function DatingPage() {
                   className="mt-5 w-full gap-2 bg-[var(--dating)] text-[var(--dating-foreground)] hover:bg-[var(--dating)]/90"
                   onClick={() => match(openMatch)}
                 >
-                  <Heart className="size-4 fill-current" /> Match & message
+                  <Heart className="size-4 fill-current" /> Send dating request
                 </Button>
               </div>
             </div>
