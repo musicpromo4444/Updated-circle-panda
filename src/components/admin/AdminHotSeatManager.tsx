@@ -1,0 +1,19 @@
+import { useEffect, useState } from "react";
+import { Loader2, Radio, Square } from "lucide-react";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { supabase } from "@/integrations/supabase/client";
+
+export function AdminHotSeatManager() {
+  const [alias,setAlias]=useState(""); const [url,setUrl]=useState(""); const [topic,setTopic]=useState("");
+  const [location,setLocation]=useState(""); const [provider,setProvider]=useState("youtube"); const [hosts,setHosts]=useState(5);
+  const [active,setActive]=useState<any>(null); const [loading,setLoading]=useState(true); const [saving,setSaving]=useState(false);
+  const load=async()=>{setLoading(true); const {data,error}=await supabase.from("hot_seat_hosts").select("*").eq("is_active",true).order("started_at",{ascending:false}).limit(1).maybeSingle(); if(error) toast.error(error.message); setActive(data); setLoading(false)};
+  useEffect(()=>{void load()},[]);
+  const start=async()=>{setSaving(true); const {data,error}=await (supabase as any).rpc("admin_hot_seat_start",{p_alias:alias,p_media_url:url,p_media_kind:"video",p_provider:provider,p_max_hosts:hosts,p_topic:topic||null,p_location:location||null,p_start_at:new Date().toISOString()}); setSaving(false); if(error) return toast.error(error.message); setActive(data); toast.success("Hot Seat is live");};
+  const end=async()=>{if(!active)return; setSaving(true); const {error}=await (supabase as any).rpc("admin_hot_seat_end",{p_host_id:active.id}); setSaving(false); if(error)return toast.error(error.message); setActive(null); toast.success("Hot Seat ended");};
+  return <section className="space-y-4"><div><h2 className="font-display text-xl font-bold sm:text-2xl">Hot Seat Control</h2><p className="text-xs text-muted-foreground">Start and control the worldwide 3-hour live block.</p></div>
+  {loading?<Loader2 className="size-4 animate-spin"/>:active?<div className="rounded-2xl border border-orange-500/30 bg-card p-4 space-y-3"><div className="flex items-center gap-2"><Radio className="size-4 text-orange-400"/><b>LIVE: {active.alias}</b></div><p className="text-xs text-muted-foreground">{active.stream_provider} · {active.max_hosts} host slots · 3 hours live + 1 hour water break</p><Button variant="destructive" onClick={()=>void end()} disabled={saving}><Square className="mr-2 size-4"/>End Hot Seat</Button></div>:
+  <div className="rounded-2xl border border-border bg-card p-4 space-y-3"><div className="grid grid-cols-2 gap-2"><Input placeholder="Host Panda name" value={alias} onChange={e=>setAlias(e.target.value)}/><Input placeholder="Live media URL" value={url} onChange={e=>setUrl(e.target.value)}/></div><Input placeholder="Topic" value={topic} onChange={e=>setTopic(e.target.value)}/><Input placeholder="Worldwide location label (optional)" value={location} onChange={e=>setLocation(e.target.value)}/><div className="grid grid-cols-2 gap-2"><select value={provider} onChange={e=>setProvider(e.target.value)} className="rounded-lg border border-border bg-background px-3 py-2 text-sm"><option value="youtube">YouTube</option><option value="aws">AWS / Own Stream</option><option value="zegocloud">ZEGOCLOUD</option></select><select value={hosts} onChange={e=>setHosts(Number(e.target.value))} className="rounded-lg border border-border bg-background px-3 py-2 text-sm">{[1,2,5,10,20].map(n=><option key={n} value={n}>{n} host slots</option>)}</select></div><Button onClick={()=>void start()} disabled={saving||!alias||!url} className="w-full"><Radio className="mr-2 size-4"/>{saving?"Starting…":"Start Hot Seat"}</Button></div>}</section>;
+}
