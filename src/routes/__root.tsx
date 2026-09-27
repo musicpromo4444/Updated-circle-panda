@@ -80,17 +80,17 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Panda Coins Connect" },
+      { title: "Circle Panda" },
       {
         name: "description",
         content:
-          "Anonymous feed, 24-hour group chats, dating, events, tiered Coin Store & VIP passes with Paystack and Android WebView bridge, and admin management powered by Panda Coins.",
+          "Anonymous community, dating, groups, activities, events, VIP and BC wallet for Circle Panda.",
       },
-      { property: "og:title", content: "Panda Coins Connect" },
+      { property: "og:title", content: "Circle Panda" },
       {
         property: "og:description",
         content:
-          "Anonymous feed, 24-hour group chats, dating, events, tiered Coin Store & VIP passes with Paystack and Android WebView bridge, and admin management powered by Panda Coins.",
+          "Anonymous community, dating, groups, activities, events, VIP and BC wallet for Circle Panda.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
