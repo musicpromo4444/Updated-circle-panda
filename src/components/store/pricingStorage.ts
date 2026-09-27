@@ -53,6 +53,9 @@ export function mergeServerCatalog(rows: any[]): PricingConfig {
       bonusTag: r.bonus_tag ?? fallback?.bonusTag, badge: r.badge ?? fallback?.badge,
       enabled: Boolean(r.enabled), isPopular: Boolean(r.is_popular), isBestValue: Boolean(r.is_best_value),
       icon: r.icon ?? fallback?.icon ?? "🪙",
+      paystackProductCode: r.paystack_product_code ?? fallback?.paystackProductCode,
+      androidProductId: r.android_product_id ?? fallback?.androidProductId,
+      iosProductId: r.ios_product_id ?? fallback?.iosProductId,
     };
   });
   const vipPlans: VipPlan[] = rows.filter((r) => r.item_type === "vip_subscription").map((r) => {
@@ -62,6 +65,9 @@ export function mergeServerCatalog(rows: any[]): PricingConfig {
       durationDays: Number(r.vip_days), billingPeriod: r.billing_period ?? fallback?.billingPeriod ?? "per period",
       description: r.description ?? fallback?.description ?? "Circle Panda VIP Pass", badge: r.badge ?? fallback?.badge,
       isHighlighted: Boolean(r.is_highlighted), enabled: Boolean(r.enabled), perks: Array.isArray(r.perks) ? r.perks : (fallback?.perks ?? []),
+      paystackProductCode: r.paystack_product_code ?? fallback?.paystackProductCode,
+      androidProductId: r.android_product_id ?? fallback?.androidProductId,
+      iosProductId: r.ios_product_id ?? fallback?.iosProductId,
     };
   });
   return { ...current, packages, vipPlans, lastUpdated: new Date().toISOString() };
@@ -72,7 +78,7 @@ export function getPricingConfig(): PricingConfig {
 }
 
 export async function loadPricingConfig(): Promise<PricingConfig> {
-  const { data, error } = await (supabase as any).from("store_catalog").select("id,item_type,name,price_usd,coins,vip_days,enabled,description,bonus_tag,badge,icon,is_popular,is_best_value,interval,billing_period,is_highlighted,perks");
+  const { data, error } = await (supabase as any).from("store_catalog").select("id,item_type,name,price_usd,coins,vip_days,enabled,description,bonus_tag,badge,icon,is_popular,is_best_value,interval,billing_period,is_highlighted,perks,paystack_product_code,android_product_id,ios_product_id");
   if (error || !Array.isArray(data)) return DEFAULT_PRICING_CONFIG;
   return mergeServerCatalog(data);
 }
@@ -80,8 +86,8 @@ export async function loadPricingConfig(): Promise<PricingConfig> {
 /** Admin-only persistence. Customer checkout never trusts this local state. */
 export async function savePricingConfig(config: PricingConfig): Promise<void> {
   const rows = [
-    ...config.packages.map((item) => ({ id:item.id,item_type:"coin_package",name:item.name,price_usd:item.price,price_ngn:Math.round(item.price*(config.paystack.exchangeRateNgn||1500)*100)/100,coins:item.coins,vip_days:0,enabled:item.enabled,description:item.description,bonus_tag:item.bonusTag ?? null,badge:item.badge ?? null,icon:item.icon ?? null,is_popular:Boolean(item.isPopular),is_best_value:Boolean(item.isBestValue),updated_at:new Date().toISOString() })),
-    ...config.vipPlans.map((item) => ({ id:item.id,item_type:"vip_subscription",name:item.name,price_usd:item.price,price_ngn:Math.round(item.price*(config.paystack.exchangeRateNgn||1500)*100)/100,coins:0,vip_days:item.durationDays,enabled:item.enabled,description:item.description,badge:item.badge ?? null,interval:item.interval,billing_period:item.billingPeriod,is_highlighted:Boolean(item.isHighlighted),perks:item.perks,updated_at:new Date().toISOString() })),
+    ...config.packages.map((item) => ({ id:item.id,item_type:"coin_package",name:item.name,price_usd:item.price,price_ngn:Math.round(item.price*(config.paystack.exchangeRateNgn||1500)*100)/100,coins:item.coins,vip_days:0,enabled:item.enabled,description:item.description,bonus_tag:item.bonusTag ?? null,badge:item.badge ?? null,icon:item.icon ?? null,is_popular:Boolean(item.isPopular),is_best_value:Boolean(item.isBestValue),paystack_product_code:item.paystackProductCode ?? null,android_product_id:item.androidProductId ?? null,ios_product_id:item.iosProductId ?? null,updated_at:new Date().toISOString() })),
+    ...config.vipPlans.map((item) => ({ id:item.id,item_type:"vip_subscription",name:item.name,price_usd:item.price,price_ngn:Math.round(item.price*(config.paystack.exchangeRateNgn||1500)*100)/100,coins:0,vip_days:item.durationDays,enabled:item.enabled,description:item.description,badge:item.badge ?? null,interval:item.interval,billing_period:item.billingPeriod,is_highlighted:Boolean(item.isHighlighted),perks:item.perks,paystack_product_code:item.paystackProductCode ?? null,android_product_id:item.androidProductId ?? null,ios_product_id:item.iosProductId ?? null,updated_at:new Date().toISOString() })),
   ];
   const { error } = await (supabase as any).from("store_catalog").upsert(rows, { onConflict:"id" });
   if (error) throw error;
@@ -98,7 +104,7 @@ export function usePricingConfig() {
   useEffect(() => {
     let cancelled = false;
     const load = async () => {
-      const { data, error } = await (supabase as any).from("store_catalog").select("id,item_type,name,price_usd,coins,vip_days,enabled,description,bonus_tag,badge,icon,is_popular,is_best_value,interval,billing_period,is_highlighted,perks").eq("enabled", true);
+      const { data, error } = await (supabase as any).from("store_catalog").select("id,item_type,name,price_usd,coins,vip_days,enabled,description,bonus_tag,badge,icon,is_popular,is_best_value,interval,billing_period,is_highlighted,perks,paystack_product_code,android_product_id,ios_product_id").eq("enabled", true);
       if (!cancelled && !error && Array.isArray(data) && data.length) setConfig(mergeServerCatalog(data));
     };
     void load();
