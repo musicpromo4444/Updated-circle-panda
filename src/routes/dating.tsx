@@ -43,7 +43,12 @@ function DatingPage() {
   const [registerOpen, setRegisterOpen] = useState(false);
   const [sent, setSent] = useState<Record<string,string>>({});
   const [incoming, setIncoming] = useState<any[]>([]);
-  useEffect(() => { void (supabase as any).from("dating_connections").select("id,requester_id,requested_at").eq("status","pending").then(({data,error}:any)=>{ if(!error) setIncoming(data??[]); }); }, []);
+  const [connections, setConnections] = useState<any[]>([]);
+  useEffect(() => {
+    void (supabase as any).from("dating_connections").select("id,requester_id,recipient_id,status,requester_confirmed,recipient_confirmed,reveal_at").then(({data,error}:any)=>{
+      if(!error){ setConnections(data??[]); setIncoming((data??[]).filter((x:any)=>x.status==="pending" && x.recipient_id)); }
+    });
+  }, []);
 
   // Pre-cache video ad units
 
@@ -76,6 +81,21 @@ function DatingPage() {
           Register for Dating
         </Button>
       </div>
+
+      {connections.filter((x:any)=>x.status==="matched" && new Date(x.reveal_at).getTime()<=Date.now() && (!x.requester_confirmed || !x.recipient_confirmed)).length ? (
+        <section className="mb-5 rounded-2xl border border-[var(--dating)]/25 bg-[var(--dating)]/5 p-4">
+          <p className="font-display font-bold">72-hour confirmation ready</p>
+          <p className="mt-1 text-xs text-muted-foreground">The waiting period is complete. Both people must confirm before Dating Chat unlocks.</p>
+          <div className="mt-3 space-y-2">
+            {connections.filter((x:any)=>x.status==="matched" && new Date(x.reveal_at).getTime()<=Date.now() && (!x.requester_confirmed || !x.recipient_confirmed)).map((x:any)=>(
+              <div key={x.id} className="flex items-center gap-2 rounded-xl bg-background/70 p-3">
+                <span className="grid size-9 place-items-center rounded-full bg-secondary">🐼</span><span className="flex-1 text-sm">Mutual Panda match</span>
+                <Button size="sm" onClick={()=>void (supabase as any).rpc("confirm_dating_match_secure",{p_connection_id:x.id}).then(({data,error}:any)=>{if(error)throw error;if(data?.thread_id) void navigate({to:"/messages",search:{thread:data.thread_id}}); else {toast.success("Confirmation saved 💗");setConnections(y=>y.map(z=>z.id===x.id?{...z,requester_confirmed:true}:z));}})}>Confirm</Button>
+              </div>
+            ))}
+          </div>
+        </section>
+      ) : null}
 
       {incoming.length ? (
         <section className="mb-5 rounded-2xl border border-[var(--dating)]/25 bg-[var(--dating)]/5 p-4">
