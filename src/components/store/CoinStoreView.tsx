@@ -179,7 +179,7 @@ export function CoinStoreView() {
 
                     <div className="mt-2 mb-1 flex items-baseline justify-between">
                       <span className="font-display text-2xl font-black text-foreground tabular-nums">
-                        ${pkg.price.toFixed(2)}
+                        ₦{Number(pkg.priceNgn ?? pkg.price * 1500).toLocaleString()}
                       </span>
                       <span className="font-display text-lg font-extrabold text-primary tabular-nums">
                         {pkg.coins.toLocaleString()} BC
@@ -209,7 +209,7 @@ export function CoinStoreView() {
                           : "bg-secondary text-foreground hover:bg-secondary/80 border border-border"
                     }`}
                   >
-                    Buy for ${pkg.price.toFixed(2)}
+                    Buy for ₦{Number(pkg.priceNgn ?? pkg.price * 1500).toLocaleString()}
                   </Button>
                 </div>
               );
@@ -272,7 +272,7 @@ export function CoinStoreView() {
                       </h4>
                       <div className="text-right">
                         <span className="font-display text-2xl font-black text-foreground tabular-nums">
-                          ${plan.price.toFixed(2)}
+                          ₦{Number(plan.priceNgn ?? plan.price * 1500).toLocaleString()}
                         </span>
                         <span className="text-xs text-muted-foreground font-medium ml-1">
                           /{plan.interval === "week" ? "week" : "month"}
@@ -304,7 +304,7 @@ export function CoinStoreView() {
                     }`}
                   >
                     <Crown className="size-4 mr-2" />
-                    Activate {plan.name} (${plan.price.toFixed(2)})
+                    Activate {plan.name} (₦{Number(plan.priceNgn ?? plan.price * 1500).toLocaleString()})
                   </Button>
                 </div>
               );
