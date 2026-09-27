@@ -75,12 +75,12 @@ export function DailyModalSequence({ forceOpen = false }: DailyModalSequenceProp
     }
   };
 
-  // Modal 1: Dismiss / Close handler (also immediately opens Modal 2)
+  // Modal 1: Dismiss / Close handler
+  // Closing the login reward should continue into the daily activity, matching the intended
+  // sequential flow. The activity itself can still be closed without claiming a reward.
   const handleCloseModal1 = () => {
-    setActiveStep(0);
+    setActiveStep(2);
   };
-
-
 
   const handleActivitiesClose = () => {
     markDailyModalsCompleted();
@@ -99,7 +99,6 @@ export function DailyModalSequence({ forceOpen = false }: DailyModalSequenceProp
 
   return (
     <>
-      {/* Modal 1: Daily Login Bonus */}
       <DailyBonusModal
         open={activeStep === 1}
         streak={streakState.streak}
@@ -108,7 +107,11 @@ export function DailyModalSequence({ forceOpen = false }: DailyModalSequenceProp
         onClaim={handleClaimReward}
         onClose={handleCloseModal1}
       />
-      <SevenDayActivitiesModal open={activeStep === 2} onClose={handleActivitiesClose} onComplete={handleActivitiesComplete} />
+      <SevenDayActivitiesModal
+        open={activeStep === 2}
+        onClose={handleActivitiesClose}
+        onComplete={handleActivitiesComplete}
+      />
     </>
   );
 }
