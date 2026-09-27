@@ -10,7 +10,6 @@ import {
   STORAGE_KEY_AD_CONFIG,
   STORAGE_KEY_ENGAGEMENT,
 } from "@/components/ads/adInventoryStorage";
-import { getBonusConfig, saveBonusConfig } from "@/components/daily-bonus/dailyBonusStorage";
 import {
   type ActionLogCategory,
   type AdCreative,
