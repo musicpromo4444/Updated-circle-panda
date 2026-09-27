@@ -1,0 +1,10 @@
+insert into public.store_catalog
+(id,item_type,name,price_usd,price_ngn,coins,vip_days,enabled,description,bonus_tag,badge,icon,is_popular,is_best_value,interval,billing_period,is_highlighted,perks)
+values
+('pkg_starter','coin_package','Starter Panda Pack',0.50,750,500,0,true,'Starter BC for messages, activities and small boosts.','Start here','Starter','🪙',false,false,null,null,false,'[]'::jsonb),
+('pkg_popular','coin_package','Panda Popular Pack',2.00,3000,2500,0,true,'A popular BC bundle for regular Circle Panda use.','Popular bonus','Most Popular','🐼',true,false,null,null,false,'[]'::jsonb),
+('pkg_speed','coin_package','Speed-Dating Boost',5.00,7500,7500,0,true,'Extra BC for dating boosts, events and Hot Seat interactions.','Dating boost','Boost','⚡',false,false,null,null,false,'[]'::jsonb),
+('pkg_vault','coin_package','Ultimate Panda Vault',10.00,15000,16000,0,true,'Large BC balance for heavy Circle Panda use.','Best value','Best Value','👑',false,true,null,null,false,'[]'::jsonb),
+('vip_weekly','vip_subscription','Weekly VIP Pass',3.99,5985,0,7,true,'7 days of Circle Panda VIP access.','7-day VIP','VIP','👑',false,false,'week','per week',false,'["VIP messaging","VIP group media","VIP calls","Priority dating features"]'::jsonb),
+('vip_monthly','vip_subscription','Monthly VIP Pass',9.99,14985,0,30,true,'30 days of Circle Panda VIP access.','Better long-term value','Best Value','👑',false,false,'month','per month',true,'["VIP messaging","VIP group media","VIP calls","Priority dating features","Weekly VIP reward support"]'::jsonb)
+on conflict(id) do update set name=excluded.name,price_usd=excluded.price_usd,price_ngn=excluded.price_ngn,coins=excluded.coins,vip_days=excluded.vip_days,enabled=excluded.enabled,description=excluded.description,bonus_tag=excluded.bonus_tag,badge=excluded.badge,icon=excluded.icon,is_popular=excluded.is_popular,is_best_value=excluded.is_best_value,interval=excluded.interval,billing_period=excluded.billing_period,is_highlighted=excluded.is_highlighted,perks=excluded.perks,updated_at=now();
