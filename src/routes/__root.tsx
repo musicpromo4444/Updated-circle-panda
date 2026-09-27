@@ -14,6 +14,7 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { StoreProvider } from "@/lib/store";
 import { ThemeProvider, useTheme } from "@/lib/theme";
 import { Toaster } from "@/components/ui/sonner";
+import { HotSeatFloatingPresence } from "@/components/hotseat/HotSeatFloatingPresence";
 
 function NotFoundComponent() {
   return (
@@ -164,6 +165,7 @@ function RootComponent() {
         <StoreProvider>
           {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
           <Outlet />
+          <HotSeatFloatingPresence />
           <ThemedToaster />
         </StoreProvider>
       </ThemeProvider>
