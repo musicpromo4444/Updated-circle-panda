@@ -258,7 +258,8 @@ function GameModal({ activity, onClose, onDone }: { activity: Activity; onClose:
   const finishAfterAd = async () => {
     if (slug === "secret_reveal" && !secretSolved) return;
     if (slug === "playable_ad") { await completeStandard(); return; }
-    if (slug === "secret_reveal" && secretSolved) { setPhase("secret-choice"); return; }\n    if (reward !== null) { setPhase("result"); return; }
+    if (slug === "secret_reveal" && secretSolved) { setPhase("secret-choice"); return; }
+    if (reward !== null) { setPhase("result"); return; }
     await completeStandard();
   };
 
