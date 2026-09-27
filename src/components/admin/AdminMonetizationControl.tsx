@@ -75,28 +75,7 @@ const PLACEMENT_OPTIONS: { id: AdPlacementTarget; label: string; tag: string }[]
   { id: "hot_seat_water_break", label: "Hot Seat Water Break", tag: "Admin-controlled" },
 ];
 
-const PRESET_IMAGE_TEMPLATES = [
-  {
-    label: "Campus Tech & 5G",
-    url: "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=600&auto=format&fit=crop&q=80",
-  },
-  {
-    label: "Student Fintech",
-    url: "https://images.unsplash.com/photo-1559526324-4b87b5e36e44?w=600&auto=format&fit=crop&q=80",
-  },
-  {
-    label: "Campus Music & Audio",
-    url: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=600&auto=format&fit=crop&q=80",
-  },
-  {
-    label: "Study & Education",
-    url: "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=600&auto=format&fit=crop&q=80",
-  },
-  {
-    label: "Student Lifestyle & Party",
-    url: "https://images.unsplash.com/photo-1517838277536-f5f99be501cd?w=600&auto=format&fit=crop&q=80",
-  },
-];
+const PRESET_IMAGE_TEMPLATES: { label: string; url: string }[] = [];
 
 export function AdminMonetizationControl({
   adConfig,
@@ -113,18 +92,18 @@ export function AdminMonetizationControl({
   const [editingId, setEditingId] = useState<string | null>(null);
 
   // Creative form fields
-  const [sponsor, setSponsor] = useState("Chipper Cash Campus");
-  const [headline, setHeadline] = useState("Free ₦1,000 Welcome Bonus on Student Signup");
+  const [sponsor, setSponsor] = useState("");
+  const [headline, setHeadline] = useState("");
   const [description, setDescription] = useState(
     "Send pocket money to roommates with 0% transfer fee and get virtual dollar debit cards.",
   );
   const [imageUrl, setImageUrl] = useState(
     "https://images.unsplash.com/photo-1559526324-4b87b5e36e44?w=600&auto=format&fit=crop&q=80",
   );
-  const [destinationUrl, setDestinationUrl] = useState("https://chippercash.com");
+  const [destinationUrl, setDestinationUrl] = useState("");
   const [placement, setPlacement] = useState<AdPlacementTarget>("popup_1_daily_login");
-  const [category, setCategory] = useState("Fintech / Student Banking");
-  const [callToAction, setCallToAction] = useState("Claim ₦1,000");
+  const [category, setCategory] = useState("");
+  const [callToAction, setCallToAction] = useState("");
   const [status, setStatus] = useState<"active" | "paused">("active");
 
   // Filters
@@ -155,11 +134,11 @@ export function AdminMonetizationControl({
     setSponsor("");
     setHeadline("");
     setDescription("");
-    setImageUrl(PRESET_IMAGE_TEMPLATES[0].url);
-    setDestinationUrl("https://");
+    setImageUrl("");
+    setDestinationUrl("");
     setPlacement("popup_1_daily_login");
-    setCategory("General / Sponsor");
-    setCallToAction("Learn More");
+    setCategory("");
+    setCallToAction("");
     setStatus("active");
     setIsFormOpen(true);
   };
