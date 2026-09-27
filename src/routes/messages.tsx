@@ -1,6 +1,6 @@
 import { createFileRoute, useSearch } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { ChevronLeft, Heart, Send } from "lucide-react";
+import { Check, ChevronLeft, Heart, Send, ShieldBan, X } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -34,6 +34,7 @@ function MessagesPage() {
   const [activeId, setActiveId] = useState<string | null>(search.thread ?? null);
   const [draft, setDraft] = useState("");
   const [crushRequests, setCrushRequests] = useState<any[]>([]);
+  const [messageRequests, setMessageRequests] = useState<any[]>([]);
   const bottom = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -42,6 +43,7 @@ function MessagesPage() {
 
   useEffect(() => {
     void (supabase as any).rpc("get_my_crush_message_requests").then(({ data }: any) => setCrushRequests(data ?? []));
+    void (supabase as any).from("direct_message_requests").select("id,sender_id,message,kind,created_at").eq("status","pending").order("created_at",{ascending:false}).then(({data,error}:any)=>{ if(!error) setMessageRequests(data??[]); });
   }, []);
 
   const active = threads.find((t) => t.id === activeId) ?? null;
@@ -53,8 +55,26 @@ function MessagesPage() {
 
   if (!active) {
     return (
-      <AppShell title="Direct Messages" subtitle="No timers here — just 1 BC per message sent.">
+      <AppShell title="Direct Messages" subtitle="Requests first. Normal messages cost 1 BC; VIP messages are free.">
         <div className="space-y-3">
+          {messageRequests.length ? (
+            <section className="panda-panel rounded-2xl border border-primary/20 bg-primary/5 p-4">
+              <div className="flex items-center gap-2"><span className="text-lg">💬</span><div><p className="font-display text-sm font-bold">Message requests</p><p className="text-[11px] text-muted-foreground">Accept before a direct chat can begin.</p></div></div>
+              <div className="mt-3 space-y-2">
+                {messageRequests.map((r:any)=>(
+                  <div key={r.id} className="rounded-xl bg-background p-3">
+                    <p className="text-[10px] font-bold text-muted-foreground">Anonymous Panda · {r.kind === "dating" ? "Dating request" : "Message request"}</p>
+                    {r.message ? <p className="mt-1 text-sm">{r.message}</p> : null}
+                    <div className="mt-2 flex gap-2">
+                      <Button size="sm" className="gap-1" onClick={()=>void (supabase as any).rpc("respond_direct_message_request_secure",{p_request_id:r.id,p_accept:true}).then(({data,error}:any)=>{if(error)throw error;setMessageRequests(x=>x.filter(y=>y.id!==r.id));if(data?.thread_id)setActiveId(data.thread_id);})}><Check className="size-3.5"/>Accept</Button>
+                      <Button size="sm" variant="outline" className="gap-1" onClick={()=>void (supabase as any).rpc("respond_direct_message_request_secure",{p_request_id:r.id,p_accept:false}).then(({error}:any)=>{if(error)throw error;setMessageRequests(x=>x.filter(y=>y.id!==r.id));})}><X className="size-3.5"/>Decline</Button>
+                      <Button size="sm" variant="ghost" className="gap-1 text-destructive" onClick={()=>void (supabase as any).rpc("block_user_secure",{p_user_id:r.sender_id}).then(({error}:any)=>{if(error)throw error;setMessageRequests(x=>x.filter(y=>y.id!==r.id));})}><ShieldBan className="size-3.5"/>Block</Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          ) : null}
           {crushRequests.length ? (
             <section className="panda-panel rounded-2xl border border-primary/20 bg-primary/5 p-4">
               <div className="flex items-center gap-2"><span className="text-lg">💌</span><div><p className="font-display text-sm font-bold">Crush message requests</p><p className="text-[11px] text-muted-foreground">Anonymous messages sent to your MCM/WCW picture.</p></div></div>
@@ -108,7 +128,7 @@ function MessagesPage() {
   }
 
   return (
-    <AppShell title="Chat" subtitle={`Balance: ${coins} BC · each message costs 1 BC`}>
+    <AppShell title="Chat" subtitle={`Balance: ${coins} BC · normal messages 1 BC · VIP free · dating free for 72h`}>
       <div className="panda-panel overflow-hidden rounded-2xl">
         {active.kind === "dating" ? (
           <div className="flex items-center justify-center gap-2 bg-[var(--dating)] px-4 py-2 font-display text-sm font-bold tracking-[0.18em] text-[var(--dating-foreground)] uppercase">
