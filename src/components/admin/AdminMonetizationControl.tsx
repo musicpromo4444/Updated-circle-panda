@@ -94,12 +94,8 @@ export function AdminMonetizationControl({
   // Creative form fields
   const [sponsor, setSponsor] = useState("");
   const [headline, setHeadline] = useState("");
-  const [description, setDescription] = useState(
-    "Send pocket money to roommates with 0% transfer fee and get virtual dollar debit cards.",
-  );
-  const [imageUrl, setImageUrl] = useState(
-    "https://images.unsplash.com/photo-1559526324-4b87b5e36e44?w=600&auto=format&fit=crop&q=80",
-  );
+  const [description, setDescription] = useState("");
+  const [imageUrl, setImageUrl] = useState("");
   const [destinationUrl, setDestinationUrl] = useState("");
   const [placement, setPlacement] = useState<AdPlacementTarget>("popup_1_daily_login");
   const [category, setCategory] = useState("");
