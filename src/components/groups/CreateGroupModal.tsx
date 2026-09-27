@@ -28,7 +28,7 @@ export function CreateGroupModal({
   const [name, setName] = useState("");
   const [topic, setTopic] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) {
       toast.error("Please provide a group name");
@@ -39,11 +39,10 @@ export function CreateGroupModal({
       return;
     }
 
-    const group = createGroup(name.trim(), topic.trim());
+    const group = await createGroup(name.trim(), topic.trim());
+    if (!group) return;
 
-    toast.success("🎉 Group Created!", {
-      description: `"${name.trim()}" is now live with 24-hour anonymous timer.`,
-    });
+
 
     setName("");
     setTopic("");
