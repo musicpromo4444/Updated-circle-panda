@@ -88,12 +88,7 @@ export function useAdminStore() {
   const [adMetrics] = useState<AdPerformanceMetrics>(INITIAL_AD_METRICS);
 
   const [engagementConfig, setEngagementConfig] = useState<EngagementConfig>(() => {
-    const bonus = getBonusConfig();
-    const defaults: EngagementConfig = {
-      ...DEFAULT_ENGAGEMENT_CONFIG,
-      standardDailyReward: bonus.standardReward || 10,
-      streakMilestoneReward: bonus.streakReward || 50,
-      streakMilestoneDays: bonus.streakMilestone || 3,
+    const defaults: EngagementConfig = { ...DEFAULT_ENGAGEMENT_CONFIG };
     };
 
     try {
@@ -219,11 +214,7 @@ export function useAdminStore() {
         streakMilestone: engagementConfig.streakMilestoneDays,
       });
     } catch {
-      // ignore
-    }
-  }, [engagementConfig]);
 
-  // Sync logs to storage
   useEffect(() => {
     try {
       if (typeof window !== "undefined" && window.localStorage) {
