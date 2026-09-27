@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Heart, Laugh, Plus, Send, Sparkles, Eye, RefreshCw, ShieldCheck } from "lucide-react";
+import { Heart, Laugh, Plus, Send, Sparkles, Eye, RefreshCw, ShieldCheck, Crown, Trophy } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
 import { StandardBannerAd } from "@/components/ads/StandardBannerAd";
@@ -15,7 +15,9 @@ export const Route = createFileRoute("/confessions")({
 
 type Confession = { id: string; content: string; is_anonymous: boolean; created_at: string };
 
+type WeeklyEntry = { id: string; panda_name?: string; country?: string; reactions?: number; created_at?: string };
 export function ConfessionsPage() {
+  const [weekly, setWeekly] = useState<{ wcw: WeeklyEntry[]; mcm: WeeklyEntry[] }>({ wcw: [], mcm: [] });
   const [items, setItems] = useState<Confession[]>([]);
   const [content, setContent] = useState("");
   const [anonymous, setAnonymous] = useState(true);
@@ -33,7 +35,19 @@ export function ConfessionsPage() {
     setRefreshing(false);
   };
 
-  useEffect(() => { void load(); }, []);
+  useEffect(() => {
+    void load();
+    const loadWeekly = async () => {
+      const { data } = await (supabase as any).rpc("get_wcw_mcm_current_week");
+      if (Array.isArray(data)) {
+        setWeekly({
+          wcw: data.filter((x: any) => String(x.category ?? x.type ?? "").toLowerCase() === "wcw").slice(0, 5),
+          mcm: data.filter((x: any) => String(x.category ?? x.type ?? "").toLowerCase() === "mcm").slice(0, 5),
+        });
+      }
+    };
+    void loadWeekly();
+  }, []);
 
   const submit = async () => {
     const trimmed = content.trim();
@@ -58,6 +72,32 @@ export function ConfessionsPage() {
   return (
     <AppShell title="Confessions" hidePageHeader={false}>
       <div className="mx-auto w-full max-w-2xl space-y-4">
+        <section className="rounded-3xl border border-border/70 bg-card p-4 shadow-sm">
+          <div className="mb-3 flex items-center justify-between">
+            <div><p className="text-xs font-bold uppercase tracking-widest text-primary">This week</p><h2 className="font-display text-xl font-bold">WCW & MCM</h2></div>
+            <Trophy className="size-5 text-primary" />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            {[
+              { key: "wcw", title: "💗 WCW", subtitle: "Wednesday", entries: weekly.wcw },
+              { key: "mcm", title: "🔥 MCM", subtitle: "Monday", entries: weekly.mcm },
+            ].map((group) => (
+              <div key={group.key} className="rounded-2xl bg-secondary/40 p-3">
+                <div className="flex items-center justify-between"><span className="font-bold">{group.title}</span><span className="text-[10px] text-muted-foreground">{group.subtitle}</span></div>
+                <div className="mt-3 space-y-2">
+                  {group.entries.length ? group.entries.map((entry, i) => (
+                    <div key={entry.id} className="flex items-center gap-2 rounded-xl bg-background/60 p-2">
+                      <div className="grid size-8 shrink-0 place-items-center rounded-full bg-primary/15 text-xs font-bold">{i + 1}</div>
+                      <div className="min-w-0"><p className="truncate text-xs font-semibold">{entry.panda_name ?? "Panda"}</p><p className="text-[10px] text-muted-foreground">{entry.country ?? "Worldwide"}</p></div>
+                      <Crown className="ml-auto size-3.5 text-primary" />
+                    </div>
+                  )) : <p className="py-3 text-center text-xs text-muted-foreground">No entries yet</p>}
+                </div>
+              </div>
+            ))}
+          </div>
+          <p className="mt-3 text-center text-[10px] text-muted-foreground">Upload to enter • Vote and react • Weekly VIP winner</p>
+        </section>
         <section className="rounded-3xl border border-border/70 bg-card p-5 shadow-sm">
           <div className="flex items-start justify-between gap-4">
             <div><p className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-primary"><Sparkles className="size-4" /> Anonymous corner</p><h1 className="mt-1 font-display text-2xl font-bold">Say what you really think.</h1><p className="mt-1 text-sm text-muted-foreground">Confessions stay anonymous when you choose. New submissions are reviewed before publication.</p></div>
