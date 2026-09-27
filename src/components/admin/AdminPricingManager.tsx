@@ -92,6 +92,9 @@ export function AdminPricingManager() {
       isPopular: false,
       isBestValue: false,
       icon: "🪙",
+      paystackProductCode: "",
+      androidProductId: "",
+      iosProductId: "",
     });
     setIsCreatingPkg(true);
     setPkgDialogOpen(true);
@@ -139,6 +142,9 @@ export function AdminPricingManager() {
       badge: "Term Pass",
       isHighlighted: false,
       enabled: true,
+      paystackProductCode: "",
+      androidProductId: "",
+      iosProductId: "",
       perks: [
         "All VIP perks included for the full semester",
         "Exclusive Semester Panda badge",
@@ -755,6 +761,21 @@ export function AdminPricingManager() {
                   placeholder="e.g. Most Popular"
                   className="mt-1 h-8 text-xs"
                 />
+              </div>
+
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+                <div>
+                  <Label className="text-[11px] font-semibold">Paystack Product Code</Label>
+                  <Input value={editingPkg.paystackProductCode || ""} onChange={(e) => setEditingPkg({ ...editingPkg, paystackProductCode: e.target.value })} placeholder="e.g. CP-COINS-1000" className="mt-1 h-8 text-xs font-mono" />
+                </div>
+                <div>
+                  <Label className="text-[11px] font-semibold">Google Play ID</Label>
+                  <Input value={editingPkg.androidProductId || ""} onChange={(e) => setEditingPkg({ ...editingPkg, androidProductId: e.target.value })} placeholder="coins_1000" className="mt-1 h-8 text-xs font-mono" />
+                </div>
+                <div>
+                  <Label className="text-[11px] font-semibold">Apple Product ID</Label>
+                  <Input value={editingPkg.iosProductId || ""} onChange={(e) => setEditingPkg({ ...editingPkg, iosProductId: e.target.value })} placeholder="coins_1000" className="mt-1 h-8 text-xs font-mono" />
+                </div>
               </div>
 
               <div>
