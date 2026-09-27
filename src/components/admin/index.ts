@@ -7,3 +7,4 @@ export * from "./AdminMonetizationControl";
 export * from "./AdminEngagementManager";
 export * from "./AdminPricingManager";
 export * from "./AdminRoute";
+export * from "./AdminDailyGamesManager";
