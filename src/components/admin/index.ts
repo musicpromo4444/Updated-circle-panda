@@ -8,3 +8,4 @@ export * from "./AdminEngagementManager";
 export * from "./AdminPricingManager";
 export * from "./AdminRoute";
 export * from "./AdminDailyGamesManager";
+\nexport * from "./AdminHotSeatManager";\n
