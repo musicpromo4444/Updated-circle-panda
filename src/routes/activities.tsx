@@ -93,7 +93,8 @@ function GameModal({ activity, onClose, onDone }: { activity: Activity; onClose:
   const [secretPieces, setSecretPieces] = useState<string[]>([]);
   const [secretAnswer, setSecretAnswer] = useState<string[]>([]);
   const [secretSolved, setSecretSolved] = useState(false);
-  const [adDone, setAdDone] = useState(false);\n  const [secretChoice, setSecretChoice] = useState<"yes" | "no" | null>(null);
+  const [adDone, setAdDone] = useState(false);
+  const [secretChoice, setSecretChoice] = useState<"yes" | "no" | null>(null);
 
   const completePuzzle = async () => {
     setBusy(true);
