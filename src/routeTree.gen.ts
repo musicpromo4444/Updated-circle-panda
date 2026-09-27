@@ -21,7 +21,7 @@ import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as SweepstakesRouteImport } from './routes/sweepstakes'
 import { Route as GroupsIndexRouteImport } from './routes/groups.index'
 import { Route as GroupsGroupIdRouteImport } from './routes/groups.$groupId'
-import { Route as AdminDashboardRouteImport } from './routes/admin-dashboard'
+import { Route as AdminDashboardRouteImport } from './routes/admin-dashboard'\nimport { Route as GamesCoinDropRouteImport } from './routes/games.coin-drop'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as ConfessionsRouteImport } from './routes/confessions'
 import { Route as FeedRouteImport } from './routes/feed'
@@ -85,7 +85,7 @@ const GroupsIndexRoute = GroupsIndexRouteImport.update({
   path: '/groups/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AdminDashboardRoute = AdminDashboardRouteImport.update({
+const GamesCoinDropRoute = GamesCoinDropRouteImport.update({\n  id: '/games/coin-drop',\n  path: '/games/coin-drop',\n  getParentRoute: () => rootRouteImport,\n} as any)\nconst AdminDashboardRoute = AdminDashboardRouteImport.update({
   id: '/admin-dashboard',
   path: '/admin-dashboard',
   getParentRoute: () => rootRouteImport,
