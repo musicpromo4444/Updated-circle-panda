@@ -203,7 +203,7 @@ function GameModal({ activity, onClose, onDone }: { activity: Activity; onClose:
     setPhase("result");
   };
 
-  const play = async () =>
+  const play = async () => {
     if (slug === "coin_drop" || slug === "slots") { await startTimed(); return; }
     if (slug === "lucky_card") {
       setBusy(true);
@@ -222,6 +222,8 @@ function GameModal({ activity, onClose, onDone }: { activity: Activity; onClose:
       setMessage("Tap the confession pieces in the correct order.");
       return;
     }
+    const data = await startChoiceGame();
+    if (!data) return;
     setMessage("Make your choice.");
   };
 
@@ -237,22 +239,18 @@ function GameModal({ activity, onClose, onDone }: { activity: Activity; onClose:
       setPhase("ad");
       return;
     }
-    if (slug === "cup_shuffle") {
+    if (slug === "mystery_box" || slug === "wheel_spin" || slug === "guess_sponsor" || slug === "cup_shuffle") {
       setSelected(index);
-      setMessage("Panda is shuffling…");
-      window.setTimeout(() => { void completeStandard().then(() => setPhase("ad")); }, 1600);
+      await finishChoiceGame(index);
       return;
     }
-    if (slug === "mystery_box" || slug === "wheel_spin" || slug === "guess_sponsor" || slug === "cup_shuffle") {\n      setBusy(true);\n      const data = await startChoiceGame();\n      if (!data) return;\n      setSelected(index);\n      return;\n    }\n    if (slug === "puzzle") {
+    if (slug === "puzzle") {
       setSelected(index);
-      if (slug === "puzzle") {
-        const words = ["Panda", "Circle", "Fun"].sort(() => Math.random() - 0.5);
-        setPuzzle(words);
-        setAnswer([]);
-        setMessage("Put the three words in the shown order.");
-        return;
-      }
-      setPhase("ad");
+      const words = ["Panda", "Circle", "Fun"].sort(() => Math.random() - 0.5);
+      setPuzzle(words);
+      setAnswer([]);
+      setMessage("Put the three words in the shown order.");
+      return;
     }
   };
 
