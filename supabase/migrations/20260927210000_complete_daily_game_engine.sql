@@ -96,3 +96,14 @@ revoke execute on function public.play_instant_daily_activity(text) from public;
 grant execute on function public.play_instant_daily_activity(text) to authenticated;
 
 update public.seven_day_activity_configs set is_enabled=true,updated_at=now() where slug='guess_sponsor';
+
+alter table public.seven_day_activity_configs add column if not exists puzzle_bank jsonb not null default '[]'::jsonb;
+update public.seven_day_activity_configs
+set puzzle_bank='[{"question":"What do pandas love to eat?","answer":"bamboo"},{"question":"What shape is Circle Panda named after?","answer":"circle"},{"question":"What animal is Circle Panda?","answer":"panda"}]'::jsonb,
+updated_at=now()
+where slug='puzzle';
+
+revoke execute on function public.play_instant_daily_activity(text) from anon;
+revoke execute on function public.play_timed_daily_activity(text,text) from anon;
+revoke execute on function public.play_lucky_card(text,integer) from anon;
+revoke execute on function public.play_secret_reveal(text,jsonb) from anon;
