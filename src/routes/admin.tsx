@@ -27,7 +27,6 @@ import {
   AdminHotSeatManager,
   useAdminStore,
 } from "@/components/admin";
-import { MASTER_ADMIN_EMAIL } from "@/components/admin/AdminRoute";
 import { useCurrentUser } from "@/lib/auth";
 
 export const Route = createFileRoute("/admin")({
