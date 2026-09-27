@@ -63,26 +63,9 @@ export function useAdminStore() {
     return INITIAL_USERS;
   });
 
-  const [adConfig, setAdConfig] = useState<AdPlacementConfig>(() => {
-    try {
-      if (typeof window !== "undefined" && window.localStorage) {
-        const saved = window.localStorage.getItem(STORAGE_KEY_AD_CONFIG);
-        if (saved) {
-          const parsed = JSON.parse(saved);
-          return {
-            ...DEFAULT_AD_CONFIG,
-            ...parsed,
-            creatives:
-              Array.isArray(parsed.creatives) && parsed.creatives.length > 0
-                ? parsed.creatives
-                : INITIAL_CREATIVES,
-          };
-        }
-      }
-    } catch {
-      // ignore
-    }
-    return DEFAULT_AD_CONFIG;
+  const [adConfig, setAdConfig] = useState<AdPlacementConfig>({
+    ...DEFAULT_AD_CONFIG,
+    creatives: INITIAL_CREATIVES,
   });
 
   const [adMetrics] = useState<AdPerformanceMetrics>(INITIAL_AD_METRICS);
@@ -188,16 +171,9 @@ export function useAdminStore() {
     }
   }, [users]);
 
-  // Sync adConfig to storage & dispatch live event
+  // Notify the current UI; the actual configuration is persisted in Supabase.
   useEffect(() => {
-    try {
-      if (typeof window !== "undefined" && window.localStorage) {
-        window.localStorage.setItem(STORAGE_KEY_AD_CONFIG, JSON.stringify(adConfig));
-        window.dispatchEvent(new CustomEvent(EVENT_AD_CONFIG_UPDATED));
-      }
-    } catch {
-      // ignore
-    }
+    if (typeof window !== "undefined") window.dispatchEvent(new CustomEvent(EVENT_AD_CONFIG_UPDATED));
   }, [adConfig]);
 
   // Sync engagementConfig to storage + update dailyBonusStorage & dispatch live event
@@ -277,12 +253,38 @@ export function useAdminStore() {
 
   // Update Ad Configuration
   const updateAdConfig = (partial: Partial<AdPlacementConfig>) => {
-    setAdConfig((prev) => {
-      const updated = { ...prev, ...partial };
-      return updated;
-    });
-    addLog("UPDATE_AD_CONFIG", "Updated ad monetization parameters");
-    toast.success("Ad & monetization settings updated");
+    const next = { ...adConfig, ...partial };
+    void (async () => {
+      const { data, error } = await (supabase as any).rpc("admin_set_ad_placement_config", {
+        p_daily_login_popup_banner: next.dailyLoginPopupBanner !== false,
+        p_engagement_popup_banner: next.engagementPopupBanner !== false,
+        p_main_feed_banner: next.mainFeedBanner !== false,
+        p_feed_banner_interval: Number(next.feedBannerInterval || 4),
+        p_crush_video_frequency: Number(next.videoAdCrushFrequency || 5),
+        p_seven_day_banner_enabled: next.sevenDayBannerEnabled !== false,
+        p_seven_day_playable_enabled: next.sevenDayPlayableEnabled !== false,
+        p_android_native_bridge_enabled: next.androidNativeBridgeEnabled !== false,
+      });
+      if (error) {
+        toast.error(error.message ?? "Could not save ad settings");
+        return;
+      }
+      const saved = data || {};
+      setAdConfig((prev) => ({
+        ...prev,
+        ...next,
+        dailyLoginPopupBanner: saved.daily_login_popup_banner ?? next.dailyLoginPopupBanner,
+        engagementPopupBanner: saved.engagement_popup_banner ?? next.engagementPopupBanner,
+        mainFeedBanner: saved.main_feed_banner ?? next.mainFeedBanner,
+        feedBannerInterval: Number(saved.feed_banner_interval ?? next.feedBannerInterval),
+        videoAdCrushFrequency: Number(saved.crush_video_frequency ?? next.videoAdCrushFrequency),
+        sevenDayBannerEnabled: saved.seven_day_banner_enabled ?? next.sevenDayBannerEnabled,
+        sevenDayPlayableEnabled: saved.seven_day_playable_enabled ?? next.sevenDayPlayableEnabled,
+        androidNativeBridgeEnabled: saved.android_native_bridge_enabled ?? next.androidNativeBridgeEnabled,
+      }));
+      addLog("UPDATE_AD_CONFIG", "Updated live ad monetization parameters");
+      toast.success("Ad & monetization settings updated for all users");
+    })();
   };
 
   // Live server-backed ad inventory
