@@ -153,7 +153,7 @@ export function ConfessionsPage() {
       <div className="mx-auto w-full max-w-2xl space-y-4">
         <section className="rounded-3xl border border-border/70 bg-card p-4 shadow-sm">
           <div className="mb-3 flex items-center justify-between">
-            <div><p className="text-xs font-bold uppercase tracking-widest text-primary">This week</p><h2 className="font-display text-xl font-bold">WCW & MCM</h2><p className="text-xs text-muted-foreground">Upload • Vote • React • Win weekly VIP</p></div>
+            <div><p className="text-xs font-bold uppercase tracking-widest text-primary">This week</p><h2 className="font-display text-xl font-bold">WCW & MCM</h2><p className="text-xs text-muted-foreground">Tap a section below</p></div>
             <Button size="sm" onClick={() => { setUploadOpen(true); window.setTimeout(() => document.getElementById("wcw-mcm-upload")?.scrollIntoView({ behavior: "smooth", block: "center" }), 50); }} className="rounded-2xl"><Upload className="mr-1 size-4" /> Upload</Button>
           </div>
           {uploadOpen ? <div id="wcw-mcm-upload" className="mb-4 space-y-3 rounded-2xl bg-secondary/40 p-4">
@@ -162,35 +162,28 @@ export function ConfessionsPage() {
             <p className="text-[10px] text-muted-foreground">Your gender decides WCW or MCM automatically. One entry per week. Maximum 6MB.</p>
             <Button onClick={() => void uploadCrush()} disabled={uploading || !uploadFile} className="w-full rounded-2xl">{uploading ? "Uploading…" : "Publish weekly entry"}</Button>
           </div> : null}
-          <div className="grid grid-cols-2 gap-3">
-            {[
-              { key: "wcw", title: "💗 WCW", subtitle: "Wednesday", entries: weekly.wcw, winner: weeklyWinner.wcw },
-              { key: "mcm", title: "🔥 MCM", subtitle: "Monday", entries: weekly.mcm, winner: weeklyWinner.mcm },
-            ].map((group) => (
-              <div key={group.key} className="rounded-2xl bg-secondary/40 p-3">
-                <div className="flex items-center justify-between"><Link to="/crush" hash={group.key} className="font-bold hover:text-primary transition-colors">{group.title}</Link><Link to="/crush" hash={group.key} className="text-[10px] text-muted-foreground hover:text-primary">{group.subtitle}</Link></div>
-                {group.winner ? <div className="mt-2 rounded-xl bg-primary/10 p-2 text-center"><p className="text-[10px] font-bold text-primary">👑 LAST WEEK WINNER</p><p className="text-xs font-bold">{group.winner.display_name}</p><p className="text-[10px] text-muted-foreground">{group.winner.vote_count} votes · 7-day VIP</p>{group.winner.vip_claimed_at ? <p className="mt-1 text-[10px] font-bold text-primary">VIP claimed ✓</p> : <Button size="sm" className="mt-2 rounded-full" onClick={() => void claimVip(group.key)}>Claim free VIP</Button>}</div> : null}
-                <div className="mt-3 space-y-3">
-                  {group.entries.length ? group.entries.map((entry, i) => (
-                    <div key={entry.id} className="rounded-2xl bg-background/60 p-2">
-                      <div className="flex items-center gap-2">
-                        {entry.media_url ? <img src={entry.media_url} alt="" className="size-11 rounded-full object-cover ring-2 ring-primary/30" /> : <div className="grid size-11 place-items-center rounded-full bg-primary/15">{entry.emoji ?? "🐼"}</div>}
-                        <div className="min-w-0 flex-1"><p className="truncate text-xs font-semibold">{entry.display_name ?? entry.panda_name ?? "Panda"}</p><p className="text-[10px] text-muted-foreground">{entry.vote_count ?? 0} votes · {entry.reaction_count ?? 0} reactions</p></div>
-                        <Button size="sm" variant={entry.my_vote ? "secondary" : "default"} disabled={entry.my_vote} onClick={() => void voteWeekly(entry.id)}>{entry.my_vote ? "Voted" : "Vote"}</Button>
-                      </div>
-                      {entry.media_url ? <div className="mt-2 overflow-hidden rounded-xl">{entry.media_type === "video" ? <video src={entry.media_url} controls playsInline className="max-h-48 w-full object-cover" /> : <img src={entry.media_url} alt="Weekly entry" className="max-h-48 w-full object-cover" />}</div> : null}
-                      {entry.blurb ? <p className="mt-2 text-xs text-muted-foreground">{entry.blurb}</p> : null}
-                      <div className="mt-2 flex gap-1 overflow-x-auto">
-                        {["🐼","❤️","👍","⚡","🌧️"].map(r => <button key={r} type="button" onClick={() => void reactWeekly(entry.id,r)} className={`rounded-full border px-2 py-1 text-xs ${entry.my_reaction===r ? "border-primary bg-primary/10" : "border-border"}`}>{r}</button>)}
-                        <button type="button" onClick={() => navigator.share?.({title:"Circle Panda WCW/MCM",url:window.location.href})} className="ml-auto rounded-full border border-border px-2 py-1 text-xs"><Share2 className="size-3" /></button>
-                      </div>
-                    </div>
-                  )) : <p className="py-3 text-center text-xs text-muted-foreground">No uploads yet</p>}
-                </div>
-              </div>
-            ))}
+          <div className="rounded-2xl bg-secondary/30 p-3">
+            <p className="mb-3 text-center text-sm text-muted-foreground">Upload • Vote • React • Win weekly VIP</p>
+            <div className="grid grid-cols-3 gap-2">
+              <button
+                type="button"
+                onClick={() => { setUploadOpen(true); window.setTimeout(() => document.getElementById("wcw-mcm-upload")?.scrollIntoView({ behavior: "smooth", block: "center" }), 50); }}
+                className="group flex flex-col items-center gap-2 rounded-2xl p-2 transition-colors hover:bg-background/70"
+              >
+                <span className="grid size-16 place-items-center rounded-full border-2 border-primary/70 bg-background text-2xl shadow-sm transition-transform group-active:scale-95">＋</span>
+                <span className="text-xs font-bold">Upload</span>
+              </button>
+              <Link to="/crush" hash="wcw" className="group flex flex-col items-center gap-2 rounded-2xl p-2 transition-colors hover:bg-background/70">
+                <span className="grid size-16 place-items-center rounded-full border-2 border-pink-400/80 bg-background text-2xl shadow-sm transition-transform group-active:scale-95">❤️</span>
+                <span className="text-xs font-bold">WCW ❤️</span>
+              </Link>
+              <Link to="/crush" hash="mcm" className="group flex flex-col items-center gap-2 rounded-2xl p-2 transition-colors hover:bg-background/70">
+                <span className="grid size-16 place-items-center rounded-full border-2 border-sky-400/80 bg-background text-2xl shadow-sm transition-transform group-active:scale-95">💙</span>
+                <span className="text-xs font-bold">MCM 💙</span>
+              </Link>
+            </div>
           </div>
-          <p className="mt-3 text-center text-[10px] text-muted-foreground">Upload to enter • Vote and react • Weekly winner receives 7-day VIP + badge</p>
+          <p className="mt-3 text-center text-[10px] text-muted-foreground">Upload to enter • WCW Wednesday • MCM Monday</p>
         </section>
         <section className="rounded-3xl border border-border/70 bg-card p-5 shadow-sm">
           <div className="flex items-start justify-between gap-4">
