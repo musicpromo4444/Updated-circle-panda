@@ -10,3 +10,5 @@ export * from "./AdminRoute";
 export * from "./AdminDailyGamesManager";
 
 export * from "./AdminHotSeatManager";
+
+export * from "./UniversalAdManager";
