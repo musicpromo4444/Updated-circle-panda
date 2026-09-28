@@ -41,6 +41,8 @@ function CrushPage() {
   const ranked = useMemo(() => [...pool].sort((a, b) => b.votes - a.votes), [pool]);
 
   useEffect(() => {
+    const section = window.location.hash.replace("#", "").toLowerCase();
+    if (section === "mcm" || section === "wcw") setKind(section as CrushKind);
     setIndex(0);
   }, [kind]);
 
@@ -131,7 +133,7 @@ function CrushPage() {
           <Button variant="ghost" size="icon" className="text-white" onClick={() => history.back()}><ArrowLeft className="size-5" /></Button>
           <div className="flex items-center gap-1 rounded-full border border-white/15 bg-white/10 p-1">
             {(["wcw", "mcm"] as CrushKind[]).map((k) => (
-              <button key={k} type="button" onClick={() => setKind(k)} className={cn("rounded-full px-3 py-1.5 text-[10px] font-black tracking-wider", kind === k ? "bg-white text-black" : "text-white/60")}>{k === "wcw" ? "WCW" : "MCM"}</button>
+              <button key={k} type="button" onClick={() => { setKind(k); window.history.replaceState(null, "", `#${k}`); }} className={cn("rounded-full px-3 py-1.5 text-[10px] font-black tracking-wider", kind === k ? "bg-white text-black" : "text-white/60")}>{k === "wcw" ? "WCW" : "MCM"}</button>
             ))}
           </div>
           <Button variant="ghost" size="icon" className="text-white" onClick={() => setShowLeaderboard(true)}><Trophy className="size-5" /></Button>
