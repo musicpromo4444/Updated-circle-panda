@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { Heart, Laugh, Plus, Send, Sparkles, Eye, RefreshCw, ShieldCheck, Crown, Trophy, Upload, Share2 } from "lucide-react";
 import { toast } from "sonner";
@@ -42,6 +42,7 @@ export function ConfessionsPage() {
   };
 
   useEffect(() => {
+    if (window.location.hash === "#upload") setUploadOpen(true);
     void load();
     const loadWeekly = async () => {
       const [{ data }, { data: winners }] = await Promise.all([
@@ -148,14 +149,14 @@ export function ConfessionsPage() {
   };
 
   return (
-    <AppShell title="Confessions" hidePageHeader={false}>
+    <AppShell title="Confessions" hidePageHeader>
       <div className="mx-auto w-full max-w-2xl space-y-4">
         <section className="rounded-3xl border border-border/70 bg-card p-4 shadow-sm">
           <div className="mb-3 flex items-center justify-between">
             <div><p className="text-xs font-bold uppercase tracking-widest text-primary">This week</p><h2 className="font-display text-xl font-bold">WCW & MCM</h2><p className="text-xs text-muted-foreground">Upload • Vote • React • Win weekly VIP</p></div>
-            <Button size="sm" onClick={() => setUploadOpen(v => !v)} className="rounded-2xl"><Upload className="mr-1 size-4" /> Upload</Button>
+            <Button size="sm" onClick={() => { setUploadOpen(true); window.setTimeout(() => document.getElementById("wcw-mcm-upload")?.scrollIntoView({ behavior: "smooth", block: "center" }), 50); }} className="rounded-2xl"><Upload className="mr-1 size-4" /> Upload</Button>
           </div>
-          {uploadOpen ? <div className="mb-4 space-y-3 rounded-2xl bg-secondary/40 p-4">
+          {uploadOpen ? <div id="wcw-mcm-upload" className="mb-4 space-y-3 rounded-2xl bg-secondary/40 p-4">
             <input type="file" accept="image/*,video/*" onChange={e => setUploadFile(e.target.files?.[0] ?? null)} className="w-full text-xs" disabled={uploading} />
             <Textarea value={uploadCaption} onChange={e => setUploadCaption(e.target.value)} maxLength={300} placeholder="Optional caption..." className="rounded-2xl" disabled={uploading} />
             <p className="text-[10px] text-muted-foreground">Your gender decides WCW or MCM automatically. One entry per week. Maximum 6MB.</p>
@@ -167,7 +168,7 @@ export function ConfessionsPage() {
               { key: "mcm", title: "🔥 MCM", subtitle: "Monday", entries: weekly.mcm, winner: weeklyWinner.mcm },
             ].map((group) => (
               <div key={group.key} className="rounded-2xl bg-secondary/40 p-3">
-                <div className="flex items-center justify-between"><span className="font-bold">{group.title}</span><span className="text-[10px] text-muted-foreground">{group.subtitle}</span></div>
+                <div className="flex items-center justify-between"><Link to="/crush" hash={group.key} className="font-bold hover:text-primary transition-colors">{group.title}</Link><Link to="/crush" hash={group.key} className="text-[10px] text-muted-foreground hover:text-primary">{group.subtitle}</Link></div>
                 {group.winner ? <div className="mt-2 rounded-xl bg-primary/10 p-2 text-center"><p className="text-[10px] font-bold text-primary">👑 LAST WEEK WINNER</p><p className="text-xs font-bold">{group.winner.display_name}</p><p className="text-[10px] text-muted-foreground">{group.winner.vote_count} votes · 7-day VIP</p>{group.winner.vip_claimed_at ? <p className="mt-1 text-[10px] font-bold text-primary">VIP claimed ✓</p> : <Button size="sm" className="mt-2 rounded-full" onClick={() => void claimVip(group.key)}>Claim free VIP</Button>}</div> : null}
                 <div className="mt-3 space-y-3">
                   {group.entries.length ? group.entries.map((entry, i) => (
