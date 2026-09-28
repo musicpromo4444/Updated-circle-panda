@@ -6,6 +6,7 @@ import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { useStore } from "@/lib/store";
 import { supabase } from "@/integrations/supabase/client";
+import { UniversalAdManager } from "@/components/admin/UniversalAdManager";
 
 export const Route = createFileRoute("/admin-dashboard")({ component: AdminDashboardPage });
 
@@ -103,6 +104,7 @@ function AdminDashboardPage() {
 
   return <AppShell title="Admin Dashboard" hidePageHeader>
     <main className="mx-auto max-w-4xl space-y-5 p-4 pb-24 sm:p-6">
+      <UniversalAdManager />
       <div className="flex items-center gap-3"><Link to="/"><Button variant="ghost" size="icon" aria-label="Back"><ChevronLeft className="size-5"/></Button></Link><div><p className="text-[10px] font-bold uppercase tracking-[0.18em] text-primary">Master Admin</p><h1 className="font-display text-2xl font-black">7-Day Activity Schedule</h1><p className="text-sm text-muted-foreground">Choose exactly one activity for each day, or disable a day.</p></div></div>
       {loading ? <div className="grid min-h-64 place-items-center"><Loader2 className="size-9 animate-spin text-primary"/></div> : <>
         <section className="panda-panel rounded-3xl p-4 sm:p-5">
