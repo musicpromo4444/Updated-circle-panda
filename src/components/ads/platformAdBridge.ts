@@ -174,3 +174,57 @@ export async function safePlayVideo(video: HTMLVideoElement | null): Promise<boo
     return false;
   }
 }
+
+
+export type CirclePandaAdPlatform = "web" | "android" | "ios";
+
+/**
+ * Returns the platform key used by the universal ad runtime.
+ * Native wrappers can override this through the injected bridge.
+ */
+export function getAdPlatform(): CirclePandaAdPlatform {
+  if (typeof window === "undefined" || typeof navigator === "undefined") return "web";
+  const ua = navigator.userAgent || "";
+  const isAndroid = /Android/i.test(ua) || Boolean(window.AndroidBridge || window.Android);
+  const isIOS = /iPad|iPhone|iPod/i.test(ua) || /Macintosh/i.test(ua) && "ontouchend" in document;
+  if (isAndroid) return "android";
+  if (isIOS) return "ios";
+  return "web";
+}
+
+export interface UniversalAdProviderRuntime {
+  id: string;
+  platform: CirclePandaAdPlatform;
+  strategy: "single" | "mediation";
+  provider: "admob_mediation" | "admob" | "adsterra" | "direct_sponsor" | "custom_adapter";
+  format: "banner" | "native" | "interstitial" | "rewarded" | "playable" | "sponsor" | "offerwall" | "link";
+  provider_label?: string | null;
+  ad_unit_id?: string | null;
+  app_id?: string | null;
+  placement_code?: string | null;
+  adapter_key?: string | null;
+  priority: number;
+  enabled: boolean;
+  targeting?: Record<string, unknown>;
+  frequency_cap_seconds: number;
+}
+
+export interface UniversalAdPlacementRuntime {
+  id: string;
+  placement_key: string;
+  label: string;
+  default_format: UniversalAdProviderRuntime["format"];
+  enabled: boolean;
+  frequency_cap_seconds: number;
+  providers: UniversalAdProviderRuntime[];
+}
+
+/**
+ * Reads the server-selected universal ad configuration.
+ * Rendering is still delegated to the platform/provider adapter.
+ */
+export async function getUniversalAdRuntimeConfig(): Promise<UniversalAdPlacementRuntime[]> {
+  const { data, error } = await (supabase as any).rpc("get_universal_ad_runtime_config");
+  if (error) throw error;
+  return (data?.placements ?? []) as UniversalAdPlacementRuntime[];
+}
