@@ -253,7 +253,7 @@ function MessagesPage() {
         <div className="max-h-[50vh] min-h-48 space-y-2.5 overflow-y-auto bg-secondary/20 p-3">
           {active.messages.length === 0 ? (
             <p className="py-8 text-center text-sm text-muted-foreground">
-              Say something first. It costs 1 BC.
+              Say something first. Dating Chat is free for the first 72 hours.
             </p>
           ) : (
             active.messages.map((m, idx) => (
@@ -299,7 +299,7 @@ function MessagesPage() {
           <Input
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
-            placeholder="Type a message (1 BC)…"
+            placeholder={active.kind === "dating" ? "Type a message (free for 72h)…" : "Type a message (1 BC)…"}
           />
           <Button type="submit" className="shrink-0">
             <Send className="size-4" />
