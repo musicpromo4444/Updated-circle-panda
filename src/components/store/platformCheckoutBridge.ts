@@ -11,7 +11,6 @@ declare global {
     getDistribution?: () => "google_play" | "external";
       requestGooglePlayPurchase?: (payloadJson: string) => boolean;
       onPurchaseResult?: (payloadJson: string) => void;
-      onPurchaseResult?: (payloadJson: string) => void;
     };
     Android?: {
       openUrl?: (url: string) => void;
