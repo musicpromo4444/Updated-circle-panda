@@ -158,7 +158,7 @@ function DatingPage() {
   const resetFilters = () => {
     setAgeMin(18); setAgeMax(99); setCountryFilter(""); setLocationFilter(""); setGenderFilter(""); setGoalFilter("");
     setLookingForFilter(""); setLifestyleFilter(""); setSmokingFilter(""); setDrinkingFilter(""); setChildrenFilter("");
-    setEducationFilter(""); setHeightMin(0); setHeightMax(0); setZodiacFilter(""); setSameCountryOnly(false);
+    setEducationFilter(""); setHeightMin(0); setHeightMax(0); setZodiacFilter(""); setSameCountryOnly(true);
   };
 
   return (
@@ -277,7 +277,7 @@ function DatingPage() {
             {/* Short, playable video advertisement (5-10 seconds, skippable) after every sequence of 5 user profiles */}
             {((idx + 1 - (datingProfile ? 1 : 0)) > 0 && ((idx + 1 - (datingProfile ? 1 : 0)) % 5 === 0)) ? (
               <div className="my-2 sm:col-span-2">
-                <PlayableVideoAd index={Math.floor((idx + 1 - (datingProfile ? 1 : 0)) / 5) - 1} />
+                <PlayableVideoAd placement="speed_dating_interstitial" index={Math.floor((idx + 1 - (datingProfile ? 1 : 0)) / 5) - 1} />
               </div>
             ) : null}
           </div>
