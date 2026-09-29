@@ -140,7 +140,9 @@ function HotSeatPage() {
       setActiveHost(hostResult.data ?? null);
       if (hostResult.data) {
         const { data } = await supabase.from("hot_seat_questions").select("*, hot_seat_answers(*)").eq("host_id", hostResult.data.id).order("is_priority", { ascending: false }).order("created_at", { ascending: false });
-        const qs = (data ?? []).map((q: any) => ({ id: q.id, alias: q.asker_alias, body: q.body, age: "now", votes: 0, priority: q.is_priority, status: q.hot_seat_answers?.length ? "answered" : "waiting", answer: q.hot_seat_answers?.[0]?.body }));
+        const { data: voteRows } = await (supabase as any).rpc("get_hot_seat_question_vote_counts", { p_host_id: hostResult.data.id });
+        const voteMap = new Map((voteRows ?? []).map((v: any) => [v.question_id, Number(v.vote_count ?? 0)]));
+        const qs = (data ?? []).map((q: any) => ({ id: q.id, alias: q.asker_alias, body: q.body, age: "now", votes: voteMap.get(q.id) ?? 0, priority: q.is_priority, status: q.hot_seat_answers?.length ? "answered" : "waiting", answer: q.hot_seat_answers?.[0]?.body }));
         setQuestions(qs as HotSeatQuestion[]);
       }
       const { data: chat } = await supabase.from("hot_seat_chat").select("*").eq("host_id", hostResult.data?.id ?? "").order("created_at", { ascending: false }).limit(50);
@@ -160,10 +162,6 @@ function HotSeatPage() {
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "hot_seat_answers" }, (payload) => {
         const a: any = payload.new;
         setQuestions((prev) => prev.map((q) => q.id === a.question_id ? { ...q, status: "answered", answer: a.body ?? "" } : q));
-      })
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "hot_seat_question_votes" }, (payload) => {
-        const v: any = payload.new;
-        setQuestions((prev) => prev.map((q) => q.id === v.question_id ? { ...q, votes: q.votes + 1 } : q));
       })
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "hot_seat_chat" }, (payload) => {
         const m: any = payload.new;
