@@ -14,6 +14,7 @@ import {
   Users,
 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
+import { StandardBannerAd } from "@/components/ads/StandardBannerAd";
 import { TierBadge } from "@/components/TierBadge";
 import { ProfileProgressCard } from "@/components/ProfileProgressCard";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -252,6 +253,7 @@ function ProfilePage() {
       </div>
 
 
+      <div className="mt-5"><StandardBannerAd variant="feed-card" placement="profile_inline" /></div>
     </AppShell>
   );
 }
