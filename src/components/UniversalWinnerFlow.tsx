@@ -38,7 +38,7 @@ export function UniversalWinnerFlow() {
     ]);
     if (!a.error && a.data?.[0]) {
       const next=a.data[0] as WinnerAnnouncement;
-      if (dismissed !== next.id) setAnnouncement(next);
+      setAnnouncement(next);
     }
     if (!c.error) {
       const next=(c.data ?? []).find((x:OpenCycle)=>matchesPath(x.activity_key,pathname)) as OpenCycle|undefined;
@@ -53,9 +53,8 @@ export function UniversalWinnerFlow() {
       .on("postgres_changes",{event:"UPDATE",schema:"public",table:"cp_activity_winner_announcements"},()=>void load())
       .subscribe();
     return ()=>{ void (supabase as any).removeChannel(channel); };
-  },[pathname,dismissed]);
+  },[pathname]);
 
-  const closeAnnouncement=()=>{ if(announcement) setDismissed(announcement.id); setAnnouncement(null); };
 
   return <>
     {showPrevious && cycle ? (
@@ -77,7 +76,6 @@ export function UniversalWinnerFlow() {
     {announcement ? (
       <div className="fixed inset-0 z-[100] grid place-items-center bg-black/70 p-4 backdrop-blur-sm">
         <div className="relative w-full max-w-sm overflow-hidden rounded-3xl border border-amber-400/40 bg-background p-6 text-center shadow-[0_0_80px_rgba(245,158,11,.25)]">
-          <button onClick={closeAnnouncement} className="absolute right-3 top-3 text-muted-foreground" aria-label="Close"><X className="size-5"/></button>
           <div className="mx-auto grid size-16 place-items-center rounded-full bg-amber-500/15 text-amber-400"><Trophy className="size-8"/></div>
           <Sparkles className="mx-auto mt-3 size-5 text-primary"/>
           <p className="mt-2 text-[10px] font-black uppercase tracking-[.22em] text-primary">{announcement.activity_title}</p>
