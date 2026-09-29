@@ -6,7 +6,7 @@ set search_path = ''
 as $$
 declare v text;
 begin
-  if current_user <> 'service_role' then
+  if coalesce(auth.role(),'') <> 'service_role' then
     raise exception 'Service role required';
   end if;
   select decrypted_secret into v
