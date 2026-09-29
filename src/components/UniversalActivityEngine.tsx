@@ -9,11 +9,8 @@ export type UniversalActivityCycle = {
 };
 
 export async function getUniversalActivityCycle(activityKey:string) {
-  const {data,error}=await (supabase as any).from("cp_activity_winner_cycles")
-    .select("id,activity_key,title,prize,starts_at,ends_at,status,max_attempts,entry_limit,completion_reward_bc,completion_reward_xp,winner_reward_bc,winner_reward_xp,winner_badge")
-    .eq("activity_key",activityKey).in("status",["scheduled","open"]).lte("starts_at",new Date().toISOString()).gt("ends_at",new Date().toISOString())
-    .order("starts_at",{ascending:false}).limit(1).maybeSingle();
-  return {cycle:data as UniversalActivityCycle|null,error};
+  const {data,error}=await (supabase as any).rpc("cp_get_winner_cycle",{p_activity_key:activityKey});
+  return {cycle:(data ?? null) as UniversalActivityCycle|null,error};
 }
 
 export async function submitUniversalActivity(cycleId:string,score:number,metadata:Record<string,unknown>={}) {
