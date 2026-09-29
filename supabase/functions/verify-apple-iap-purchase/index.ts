@@ -4,10 +4,12 @@ import { AppStoreServerAPIClient, Environment } from "npm:@apple/app-store-serve
 
 const cors={"Access-Control-Allow-Origin":"*","Access-Control-Allow-Headers":"authorization, x-client-info, apikey, content-type","Content-Type":"application/json"};
 function decodePayload(jws:string){const p=jws.split(".")[1];if(!p)throw new Error("Invalid Apple signed transaction");return JSON.parse(atob(p.replace(/-/g,"+").replace(/_/g,"/")+"===".slice((p.length+3)%4)));}
-async function appleClient(env:Environment){
- const key=Deno.env.get("APPLE_IAP_PRIVATE_KEY"),keyId=Deno.env.get("APPLE_IAP_KEY_ID"),issuer=Deno.env.get("APPLE_IAP_ISSUER_ID"),bundle=Deno.env.get("APPLE_IAP_BUNDLE_ID");
- if(!key||!keyId||!issuer||!bundle)throw new Error("Apple IAP server credentials are not configured");
- return {client:new AppStoreServerAPIClient(key.replace(/\\n/g,"\n"),keyId,issuer,bundle,env),bundle};
+async function appleClient(env:Environment,supabase:any){
+ const {data:key,error:keyError}=await supabase.rpc("service_get_payment_secret",{p_name:"circle_panda_apple_iap_private_key"});
+ const {data:settings,error:settingsError}=await supabase.from("payment_provider_settings").select("apple_enabled,apple_key_id,apple_issuer_id,apple_bundle_id").eq("id",1).single();
+ const keyId=settings?.apple_key_id,issuer=settings?.apple_issuer_id,bundle=settings?.apple_bundle_id;
+ if(keyError||settingsError||!key||!settings?.apple_enabled||!keyId||!issuer||!bundle)throw new Error("Apple IAP is not configured in Circle Panda Admin");
+ return {client:new AppStoreServerAPIClient(String(key).replace(/\\n/g,"\n"),String(keyId),String(issuer),String(bundle),env),bundle:String(bundle)};
 }
 Deno.serve(async(req)=>{
  if(req.method==="OPTIONS")return new Response("ok",{headers:cors});
@@ -20,7 +22,7 @@ Deno.serve(async(req)=>{
   if(!signedTransaction||!reference)return new Response(JSON.stringify({ok:false,error:"Missing Apple purchase details"}),{status:400,headers:cors});
   const hinted=decodePayload(signedTransaction);
   const env=String(hinted.environment||"Production")==="Sandbox"?Environment.SANDBOX:Environment.PRODUCTION;
-  const {client,bundle}=await appleClient(env);
+  const {client,bundle}=await appleClient(env,supabase);
   if(hinted.bundleId&&hinted.bundleId!==bundle)throw new Error("Apple bundle ID mismatch");
   const transactionId=String(hinted.transactionId||"");if(!transactionId)throw new Error("Apple transaction ID missing");
   const response=await client.getTransactionInfo(transactionId);
