@@ -13,6 +13,7 @@ import { AdminIntegrationCenter } from "@/components/admin/AdminIntegrationCente
 import { AdminControlCenter } from "@/components/admin/AdminControlCenter";
 import { AdminPermissionManager } from "@/components/admin/AdminPermissionManager";
 import { UniversalFloatingIconManager } from "@/components/admin/UniversalFloatingIconManager";
+import { AdminOperationsCenter } from "@/components/admin/AdminOperationsCenter";
 
 export const Route = createFileRoute("/admin-dashboard")({ component: AdminDashboardPage });
 
@@ -114,6 +115,7 @@ function AdminDashboardPage() {
       <AdminPermissionManager />
       <UniversalAdManager />
       <UniversalFloatingIconManager />
+      <AdminOperationsCenter />
       <PaymentProviderSetup />
       <AdminIntegrationCenter />
       <UniversalWinnerManager />
