@@ -101,6 +101,7 @@ function HotSeatPage() {
   const navigate = useNavigate();
   const { syncCoins, isAdmin } = useStore();
   const [activeHost, setActiveHost] = useState<any>(null);
+  const [sessionHosts, setSessionHosts] = useState<any[]>([]);
   const [loadingLiveData, setLoadingLiveData] = useState(true);
   const [sessionPhase, setSessionPhase] = useState<"live" | "water-break" | "paused" | "ended" | "waiting">("waiting");
   const [userId, setUserId] = useState<string | null>(null);
@@ -139,6 +140,10 @@ function HotSeatPage() {
       setUserId(sessionData.session?.user?.id ?? null);
       setActiveHost(hostResult.data ?? null);
       if (hostResult.data) {
+        const { data: slots } = await supabase.from("hot_seat_session_hosts").select("*").eq("session_id", hostResult.data.id).eq("is_active", true).order("host_order");
+        setSessionHosts(slots ?? []);
+      } else setSessionHosts([]);
+      if (hostResult.data) {
         const { data } = await supabase.from("hot_seat_questions").select("*, hot_seat_answers(*)").eq("host_id", hostResult.data.id).order("is_priority", { ascending: false }).order("created_at", { ascending: false });
         const { data: voteRows } = await (supabase as any).rpc("get_hot_seat_question_vote_counts", { p_host_id: hostResult.data.id });
         const voteMap = new Map((voteRows ?? []).map((v: any) => [v.question_id, Number(v.vote_count ?? 0)]));
@@ -173,6 +178,15 @@ function HotSeatPage() {
           setGiftBanner(`Anon Panda sent ${g.gift_emoji ?? "🎁"} ${g.gift_name ?? "a gift"}!`);
           window.setTimeout(() => setGiftBanner(null), 3500);
         }
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "hot_seat_session_hosts" }, (payload) => {
+        const row: any = payload.new ?? payload.old;
+        if (!activeHost || row?.session_id !== activeHost.id) return;
+        setSessionHosts((prev) => {
+          if (payload.eventType === "DELETE" || row.is_active === false) return prev.filter((x) => x.id !== row.id);
+          const next = prev.filter((x) => x.id !== row.id).concat(row);
+          return next.sort((a, b) => Number(a.host_order) - Number(b.host_order));
+        });
       })
       .on("postgres_changes", { event: "UPDATE", schema: "public", table: "hot_seat_hosts" }, (payload) => {
         const next: any = payload.new;
@@ -467,6 +481,18 @@ function HotSeatPage() {
             <div className="mx-auto mb-4 text-5xl">🐼</div>
             <h2 className="text-xl font-extrabold text-white">Hot Seat is between hosts</h2>
             <p className="mt-2 text-sm text-white/60">The next live host will appear here automatically when an admin starts a session.</p>
+          </div>
+        </div>
+      )}
+
+      {activeHost && sessionHosts.length > 0 && (
+        <div className="absolute left-4 top-20 z-30 max-w-[75vw]">
+          <div className="flex items-center gap-1.5 overflow-x-auto rounded-2xl border border-white/10 bg-black/55 p-1.5 backdrop-blur-md">
+            {sessionHosts.map((host) => (
+              <div key={host.id} className={`shrink-0 rounded-xl px-3 py-1.5 text-[11px] font-bold ${host.alias === activeHost.alias ? "bg-orange-500 text-white" : "bg-white/10 text-white/70"}`}>
+                #{host.host_order} {host.alias}
+              </div>
+            ))}
           </div>
         </div>
       )}
