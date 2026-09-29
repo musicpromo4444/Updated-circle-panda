@@ -105,8 +105,8 @@ export function openAdExternalUrl(url?: string, sponsorTitle?: string): void {
  * Dispatches ad lifecycle telemetry to native Android bridge and the production Supabase ad-event ledger.
  */
 export function notifyAdEvent(
-  event: "impression" | "click" | "skipped" | "rewarded_complete",
-  payload: { adId: string; format: "banner" | "video" | "rewarded"; rewardAmount?: number },
+  event: "impression" | "click" | "skipped" | "completed" | "rewarded_complete",
+  payload: { adId: string; format: "banner" | "native" | "interstitial" | "popup" | "video" | "playable" | "rewarded"; rewardAmount?: number },
 ): void {
   try {
     if (typeof window === "undefined") return;
