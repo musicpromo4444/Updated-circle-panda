@@ -70,6 +70,30 @@ function formatLongTimer(seconds: number) {
   return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(sec).padStart(2, "0")}`;
 }
 
+function BreakLounge({ content, onOpen }: { content: any[]; onOpen: (item: any) => void }) {
+  const icon: Record<string,string> = { giveaway: "🎁", movie: "🎬", comedy: "😂", music: "🎵", poll: "🗳️", investment: "📈" };
+  const label: Record<string,string> = { giveaway: "Enter", movie: "Watch", comedy: "Watch", music: "Listen", poll: "Vote", investment: "Play" };
+  return (
+    <div className="mt-5 w-full max-w-2xl rounded-3xl border border-white/10 bg-black/55 p-4 text-left shadow-2xl backdrop-blur-xl">
+      <div className="mb-3 flex items-center justify-between">
+        <div><div className="text-sm font-black text-white">🐼 Break Lounge</div><div className="text-[11px] text-white/50">Entertainment and activities while the live room resets.</div></div>
+        <span className="rounded-full bg-amber-400/10 px-2 py-1 text-[10px] font-black text-amber-300">LIVE BREAK</span>
+      </div>
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+        {content.map((item) => (
+          <button key={item.id} type="button" onClick={() => onOpen(item)}
+            className="rounded-2xl border border-white/10 bg-white/[0.04] p-3 text-left transition hover:border-amber-400/30 hover:bg-white/[0.07] active:scale-[.98]">
+            <div className="text-2xl">{icon[item.content_type] ?? "✨"}</div>
+            <div className="mt-2 text-xs font-black text-white">{item.title}</div>
+            <div className="mt-1 line-clamp-2 text-[10px] leading-4 text-white/45">{item.description ?? "Tap to open this break activity."}</div>
+            <div className="mt-2 text-[10px] font-black uppercase tracking-wider text-amber-300">{label[item.content_type] ?? "Open"} →</div>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function QueuePanel({ joined, onJoin, onBid }: { joined: boolean; onJoin: () => void; onBid: () => void }) {
   return (
     <div className="p-5 text-white">
@@ -137,6 +161,7 @@ function HotSeatPage() {
   const { syncCoins, isAdmin } = useStore();
   const [activeHost, setActiveHost] = useState<any>(null);
   const [sessionHosts, setSessionHosts] = useState<any[]>([]);
+  const [breakContent, setBreakContent] = useState<any[]>([]);
   const [loadingLiveData, setLoadingLiveData] = useState(true);
   const [sessionPhase, setSessionPhase] = useState<"live" | "water-break" | "paused" | "ended" | "waiting">("waiting");
   const [userId, setUserId] = useState<string | null>(null);
@@ -180,6 +205,8 @@ function HotSeatPage() {
         const { data: slots } = await supabase.from("hot_seat_session_hosts").select("*").eq("session_id", hostResult.data.id).eq("is_active", true).order("host_order");
         setSessionHosts(slots ?? []);
       } else setSessionHosts([]);
+      const { data: breakRows } = await supabase.from("hot_seat_break_content").select("*").eq("enabled", true).order("sort_order", { ascending: true });
+      setBreakContent(breakRows ?? []);
       if (hostResult.data) {
         const { data } = await supabase.from("hot_seat_questions").select("*, hot_seat_answers(*)").eq("host_id", hostResult.data.id).order("is_priority", { ascending: false }).order("created_at", { ascending: false });
         const { data: voteRows } = await (supabase as any).rpc("get_hot_seat_question_vote_counts", { p_host_id: hostResult.data.id });
@@ -522,7 +549,11 @@ function HotSeatPage() {
             <h2 className="text-2xl font-extrabold text-white">Hot Seat resumes soon</h2>
             <p className="mt-2 text-sm text-white/60">The 3-hour live block has ended. The live player is closed for 1 hour, then the next live block resumes automatically.</p>
             <div className="mt-5 text-3xl font-black tabular-nums text-white">{formatLongTimer(windowSeconds)}</div>
-            <div className="mt-5 w-full max-w-sm">
+            <BreakLounge content={breakContent} onOpen={(item) => {
+              if (item.action_url) window.open(item.action_url, "_blank", "noopener,noreferrer");
+              else toast.info(item.title + " is ready", { description: item.description ?? "Admin can attach the live destination from Hot Seat Control." });
+            }} />
+            <div className="mt-4 w-full max-w-2xl">
               <StandardBannerAd variant="feed-card" placement="hot_seat_water_break" />
             </div>
           </div>
