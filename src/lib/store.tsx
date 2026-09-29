@@ -473,6 +473,7 @@ type StoreValue = State & {
   createGroup: (name: string, topic: string) => Promise<GroupChat | null>;
   createEvent: (event: Omit<PandaEvent, "id" | "rsvp">) => PandaEvent;
   requestDatingMatch: (userId: string) => Promise<string | null>;
+  searchDatingProfiles: (filters: { ageMin?: number; ageMax?: number; country?: string; location?: string; gender?: string; relationshipGoal?: string; lookingFor?: string; lifestyle?: string; smoking?: string; drinking?: string; children?: string; education?: string; heightMin?: number; heightMax?: number; zodiac?: string; sameCountryOnly?: boolean }) => Promise<boolean>;
   registerDatingProfile: (profile: Omit<DatingProfile, "registeredAt" | "userId">) => void;
 };
 
@@ -525,7 +526,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         (supabase as any).from("group_settings").select("group_id,edit_group_info,send_messages,approve_new_members"),
         (supabase as any).from("events").select("id,title,description,location,starts_at,ends_at,category,entry_fee_bc,duration_minutes,reach_scope,reach_country,reach_state,reach_city,reach_area,cover_url,is_published,owner_id").eq("is_published",true).order("starts_at", {ascending:true}),
         (supabase as any).from("event_attendees").select("event_id,user_id"),
-        (supabase as any).from("dating_profiles").select("user_id,name,age,vibe,emoji,bio,interests,location,country,gender,relationship_goal,looking_for,lifestyle,personality,love_language,smoking,drinking,children,education,occupation,sexual_experience,intimacy_preference,relationship_status,height_cm,zodiac,favorite_date,photo_path,blurred_photo_path,updated_at").eq("enabled",true),
+        (supabase as any).rpc("get_dating_discovery_secure", { p_age_min:18,p_age_max:99,p_same_country_only:true }),
         (supabase as any).from("bc_accounts").select("balance").eq("user_id",uid).maybeSingle(),
         (supabase as any).from("user_xp").select("xp").eq("user_id",uid).maybeSingle(),
         Promise.resolve({ data: [] as any[] }),
@@ -1033,6 +1034,41 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     const charged = Number(data?.bc_cost ?? 0);
     if (charged > 0) setState((s) => ({ ...s, coins: Math.max(0, s.coins - charged) }));
     toast.success("Event Blast is live 🚀", { description: `${data?.unique_reach ?? 500} unique users · 60 minutes.` });
+    return true;
+  }, [dbUserId]);
+
+  const searchDatingProfiles = useCallback(async (filters: { ageMin?: number; ageMax?: number; country?: string; location?: string; gender?: string; relationshipGoal?: string; lookingFor?: string; lifestyle?: string; smoking?: string; drinking?: string; children?: string; education?: string; heightMin?: number; heightMax?: number; zodiac?: string; sameCountryOnly?: boolean }) => {
+    if (!dbUserId) return false;
+    const { data, error } = await (supabase as any).rpc("get_dating_discovery_secure", {
+      p_age_min: filters.ageMin ?? 18,
+      p_age_max: filters.ageMax ?? 99,
+      p_country: filters.country ?? "",
+      p_location: filters.location ?? "",
+      p_gender: filters.gender ?? "",
+      p_relationship_goal: filters.relationshipGoal ?? "",
+      p_looking_for: filters.lookingFor ?? "",
+      p_lifestyle: filters.lifestyle ?? "",
+      p_smoking: filters.smoking ?? "",
+      p_drinking: filters.drinking ?? "",
+      p_children: filters.children ?? "",
+      p_education: filters.education ?? "",
+      p_height_min: filters.heightMin || null,
+      p_height_max: filters.heightMax || null,
+      p_zodiac: filters.zodiac ?? "",
+      p_same_country_only: filters.sameCountryOnly ?? false,
+    });
+    if (error) { toast.error(error.message ?? "Dating matches could not be loaded"); return false; }
+    const rows = Array.isArray(data) ? data : [];
+    const mapped = rows.map((d:any) => ({
+      userId:d.user_id,name:d.name,age:d.age,vibe:d.vibe,emoji:d.emoji,bio:d.bio,interests:d.interests??[],
+      location:"",country:d.country??"",gender:d.gender??"",relationshipGoal:d.relationship_goal??"",
+      lookingFor:d.looking_for??[],lifestyle:d.lifestyle??[],personality:d.personality??[],loveLanguage:d.love_language??"",
+      smoking:d.smoking??"",drinking:d.drinking??"",children:d.children??"",education:d.education??"",occupation:d.occupation??"",
+      sexualExperience:d.sexual_experience??"",intimacyPreference:d.intimacy_preference??"",relationshipStatus:d.relationship_status??"single",
+      heightCm:d.height_cm??null,zodiac:d.zodiac??"",favoriteDate:d.favorite_date??"",photoPath:d.photo_path??"",
+      blurredPhotoPath:d.blurred_photo_path??"",registeredAt:new Date(d.updated_at).getTime()
+    }));
+    setState(s => ({...s, datingMatches:mapped}));
     return true;
   }, [dbUserId]);
 
