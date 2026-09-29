@@ -148,20 +148,25 @@ export async function executeNativeStoreCheckout(
   onStatus?.(`Opening ${platform === "google_play" ? "Google Play" : "Apple"} purchase...`);
 
   try {
-    const nativeResult = await new Promise<any>((resolve) => {
-      const handler = (raw: string) => {
-        try { const parsed = typeof raw === "string" ? JSON.parse(raw) : raw; if (parsed?.reference === reference) resolve(parsed); } catch { /* ignore malformed bridge events */ }
-      };
-      window.CirclePandaNativePurchaseComplete = handler;
-      const timer = window.setTimeout(() => resolve({ reference, success: false, message: "Native store purchase timed out." }), 10 * 60 * 1000);
-      (window as any).__circlePandaNativeCleanup = () => { window.clearTimeout(timer); if (window.CirclePandaNativePurchaseComplete === handler) delete window.CirclePandaNativePurchaseComplete; };
-    });
+    let resolveNative!: (value: any) => void;
+    const nativeResultPromise = new Promise<any>((resolve) => { resolveNative = resolve; });
+    const handler = (raw: string) => {
+      try { const parsed = typeof raw === "string" ? JSON.parse(raw) : raw; if (parsed?.reference === reference) resolveNative(parsed); } catch { /* ignore malformed bridge events */ }
+    };
+    window.CirclePandaNativePurchaseComplete = handler;
+    const timer = window.setTimeout(() => resolveNative({ reference, success: false, message: "Native store purchase timed out." }), 10 * 60 * 1000);
+    (window as any).__circlePandaNativeCleanup = () => {
+      window.clearTimeout(timer);
+      if (window.CirclePandaNativePurchaseComplete === handler) delete window.CirclePandaNativePurchaseComplete;
+    };
     const dispatched = platform === "google_play"
       ? (window.AndroidBridge?.requestGooglePlayPurchase?.(payload) ?? window.Android?.requestGooglePlayPurchase?.(payload) ?? false)
       : (window.CirclePandaIOS?.requestApplePurchase?.(payload) ?? false);
     if (!dispatched) {
+      (window as any).__circlePandaNativeCleanup?.();
       return { success: false, platformUsed: platform, reference, message: "Native store purchase bridge is unavailable." };
     }
+    const nativeResult = await nativeResultPromise;
     if (!nativeResult?.success) {
       (window as any).__circlePandaNativeCleanup?.();
       return { success: false, platformUsed: platform, reference, message: nativeResult?.message || "Native store purchase was not completed." };
