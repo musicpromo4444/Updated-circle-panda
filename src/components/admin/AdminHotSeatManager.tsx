@@ -25,6 +25,7 @@ export function AdminHotSeatManager() {
   const [breakTitle, setBreakTitle] = useState("");
   const [breakType, setBreakType] = useState("movie");
   const [breakUrl, setBreakUrl] = useState("");
+  const [earnings, setEarnings] = useState({ gross: 0, hostShare: 0 });
 
   const load = async () => {
     setLoading(true);
@@ -38,6 +39,9 @@ export function AdminHotSeatManager() {
     if (error) toast.error(error.message);
     setActive(data);
     if (data?.id) {
+      const { data: earn } = await supabase.from("hot_seat_host_earnings").select("gross_bc,host_share_bc").eq("host_id", data.id);
+      setEarnings((earn ?? []).reduce((a:any,x:any)=>({ gross:a.gross+Number(x.gross_bc||0), hostShare:a.hostShare+Number(x.host_share_bc||0) }), { gross:0, hostShare:0 }));
+
       const { data: slots } = await supabase.from("hot_seat_session_hosts").select("*").eq("session_id", data.id).eq("is_active", true).order("host_order");
       setSessionHosts(slots ?? []);
     } else setSessionHosts([]);
@@ -165,6 +169,17 @@ export function AdminHotSeatManager() {
           <p className="text-xs text-muted-foreground">
             {active.stream_provider} · {active.max_hosts} host slots · 3h live / 1h water break · {active.session_duration_hours}h session
           </p>
+          <div className="grid grid-cols-2 gap-2">
+            <div className="rounded-xl border border-white/10 bg-black/10 p-3">
+              <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Gift economy</div>
+              <div className="mt-1 text-lg font-black">{earnings.gross.toLocaleString()} BC</div>
+            </div>
+            <div className="rounded-xl border border-orange-400/20 bg-orange-400/5 p-3">
+              <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Host 20% share</div>
+              <div className="mt-1 text-lg font-black text-orange-300">{earnings.hostShare.toLocaleString()} BC</div>
+            </div>
+          </div>
+
           <div className="rounded-xl border border-white/10 bg-black/10 p-3 space-y-2">
             <b className="text-sm">Host slots</b>
             <div className="flex flex-wrap gap-2">
