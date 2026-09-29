@@ -514,7 +514,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       setDbUserId(session.user.id);
     void (supabase as any).rpc("get_my_admin_status").then(({data}: any) => setDbIsAdmin(data === true));
       const uid = session.user.id;
-      const [st, postsRes, repliesRes, groupsRes, groupMessagesRes, threadsRes, threadMessagesRes, groupSettingsRes, eventsRes, attendeesRes, datingRes, coinsRes, xpRes, nomineesRes, crushResultsRes, winnersRes, ticketsRes, crushWinnersRes] = await Promise.all([
+      const [st, postsRes, repliesRes, groupsRes, groupMessagesRes, threadsRes, threadMessagesRes, groupSettingsRes, eventsRes, attendeesRes, datingRes, datingOwnRes, coinsRes, xpRes, nomineesRes, crushResultsRes, winnersRes, ticketsRes, crushWinnersRes] = await Promise.all([
         (supabase as any).from("user_app_state").select("state").eq("user_id", uid).maybeSingle(),
         (supabase as any).from("cp_posts").select("id,body,created_at,author_id").order("created_at", {ascending:false}).limit(100),
         (supabase as any).from("cp_post_replies").select("id,post_id,body,created_at,author_id").order("created_at", {ascending:true}).limit(500),
@@ -527,6 +527,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         (supabase as any).from("events").select("id,title,description,location,starts_at,ends_at,category,entry_fee_bc,duration_minutes,reach_scope,reach_country,reach_state,reach_city,reach_area,cover_url,is_published,owner_id").eq("is_published",true).order("starts_at", {ascending:true}),
         (supabase as any).from("event_attendees").select("event_id,user_id"),
         (supabase as any).rpc("get_dating_discovery_secure", { p_age_min:18,p_age_max:99,p_same_country_only:true }),
+        (supabase as any).from("dating_profiles").select("user_id,name,age,vibe,emoji,bio,interests,location,country,gender,relationship_goal,looking_for,lifestyle,personality,love_language,smoking,drinking,children,education,occupation,sexual_experience,intimacy_preference,relationship_status,height_cm,zodiac,favorite_date,photo_path,blurred_photo_path,updated_at").eq("user_id",uid).maybeSingle(),
         (supabase as any).from("bc_accounts").select("balance").eq("user_id",uid).maybeSingle(),
         (supabase as any).from("user_xp").select("xp").eq("user_id",uid).maybeSingle(),
         Promise.resolve({ data: [] as any[] }),
@@ -548,7 +549,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       });
       const attendees = attendeesRes.data ?? [];
       const events = (eventsRes.data ?? []).map((e:any)=>({id:e.id,title:e.title,tag:e.category ?? "Meetup",date:e.starts_at?new Date(e.starts_at).toLocaleDateString():"",time:e.starts_at?`${new Date(e.starts_at).toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"})}${e.ends_at ? ` · ${Math.max(1,Math.round((new Date(e.ends_at).getTime()-new Date(e.starts_at).getTime())/60000))} min` : ""}`:"",place:e.location??"",cost:Number(e.entry_fee_bc ?? 0),blurb:e.description,details:e.description,rsvp:attendees.some((a:any)=>a.event_id===e.id&&a.user_id===uid),reachScope:e.reach_scope ?? "worldwide",reachCountry:e.reach_country ?? "",reachState:e.reach_state ?? "",reachCity:e.reach_city ?? "",reachArea:e.reach_area ?? "",durationMinutes:Number(e.duration_minutes ?? 120)}));
-      const dating = (datingRes.data ?? []).find((d:any)=>d.user_id===uid);
+      const dating = datingOwnRes.data;
       const crushCounts = new Map<string, number>((crushResultsRes.data ?? []).map((r:any)=>[r.nominee_id, Number(r.vote_count ?? r.votes ?? 0)]));
       const nominees = (crushResultsRes.data ?? []).map((n:any)=>({id:n.nominee_id,name:n.display_name,kind:n.kind,emoji:n.emoji,blurb:n.blurb,votes:Number(n.vote_count ?? 0),avatarUrl:n.media_url,mediaUrl:n.media_url,mediaType:n.media_type,mine:Boolean(n.mine)}));
       const rawThreads = threadsRes.data ?? [];
