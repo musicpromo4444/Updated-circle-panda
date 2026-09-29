@@ -874,7 +874,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       const { data, error } = await (supabase as any).rpc("send_direct_message", { p_thread_id: threadId, p_body: body });
       if (error) { toast.error(error.message ?? "Message could not be sent"); return; }
       setState((s) => ({ ...s, coins: Number(data?.balance ?? s.coins), threads: s.threads.map((t) => t.id === threadId ? { ...t, messages: [...t.messages, { id:data.id, body:data.body, at:new Date(data.created_at).getTime(), mine:true, messageType:"text" }] } : t) }));
-      toast("−1 BC spent 🪙", { description:"Message delivered anonymously." });
+      if (Number(data?.charged_bc ?? 0) > 0) {
+        toast("−1 BC spent 🪙", { description:"Message delivered anonymously." });
+      } else {
+        toast.success("Message delivered 💗", { description:data?.free_reason === "dating_72h" ? "Free during the 72-hour Dating Chat." : "VIP message." });
+      }
     })();
   }, [dbUserId]);
 
