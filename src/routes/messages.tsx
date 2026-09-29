@@ -205,6 +205,37 @@ function MessagesPage() {
           ) : null}
         </DialogContent>
       </Dialog>
+      <Dialog open={!!pendingDating} onOpenChange={(open)=>{ if (!open && !decisionBusy) setPendingDating(null); }}>
+        <DialogContent className="max-w-md overflow-hidden border-[var(--dating)]/30 p-0">
+          {pendingDating ? (
+            <div>
+              <div className="absolute inset-0 bg-[var(--dating)]/10 backdrop-blur-[2px]" />
+              <div className="relative p-6">
+                <div className="mx-auto mb-4 grid size-14 place-items-center rounded-2xl bg-[var(--dating)]/15 text-[var(--dating)]">
+                  <Heart className="size-7 fill-current" />
+                </div>
+                <DialogTitle className="text-center font-display text-2xl">72-hour Dating period ended</DialogTitle>
+                <DialogDescription className="mt-2 text-center">
+                  You and {pendingDating.other_name} completed the 72-hour dating period. Do you want to continue and match?
+                </DialogDescription>
+                <div className="mx-auto mt-5 size-40 overflow-hidden rounded-3xl border-4 border-background/70 shadow-xl">
+                  {pendingDating.other_blurred_photo_path ? (
+                    <img src={supabase.storage.from("dating-photo-blur").getPublicUrl(pendingDating.other_blurred_photo_path).data.publicUrl} alt="Blurred dating match" className="size-full object-cover blur-md scale-105" draggable={false} />
+                  ) : <div className="grid size-full place-items-center bg-secondary text-5xl">🐼</div>}
+                </div>
+                <p className="mt-3 text-center text-sm font-semibold">{pendingDating.other_name} · {pendingDating.other_age}</p>
+                <p className="mt-1 text-center text-xs text-muted-foreground">{pendingDating.other_vibe || "Anonymous Panda"}</p>
+                <div className="mt-6 grid grid-cols-2 gap-3">
+                  <Button variant="outline" disabled={decisionBusy} onClick={()=>void decideDating("ignore")}>Ignore</Button>
+                  <Button disabled={decisionBusy} onClick={()=>void decideDating("continue")} className="gap-2 bg-[var(--dating)] text-white hover:bg-[var(--dating)]/90">
+                    <Sparkles className="size-4" /> Match
+                  </Button>
+                </div>
+              </div>
+            </div>
+          ) : null}
+        </DialogContent>
+      </Dialog
       </AppShell>
     );
   }
