@@ -61,7 +61,7 @@ export const Route = createFileRoute("/dating")({
 });
 
 function DatingPage() {
-  const { requestDatingMatch, threads, datingProfile, datingMatches } = useStore();
+  const { requestDatingMatch, startDatingChat, threads, datingProfile, datingMatches } = useStore();
   const navigate = useNavigate();
   const [openMatch, setOpenMatch] = useState<Match | null>(null);
   const [registerOpen, setRegisterOpen] = useState(false);
@@ -96,6 +96,10 @@ function DatingPage() {
     if (!status) return;
     setSent((s) => ({...s,[m.userId!]:status}));
     setOpenMatch(null);
+    if (status === "matched") {
+      const threadId = await startDatingChat(m.userId, m.name);
+      if (threadId) navigate({ to: "/messages", search: { thread: threadId } });
+    }
   };
 
   const connectionFor = (userId?: string) => connections.find((x:any) => userId && ((x.requester_id === userId && x.recipient_id === datingProfile?.userId) || (x.recipient_id === userId && x.requester_id === datingProfile?.userId)));
