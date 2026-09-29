@@ -109,7 +109,7 @@ export function GiftDrawer({
                     Send Gift to Host
                   </DialogTitle>
                   <DialogDescription className="text-xs text-neutral-400">
-                    Cheer on ${hostName} during the Hot Seat stream.
+                    Cheer on {hostName} during the Hot Seat stream.
                   </DialogDescription>
                 </div>
               </div>
