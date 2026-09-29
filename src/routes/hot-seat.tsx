@@ -114,6 +114,7 @@ function HotSeatPage() {
   const [questions, setQuestions] = useState<HotSeatQuestion[]>([]);
   const [chatMessages, setChatMessages] = useState<LiveChatMessage[]>([]);
   const [giftBanner, setGiftBanner] = useState<string | null>(null);
+  const [giftTier, setGiftTier] = useState<"small" | "premium" | "mega" | "ultimate">("small");
 
   // Modals / Drawers states
   const [chatDrawerOpen, setChatDrawerOpen] = useState(false);
@@ -175,6 +176,7 @@ function HotSeatPage() {
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "hot_seat_gifts" }, (payload) => {
         const g: any = payload.new;
         if (activeHost && g.host_id === activeHost.id) {
+          setGiftTier(Number(g.cost_bc ?? 0) >= 20000 ? "ultimate" : Number(g.cost_bc ?? 0) >= 5000 ? "mega" : Number(g.cost_bc ?? 0) >= 1000 ? "premium" : "small");
           setGiftBanner(`Anon Panda sent ${g.gift_emoji ?? "🎁"} ${g.gift_name ?? "a gift"}!`);
           window.setTimeout(() => setGiftBanner(null), 3500);
         }
@@ -350,6 +352,7 @@ function HotSeatPage() {
       .then(async ({ data, error }: any) => {
         if (error) throw error;
         await syncCoins();
+        setGiftTier(gift.cost >= 20000 ? "ultimate" : gift.cost >= 5000 ? "mega" : gift.cost >= 1000 ? "premium" : "small");
         setGiftBanner(`Anon Panda sent ${gift.emoji} ${gift.name}!`);
         window.setTimeout(() => setGiftBanner(null), 3500);
         for (let i = 0; i < 4; i++) window.setTimeout(() => spawnHeart(), i * 150);
