@@ -23,10 +23,10 @@ export function UniversalWinnerFlow() {
   const [announcement,setAnnouncement] = useState<WinnerAnnouncement|null>(null);
   const [cycle,setCycle] = useState<OpenCycle|null>(null);
   const [showPrevious,setShowPrevious] = useState(false);
-  const [dismissed,setDismissed] = useState<string|null>(null);
   const pathname = window.location.pathname;
 
   const load = async () => {
+    await (supabase as any).rpc("cp_finalize_due_winner_cycles");
     const [a,c] = await Promise.all([
       (supabase as any).from("cp_activity_winner_announcements")
         .select("id,cycle_id,activity_title,winner_name,winner_avatar,prize,score,message,visible_until,created_at")
@@ -42,7 +42,8 @@ export function UniversalWinnerFlow() {
     }
     if (!c.error) {
       const next=(c.data ?? []).find((x:OpenCycle)=>matchesPath(x.activity_key,pathname)) as OpenCycle|undefined;
-      if (next) { setCycle(next); setShowPrevious(Boolean(next.previous_winner_name)); }
+      setCycle(next ?? null);
+      setShowPrevious(Boolean(next?.previous_winner_name));
     }
   };
 
