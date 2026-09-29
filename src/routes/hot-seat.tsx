@@ -751,6 +751,13 @@ function HotSeatPage() {
       {/* Modals & Drawers */}
 
 
+      {sessionPhase === "live" && (
+        <div className="pointer-events-auto absolute left-3 right-3 bottom-28 z-30 mx-auto flex max-w-2xl gap-2 overflow-x-auto pb-1">
+          <div className="min-w-[260px] flex-1"><StandardBannerAd variant="compact" placement="hot_seat_questions" /></div>
+          <div className="min-w-[260px] flex-1"><StandardBannerAd variant="compact" placement="hot_seat_comments" /></div>
+        </div>
+      )}
+
       {/* Live Chat & Questions Drawer */}
       {sessionPhase === "live" && <LiveChatDrawer
         open={chatDrawerOpen}
