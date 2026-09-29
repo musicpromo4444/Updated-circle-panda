@@ -52,7 +52,7 @@ export type AppSettings = {
   show_download_button: boolean;
 };
 
-export const PRIORITY_QUESTION_COST = 10;
+export const PRIORITY_QUESTION_COST = 25;
 export const MEDIA_UNLOCK_COST = 10;
 export const WAITING_ROOM_SECONDS = 300;
 
