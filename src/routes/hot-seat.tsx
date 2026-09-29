@@ -143,7 +143,7 @@ function HotSeatPage() {
         const qs = (data ?? []).map((q: any) => ({ id: q.id, alias: q.asker_alias, body: q.body, age: "now", votes: 0, priority: q.is_priority, status: q.hot_seat_answers?.length ? "answered" : "waiting", answer: q.hot_seat_answers?.[0]?.body }));
         setQuestions(qs as HotSeatQuestion[]);
       }
-      const { data: chat } = await supabase.from("hot_seat_chat").select("*").order("created_at", { ascending: false }).limit(50);
+      const { data: chat } = await supabase.from("hot_seat_chat").select("*").eq("host_id", hostResult.data?.id ?? "").order("created_at", { ascending: false }).limit(50);
       setChatMessages((chat ?? []).reverse().map((m: any) => ({ id: m.id, user: m.alias, text: m.body, time: "now", isGift: m.is_gift })));
       setLoadingLiveData(false);
     })();
@@ -159,7 +159,7 @@ function HotSeatPage() {
       })
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "hot_seat_chat" }, (payload) => {
         const m: any = payload.new;
-        setChatMessages((prev) => [...prev.slice(-49), { id: m.id, user: m.alias, text: m.body, time: "just now", isGift: m.is_gift }]);
+        if (activeHost && m.host_id === activeHost.id) setChatMessages((prev) => [...prev.slice(-49), { id: m.id, user: m.alias, text: m.body, time: "just now", isGift: m.is_gift }]);
       })
       .subscribe();
     return () => { void supabase.removeChannel(channel); };
@@ -223,9 +223,9 @@ function HotSeatPage() {
     if (now - lastTapRef.current < DOUBLE_TAP_THRESHOLD) {
       // Double tap!
       spawnHeart(e.clientX, e.clientY);
-      void (supabase as any).rpc("toggle_hot_seat_like").then(({ data, error }: any) => {
+      void (supabase as any).rpc("toggle_hot_seat_like", { p_host_id: activeHost?.id }).then(({ data, error }: any) => {
         if (error) throw error;
-        setLikeCount((c) => Math.max(0, c + (data?.liked ? 1 : -1)));
+        setLikeCount(Number(data?.count ?? 0));
       }).catch((error: any) => toast.error(error?.message ?? "Could not update like."));
     }
     lastTapRef.current = now;
@@ -246,7 +246,7 @@ function HotSeatPage() {
   const handleToggleFollow = () => {
     setIsFollowing((prev) => {
       const next = !prev;
-      if (userId) void (next ? (supabase as any).from("hot_seat_follows").upsert({user_id:userId}) : (supabase as any).from("hot_seat_follows").delete().eq("user_id",userId));
+      if (userId) void (next ? (supabase as any).from("hot_seat_follows").upsert({host_id:activeHost?.id,user_id:userId}) : (supabase as any).from("hot_seat_follows").delete().eq("host_id",activeHost?.id).eq("user_id",userId));
       if (next) {
         toast.success(`Following ${activeHost?.alias ?? "the host"}! 🐼`, {
           description: "You'll be notified when upcoming Hot Seat sessions go live.",
@@ -276,8 +276,8 @@ function HotSeatPage() {
       text,
       time: "now",
     };
-    if (!userId) { toast.error("Sign in to join the live chat."); return; }
-    void (supabase as any).rpc("send_hot_seat_chat_secure", { p_body: text }).catch((error:any) => toast.error(error?.message ?? "Could not send message."));
+    if (!userId || !activeHost) { toast.error("Sign in while a Hot Seat host is live."); return; }
+    void (supabase as any).rpc("send_hot_seat_chat_secure", { p_host_id: activeHost?.id, p_body: text }).catch((error:any) => toast.error(error?.message ?? "Could not send message."));
   };
 
   // Upvote question
