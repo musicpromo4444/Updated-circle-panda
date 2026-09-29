@@ -19,6 +19,8 @@ type Match = {
   bio: string;
   interests: string[];
   location: string;
+  photoPath?: string;
+  blurredPhotoPath?: string;
 };
 
 function DatingPhoto({ match, connection }: { match: Match; connection?: any }) {
