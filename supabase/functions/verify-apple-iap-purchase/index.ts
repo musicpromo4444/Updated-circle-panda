@@ -17,7 +17,9 @@ Deno.serve(async(req)=>{
   const {data:{user}}=await supabase.auth.getUser(auth.replace(/^Bearer\s+/i,""));if(!user)return new Response(JSON.stringify({ok:false,error:"Unauthorized"}),{status:401,headers:cors});
   const body=await req.json(),signedTransaction=String(body.signedTransaction||body.jwsRepresentation||"").trim(),requestedItemId=String(body.itemId||"").trim(),itemType=body.itemType==="vip_subscription"?"vip_subscription":"coin_package",reference=String(body.reference||"").trim();
   if(!signedTransaction||!reference)return new Response(JSON.stringify({ok:false,error:"Missing Apple purchase details"}),{status:400,headers:cors});
-  const hinted=decodePayload(signedTransaction),env=String(hinted.environment||"Production")==="Sandbox"?Environment.SANDBOX:Environment.PRODUCTION,{client,bundle}=await appleClient(env);
+  const hinted=decodePayload(signedTransaction);
+  const env=String(hinted.environment||"Production")==="Sandbox"?Environment.SANDBOX:Environment.PRODUCTION;
+  const {client,bundle}=await appleClient(env);
   if(hinted.bundleId&&hinted.bundleId!==bundle)throw new Error("Apple bundle ID mismatch");
   const transactionId=String(hinted.transactionId||"");if(!transactionId)throw new Error("Apple transaction ID missing");
   const response=await client.getTransactionInfo(transactionId);
