@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Heart, MessageCircle, Sparkles } from "lucide-react";
+import { Heart, MessageCircle, Sparkles, SlidersHorizontal, X } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
@@ -69,6 +69,23 @@ function DatingPage() {
   const [incoming, setIncoming] = useState<any[]>([]);
   const [, setClock] = useState(Date.now());
   const [connections, setConnections] = useState<any[]>([]);
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [ageMin, setAgeMin] = useState(18);
+  const [ageMax, setAgeMax] = useState(99);
+  const [countryFilter, setCountryFilter] = useState("");
+  const [locationFilter, setLocationFilter] = useState("");
+  const [genderFilter, setGenderFilter] = useState("");
+  const [goalFilter, setGoalFilter] = useState("");
+  const [lookingForFilter, setLookingForFilter] = useState("");
+  const [lifestyleFilter, setLifestyleFilter] = useState("");
+  const [smokingFilter, setSmokingFilter] = useState("");
+  const [drinkingFilter, setDrinkingFilter] = useState("");
+  const [childrenFilter, setChildrenFilter] = useState("");
+  const [educationFilter, setEducationFilter] = useState("");
+  const [heightMin, setHeightMin] = useState(0);
+  const [heightMax, setHeightMax] = useState(0);
+  const [zodiacFilter, setZodiacFilter] = useState("");
+  const [sameCountryOnly, setSameCountryOnly] = useState(true);
   const loadConnections = async () => {
     const [userRes, connRes] = await Promise.all([
       (supabase as any).auth.getUser(),
@@ -126,7 +143,7 @@ function DatingPage() {
         </Button>
       </div>
 
-      {connections.filter((x:any)=>x.status==="matched" && x.reveal_at && new Date(x.reveal_at).getTime()>Date.now()).map((x:any)=>{
+      <div className="mb-5 flex items-center gap-2">\n        <Button variant="outline" className="flex-1 gap-2 rounded-2xl" onClick={() => setFiltersOpen(true)}><SlidersHorizontal className="size-4" /> Filters {activeFilterCount ? `(${activeFilterCount})` : ""}</Button>\n        {datingProfile ? <span className="rounded-2xl border border-border bg-secondary/50 px-3 py-2 text-xs text-muted-foreground">{sameCountryOnly ? `Showing ${datingProfile.country || "your country"} first` : "Worldwide"}</span> : null}\n      </div>\n\n      {connections.filter((x:any)=>x.status==="matched" && x.reveal_at && new Date(x.reveal_at).getTime()>Date.now()).map((x:any)=>{
         const remaining=Math.max(0,new Date(x.reveal_at).getTime()-Date.now());
         const h=Math.floor(remaining/3600000), m=Math.floor((remaining%3600000)/60000), sec=Math.floor((remaining%60000)/1000);
         return <section key={x.id} className="mb-5 rounded-2xl border border-[var(--dating)]/20 bg-[var(--dating)]/5 p-4">
@@ -168,7 +185,7 @@ function DatingPage() {
       ) : null}
 
       <div className="grid gap-4 sm:grid-cols-2">
-        {allMatches.map((m, idx) => (
+        {filteredMatches.map((m, idx) => (
           <div key={m.name} className="contents">
             <article
               className={`panda-panel overflow-hidden rounded-2xl transition-all hover:border-primary/40 ${
@@ -231,7 +248,7 @@ function DatingPage() {
         <MessageCircle className="size-3.5" /> Chat unlocks only after mutual confirmation and the 72-hour waiting period. Normal messages then cost 1 BC; VIP is free.
       </p>
 
-      {/* Dating Profile Registration & Edit Modal */}
+      <Dialog open={filtersOpen} onOpenChange={setFiltersOpen}>\n        <DialogContent className="max-h-[88vh] overflow-y-auto rounded-2xl sm:max-w-2xl">\n          <DialogTitle className="flex items-center gap-2"><SlidersHorizontal className="size-5" /> Dating Filters</DialogTitle>\n          <DialogDescription>Choose who appears in your Dating cards. Your filters are private.</DialogDescription>\n          <div className="grid gap-4 py-2 sm:grid-cols-2">\n            <label className="text-xs font-semibold">Minimum age<Input type="number" min={18} max={99} value={ageMin} onChange={e=>setAgeMin(Math.max(18,Number(e.target.value)||18))} className="mt-1" /></label>\n            <label className="text-xs font-semibold">Maximum age<Input type="number" min={18} max={99} value={ageMax} onChange={e=>setAgeMax(Math.min(99,Number(e.target.value)||99))} className="mt-1" /></label>\n            <label className="flex items-center gap-2 rounded-xl border border-border p-3 text-sm sm:col-span-2"><input type="checkbox" checked={sameCountryOnly} onChange={e=>setSameCountryOnly(e.target.checked)} /> Only show people in my country</label>\n            <label className="text-xs font-semibold">Country<Input value={countryFilter} onChange={e=>setCountryFilter(e.target.value)} placeholder="Any country" className="mt-1" /></label>\n            <label className="text-xs font-semibold">City / area<Input value={locationFilter} onChange={e=>setLocationFilter(e.target.value)} placeholder="Optional" className="mt-1" /></label>\n            <label className="text-xs font-semibold">Gender<select value={genderFilter} onChange={e=>setGenderFilter(e.target.value)} className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm"><option value="">Any</option><option>Woman</option><option>Man</option><option>Non-binary</option><option>Prefer not to say</option></select></label>\n            <label className="text-xs font-semibold">Relationship goal<Input value={goalFilter} onChange={e=>setGoalFilter(e.target.value)} placeholder="e.g. serious" className="mt-1" /></label>\n            <label className="text-xs font-semibold">Looking for<Input value={lookingForFilter} onChange={e=>setLookingForFilter(e.target.value)} placeholder="e.g. Long-term relationship" className="mt-1" /></label>\n            <label className="text-xs font-semibold">Lifestyle<Input value={lifestyleFilter} onChange={e=>setLifestyleFilter(e.target.value)} placeholder="e.g. Night owl" className="mt-1" /></label>\n            <label className="text-xs font-semibold">Smoking<select value={smokingFilter} onChange={e=>setSmokingFilter(e.target.value)} className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm"><option value="">Any</option><option>Never</option><option>Sometimes</option><option>Yes</option></select></label>\n            <label className="text-xs font-semibold">Drinking<select value={drinkingFilter} onChange={e=>setDrinkingFilter(e.target.value)} className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm"><option value="">Any</option><option>Never</option><option>Sometimes</option><option>Yes</option></select></label>\n            <label className="text-xs font-semibold">Children<select value={childrenFilter} onChange={e=>setChildrenFilter(e.target.value)} className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm"><option value="">Any</option><option>No children</option><option>Have children</option><option>Want children</option><option>Don't want children</option></select></label>\n            <label className="text-xs font-semibold">Education<Input value={educationFilter} onChange={e=>setEducationFilter(e.target.value)} placeholder="Optional" className="mt-1" /></label>\n            <label className="text-xs font-semibold">Minimum height (cm)<Input type="number" min={0} value={heightMin || ""} onChange={e=>setHeightMin(Math.max(0,Number(e.target.value)||0))} className="mt-1" /></label>\n            <label className="text-xs font-semibold">Maximum height (cm)<Input type="number" min={0} value={heightMax || ""} onChange={e=>setHeightMax(Math.max(0,Number(e.target.value)||0))} className="mt-1" /></label>\n            <label className="text-xs font-semibold">Zodiac<Input value={zodiacFilter} onChange={e=>setZodiacFilter(e.target.value)} placeholder="e.g. Leo" className="mt-1" /></label>\n          </div>\n          <div className="flex gap-2"><Button variant="outline" className="flex-1" onClick={resetFilters}><X className="size-4" /> Reset</Button><Button className="flex-1 bg-[var(--dating)] text-white hover:bg-[var(--dating)]/90" onClick={()=>setFiltersOpen(false)}>Show matches</Button></div>\n        </DialogContent>\n      </Dialog>\n\n      {/* Dating Profile Registration & Edit Modal */}
       <RegisterDatingModal open={registerOpen} onOpenChange={setRegisterOpen} />
 
       <Dialog open={!!openMatch} onOpenChange={(o) => !o && setOpenMatch(null)}>
@@ -264,7 +281,7 @@ function DatingPage() {
                 </div>
 
                 <p className="mt-3 text-xs text-muted-foreground">
-                  📍 {openMatch.location} · anonymous profile
+                  📍 {openMatch.country || openMatch.location} · anonymous profile
                 </p>
 
                 <Button
