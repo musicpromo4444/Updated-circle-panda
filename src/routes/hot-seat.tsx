@@ -212,9 +212,26 @@ function HotSeatPage() {
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "hot_seat_gifts" }, (payload) => {
         const g: any = payload.new;
         if (activeHost && g.host_id === activeHost.id) {
-          setGiftTier(Number(g.cost_bc ?? 0) >= 20000 ? "ultimate" : Number(g.cost_bc ?? 0) >= 5000 ? "mega" : Number(g.cost_bc ?? 0) >= 1000 ? "premium" : "small");
+          const cost = Number(g.cost_bc ?? 0);
+          setGiftTier(cost >= 20000 ? "ultimate" : cost >= 5000 ? "mega" : cost >= 1000 ? "premium" : "small");
           setGiftBanner(`Anon Panda sent ${g.gift_emoji ?? "🎁"} ${g.gift_name ?? "a gift"}!`);
           window.setTimeout(() => setGiftBanner(null), 3500);
+          // The sender already shows the local send/receive animation.
+          // Everyone else gets the full host-side celebration from the realtime gift event.
+          if (g.user_id !== userId) {
+            setGiftTransfer({
+              gift: {
+                id: String(g.gift_id ?? "gift"),
+                name: String(g.gift_name ?? "Live Gift"),
+                emoji: String(g.gift_emoji ?? "🎁"),
+                cost,
+                effect: "Live gift celebration",
+              },
+              phase: "received",
+            });
+            window.setTimeout(() => setGiftTransfer(null), 2600);
+            for (let i = 0; i < 8; i++) window.setTimeout(() => spawnHeart(), i * 120);
+          }
         }
       })
       .on("postgres_changes", { event: "*", schema: "public", table: "hot_seat_session_hosts" }, (payload) => {
