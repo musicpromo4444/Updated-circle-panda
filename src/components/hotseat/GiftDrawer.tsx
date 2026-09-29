@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Gift, Play, Sparkles, X } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -40,7 +40,7 @@ export function GiftDrawer({
   hostName?: string;
 }) {
   const { coins, syncCoins } = useStore();
-  const [selectedGift, setSelectedGift] = useState<VirtualGift>(VIRTUAL_GIFTS[0]);
+  const [gifts, setGifts] = useState<VirtualGift[]>(VIRTUAL_GIFTS);\n  const [selectedGift, setSelectedGift] = useState<VirtualGift>(VIRTUAL_GIFTS[0]);\n\n  useEffect(() => {\n    let cancelled = false;\n    void supabase.from("hot_seat_gift_catalog").select("gift_id,name,emoji,cost_bc,effect").eq("enabled", true).order("cost_bc", { ascending: true })\n      .then(({ data, error }) => {\n        if (cancelled || error || !data?.length) return;\n        const next = data.map((g: any) => ({ id: g.gift_id, name: g.name, emoji: g.emoji, cost: Number(g.cost_bc), effect: g.effect ?? "" }));\n        setGifts(next);\n        setSelectedGift(next[0]);\n      });\n    return () => { cancelled = true; };\n  }, []);
   const [showRewardedAd, setShowRewardedAd] = useState(false);
   const [watching, setWatching] = useState(false);
   const [countdown, setCountdown] = useState(5);
@@ -124,7 +124,7 @@ export function GiftDrawer({
 
           {/* Virtual Gifts Selector */}
           <div className="grid grid-cols-3 gap-2.5 my-3">
-            {VIRTUAL_GIFTS.map((g) => {
+            {gifts.map((g) => {
               const isSelected = selectedGift.id === g.id;
               const canAfford = coins >= g.cost;
               return (
