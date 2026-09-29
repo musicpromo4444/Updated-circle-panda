@@ -136,8 +136,12 @@ export async function executeNativeStoreCheckout(
     };
   }
 
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { success: false, platformUsed: platform, reference, message: "You must be signed in to purchase." };
+
   const payload = JSON.stringify({
     reference,
+    accountId: user.id,
     productId,
     itemId: item.id,
     itemType,
