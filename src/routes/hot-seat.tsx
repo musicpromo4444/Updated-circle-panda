@@ -212,7 +212,7 @@ function HotSeatPage() {
     if (!userId) return;
     void (supabase as any).from("hot_seat_likes").select("user_id", { count: "exact", head: true }).then((r:any)=>setLikeCount(r.count ?? 0));
     void (supabase as any).from("hot_seat_follows").select("user_id").eq("user_id", userId).maybeSingle().then((r:any)=>setIsFollowing(Boolean(r.data)));
-  }, [userId]);
+  }, [userId, activeHost?.id]);
 
   // Live chat is now driven by Supabase Realtime; no synthetic messages are generated.
 
@@ -457,7 +457,7 @@ function HotSeatPage() {
           {/* Live Indicator Badge */}
           <div className={`flex items-center gap-2 rounded-full border px-2.5 sm:px-3 py-1 text-[11px] font-bold backdrop-blur-md shadow-[0_0_16px_rgba(234,88,12,0.2)] ${activeHost ? "border-red-500/40 bg-red-950/70 text-red-200" : "border-white/15 bg-black/45 text-white/70"}`}>
             <span className={`size-2 rounded-full ${activeHost ? "bg-red-500 animate-ping" : "bg-white/40"}`} />
-            <span className="font-extrabold uppercase tracking-wider text-[10px]">{sessionPhase === "live" ? "LIVE" : sessionPhase === "water-break" ? "WATER BREAK" : sessionPhase === "ended" ? "ENDED" : "WAITING"}</span>
+            <span className="font-extrabold uppercase tracking-wider text-[10px]">{sessionPhase === "live" ? "LIVE" : sessionPhase === "water-break" ? "WATER BREAK" : sessionPhase === "paused" ? "PAUSED" : sessionPhase === "ended" ? "ENDED" : "WAITING"}</span>
             {sessionPhase === "live" && activeHost ? <span className="text-white/80 hidden sm:inline">· {Number(activeHost.viewer_count ?? 0).toLocaleString()}</span> : null}
           </div>
 
