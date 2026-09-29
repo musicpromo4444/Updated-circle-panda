@@ -270,6 +270,14 @@ function HotSeatPage() {
           return next.sort((a, b) => Number(a.host_order) - Number(b.host_order));
         });
       })
+      .on("postgres_changes", { event: "*", schema: "public", table: "hot_seat_break_content" }, (payload) => {
+        const row: any = payload.new ?? payload.old;
+        setBreakContent((prev) => {
+          if (payload.eventType === "DELETE") return prev.filter((x) => x.id !== row.id);
+          if (row.enabled === false) return prev.filter((x) => x.id !== row.id);
+          return prev.filter((x) => x.id !== row.id).concat(row).sort((a, b) => Number(a.sort_order) - Number(b.sort_order));
+        });
+      })
       .on("postgres_changes", { event: "UPDATE", schema: "public", table: "hot_seat_hosts" }, (payload) => {
         const next: any = payload.new;
         if (activeHost && next.id === activeHost.id) {
