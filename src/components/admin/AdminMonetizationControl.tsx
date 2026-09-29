@@ -65,6 +65,11 @@ const PLACEMENT_OPTIONS: { id: AdPlacementTarget; label: string; tag: string }[]
     label: "Main Feed Card",
     tag: "In-Feed Stream",
   },
+  { id: "crush_native", label: "WCW/MCM Native", tag: "WCW/MCM Native" },
+  { id: "crush_interstitial", label: "WCW/MCM Interstitial", tag: "WCW/MCM Interstitial" },
+  { id: "crush_popup", label: "WCW/MCM Popup", tag: "WCW/MCM Popup" },
+  { id: "crush_banner", label: "WCW/MCM Banner", tag: "WCW/MCM Banner" },
+  { id: "crush_playable", label: "WCW/MCM Playable", tag: "WCW/MCM Playable" },
   {
     id: "speed_dating_interstitial",
     label: "Speed Dating Interstitial",
@@ -96,6 +101,7 @@ export function AdminMonetizationControl({
   const [headline, setHeadline] = useState("");
   const [description, setDescription] = useState("");
   const [imageUrl, setImageUrl] = useState("");
+  const [videoUrl, setVideoUrl] = useState("");
   const [destinationUrl, setDestinationUrl] = useState("");
   const [placement, setPlacement] = useState<AdPlacementTarget>("popup_1_daily_login");
   const [category, setCategory] = useState("");
@@ -131,6 +137,7 @@ export function AdminMonetizationControl({
     setHeadline("");
     setDescription("");
     setImageUrl("");
+    setVideoUrl("");
     setDestinationUrl("");
     setPlacement("popup_1_daily_login");
     setCategory("");
@@ -145,6 +152,7 @@ export function AdminMonetizationControl({
     setHeadline(creative.headline);
     setDescription(creative.description || "");
     setImageUrl(creative.imageUrl || "");
+    setVideoUrl(creative.videoUrl || "");
     setDestinationUrl(creative.destinationUrl);
     setPlacement(creative.placement);
     setCategory(creative.category);
@@ -167,6 +175,7 @@ export function AdminMonetizationControl({
           headline: headline.trim(),
           description: description.trim(),
           imageUrl: imageUrl.trim() || undefined,
+          videoUrl: videoUrl.trim() || undefined,
           destinationUrl: destinationUrl.trim(),
           placement,
           category: category.trim(),
@@ -663,6 +672,19 @@ export function AdminMonetizationControl({
                     placeholder="e.g., Get 5GB Night & Weekend Data for ₦500"
                     className="h-9 text-xs font-medium"
                     required
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label htmlFor="creative-video" className="text-xs font-semibold text-foreground">
+                    Video URL (for Playable / Video creatives)
+                  </Label>
+                  <Input
+                    id="creative-video"
+                    value={videoUrl}
+                    onChange={(e) => setVideoUrl(e.target.value)}
+                    placeholder="https://cdn.example.com/ad.mp4"
+                    className="h-9 text-xs"
                   />
                 </div>
 
