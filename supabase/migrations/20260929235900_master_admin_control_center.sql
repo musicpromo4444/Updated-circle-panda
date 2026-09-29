@@ -73,3 +73,11 @@ revoke all on function public.admin_save_app_control_center(jsonb,jsonb,jsonb) f
 grant execute on function public.admin_save_app_control_center(jsonb,jsonb,jsonb) to authenticated;
 revoke all on function public.admin_get_recent_audit(integer) from public,anon,authenticated;
 grant execute on function public.admin_get_recent_audit(integer) to authenticated;
+
+-- Harden all admin_* RPCs: signed-in callers only; each function still performs its own admin authorization.
+do $$ declare r record; begin
+ for r in select p.oid::regprocedure as sig from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public' and p.proname like 'admin_%' loop
+  execute 'revoke execute on function '||r.sig||' from public, anon';
+  execute 'grant execute on function '||r.sig||' to authenticated';
+ end loop;
+end $$;
