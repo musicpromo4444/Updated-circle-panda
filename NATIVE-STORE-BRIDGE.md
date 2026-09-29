@@ -38,3 +38,19 @@ Google Play requires the server service-account credentials and Android package 
 Apple requires the App Store Server API In-App Purchase key, key ID, issuer ID and bundle ID in Supabase Edge Function secrets.
 
 Product IDs remain in `store_catalog.android_product_id` and `store_catalog.ios_product_id` and are configured by Admin. Private credentials never belong in `VITE_*` variables.
+
+## Google Play subscription lifecycle
+
+The backend also exposes `google-play-rtdn` for Google Play Real-time Developer Notifications. Configure a Pub/Sub push subscription to:
+`https://<supabase-project>.supabase.co/functions/v1/google-play-rtdn?token=<GOOGLE_PLAY_RTDN_SECRET>`
+
+Set these server secrets in Supabase Edge Function Secrets:
+- `GOOGLE_PLAY_PACKAGE_NAME`
+- `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON`
+- `GOOGLE_PLAY_RTDN_SECRET`
+- `APPLE_IAP_BUNDLE_ID`
+- `APPLE_IAP_KEY_ID`
+- `APPLE_IAP_ISSUER_ID`
+- `APPLE_IAP_PRIVATE_KEY`
+
+Google Play and Apple both require their store-side products/subscriptions to exist and be active before the matching IDs in Circle Panda can process real purchases.
