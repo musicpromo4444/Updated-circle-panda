@@ -191,7 +191,7 @@ export function PlayableVideoAd({
               setIsEnded(true);
               setIsPlaying(false);
               setCanSkip(true);
-              notifyAdEvent("rewarded_complete", { adId: ad.id, format: "video", rewardAmount: 1 });
+              notifyAdEvent("completed", { adId: ad.id, format: "playable" });
               onComplete?.();
             }}
             onTimeUpdate={() => {
