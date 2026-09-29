@@ -11,8 +11,8 @@ function b64url(input: Uint8Array | string) {
 const jsonB64=(v:unknown)=>b64url(JSON.stringify(v));
 function pemToBytes(pem:string){const clean=pem.replace(/-----BEGIN PRIVATE KEY-----|-----END PRIVATE KEY-----|\s/g,"");const bin=atob(clean);return Uint8Array.from(bin,c=>c.charCodeAt(0));}
 async function sha256(value:string){const h=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(value));return [...new Uint8Array(h)].map(b=>b.toString(16).padStart(2,"0")).join("");}
-async function googleAccessToken(){
-  const raw=Deno.env.get("GOOGLE_PLAY_SERVICE_ACCOUNT_JSON"); if(!raw)throw new Error("GOOGLE_PLAY_SERVICE_ACCOUNT_JSON is not configured");
+async function googleAccessToken(raw:string){
+  if(!raw)throw new Error("Google Play service account is not configured");
   const account=JSON.parse(raw), now=Math.floor(Date.now()/1000);
   const header=jsonB64({alg:"RS256",typ:"JWT"}), payload=jsonB64({iss:account.client_email,scope:"https://www.googleapis.com/auth/androidpublisher",aud:"https://oauth2.googleapis.com/token",iat:now,exp:now+3600});
   const key=await crypto.subtle.importKey("pkcs8",pemToBytes(account.private_key),{name:"RSASSA-PKCS1-v1_5",hash:"SHA-256"},false,["sign"]);
@@ -33,8 +33,12 @@ Deno.serve(async(req)=>{
   const body=await req.json(), purchaseToken=String(body.purchaseToken||"").trim(), requestedItemId=String(body.itemId||"").trim(), itemType=body.itemType==="vip_subscription"?"vip_subscription":"coin_package", reference=String(body.reference||"").trim();
   if(!purchaseToken||!reference)return new Response(JSON.stringify({ok:false,error:"Missing purchase details"}),{status:400,headers:cors});
   await supabase.from("native_store_account_bindings").upsert({user_id:user.id,google_obfuscated_account_id:await sha256(user.id),updated_at:new Date().toISOString()},{onConflict:"user_id"});
-  const packageName=Deno.env.get("GOOGLE_PLAY_PACKAGE_NAME");if(!packageName)throw new Error("GOOGLE_PLAY_PACKAGE_NAME is not configured");
-  const access=await googleAccessToken();
+  const {data:settings,error:settingsError}=await supabase.from("payment_provider_settings").select("google_enabled,google_package_name").eq("id",1).single();
+  if(settingsError||!settings?.google_enabled||!settings.google_package_name)throw new Error("Google Play is not configured in Circle Panda Admin");
+  const packageName=String(settings.google_package_name);
+  const {data:serviceAccount,error:secretError}=await supabase.rpc("service_get_payment_secret",{p_name:"circle_panda_google_play_service_account"});
+  if(secretError||!serviceAccount)throw new Error("Google Play service account is not configured");
+  const access=await googleAccessToken(String(serviceAccount));
   const verified=itemType==="vip_subscription"
     ?await googleApi(`https://androidpublisher.googleapis.com/androidpublisher/v3/applications/${encodeURIComponent(packageName)}/purchases/subscriptionsv2/tokens/${encodeURIComponent(purchaseToken)}`,access)
     :await googleApi(`https://androidpublisher.googleapis.com/androidpublisher/v3/applications/${encodeURIComponent(packageName)}/purchases/productsv2/tokens/${encodeURIComponent(purchaseToken)}`,access);
@@ -50,7 +54,7 @@ Deno.serve(async(req)=>{
   }
   if(!productId)throw new Error("Google Play response did not contain a product ID");
   const expectedAccountId=await sha256(user.id);
-  const returnedAccountId=type==="vip_subscription"
+  const returnedAccountId=itemType==="vip_subscription"
     ? String(verified.externalAccountIdentifiers?.obfuscatedExternalAccountId||"")
     : String(verified.obfuscatedExternalAccountId||"");
   if(!returnedAccountId || returnedAccountId!==expectedAccountId) {
