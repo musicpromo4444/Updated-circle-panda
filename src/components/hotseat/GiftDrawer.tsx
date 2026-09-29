@@ -21,11 +21,17 @@ export type VirtualGift = {
 };
 
 export const VIRTUAL_GIFTS: VirtualGift[] = [
-  { id: "bamboo", name: "Fresh Bamboo", emoji: "🎋", cost: 5, effect: "Crispy crunch" },
-  { id: "matcha", name: "Matcha Latte", emoji: "🍵", cost: 15, effect: "Warm cozy vibes" },
-  { id: "torch", name: "Fire Torch", emoji: "🔥", cost: 30, effect: "Hot Seat on fire" },
-  { id: "crown", name: "Panda Crown", emoji: "👑", cost: 50, effect: "Royal honor" },
-  { id: "rocket", name: "Super Rocket", emoji: "🚀", cost: 100, effect: "To the moon" },
+  { id: "bamboo", name: "Bamboo Bounce", emoji: "🎋", cost: 10, effect: "A playful bamboo gift pops onto the Hot Seat stage." },
+  { id: "matcha", name: "Matcha Splash", emoji: "🍵", cost: 25, effect: "A matcha splash sweeps across the stream." },
+  { id: "panda_hug", name: "Panda Hug", emoji: "🐼", cost: 50, effect: "A giant Panda hug floats toward the host." },
+  { id: "torch", name: "Heart Burst", emoji: "💖", cost: 100, effect: "A burst of glowing hearts fills the screen." },
+  { id: "crown", name: "Fire Crown", emoji: "👑", cost: 250, effect: "A fiery crown lands above the host." },
+  { id: "rocket", name: "Thunder Panda", emoji: "⚡", cost: 500, effect: "A thunder panda charges across the stage." },
+  { id: "golden_dragon", name: "Golden Dragon", emoji: "🐉", cost: 1000, effect: "A golden dragon flies across the Hot Seat." },
+  { id: "panda_palace", name: "Panda Palace", emoji: "🏯", cost: 2500, effect: "A glowing Panda Palace rises behind the host." },
+  { id: "royal_parade", name: "Royal Panda Parade", emoji: "🎉", cost: 5000, effect: "A full royal parade crosses the live stage." },
+  { id: "galaxy_panda", name: "Galaxy Panda", emoji: "🌌", cost: 10000, effect: "The stream transforms into a cosmic Panda scene." },
+  { id: "panda_universe", name: "Panda Universe", emoji: "🌠", cost: 20000, effect: "The ultimate Circle Panda gift triggers a full-screen universe celebration." },
 ];
 
 export function GiftDrawer({
@@ -61,7 +67,7 @@ export function GiftDrawer({
 
   const handleSend = () => {
     if (coins < selectedGift.cost) {
-      toast.error("Low Black Coin balance!", {
+      toast.error("Low Panda Coin balance!", {
         description: `You need ${selectedGift.cost} BC to send ${selectedGift.name}. Watch a short ad to earn free coins!`,
       });
       setShowRewardedAd(true);
@@ -70,7 +76,7 @@ export function GiftDrawer({
 
     onSendGift(selectedGift);
     toast.success(`🎉 Sent ${selectedGift.emoji} ${selectedGift.name}!`, {
-      description: `Cheered on ${hostName} with ${selectedGift.cost} BC.`,
+      description: `Cheered on ${hostName} with ${selectedGift.cost.toLocaleString()} BC.`,
     });
     onOpenChange(false);
   };
@@ -136,7 +142,7 @@ export function GiftDrawer({
           </DialogHeader>
 
           {/* Virtual Gifts Selector */}
-          <div className="grid grid-cols-3 gap-2.5 my-3">
+          <div className="mb-3 rounded-3xl border border-white/10 bg-white/[0.04] p-4 text-center overflow-hidden relative">\n            <div className={`text-6xl transition-all duration-300 ${selectedGift.cost >= 5000 ? "scale-125 animate-bounce" : selectedGift.cost >= 1000 ? "scale-110 animate-pulse" : "scale-100"}`}>{selectedGift.emoji}</div>\n            <div className="mt-2 text-sm font-black text-white">{selectedGift.name}</div>\n            <div className="text-xs text-amber-300">{selectedGift.cost.toLocaleString()} BC · {selectedGift.effect}</div>\n          </div>\n\n          <div className="grid grid-cols-3 gap-2.5 my-3">
             {gifts.map((g) => {
               const isSelected = selectedGift.id === g.id;
               const canAfford = coins >= g.cost;
@@ -145,7 +151,7 @@ export function GiftDrawer({
                   key={g.id}
                   type="button"
                   onClick={() => setSelectedGift(g)}
-                  className={`flex flex-col items-center gap-1.5 rounded-2xl p-3 border transition-all cursor-pointer ${
+                  className={`flex flex-col items-center gap-1.5 rounded-2xl p-3 border transition-all cursor-pointer ${g.cost >= 10000 ? "ring-1 ring-fuchsia-400/50" : g.cost >= 5000 ? "ring-1 ring-amber-400/50" : ""} ${
                     isSelected
                       ? "border-amber-500 bg-amber-500/20 shadow-[0_0_20px_rgba(245,158,11,0.3)] scale-105"
                       : "border-white/10 bg-neutral-900/80 hover:bg-neutral-800"
@@ -160,7 +166,7 @@ export function GiftDrawer({
                       canAfford ? "text-amber-400" : "text-neutral-500 line-through"
                     }`}
                   >
-                    {g.cost} BC
+                    {g.cost.toLocaleString()} BC
                   </span>
                 </button>
               );
@@ -174,7 +180,7 @@ export function GiftDrawer({
                 <Sparkles className="size-4" />
               </span>
               <div>
-                <p className="font-semibold text-emerald-300">Low on Black Coins?</p>
+                <p className="font-semibold text-emerald-300">Low on Panda Coins?</p>
                 <p className="text-[11px] text-emerald-400/80">Watch a 5s ad to get +10 BC</p>
               </div>
             </div>
@@ -194,7 +200,7 @@ export function GiftDrawer({
               className="w-full gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 font-bold text-white shadow-lg hover:opacity-95 cursor-pointer py-5 text-sm"
             >
               <Gift className="size-4" />
-              Send {selectedGift.emoji} {selectedGift.name} ({selectedGift.cost} BC)
+              Send {selectedGift.emoji} {selectedGift.name} ({selectedGift.cost.toLocaleString()} BC)
             </Button>
           </div>
         </DialogContent>
