@@ -1,1 +1,86 @@
-aW1wb3J0ICJqc3I6QHN1cGFiYXNlL2Z1bmN0aW9ucy1qcy9lZGdlLXJ1bnRpbWUuZC50cyI7CmltcG9ydCB7IGNyZWF0ZUNsaWVudCB9IGZyb20gImh0dHBzOi8vZXNtLnNoL0BzdXBhYmFzZS9zdXBhYmFzZS1qc0AyIjsKCkRlbm8uc2VydmUoYXN5bmMgKHJlcSkgPT4gewogIHRyeSB7CiAgICBjb25zdCBhdXRoID0gcmVxLmhlYWRlcnMuZ2V0KCJBdXRob3JpemF0aW9uIik7CiAgICBpZiAoIWF1dGgpIHJldHVybiBuZXcgUmVzcG9uc2UoSlNPTi5zdHJpbmdpZnkoeyBlcnJvcjogIlVuYXV0aG9yaXplZCIgfSksIHsgc3RhdHVzOiA0MDEgfSk7CiAgICBjb25zdCBib2R5ID0gYXdhaXQgcmVxLmpzb24oKTsKICAgIGNvbnN0IHJlZmVyZW5jZSA9IFN0cmluZyhib2R5LnJlZmVyZW5jZSB8fCAiIikudHJpbSgpOwogICAgY29uc3QgaXRlbVR5cGUgPSBib2R5Lml0ZW1UeXBlID09PSAidmlwX3N1YnNjcmlwdGlvbiIgPyAidmlwX3N1YnNjcmlwdGlvbiIgOiAiY29pbl9wYWNrYWdlIjsKICAgIGNvbnN0IGl0ZW1JZCA9IFN0cmluZyhib2R5Lml0ZW1JZCB8fCAiIikudHJpbSgpOwogICAgaWYgKCFyZWZlcmVuY2UgfHwgIWl0ZW1JZCkgcmV0dXJuIG5ldyBSZXNwb25zZShKU09OLnN0cmluZ2lmeSh7IGVycm9yOiAiTWlzc2luZyBwYXltZW50IGRldGFpbHMiIH0pLCB7IHN0YXR1czogNDAwIH0pOwoKICAgIGNvbnN0IHNlcnZpY2UgPSBjcmVhdGVDbGllbnQoRGVuby5lbnYuZ2V0KCJTVVBBQkFTRV9VUkwiKSEsIERlbm8uZW52LmdldCgiU1VQQUJBU0VfU0VSVklDRV9ST0xFX0tFWSIpISk7CiAgICBjb25zdCB0b2tlbiA9IGF1dGgucmVwbGFjZSgvXkJlYXJlclxzKy9pLCAiIik7CiAgICBjb25zdCB7IGRhdGE6IHsgdXNlciB9IH0gPSBhd2FpdCBzZXJ2aWNlLmF1dGguZ2V0VXNlcih0b2tlbik7CiAgICBpZiAoIXVzZXIpIHJldHVybiBuZXcgUmVzcG9uc2UoSlNPTi5zdHJpbmdpZnkoeyBlcnJvcjogIlVuYXV0aG9yaXplZCIgfSksIHsgc3RhdHVzOiA0MDEgfSk7CgogICAgY29uc3Qgc2VjcmV0ID0gRGVuby5lbnYuZ2V0KCJQQVlTVEFDS19TRUNSRVRfS0VZIik7CiAgICBpZiAoIXNlY3JldCkgcmV0dXJuIG5ldyBSZXNwb25zZShKU09OLnN0cmluZ2lmeSh7IGVycm9yOiAiUEFZU1RBQ0tfU0VDUkVUX0tFWSBpcyBub3QgY29uZmlndXJlZCIgfSksIHsgc3RhdHVzOiA1MDMgfSk7CgogICAgY29uc3QgdmVyaWZ5ID0gYXdhaXQgZmV0Y2goYGh0dHBzOi8vYXBpLnBheXN0YWNrLmNvL3RyYW5zYWN0aW9uL3ZlcmlmeS8ke2VuY29kZVVSSUNvbXBvbmVudChyZWZlcmVuY2UpfWAsIHsKICAgICAgaGVhZGVyczogeyBBdXRob3JpemF0aW9uOiBgQmVhcmVyICR7c2VjcmV0fWAgfSwKICAgIH0pOwogICAgY29uc3QgcGF5bG9hZCA9IGF3YWl0IHZlcmlmeS5qc29uKCk7CiAgICBpZiAoIXZlcmlmeS5vayB8fCBwYXlsb2FkPy5kYXRhPy5zdGF0dXMgIT09ICJzdWNjZXNzIikgewogICAgICByZXR1cm4gbmV3IFJlc3BvbnNlKEpTT04uc3RyaW5naWZ5KHsgZXJyb3I6ICJQYXltZW50IGNvdWxkIG5vdCBiZSB2ZXJpZmllZCIgfSksIHsgc3RhdHVzOiA0MDAgfSk7CiAgICB9CgogICAgY29uc3QgYW1vdW50ID0gTnVtYmVyKHBheWxvYWQuZGF0YS5hbW91bnQgfHwgMCk7CiAgICBjb25zdCBjdXJyZW5jeSA9IFN0cmluZyhwYXlsb2FkLmRhdGEuY3VycmVuY3kgfHwgIiIpOwogICAgY29uc3QgbWV0YWRhdGEgPSBwYXlsb2FkLmRhdGEubWV0YWRhdGEgfHwge307CiAgICBpZiAoY3VycmVuY3kgIT09ICJOR04iIHx8ICFOdW1iZXIuaXNGaW5pdGUoYW1vdW50KSB8fCBhbW91bnQgPD0gMCkgewogICAgICByZXR1cm4gbmV3IFJlc3BvbnNlKEpTT04uc3RyaW5naWZ5KHsgZXJyb3I6ICJJbnZhbGlkIHBheW1lbnQgYW1vdW50IiB9KSwgeyBzdGF0dXM6IDQwMCB9KTsKICAgIH0KICAgIGlmIChtZXRhZGF0YS5pdGVtSWQgJiYgU3RyaW5nKG1ldGFkYXRhLml0ZW1JZCkgIT09IGl0ZW1JZCkgewogICAgICByZXR1cm4gbmV3IFJlc3BvbnNlKEpTT04uc3RyaW5naWZ5KHsgZXJyb3I6ICJQYXltZW50IGl0ZW0gbWlzbWF0Y2giIH0pLCB7IHN0YXR1czogNDAwIH0pOwogICAgfQogICAgaWYgKG1ldGFkYXRhLnVzZXJJZCAmJiBTdHJpbmcobWV0YWRhdGEudXNlcklkKSAhPT0gdXNlci5pZCkgewogICAgICByZXR1cm4gbmV3IFJlc3BvbnNlKEpTT04uc3RyaW5naWZ5KHsgZXJyb3I6ICJQYXltZW50IHVzZXIgbWlzbWF0Y2giIH0pLCB7IHN0YXR1czogNDAwIH0pOwogICAgfQoKICAgIGNvbnN0IHsgZGF0YTogY2F0YWxvZywgZXJyb3I6IGNhdGFsb2dFcnJvciB9ID0gYXdhaXQgc2VydmljZQogICAgICAuZnJvbSgic3RvcmVfY2F0YWxvZyIpCiAgICAgIC5zZWxlY3QoImlkLGl0ZW1fdHlwZSxwcmljZV9uZ24sZW5hYmxlZCIpCiAgICAgIC5lcSgiaWQiLCBpdGVtSWQpCiAgICAgIC5lcSgiZW5hYmxlZCIsIHRydWUpCiAgICAgIC5tYXliZVNpbmdsZSgpOwogICAgaWYgKGNhdGFsb2dFcnJvcikgdGhyb3cgY2F0YWxvZ0Vycm9yOwogICAgaWYgKCFjYXRhbG9nIHx8IGNhdGFsb2cuaXRlbV90eXBlICE9PSBpdGVtVHlwZSkgewogICAgICByZXR1cm4gbmV3IFJlc3BvbnNlKEpTT04uc3RyaW5naWZ5KHsgZXJyb3I6ICJTdG9yZSBpdGVtIGlzIG5vdCBhdmFpbGFibGUiIH0pLCB7IHN0YXR1czogNDAwIH0pOwogICAgfQogICAgaWYgKE1hdGgucm91bmQoTnVtYmVyKGNhdGFsb2cucHJpY2VfbmduKSAqIDEwMCkgIT09IGFtb3VudCkgewogICAgICByZXR1cm4gbmV3IFJlc3BvbnNlKEpTT04uc3RyaW5naWZ5KHsgZXJyb3I6ICJQYXltZW50IGFtb3VudCBkb2VzIG5vdCBtYXRjaCB0aGUgc3RvcmUgaXRlbSIgfSksIHsgc3RhdHVzOiA0MDAgfSk7CiAgICB9CgogICAgLy8gVGhlIGRhdGFiYXNlIGZ1bmN0aW9uIGRlcml2ZXMgY29pbnMvVklQIGR1cmF0aW9uIGZyb20gdGhlIHNlcnZlciBjYXRhbG9nIGFuZCBpcwogICAgLy8gZXhlY3V0YWJsZSBvbmx5IGJ5IHNlcnZpY2Vfcm9sZS4gQnJvd3Nlci1zdXBwbGllZCByZXdhcmQgbWV0YWRhdGEgaXMgbmV2ZXIgYXV0aG9yaXR5LgogICAgY29uc3QgeyBkYXRhOiBmdWxmaWxsbWVudCwgZXJyb3I6IGZ1bGZpbGxtZW50RXJyb3IgfSA9IGF3YWl0IHNlcnZpY2UucnBjKCJmdWxmaWxsX3N0b3JlX3B1cmNoYXNlX3ZlcmlmaWVkIiwgewogICAgICBwX3VzZXJfaWQ6IHVzZXIuaWQsCiAgICAgIHBfcmVmZXJlbmNlOiByZWZlcmVuY2UsCiAgICAgIHBfaXRlbV9pZDogaXRlbUlkLAogICAgICBwX2l0ZW1fdHlwZTogaXRlbVR5cGUsCiAgICAgIHBfYW1vdW50X25nbjogYW1vdW50LAogICAgICBwX21ldGFkYXRhOiB7IHByb3ZpZGVyOiAicGF5c3RhY2siLCBwYXlzdGFja190cmFuc2FjdGlvbl9pZDogcGF5bG9hZC5kYXRhLmlkLCBjaGFubmVsOiBwYXlsb2FkLmRhdGEuY2hhbm5lbCwgY3VzdG9tZXJfY29kZTogcGF5bG9hZC5kYXRhLmN1c3RvbWVyPy5jdXN0b21lcl9jb2RlID8/IG51bGwgfSwKICAgIH0pOwogICAgaWYgKGZ1bGZpbGxtZW50RXJyb3IpIHRocm93IGZ1bGZpbGxtZW50RXJyb3I7CgogICAgcmV0dXJuIG5ldyBSZXNwb25zZShKU09OLnN0cmluZ2lmeSh7CiAgICAgIG9rOiB0cnVlLAogICAgICByZWZlcmVuY2UsCiAgICAgIGFscmVhZHlWZXJpZmllZDogQm9vbGVhbihmdWxmaWxsbWVudD8uYWxyZWFkeV92ZXJpZmllZCksCiAgICAgIGJhbGFuY2U6IGZ1bGZpbGxtZW50Py5iYWxhbmNlID8/IG51bGwsCiAgICAgIHZpcEV4cGlyZXNBdDogZnVsZmlsbG1lbnQ/LnZpcF9leHBpcmVzX2F0ID8/IG51bGwsCiAgICB9KSwgeyBoZWFkZXJzOiB7ICJDb250ZW50LVR5cGUiOiAiYXBwbGljYXRpb24vanNvbiIgfSB9KTsKICB9IGNhdGNoIChlKSB7CiAgICByZXR1cm4gbmV3IFJlc3BvbnNlKEpTT04uc3RyaW5naWZ5KHsgZXJyb3I6IGUgaW5zdGFuY2VvZiBFcnJvciA/IGUubWVzc2FnZSA6ICJWZXJpZmljYXRpb24gZmFpbGVkIiB9KSwgewogICAgICBzdGF0dXM6IDUwMCwKICAgICAgaGVhZGVyczogeyAiQ29udGVudC1UeXBlIjogImFwcGxpY2F0aW9uL2pzb24iIH0sCiAgICB9KTsKICB9Cn0pOwo=
+import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+Deno.serve(async (req) => {
+  try {
+    const auth = req.headers.get("Authorization");
+    if (!auth) return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
+    const body = await req.json();
+    const reference = String(body.reference || "").trim();
+    const itemType = body.itemType === "vip_subscription" ? "vip_subscription" : "coin_package";
+    const itemId = String(body.itemId || "").trim();
+    if (!reference || !itemId) return new Response(JSON.stringify({ error: "Missing payment details" }), { status: 400 });
+
+    const service = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+    const token = auth.replace(/^Bearer\s+/i, "");
+    const { data: { user } } = await service.auth.getUser(token);
+    if (!user) return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
+
+    const { data: providerSettings } = await service.from("payment_provider_settings").select("paystack_enabled").eq("id",1).single();
+    if (!providerSettings?.paystack_enabled) return new Response(JSON.stringify({ error: "Paystack is disabled in Circle Panda Admin" }), { status: 503 });
+    const { data: secret, error: secretError } = await service.rpc("service_get_payment_secret",{p_name:"circle_panda_paystack_secret_key"});
+    if (secretError || !secret) return new Response(JSON.stringify({ error: "Paystack secret key is not configured in Circle Panda Admin" }), { status: 503 });
+
+    const verify = await fetch(`https://api.paystack.co/transaction/verify/${encodeURIComponent(reference)}`, {
+      headers: { Authorization: `Bearer ${secret}` },
+    });
+    const payload = await verify.json();
+    if (!verify.ok || payload?.data?.status !== "success") {
+      return new Response(JSON.stringify({ error: "Payment could not be verified" }), { status: 400 });
+    }
+
+    const amount = Number(payload.data.amount || 0);
+    const currency = String(payload.data.currency || "");
+    const metadata = payload.data.metadata || {};
+    if (currency !== "NGN" || !Number.isFinite(amount) || amount <= 0) {
+      return new Response(JSON.stringify({ error: "Invalid payment amount" }), { status: 400 });
+    }
+    if (metadata.itemId && String(metadata.itemId) !== itemId) {
+      return new Response(JSON.stringify({ error: "Payment item mismatch" }), { status: 400 });
+    }
+    if (metadata.userId && String(metadata.userId) !== user.id) {
+      return new Response(JSON.stringify({ error: "Payment user mismatch" }), { status: 400 });
+    }
+
+    const { data: catalog, error: catalogError } = await service
+      .from("store_catalog")
+      .select("id,item_type,price_ngn,enabled")
+      .eq("id", itemId)
+      .eq("enabled", true)
+      .maybeSingle();
+    if (catalogError) throw catalogError;
+    if (!catalog || catalog.item_type !== itemType) {
+      return new Response(JSON.stringify({ error: "Store item is not available" }), { status: 400 });
+    }
+    if (Math.round(Number(catalog.price_ngn) * 100) !== amount) {
+      return new Response(JSON.stringify({ error: "Payment amount does not match the store item" }), { status: 400 });
+    }
+
+    const { data: fulfillment, error: fulfillmentError } = await service.rpc("fulfill_store_purchase_verified", {
+      p_user_id: user.id,
+      p_reference: reference,
+      p_item_id: itemId,
+      p_item_type: itemType,
+      p_amount_ngn: amount,
+      p_metadata: {
+        paystack_transaction_id: payload.data.id,
+        channel: payload.data.channel,
+        customer_code: payload.data.customer?.customer_code ?? null,
+      },
+    });
+    if (fulfillmentError) throw fulfillmentError;
+
+    return new Response(JSON.stringify({
+      ok: true,
+      reference,
+      alreadyVerified: Boolean(fulfillment?.already_verified),
+      balance: fulfillment?.balance ?? null,
+      vipExpiresAt: fulfillment?.vip_expires_at ?? null,
+    }), { headers: { "Content-Type": "application/json" } });
+  } catch (e) {
+    return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "Verification failed" }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+});
