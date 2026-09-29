@@ -33,6 +33,8 @@ export function AdminHotSeatManager() {
   const [pushJson, setPushJson] = useState("");
   const [moderationUser, setModerationUser] = useState("");
   const [moderationAction, setModerationAction] = useState("mute");
+  const [pollQuestion, setPollQuestion] = useState("");
+  const [pollOptions, setPollOptions] = useState("Yes\nNo");
 
   const load = async () => {
     setLoading(true);
@@ -208,6 +210,18 @@ export function AdminHotSeatManager() {
             </div>
           ))}
         </div>
+      </div>
+
+      <div className="rounded-2xl border border-emerald-400/15 bg-emerald-400/5 p-4 space-y-3">
+        <div><b className="text-sm">Break Lounge Poll</b><p className="mt-1 text-xs text-muted-foreground">Create the live poll users see during the water break. One vote per account, with vote changes allowed while open.</p></div>
+        <Input placeholder="Poll question" value={pollQuestion} onChange={e=>setPollQuestion(e.target.value)} />
+        <textarea value={pollOptions} onChange={e=>setPollOptions(e.target.value)} placeholder="One option per line (2-6)" className="min-h-20 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm" />
+        <Button disabled={!pollQuestion.trim()} onClick={async()=>{
+          const options=pollOptions.split("\n").map(x=>x.trim()).filter(Boolean).slice(0,6);
+          if(options.length<2){toast.error("Add at least 2 options");return;}
+          const {error}=await (supabase as any).rpc("admin_hot_seat_poll_upsert",{p_title:"Break Poll",p_question:pollQuestion.trim(),p_options:options,p_enabled:true});
+          if(error) toast.error(error.message); else {setPollQuestion("");toast.success("Break poll published");}
+        }}>Publish break poll</Button>
       </div>
 
       {loading ? (
