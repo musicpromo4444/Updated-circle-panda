@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Eye, Radio, Users , Square, Plus } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
+import { StandardBannerAd } from "@/components/ads/StandardBannerAd";
 import { Button } from "@/components/ui/button";
 import { heartbeatLiveStream, joinLiveStream, leaveLiveStream, listLiveStreams } from "@/lib/production/features";
 import { supabase } from "@/integrations/supabase/client";
