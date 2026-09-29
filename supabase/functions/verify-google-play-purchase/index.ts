@@ -47,6 +47,13 @@ Deno.serve(async(req)=>{
     if(verified.acknowledgementState!=="ACKNOWLEDGEMENT_STATE_ACKNOWLEDGED")await googleApi(`https://androidpublisher.googleapis.com/androidpublisher/v3/applications/${encodeURIComponent(packageName)}/purchases/products/${encodeURIComponent(productId)}/tokens/${encodeURIComponent(purchaseToken)}:acknowledge`,access,{method:"POST",body:"{}"}).catch(()=>{});
   }
   if(!productId)throw new Error("Google Play response did not contain a product ID");
+  const expectedAccountId=await sha256(user.id);
+  const returnedAccountId=type==="vip_subscription"
+    ? String(verified.externalAccountIdentifiers?.obfuscatedExternalAccountId||"")
+    : String(verified.obfuscatedExternalAccountId||"");
+  if(!returnedAccountId || returnedAccountId!==expectedAccountId) {
+    return new Response(JSON.stringify({ok:false,error:"Google Play purchase is not linked to this Circle Panda account"}),{status:403,headers:cors});
+  }
   const {data:catalog,error}=await supabase.from("store_catalog").select("id,item_type,android_product_id,enabled").eq("android_product_id",productId).eq("item_type",itemType).eq("enabled",true).maybeSingle();
   if(error||!catalog)return new Response(JSON.stringify({ok:false,error:"Google Play product is not configured in Circle Panda"}),{status:400,headers:cors});
   if(requestedItemId&&requestedItemId!==catalog.id)return new Response(JSON.stringify({ok:false,error:"Store item mismatch"}),{status:400,headers:cors});
