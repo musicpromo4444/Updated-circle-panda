@@ -61,18 +61,20 @@ export function StandardBannerAd({
   // Production: creatives come from the server inventory. A caller may pass a server-resolved creative explicitly.
   const ad = adData ?? adminAdData;
 
+  const telemetryFormat = placement === "crush_native" || placement.endsWith("_inline") ? "native" : "banner";
+
   // Report ad impression on mount
   useEffect(() => {
     if (!closed && ad) {
-      notifyAdEvent("impression", { adId: ad.id, format: "banner" });
+      notifyAdEvent("impression", { adId: ad.id, format: telemetryFormat });
     }
-  }, [ad, closed]);
+  }, [ad, closed, telemetryFormat]);
 
   if (closed || !ad) return null;
 
   const handleCtaClick = (e: React.MouseEvent) => {
     e.preventDefault();
-    notifyAdEvent("click", { adId: ad.id, format: "banner" });
+    notifyAdEvent("click", { adId: ad.id, format: telemetryFormat });
     toast.success(`Opening ${ad.sponsor}`, {
       description: "Sponsored partner link opened in external browser.",
     });
