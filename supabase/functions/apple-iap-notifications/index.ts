@@ -16,13 +16,14 @@ Deno.serve(async(req)=>{
   const txJws=(response as any).signedTransactionInfo;if(!txJws)throw new Error("Apple transaction lookup failed");
   const tx=decodePayload(txJws);if(tx.bundleId!==bundle)throw new Error("Apple bundle ID mismatch");
   const supabase=createClient(Deno.env.get("SUPABASE_URL")!,Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
-  const original=String(tx.originalTransactionId||transactionId),expiresAt=tx.expiresDate?new Date(Number(tx.expiresDate)).toISOString():null;
+  const original=String(tx.originalTransactionId||transactionId),expiresAt=tx.expiresDate?new Date(Number(tx.expiresDate)).toISOString():null,appAccountToken=String(tx.appAccountToken||"");
   const {data:existing}=await supabase.from("native_store_transactions").select("id,user_id,item_id,item_type").eq("provider","apple_iap").eq("provider_transaction_id",transactionId).maybeSingle();
-  const type=String(payload.notificationType||"");const revoked=["REFUND","REVOKE","DID_REVOKE"].includes(type)||Boolean(tx.revocationDate);const status=revoked?"revoked":"verified";
+  if(existing && appAccountToken!==existing.user_id) throw new Error("Apple notification account mismatch");
+  const revoked=Boolean(tx.revocationDate);const status=revoked?"revoked":"verified";
   if(existing){await supabase.from("native_store_transactions").update({status,expires_at:expiresAt,updated_at:new Date().toISOString(),metadata:{notificationType:type,subtype:payload.subtype||null,product_id:tx.productId,original_transaction_id:original}}).eq("id",existing.id);}
   else{
     const {data:parent}=await supabase.from("native_store_transactions").select("user_id,item_id,item_type").eq("provider","apple_iap").contains("metadata",{original_transaction_id:original}).order("created_at",{ascending:false}).limit(1).maybeSingle();
-    if(parent){await supabase.from("native_store_transactions").upsert({provider:"apple_iap",provider_transaction_id:transactionId,user_id:parent.user_id,item_id:parent.item_id,item_type:parent.item_type,environment:env===Environment.SANDBOX?"Sandbox":"Production",status,expires_at:expiresAt,metadata:{notificationType:type,subtype:payload.subtype||null,product_id:tx.productId,original_transaction_id:original}},{onConflict:"provider,provider_transaction_id"});if(parent.item_type==="vip_subscription"&&!revoked&&expiresAt)await supabase.rpc("sync_native_subscription_expiry",{p_user_id:parent.user_id,p_expires_at:expiresAt});}
+    if(parent && appAccountToken===parent.user_id){await supabase.from("native_store_transactions").upsert({provider:"apple_iap",provider_transaction_id:transactionId,user_id:parent.user_id,item_id:parent.item_id,item_type:parent.item_type,environment:env===Environment.SANDBOX?"Sandbox":"Production",status,expires_at:expiresAt,metadata:{notificationType:type,subtype:payload.subtype||null,product_id:tx.productId,original_transaction_id:original}},{onConflict:"provider,provider_transaction_id"});if(parent.item_type==="vip_subscription"&&!revoked&&expiresAt)await supabase.rpc("sync_native_subscription_expiry",{p_user_id:parent.user_id,p_expires_at:expiresAt});}
   }
   return new Response(JSON.stringify({ok:true}),{headers:cors});
  }catch(e){console.error(e);return new Response(JSON.stringify({ok:false,error:e instanceof Error?e.message:"Notification failed"}),{status:400,headers:cors});}
