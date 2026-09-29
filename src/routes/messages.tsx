@@ -235,7 +235,7 @@ function MessagesPage() {
             </div>
           ) : null}
         </DialogContent>
-      </Dialog
+      </Dialog>
       </AppShell>
     );
   }
