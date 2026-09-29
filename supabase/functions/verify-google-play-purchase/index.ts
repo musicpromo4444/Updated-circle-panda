@@ -31,6 +31,7 @@ Deno.serve(async(req)=>{
   const {data:{user}}=await supabase.auth.getUser(auth.replace(/^Bearer\s+/i,""));if(!user)return new Response(JSON.stringify({ok:false,error:"Unauthorized"}),{status:401,headers:cors});
   const body=await req.json(), purchaseToken=String(body.purchaseToken||"").trim(), requestedItemId=String(body.itemId||"").trim(), itemType=body.itemType==="vip_subscription"?"vip_subscription":"coin_package", reference=String(body.reference||"").trim();
   if(!purchaseToken||!reference)return new Response(JSON.stringify({ok:false,error:"Missing purchase details"}),{status:400,headers:cors});
+  await supabase.from("native_store_account_bindings").upsert({user_id:user.id,google_obfuscated_account_id:await sha256(user.id),updated_at:new Date().toISOString()},{onConflict:"user_id"});
   const packageName=Deno.env.get("GOOGLE_PLAY_PACKAGE_NAME");if(!packageName)throw new Error("GOOGLE_PLAY_PACKAGE_NAME is not configured");
   const access=await googleAccessToken();
   const verified=itemType==="vip_subscription"
