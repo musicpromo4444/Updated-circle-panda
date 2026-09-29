@@ -157,6 +157,14 @@ function HotSeatPage() {
         if (!activeHost || q.host_id !== activeHost.id) return;
         setQuestions((prev) => [{ id: q.id, alias: q.asker_alias, body: q.body, age: "just now", votes: 0, priority: q.is_priority, status: "waiting" }, ...prev]);
       })
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "hot_seat_answers" }, (payload) => {
+        const a: any = payload.new;
+        setQuestions((prev) => prev.map((q) => q.id === a.question_id ? { ...q, status: "answered", answer: a.body ?? "" } : q));
+      })
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "hot_seat_question_votes" }, (payload) => {
+        const v: any = payload.new;
+        setQuestions((prev) => prev.map((q) => q.id === v.question_id ? { ...q, votes: q.votes + 1 } : q));
+      })
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "hot_seat_chat" }, (payload) => {
         const m: any = payload.new;
         if (activeHost && m.host_id === activeHost.id) setChatMessages((prev) => [...prev.slice(-49), { id: m.id, user: m.alias, text: m.body, time: "just now", isGift: m.is_gift }]);
@@ -223,8 +231,10 @@ function HotSeatPage() {
 
   useEffect(() => {
     if (!userId) return;
-    if (!activeHost) return;\n    void (supabase as any).from("hot_seat_likes").select("user_id", { count: "exact", head: true }).eq("host_id", activeHost.id).then((r:any)=>setLikeCount(r.count ?? 0));
-    if (!activeHost) return;\n    void (supabase as any).from("hot_seat_follows").select("user_id").eq("host_id", activeHost.id).eq("user_id", userId).maybeSingle().then((r:any)=>setIsFollowing(Boolean(r.data)));
+    if (!activeHost) return;
+    void (supabase as any).from("hot_seat_likes").select("user_id", { count: "exact", head: true }).eq("host_id", activeHost.id).then((r:any)=>setLikeCount(r.count ?? 0));
+    if (!activeHost) return;
+    void (supabase as any).from("hot_seat_follows").select("user_id").eq("host_id", activeHost.id).eq("user_id", userId).maybeSingle().then((r:any)=>setIsFollowing(Boolean(r.data)));
   }, [userId, activeHost?.id]);
 
   // Live chat is now driven by Supabase Realtime; no synthetic messages are generated.
@@ -251,7 +261,7 @@ function HotSeatPage() {
     spawnHeart(rect.left + rect.width / 2, rect.top);
     void (supabase as any).rpc("toggle_hot_seat_like", { p_host_id: activeHost?.id }).then(({ data, error }: any) => {
       if (error) throw error;
-      setLikeCount((c) => Math.max(0, c + (data?.liked ? 1 : -1)));
+      setLikeCount(Number(data?.count ?? 0));
     }).catch((error:any) => toast.error(error?.message ?? "Could not update like."));
   };
 
