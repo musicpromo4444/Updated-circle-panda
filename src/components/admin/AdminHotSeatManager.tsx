@@ -26,6 +26,11 @@ export function AdminHotSeatManager() {
   const [breakType, setBreakType] = useState("movie");
   const [breakUrl, setBreakUrl] = useState("");
   const [earnings, setEarnings] = useState({ gross: 0, hostShare: 0 });
+  const [providerConfig, setProviderConfig] = useState<any>({});
+  const [providerSaving, setProviderSaving] = useState(false);
+  const [awsSecret, setAwsSecret] = useState("");
+  const [zegoSecret, setZegoSecret] = useState("");
+  const [pushJson, setPushJson] = useState("");
 
   const load = async () => {
     setLoading(true);
@@ -50,6 +55,10 @@ export function AdminHotSeatManager() {
 
   useEffect(() => {
     void load();
+    void (async () => {
+      const { data } = await (supabase as any).rpc("admin_get_hot_seat_provider_settings");
+      if (data) setProviderConfig(data);
+    })();
     void (async () => {
       const { data } = await supabase
         .from("hot_seat_presence_settings")
@@ -111,6 +120,44 @@ export function AdminHotSeatManager() {
       <div>
         <h2 className="font-display text-xl font-bold sm:text-2xl">Hot Seat Control</h2>
         <p className="text-xs text-muted-foreground">Start and control the worldwide 3-hour live block.</p>
+      </div>
+
+      <div className="rounded-2xl border border-white/10 bg-card p-4 space-y-3">
+        <div>
+          <b className="text-sm">Hot Seat provider & API settings</b>
+          <p className="mt-1 text-xs text-muted-foreground">Leave these blank until you have the provider accounts. Secrets are stored securely and are never displayed back.</p>
+        </div>
+        <div className="grid gap-2 sm:grid-cols-2">
+          <Input placeholder="YouTube API key (optional)" value={providerConfig.youtube_api_key ?? ""} onChange={e=>setProviderConfig((x:any)=>({...x,youtube_api_key:e.target.value}))} />
+          <Input placeholder="AWS region" value={providerConfig.aws_region ?? ""} onChange={e=>setProviderConfig((x:any)=>({...x,aws_region:e.target.value}))} />
+          <Input placeholder="AWS IVS channel ARN" value={providerConfig.aws_channel_arn ?? ""} onChange={e=>setProviderConfig((x:any)=>({...x,aws_channel_arn:e.target.value}))} />
+          <Input placeholder="AWS playback URL" value={providerConfig.aws_playback_url ?? ""} onChange={e=>setProviderConfig((x:any)=>({...x,aws_playback_url:e.target.value}))} />
+          <Input placeholder="AWS access key ID" value={providerConfig.aws_access_key_id ?? ""} onChange={e=>setProviderConfig((x:any)=>({...x,aws_access_key_id:e.target.value}))} />
+          <Input type="password" placeholder={providerConfig.aws_access_key_configured ? "AWS secret already saved — leave blank" : "AWS secret access key"} value={awsSecret} onChange={e=>setAwsSecret(e.target.value)} />
+          <Input placeholder="ZEGOCLOUD App ID" value={providerConfig.zegocloud_app_id ?? ""} onChange={e=>setProviderConfig((x:any)=>({...x,zegocloud_app_id:e.target.value}))} />
+          <Input placeholder="ZEGOCLOUD server URL" value={providerConfig.zegocloud_server_url ?? ""} onChange={e=>setProviderConfig((x:any)=>({...x,zegocloud_server_url:e.target.value}))} />
+          <Input type="password" placeholder={providerConfig.zegocloud_server_secret_configured ? "ZEGOCLOUD secret already saved — leave blank" : "ZEGOCLOUD server secret"} value={zegoSecret} onChange={e=>setZegoSecret(e.target.value)} />
+          <Input placeholder="Push project ID" value={providerConfig.push_project_id ?? ""} onChange={e=>setProviderConfig((x:any)=>({...x,push_project_id:e.target.value}))} />
+          <Input placeholder="Push client email" value={providerConfig.push_client_email ?? ""} onChange={e=>setProviderConfig((x:any)=>({...x,push_client_email:e.target.value}))} />
+          <Input className="sm:col-span-2" type="password" placeholder={providerConfig.push_credentials_configured ? "Push credentials already saved — leave blank" : "Push service credentials JSON"} value={pushJson} onChange={e=>setPushJson(e.target.value)} />
+        </div>
+        <div className="flex flex-wrap gap-3 text-xs">
+          <label><input type="checkbox" checked={providerConfig.youtube_enabled !== false} onChange={e=>setProviderConfig((x:any)=>({...x,youtube_enabled:e.target.checked}))}/> YouTube</label>
+          <label><input type="checkbox" checked={Boolean(providerConfig.aws_enabled)} onChange={e=>setProviderConfig((x:any)=>({...x,aws_enabled:e.target.checked}))}/> AWS</label>
+          <label><input type="checkbox" checked={Boolean(providerConfig.zegocloud_enabled)} onChange={e=>setProviderConfig((x:any)=>({...x,zegocloud_enabled:e.target.checked}))}/> ZEGOCLOUD</label>
+          <label><input type="checkbox" checked={Boolean(providerConfig.push_enabled)} onChange={e=>setProviderConfig((x:any)=>({...x,push_enabled:e.target.checked}))}/> Push notifications</label>
+        </div>
+        <Button disabled={providerSaving} onClick={async()=>{
+          setProviderSaving(true);
+          const {data,error}=await (supabase as any).rpc("admin_save_hot_seat_provider_settings",{
+            p_youtube_enabled:providerConfig.youtube_enabled !== false,p_youtube_api_key:providerConfig.youtube_api_key ?? null,
+            p_aws_enabled:Boolean(providerConfig.aws_enabled),p_aws_region:providerConfig.aws_region ?? "",p_aws_channel_arn:providerConfig.aws_channel_arn ?? "",p_aws_playback_url:providerConfig.aws_playback_url ?? "",p_aws_access_key_id:providerConfig.aws_access_key_id ?? "",p_aws_secret_access_key:awsSecret || null,
+            p_zegocloud_enabled:Boolean(providerConfig.zegocloud_enabled),p_zegocloud_app_id:providerConfig.zegocloud_app_id ?? "",p_zegocloud_server_url:providerConfig.zegocloud_server_url ?? "",p_zegocloud_server_secret:zegoSecret || null,
+            p_push_enabled:Boolean(providerConfig.push_enabled),p_push_project_id:providerConfig.push_project_id ?? "",p_push_client_email:providerConfig.push_client_email ?? "",p_push_credentials_json:pushJson || null
+          });
+          setProviderSaving(false);
+          if(error) toast.error(error.message); else { setProviderConfig(data ?? providerConfig); setAwsSecret(""); setZegoSecret(""); setPushJson(""); toast.success("Hot Seat provider settings saved"); }
+        }}>Save provider settings</Button>
       </div>
 
       <div className="rounded-2xl border border-orange-500/25 bg-orange-500/5 p-4">
