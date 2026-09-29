@@ -172,7 +172,7 @@ function GroupsPage() {
           <div key={g.id} className="space-y-4">
             <GroupCard group={g} />
             {/* Standard banner advertisement after every sequence of 4 items */}
-            {(idx + 1) % 4 === 0 ? <StandardBannerAd index={Math.floor(idx / 4)} /> : null}
+            {(idx + 1) % 4 === 0 ? <StandardBannerAd index={Math.floor(idx / 4)} placement="groups_inline" /> : null}
           </div>
         ))}
       </div>
