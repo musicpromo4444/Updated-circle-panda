@@ -15,6 +15,7 @@ Deno.serve(async(req)=>{
   const auth=req.headers.get("Authorization");if(!auth)return new Response(JSON.stringify({ok:false,error:"Unauthorized"}),{status:401,headers:cors});
   const supabase=createClient(Deno.env.get("SUPABASE_URL")!,Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
   const {data:{user}}=await supabase.auth.getUser(auth.replace(/^Bearer\s+/i,""));if(!user)return new Response(JSON.stringify({ok:false,error:"Unauthorized"}),{status:401,headers:cors});
+  await supabase.from("native_store_account_bindings").upsert({user_id:user.id,apple_app_account_token:user.id,updated_at:new Date().toISOString()},{onConflict:"user_id"});
   const body=await req.json(),signedTransaction=String(body.signedTransaction||body.jwsRepresentation||"").trim(),requestedItemId=String(body.itemId||"").trim(),itemType=body.itemType==="vip_subscription"?"vip_subscription":"coin_package",reference=String(body.reference||"").trim();
   if(!signedTransaction||!reference)return new Response(JSON.stringify({ok:false,error:"Missing Apple purchase details"}),{status:400,headers:cors});
   const hinted=decodePayload(signedTransaction);
