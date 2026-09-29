@@ -12,6 +12,8 @@ type Campaign = {
 
 function isExternal(value:string) { return /^https?:\/\//i.test(value); }
 
+const LottieElement: any = "dotlottie-wc";
+
 function Creative({campaign}:{campaign:Campaign}) {
   if (campaign.creative_type === "icon" || !campaign.creative_url) {
     return <span className="text-3xl leading-none drop-shadow-[0_2px_6px_rgba(0,0,0,0.9)]">{campaign.fallback_icon}</span>;
@@ -20,7 +22,7 @@ function Creative({campaign}:{campaign:Campaign}) {
     return <video src={campaign.creative_url} autoPlay loop muted playsInline className="size-12 rounded-full object-cover" />;
   }
   if (campaign.creative_type === "lottie") {
-    return <dotlottie-wc src={campaign.creative_url} autoplay loop style={{width:"52px",height:"52px"}} />;
+    return <LottieElement src={campaign.creative_url} autoplay loop style={{width:"52px",height:"52px"}} />;
   }
   return <img src={campaign.creative_url} alt="" className="size-12 rounded-full object-cover" draggable={false} />;
 }
