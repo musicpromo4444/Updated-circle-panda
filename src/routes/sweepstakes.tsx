@@ -10,6 +10,7 @@ import {
   Trophy,
 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
+import { StandardBannerAd } from "@/components/ads/StandardBannerAd";
 import { Button } from "@/components/ui/button";
 import { SpinWheel } from "@/components/SpinWheel";
 import { useStore } from "@/lib/store";
@@ -222,7 +223,7 @@ function SweepstakesPage() {
       </section>
 
       <div className="grid gap-4 md:grid-cols-2">
-        {items.map((item) => (
+        {items.map((item, idx) => (
           <DailyItemCard
             key={item.id}
             item={item}
@@ -230,6 +231,7 @@ function SweepstakesPage() {
             tickets={tickets[item.id] ?? 0}
             onBuy={() => buyDailyTicket(item)}
           />
+          {(idx + 1) % 4 === 0 ? <StandardBannerAd index={Math.floor(idx / 4)} variant="feed-card" placement="sweepstakes_inline" /> : null}
         ))}
       </div>
 
