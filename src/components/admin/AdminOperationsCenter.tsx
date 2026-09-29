@@ -7,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 type Product={id:string;name:string;price_usd:number;price_ngn:number;coins:number;vip_days:number;enabled:boolean;is_popular:boolean;is_best_value:boolean;is_highlighted:boolean};
 type Sweep={id:string;draw:string;ticket_price_bc:number;prize_name:string;prize_description:string|null;closes_at:string|null;is_active:boolean;winner_mode:string;qualification_enabled:boolean;qualification_config:Record<string,unknown>};
-type Ops={store:Product[];sweepstakes:Sweep[];finance:Record<string,number>;content:Record<string,number>;hotseat:Record<string,number>};
+type Ops={store:Product[];sweepstakes:Sweep[];finance:Record<string,number>;content:Record<string,number>;hotseat:Record<string,number>;hotseat_presence?:{enabled:boolean;title:string;message:string}};
 
 export function AdminOperationsCenter(){
  const [data,setData]=useState<Ops|null>(null);
@@ -16,8 +16,7 @@ export function AdminOperationsCenter(){
  const load=async()=>{
   setLoading(true);
   const {data:d,error}=await (supabase as any).rpc("admin_get_operations_dashboard");
-  const {data:p}=await (supabase as any).from("hot_seat_presence_settings").select("enabled,title,message").eq("id",true).maybeSingle();
-  setLoading(false); if(error){toast.error(error.message);return;} setData(d as Ops); if(p)setPresence(p);
+  setLoading(false); if(error){toast.error(error.message);return;} setData(d as Ops); if(d?.hotseat_presence) setPresence(d.hotseat_presence);
  };
  useEffect(()=>{void load()},[]);
  const saveProduct=async(p:Product)=>{
