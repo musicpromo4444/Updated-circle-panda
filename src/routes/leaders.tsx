@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Crown, Star, Trophy } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
+import { StandardBannerAd } from "@/components/ads/StandardBannerAd";
 import { TierBadge } from "@/components/TierBadge";
 import { useStore, starRating } from "@/lib/store";
 
@@ -84,6 +85,7 @@ function LeadersPage() {
           </div>
         ))}
       </div>
+      <div className="mt-5"><StandardBannerAd variant="feed-card" placement="leaders_inline" /></div>
     </AppShell>
   );
 }
