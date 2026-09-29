@@ -125,6 +125,31 @@ function DatingPage() {
     ...(datingProfile ? [{ ...datingProfile, name: `${datingProfile.name} (You)` }] : []),
     ...datingMatches,
   ];
+  const filteredMatches = allMatches.filter((m:any, idx) => {
+    if (idx === 0) return true;
+    if (m.age < ageMin || m.age > ageMax) return false;
+    if (sameCountryOnly && datingProfile?.country && String(m.country).toLowerCase() !== String(datingProfile.country).toLowerCase()) return false;
+    if (countryFilter && !String(m.country ?? "").toLowerCase().includes(countryFilter.toLowerCase())) return false;
+    if (locationFilter && !String(m.location ?? "").toLowerCase().includes(locationFilter.toLowerCase())) return false;
+    if (genderFilter && String(m.gender ?? "").toLowerCase() !== genderFilter.toLowerCase()) return false;
+    if (goalFilter && !String(m.relationshipGoal ?? "").toLowerCase().includes(goalFilter.toLowerCase())) return false;
+    if (lookingForFilter && !(m.lookingFor ?? []).some((v:string)=>v.toLowerCase().includes(lookingForFilter.toLowerCase()))) return false;
+    if (lifestyleFilter && !(m.lifestyle ?? []).some((v:string)=>v.toLowerCase().includes(lifestyleFilter.toLowerCase()))) return false;
+    if (smokingFilter && String(m.smoking ?? "").toLowerCase() !== smokingFilter.toLowerCase()) return false;
+    if (drinkingFilter && String(m.drinking ?? "").toLowerCase() !== drinkingFilter.toLowerCase()) return false;
+    if (childrenFilter && String(m.children ?? "").toLowerCase() !== childrenFilter.toLowerCase()) return false;
+    if (educationFilter && !String(m.education ?? "").toLowerCase().includes(educationFilter.toLowerCase())) return false;
+    if (heightMin && Number(m.heightCm ?? 0) < heightMin) return false;
+    if (heightMax && Number(m.heightCm ?? 0) > heightMax) return false;
+    if (zodiacFilter && String(m.zodiac ?? "").toLowerCase() !== zodiacFilter.toLowerCase()) return false;
+    return true;
+  });
+  const activeFilterCount = [ageMin > 18, ageMax < 99, countryFilter, locationFilter, genderFilter, goalFilter, lookingForFilter, lifestyleFilter, smokingFilter, drinkingFilter, childrenFilter, educationFilter, heightMin, heightMax, zodiacFilter, !sameCountryOnly].filter(Boolean).length;
+  const resetFilters = () => {
+    setAgeMin(18); setAgeMax(99); setCountryFilter(""); setLocationFilter(""); setGenderFilter(""); setGoalFilter("");
+    setLookingForFilter(""); setLifestyleFilter(""); setSmokingFilter(""); setDrinkingFilter(""); setChildrenFilter("");
+    setEducationFilter(""); setHeightMin(0); setHeightMax(0); setZodiacFilter(""); setSameCountryOnly(false);
+  };
 
   return (
     <AppShell
@@ -143,7 +168,12 @@ function DatingPage() {
         </Button>
       </div>
 
-      <div className="mb-5 flex items-center gap-2">\n        <Button variant="outline" className="flex-1 gap-2 rounded-2xl" onClick={() => setFiltersOpen(true)}><SlidersHorizontal className="size-4" /> Filters {activeFilterCount ? `(${activeFilterCount})` : ""}</Button>\n        {datingProfile ? <span className="rounded-2xl border border-border bg-secondary/50 px-3 py-2 text-xs text-muted-foreground">{sameCountryOnly ? `Showing ${datingProfile.country || "your country"} first` : "Worldwide"}</span> : null}\n      </div>\n\n      {connections.filter((x:any)=>x.status==="matched" && x.reveal_at && new Date(x.reveal_at).getTime()>Date.now()).map((x:any)=>{
+      <div className="mb-5 flex items-center gap-2">
+        <Button variant="outline" className="flex-1 gap-2 rounded-2xl" onClick={() => setFiltersOpen(true)}><SlidersHorizontal className="size-4" /> Filters {activeFilterCount ? `(${activeFilterCount})` : ""}</Button>
+        {datingProfile ? <span className="rounded-2xl border border-border bg-secondary/50 px-3 py-2 text-xs text-muted-foreground">{sameCountryOnly ? `Showing ${datingProfile.country || "your country"} first` : "Worldwide"}</span> : null}
+      </div>
+
+      {connections.filter((x:any)=>x.status==="matched" && x.reveal_at && new Date(x.reveal_at).getTime()>Date.now()).map((x:any)=>{
         const remaining=Math.max(0,new Date(x.reveal_at).getTime()-Date.now());
         const h=Math.floor(remaining/3600000), m=Math.floor((remaining%3600000)/60000), sec=Math.floor((remaining%60000)/1000);
         return <section key={x.id} className="mb-5 rounded-2xl border border-[var(--dating)]/20 bg-[var(--dating)]/5 p-4">
@@ -248,7 +278,33 @@ function DatingPage() {
         <MessageCircle className="size-3.5" /> Chat unlocks only after mutual confirmation and the 72-hour waiting period. Normal messages then cost 1 BC; VIP is free.
       </p>
 
-      <Dialog open={filtersOpen} onOpenChange={setFiltersOpen}>\n        <DialogContent className="max-h-[88vh] overflow-y-auto rounded-2xl sm:max-w-2xl">\n          <DialogTitle className="flex items-center gap-2"><SlidersHorizontal className="size-5" /> Dating Filters</DialogTitle>\n          <DialogDescription>Choose who appears in your Dating cards. Your filters are private.</DialogDescription>\n          <div className="grid gap-4 py-2 sm:grid-cols-2">\n            <label className="text-xs font-semibold">Minimum age<Input type="number" min={18} max={99} value={ageMin} onChange={e=>setAgeMin(Math.max(18,Number(e.target.value)||18))} className="mt-1" /></label>\n            <label className="text-xs font-semibold">Maximum age<Input type="number" min={18} max={99} value={ageMax} onChange={e=>setAgeMax(Math.min(99,Number(e.target.value)||99))} className="mt-1" /></label>\n            <label className="flex items-center gap-2 rounded-xl border border-border p-3 text-sm sm:col-span-2"><input type="checkbox" checked={sameCountryOnly} onChange={e=>setSameCountryOnly(e.target.checked)} /> Only show people in my country</label>\n            <label className="text-xs font-semibold">Country<Input value={countryFilter} onChange={e=>setCountryFilter(e.target.value)} placeholder="Any country" className="mt-1" /></label>\n            <label className="text-xs font-semibold">City / area<Input value={locationFilter} onChange={e=>setLocationFilter(e.target.value)} placeholder="Optional" className="mt-1" /></label>\n            <label className="text-xs font-semibold">Gender<select value={genderFilter} onChange={e=>setGenderFilter(e.target.value)} className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm"><option value="">Any</option><option>Woman</option><option>Man</option><option>Non-binary</option><option>Prefer not to say</option></select></label>\n            <label className="text-xs font-semibold">Relationship goal<Input value={goalFilter} onChange={e=>setGoalFilter(e.target.value)} placeholder="e.g. serious" className="mt-1" /></label>\n            <label className="text-xs font-semibold">Looking for<Input value={lookingForFilter} onChange={e=>setLookingForFilter(e.target.value)} placeholder="e.g. Long-term relationship" className="mt-1" /></label>\n            <label className="text-xs font-semibold">Lifestyle<Input value={lifestyleFilter} onChange={e=>setLifestyleFilter(e.target.value)} placeholder="e.g. Night owl" className="mt-1" /></label>\n            <label className="text-xs font-semibold">Smoking<select value={smokingFilter} onChange={e=>setSmokingFilter(e.target.value)} className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm"><option value="">Any</option><option>Never</option><option>Sometimes</option><option>Yes</option></select></label>\n            <label className="text-xs font-semibold">Drinking<select value={drinkingFilter} onChange={e=>setDrinkingFilter(e.target.value)} className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm"><option value="">Any</option><option>Never</option><option>Sometimes</option><option>Yes</option></select></label>\n            <label className="text-xs font-semibold">Children<select value={childrenFilter} onChange={e=>setChildrenFilter(e.target.value)} className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm"><option value="">Any</option><option>No children</option><option>Have children</option><option>Want children</option><option>Don't want children</option></select></label>\n            <label className="text-xs font-semibold">Education<Input value={educationFilter} onChange={e=>setEducationFilter(e.target.value)} placeholder="Optional" className="mt-1" /></label>\n            <label className="text-xs font-semibold">Minimum height (cm)<Input type="number" min={0} value={heightMin || ""} onChange={e=>setHeightMin(Math.max(0,Number(e.target.value)||0))} className="mt-1" /></label>\n            <label className="text-xs font-semibold">Maximum height (cm)<Input type="number" min={0} value={heightMax || ""} onChange={e=>setHeightMax(Math.max(0,Number(e.target.value)||0))} className="mt-1" /></label>\n            <label className="text-xs font-semibold">Zodiac<Input value={zodiacFilter} onChange={e=>setZodiacFilter(e.target.value)} placeholder="e.g. Leo" className="mt-1" /></label>\n          </div>\n          <div className="flex gap-2"><Button variant="outline" className="flex-1" onClick={resetFilters}><X className="size-4" /> Reset</Button><Button className="flex-1 bg-[var(--dating)] text-white hover:bg-[var(--dating)]/90" onClick={()=>setFiltersOpen(false)}>Show matches</Button></div>\n        </DialogContent>\n      </Dialog>\n\n      {/* Dating Profile Registration & Edit Modal */}
+      <Dialog open={filtersOpen} onOpenChange={setFiltersOpen}>
+        <DialogContent className="max-h-[88vh] overflow-y-auto rounded-2xl sm:max-w-2xl">
+          <DialogTitle className="flex items-center gap-2"><SlidersHorizontal className="size-5" /> Dating Filters</DialogTitle>
+          <DialogDescription>Choose who appears in your Dating cards. Your filters are private.</DialogDescription>
+          <div className="grid gap-4 py-2 sm:grid-cols-2">
+            <label className="text-xs font-semibold">Minimum age<Input type="number" min={18} max={99} value={ageMin} onChange={e=>setAgeMin(Math.max(18,Number(e.target.value)||18))} className="mt-1" /></label>
+            <label className="text-xs font-semibold">Maximum age<Input type="number" min={18} max={99} value={ageMax} onChange={e=>setAgeMax(Math.min(99,Number(e.target.value)||99))} className="mt-1" /></label>
+            <label className="flex items-center gap-2 rounded-xl border border-border p-3 text-sm sm:col-span-2"><input type="checkbox" checked={sameCountryOnly} onChange={e=>setSameCountryOnly(e.target.checked)} /> Only show people in my country</label>
+            <label className="text-xs font-semibold">Country<Input value={countryFilter} onChange={e=>setCountryFilter(e.target.value)} placeholder="Any country" className="mt-1" /></label>
+            <label className="text-xs font-semibold">City / area<Input value={locationFilter} onChange={e=>setLocationFilter(e.target.value)} placeholder="Optional" className="mt-1" /></label>
+            <label className="text-xs font-semibold">Gender<select value={genderFilter} onChange={e=>setGenderFilter(e.target.value)} className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm"><option value="">Any</option><option>Woman</option><option>Man</option><option>Non-binary</option><option>Prefer not to say</option></select></label>
+            <label className="text-xs font-semibold">Relationship goal<Input value={goalFilter} onChange={e=>setGoalFilter(e.target.value)} placeholder="e.g. serious" className="mt-1" /></label>
+            <label className="text-xs font-semibold">Looking for<Input value={lookingForFilter} onChange={e=>setLookingForFilter(e.target.value)} placeholder="e.g. Long-term relationship" className="mt-1" /></label>
+            <label className="text-xs font-semibold">Lifestyle<Input value={lifestyleFilter} onChange={e=>setLifestyleFilter(e.target.value)} placeholder="e.g. Night owl" className="mt-1" /></label>
+            <label className="text-xs font-semibold">Smoking<select value={smokingFilter} onChange={e=>setSmokingFilter(e.target.value)} className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm"><option value="">Any</option><option>Never</option><option>Sometimes</option><option>Yes</option></select></label>
+            <label className="text-xs font-semibold">Drinking<select value={drinkingFilter} onChange={e=>setDrinkingFilter(e.target.value)} className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm"><option value="">Any</option><option>Never</option><option>Sometimes</option><option>Yes</option></select></label>
+            <label className="text-xs font-semibold">Children<select value={childrenFilter} onChange={e=>setChildrenFilter(e.target.value)} className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm"><option value="">Any</option><option>No children</option><option>Have children</option><option>Want children</option><option>Don't want children</option></select></label>
+            <label className="text-xs font-semibold">Education<Input value={educationFilter} onChange={e=>setEducationFilter(e.target.value)} placeholder="Optional" className="mt-1" /></label>
+            <label className="text-xs font-semibold">Minimum height (cm)<Input type="number" min={0} value={heightMin || ""} onChange={e=>setHeightMin(Math.max(0,Number(e.target.value)||0))} className="mt-1" /></label>
+            <label className="text-xs font-semibold">Maximum height (cm)<Input type="number" min={0} value={heightMax || ""} onChange={e=>setHeightMax(Math.max(0,Number(e.target.value)||0))} className="mt-1" /></label>
+            <label className="text-xs font-semibold">Zodiac<Input value={zodiacFilter} onChange={e=>setZodiacFilter(e.target.value)} placeholder="e.g. Leo" className="mt-1" /></label>
+          </div>
+          <div className="flex gap-2"><Button variant="outline" className="flex-1" onClick={resetFilters}><X className="size-4" /> Reset</Button><Button className="flex-1 bg-[var(--dating)] text-white hover:bg-[var(--dating)]/90" onClick={()=>setFiltersOpen(false)}>Show matches</Button></div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dating Profile Registration & Edit Modal */}
       <RegisterDatingModal open={registerOpen} onOpenChange={setRegisterOpen} />
 
       <Dialog open={!!openMatch} onOpenChange={(o) => !o && setOpenMatch(null)}>
