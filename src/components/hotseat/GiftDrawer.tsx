@@ -21,17 +21,15 @@ export type VirtualGift = {
 };
 
 export const VIRTUAL_GIFTS: VirtualGift[] = [
-  { id: "bamboo", name: "Bamboo Bounce", emoji: "🎋", cost: 10, effect: "A playful bamboo gift pops onto the Hot Seat stage." },
-  { id: "matcha", name: "Matcha Splash", emoji: "🍵", cost: 25, effect: "A matcha splash sweeps across the stream." },
-  { id: "panda_hug", name: "Panda Hug", emoji: "🐼", cost: 50, effect: "A giant Panda hug floats toward the host." },
-  { id: "torch", name: "Heart Burst", emoji: "💖", cost: 100, effect: "A burst of glowing hearts fills the screen." },
-  { id: "crown", name: "Fire Crown", emoji: "👑", cost: 250, effect: "A fiery crown lands above the host." },
-  { id: "rocket", name: "Thunder Panda", emoji: "⚡", cost: 500, effect: "A thunder panda charges across the stage." },
-  { id: "golden_dragon", name: "Golden Dragon", emoji: "🐉", cost: 1000, effect: "A golden dragon flies across the Hot Seat." },
-  { id: "panda_palace", name: "Panda Palace", emoji: "🏯", cost: 2500, effect: "A glowing Panda Palace rises behind the host." },
-  { id: "royal_parade", name: "Royal Panda Parade", emoji: "🎉", cost: 5000, effect: "A full royal parade crosses the live stage." },
-  { id: "galaxy_panda", name: "Galaxy Panda", emoji: "🌌", cost: 10000, effect: "The stream transforms into a cosmic Panda scene." },
-  { id: "panda_universe", name: "Panda Universe", emoji: "🌠", cost: 20000, effect: "The ultimate Circle Panda gift triggers a full-screen universe celebration." },
+  { id: "stylish_hat", name: "Stylish Hat", emoji: "🎩", cost: 100, effect: "A glowing hat spins onto the stage with a sparkling ribbon trail." },
+  { id: "rose_of_love", name: "Rose of Love", emoji: "🌹", cost: 200, effect: "A luminous rose blooms and sends petals across the live stage." },
+  { id: "lovely_panda", name: "Lovely Panda", emoji: "🐼", cost: 350, effect: "A heart-holding panda bounces forward with a pink aura." },
+  { id: "tiger_power", name: "Tiger Power", emoji: "🐯", cost: 700, effect: "A roaring tiger streaks across the screen with fiery energy." },
+  { id: "diamond", name: "Diamond", emoji: "💎", cost: 1000, effect: "A giant diamond rotates through a burst of blue light." },
+  { id: "panda_boss", name: "Panda Boss", emoji: "🕶️", cost: 5000, effect: "A boss panda steps forward with gold energy and a spotlight." },
+  { id: "dragon_panda", name: "Dragon Panda", emoji: "🐉", cost: 12000, effect: "A golden dragon coils around the host with blazing particles." },
+  { id: "mystic_panda", name: "Mystic Panda", emoji: "🥋", cost: 17000, effect: "A mystic warrior panda channels swirling purple chi." },
+  { id: "panda_general", name: "Panda General", emoji: "🐼", cost: 20000, effect: "The ultimate kung-fu panda general unleashes golden chi, moving cheese charms, and a full-stage victory aura." },
 ];
 
 export function GiftDrawer({
@@ -141,8 +139,26 @@ export function GiftDrawer({
             </div>
           </DialogHeader>
 
-          {/* Virtual Gifts Selector */}
-          <div className="mb-3 rounded-3xl border border-white/10 bg-white/[0.04] p-4 text-center overflow-hidden relative">\n            <div className={`text-6xl transition-all duration-300 ${selectedGift.cost >= 5000 ? "scale-125 animate-bounce" : selectedGift.cost >= 1000 ? "scale-110 animate-pulse" : "scale-100"}`}>{selectedGift.emoji}</div>\n            <div className="mt-2 text-sm font-black text-white">{selectedGift.name}</div>\n            <div className="text-xs text-amber-300">{selectedGift.cost.toLocaleString()} BC · {selectedGift.effect}</div>\n          </div>\n\n          <div className="grid grid-cols-3 gap-2.5 my-3">
+          {/* Animated Gift Preview */}
+          <div className="mb-3 overflow-hidden rounded-3xl border border-amber-400/20 bg-gradient-to-br from-white/[0.07] via-black/30 to-fuchsia-950/20 p-4 text-center">
+            <style>{`
+              @keyframes cpGiftFloat { 0%,100%{transform:translateY(4px) rotate(-2deg) scale(.98)} 50%{transform:translateY(-10px) rotate(2deg) scale(1.06)} }
+              @keyframes cpGiftOrbit { 0%{transform:translate(-18px,-2px) rotate(0deg)} 50%{transform:translate(18px,-8px) rotate(180deg)} 100%{transform:translate(-18px,-2px) rotate(360deg)} }
+            `}</style>
+            <div className="relative mx-auto flex h-28 items-center justify-center">
+              <div className="absolute size-24 rounded-full bg-fuchsia-500/20 blur-2xl animate-pulse" />
+              <div className="absolute text-xl opacity-70" style={{ animation: "cpGiftOrbit 2.2s linear infinite" }}>✦</div>
+              <div className="absolute -translate-x-12 text-lg opacity-80 animate-bounce">{selectedGift.cost >= 12000 ? "🧀" : selectedGift.cost >= 5000 ? "✨" : "💫"}</div>
+              <div className="absolute translate-x-12 text-lg opacity-80 animate-pulse">{selectedGift.cost >= 17000 ? "⚡" : "✨"}</div>
+              <div className="relative text-7xl drop-shadow-2xl" style={{ animation: "cpGiftFloat 1.35s ease-in-out infinite" }}>{selectedGift.emoji}</div>
+            </div>
+            <div className="text-sm font-black text-white">{selectedGift.name}</div>
+            <div className="mt-1 text-sm font-black text-amber-300">{selectedGift.cost.toLocaleString()} BC</div>
+            <div className="mt-1 text-[11px] leading-4 text-white/55">{selectedGift.effect}</div>
+            <div className="mt-2 text-[10px] font-bold uppercase tracking-[0.16em] text-fuchsia-300">LIVE ANIMATED GIFT</div>
+          </div>
+
+          <div className="grid grid-cols-3 gap-2.5 my-3">
             {gifts.map((g) => {
               const isSelected = selectedGift.id === g.id;
               const canAfford = coins >= g.cost;
@@ -157,7 +173,10 @@ export function GiftDrawer({
                       : "border-white/10 bg-neutral-900/80 hover:bg-neutral-800"
                   }`}
                 >
-                  <span className="text-3xl filter drop-shadow">{g.emoji}</span>
+                  <span className="relative grid size-12 place-items-center text-3xl filter drop-shadow">
+                    <span className="absolute inset-0 rounded-full bg-fuchsia-500/10 animate-pulse" />
+                    <span className="relative animate-bounce">{g.emoji}</span>
+                  </span>
                   <span className="text-xs font-semibold text-white truncate max-w-full">
                     {g.name}
                   </span>
@@ -200,7 +219,7 @@ export function GiftDrawer({
               className="w-full gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 font-bold text-white shadow-lg hover:opacity-95 cursor-pointer py-5 text-sm"
             >
               <Gift className="size-4" />
-              Send {selectedGift.emoji} {selectedGift.name} ({selectedGift.cost.toLocaleString()} BC)
+              Send {selectedGift.emoji} {selectedGift.name} · {selectedGift.cost.toLocaleString()} BC
             </Button>
           </div>
         </DialogContent>
