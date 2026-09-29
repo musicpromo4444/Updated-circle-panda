@@ -56,7 +56,7 @@ export type GroupChat = {
   openedAt: number | null;
   messages: GroupChatMessage[];
 };
-export type ChatMessage = { id: string; body: string; at: number; mine: boolean };
+export type ChatMessage = { id: string; body: string; at: number; mine: boolean; messageType?: "text" | "dating_photo"; mediaPath?: string };
 export type Thread = {
   id: string;
   name: string;
@@ -521,7 +521,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         
         (supabase as any).from("cp_group_messages").select("id,group_id,body,created_at,author_id").order("created_at", {ascending:true}).limit(1000),
         (supabase as any).from("cp_threads").select("id,owner_id,participant_id,other_alias,kind,blurb,created_at").order("created_at", {ascending:false}).limit(100),
-        (supabase as any).from("cp_thread_messages").select("id,thread_id,user_id,body,created_at").order("created_at", {ascending:true}).limit(2000),
+        (supabase as any).from("cp_thread_messages").select("id,thread_id,user_id,body,created_at,message_type,media_path").order("created_at", {ascending:true}).limit(2000),
         (supabase as any).from("group_settings").select("group_id,edit_group_info,send_messages,approve_new_members"),
         (supabase as any).from("events").select("id,title,description,location,starts_at,ends_at,category,entry_fee_bc,duration_minutes,reach_scope,reach_country,reach_state,reach_city,reach_area,cover_url,is_published,owner_id").eq("is_published",true).order("starts_at", {ascending:true}),
         (supabase as any).from("event_attendees").select("event_id,user_id"),
@@ -557,7 +557,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       const profileNames = new Map((otherProfilesRes.data ?? []).map((p:any)=>[p.id,p.display_name || "Anonymous Panda"]));
       const threads = rawThreads.filter((t:any)=>t.participant_id).map((t:any)=>({
         id:t.id, name:profileNames.get(t.owner_id===uid?t.participant_id:t.owner_id) ?? "Anonymous Panda", kind:t.kind === "dating" ? "dating" : "dm", blurb:t.blurb ?? "",
-        messages:rawThreadMessages.filter((m:any)=>m.thread_id===t.id).map((m:any)=>({id:m.id,body:m.body,at:new Date(m.created_at).getTime(),mine:m.user_id===uid})), startedAt:t.kind === "dating" ? new Date(t.created_at).getTime() : undefined
+        messages:rawThreadMessages.filter((m:any)=>m.thread_id===t.id && !(m.message_type==="dating_photo" && m.user_id===uid)).map((m:any)=>({id:m.id,body:m.body,at:new Date(m.created_at).getTime(),mine:m.user_id===uid,messageType:m.message_type==="dating_photo"?"dating_photo":"text",mediaPath:m.media_path ?? undefined})), startedAt:t.kind === "dating" ? new Date(t.created_at).getTime() : undefined
       }));
       const totalXp = Number(xpRes.data?.xp ?? 0);
       setState((prev)=>({...prev,...stData,coins:Number(coinsRes.data?.balance ?? prev.coins),reputation:stData.reputation??0,level:pandaProgress(totalXp).index+1,xp:totalXp,posts,groups,threads,events,nominees,sweepWinners:(winnersRes.data??[]).map((w:any)=>({draw:w.draw,name:w.name,prize:w.prize,wonAt:new Date(w.won_at).getTime()})),sweepTickets:(ticketsRes.data??[]).map((t:any)=>({id:t.id,draw:t.draw,at:new Date(t.created_at).getTime()})),spotlights:(crushWinnersRes.data??[]).map((w:any)=>({kind:w.kind,name:w.display_name,wonAt:new Date(w.created_at).getTime()})),datingProfile:dating?{userId:dating.user_id,name:dating.name,age:dating.age,vibe:dating.vibe,emoji:dating.emoji,bio:dating.bio,interests:dating.interests??[],location:dating.location,country:dating.country??dating.location??"",gender:dating.gender??"",relationshipGoal:dating.relationship_goal??"",lookingFor:dating.looking_for??[],lifestyle:dating.lifestyle??[],personality:dating.personality??[],loveLanguage:dating.love_language??"",smoking:dating.smoking??"",drinking:dating.drinking??"",children:dating.children??"",education:dating.education??"",occupation:dating.occupation??"",sexualExperience:dating.sexual_experience??"",intimacyPreference:dating.intimacy_preference??"",relationshipStatus:dating.relationship_status??"single",heightCm:dating.height_cm??null,zodiac:dating.zodiac??"",favoriteDate:dating.favorite_date??"",photoPath:dating.photo_path??"",blurredPhotoPath:dating.blurred_photo_path??"",registeredAt:new Date(dating.updated_at).getTime()}:null,datingMatches:(datingRes.data??[]).filter((d:any)=>d.user_id!==uid).map((d:any)=>({userId:d.user_id,name:d.name,age:d.age,vibe:d.vibe,emoji:d.emoji,bio:d.bio,interests:d.interests??[],location:d.location,country:d.country??d.location??"",gender:d.gender??"",relationshipGoal:d.relationship_goal??"",lookingFor:d.looking_for??[],lifestyle:d.lifestyle??[],personality:d.personality??[],loveLanguage:d.love_language??"",smoking:d.smoking??"",drinking:d.drinking??"",children:d.children??"",education:d.education??"",occupation:d.occupation??"",sexualExperience:d.sexual_experience??"",intimacyPreference:d.intimacy_preference??"",relationshipStatus:d.relationship_status??"single",heightCm:d.height_cm??null,zodiac:d.zodiac??"",favoriteDate:d.favorite_date??"",photoPath:d.photo_path??"",blurredPhotoPath:d.blurred_photo_path??"",registeredAt:new Date(d.updated_at).getTime()}))}));
@@ -582,7 +582,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     const directMessageChannel = (supabase as any).channel(`circle-panda-dm-${dbUserId}`)
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "cp_thread_messages" }, (payload:any) => {
         const m = payload.new;
-        setState(current => current.threads.some(t=>t.messages.some(x=>x.id===m.id)) ? current : ({...current,threads:current.threads.map(t=>t.id===m.thread_id?{...t,messages:[...t.messages,{id:m.id,body:m.body,at:new Date(m.created_at).getTime(),mine:m.user_id===dbUserId}]}:t)}));
+        setState(current => current.threads.some(t=>t.messages.some(x=>x.id===m.id)) || (m.message_type==="dating_photo" && m.user_id===dbUserId) ? current : ({...current,threads:current.threads.map(t=>t.id===m.thread_id?{...t,messages:[...t.messages,{id:m.id,body:m.body,at:new Date(m.created_at).getTime(),mine:m.user_id===dbUserId,messageType:m.message_type==="dating_photo"?"dating_photo":"text",mediaPath:m.media_path ?? undefined}]}:t)}));
       }).subscribe();
     const crushChannel = (supabase as any).channel(`circle-panda-crush-${dbUserId}`)
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "crush_votes" }, (payload:any) => {
@@ -865,7 +865,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     void (async () => {
       const { data, error } = await (supabase as any).rpc("send_direct_message", { p_thread_id: threadId, p_body: body });
       if (error) { toast.error(error.message ?? "Message could not be sent"); return; }
-      setState((s) => ({ ...s, coins: Number(data?.balance ?? s.coins), threads: s.threads.map((t) => t.id === threadId ? { ...t, messages: [...t.messages, { id:data.id, body:data.body, at:new Date(data.created_at).getTime(), mine:true }] } : t) }));
+      setState((s) => ({ ...s, coins: Number(data?.balance ?? s.coins), threads: s.threads.map((t) => t.id === threadId ? { ...t, messages: [...t.messages, { id:data.id, body:data.body, at:new Date(data.created_at).getTime(), mine:true, messageType:"text" }] } : t) }));
       toast("−1 BC spent 🪙", { description:"Message delivered anonymously." });
     })();
   }, [dbUserId]);
