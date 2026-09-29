@@ -31,6 +31,8 @@ export function AdminHotSeatManager() {
   const [awsSecret, setAwsSecret] = useState("");
   const [zegoSecret, setZegoSecret] = useState("");
   const [pushJson, setPushJson] = useState("");
+  const [moderationUser, setModerationUser] = useState("");
+  const [moderationAction, setModerationAction] = useState("mute");
 
   const load = async () => {
     setLoading(true);
@@ -249,6 +251,18 @@ export function AdminHotSeatManager() {
                 }}>Add</Button>
               </div>
             )}
+          </div>
+
+          <div className="rounded-xl border border-red-400/15 bg-red-400/5 p-3 space-y-2">
+            <b className="text-sm">Live moderation</b>
+            <div className="grid gap-2 sm:grid-cols-[1fr_auto_auto]">
+              <Input placeholder="Viewer user ID" value={moderationUser} onChange={e=>setModerationUser(e.target.value)} />
+              <select value={moderationAction} onChange={e=>setModerationAction(e.target.value)} className="rounded-lg border border-border bg-background px-3 py-2 text-sm"><option value="mute">Mute 30m</option><option value="ban">Block 30m</option></select>
+              <Button variant="destructive" disabled={!moderationUser.trim()} onClick={async()=>{
+                const {error}=await (supabase as any).rpc("admin_hot_seat_moderate",{p_host_id:active.id,p_user_id:moderationUser.trim(),p_action:moderationAction,p_minutes:30});
+                if(error) toast.error(error.message); else {setModerationUser("");toast.success(moderationAction==="ban"?"Viewer blocked":"Viewer muted");}
+              }}>Apply</Button>
+            </div>
           </div>
 
           <div className="flex flex-wrap gap-2">
