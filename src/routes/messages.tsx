@@ -65,6 +65,16 @@ function MessagesPage() {
   }, [search.thread]);
 
   useEffect(() => {
+    const refresh = () => {
+      void (supabase as any).rpc("get_pending_dating_decisions_secure").then(({ data, error }: any) => {
+        if (!error && Array.isArray(data)) setPendingDating(data[0] ?? null);
+      });
+    };
+    const timer = window.setInterval(refresh, 10000);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
     void (supabase as any).rpc("get_my_crush_message_requests").then(({ data }: any) => setCrushRequests(data ?? []));
     void (supabase as any).from("direct_message_requests").select("id,sender_id,message,kind,created_at").eq("status","pending").order("created_at",{ascending:false}).then(({data,error}:any)=>{ if(!error) setMessageRequests(data??[]); });
     void (supabase as any).rpc("get_pending_dating_decisions_secure").then(({data,error}:any)=>{
