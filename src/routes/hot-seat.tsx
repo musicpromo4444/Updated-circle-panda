@@ -180,9 +180,21 @@ function HotSeatPage() {
           setActiveHost(next);
         }
       })
-      .subscribe();
+      .on("presence", { event: "sync" }, () => {
+        const state = channel.presenceState();
+        const ids = new Set<string>();
+        Object.values(state).flat().forEach((entry: any) => {
+          if (entry?.user_id) ids.add(String(entry.user_id));
+        });
+        setActiveHost((prev: any) => prev ? { ...prev, viewer_count: ids.size } : prev);
+      })
+      .subscribe(async (status) => {
+        if (status === "SUBSCRIBED" && userId && activeHost) {
+          await channel.track({ user_id: userId, host_id: activeHost.id });
+        }
+      });
     return () => { void supabase.removeChannel(channel); };
-  }, [activeHost]);
+  }, [activeHost?.id, userId]);
 
   // Hot Seat session clock: 3 hours live + mandatory 1 hour water break.
   // The phase is derived from the scheduled start time so the UI stays correct even if the
