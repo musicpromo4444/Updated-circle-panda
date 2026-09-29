@@ -199,6 +199,8 @@ export async function executeWebPaystackCheckout(
   if (!key) throw new Error("Paystack public key is not configured.");
   if (typeof window === "undefined") throw new Error("Web checkout is unavailable.");
   if (!window.PaystackPop?.setup) throw new Error("Paystack checkout is not loaded.");
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("You must be signed in to purchase.");
   const reference = makeReference("CP_PSTK");
   const amount = Math.round((item.priceNgn ?? item.price * (request.exchangeRateNgn || 1500)) * 100);
   onStatus?.("Opening secure Paystack checkout...");
@@ -209,7 +211,7 @@ export async function executeWebPaystackCheckout(
       amount,
       currency: "NGN",
       ref: reference,
-      metadata: { itemId: item.id, itemType },
+      metadata: { itemId: item.id, itemType, userId: user.id },
       callback: (response) => resolve({
         success: response.status === "success",
         platformUsed: "web_paystack",
