@@ -11,6 +11,7 @@ import { PaymentProviderSetup } from "@/components/admin/PaymentProviderSetup";
 import { UniversalWinnerManager } from "@/components/admin/UniversalWinnerManager";
 import { AdminIntegrationCenter } from "@/components/admin/AdminIntegrationCenter";
 import { AdminControlCenter } from "@/components/admin/AdminControlCenter";
+import { AdminPermissionManager } from "@/components/admin/AdminPermissionManager";
 
 export const Route = createFileRoute("/admin-dashboard")({ component: AdminDashboardPage });
 
@@ -109,6 +110,7 @@ function AdminDashboardPage() {
   return <AppShell title="Admin Dashboard" hidePageHeader>
     <main className="mx-auto max-w-4xl space-y-5 p-4 pb-24 sm:p-6">
       <AdminControlCenter />
+      <AdminPermissionManager />
       <UniversalAdManager />
       <PaymentProviderSetup />
       <AdminIntegrationCenter />
