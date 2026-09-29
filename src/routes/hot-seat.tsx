@@ -357,15 +357,35 @@ function HotSeatPage() {
       className="fixed inset-0 z-50 h-[100dvh] w-screen overflow-hidden bg-black select-none"
     >
       {/* 1. Main Live Video Feed (Spans 100% of the screen width and height) */}
-      <video
-        autoPlay
-        loop
-        muted={muted}
-        playsInline
-        poster={activeHost?.media_url ?? undefined}
-        src={activeHost?.media_url ?? undefined}
-        className={`absolute inset-0 size-full object-cover select-none pointer-events-none ${sessionPhase === "live" ? "" : "opacity-0"}`}
-      />
+      {activeHost?.stream_provider === "youtube" ? (
+        <iframe
+          title="Circle Panda Hot Seat live stream"
+          src={(() => {
+            const raw = String(activeHost?.media_url ?? "");
+            try {
+              const url = new URL(raw);
+              if (url.hostname.includes("youtu.be")) return `https://www.youtube.com/embed/${url.pathname.replace("/", "")}?autoplay=1&mute=${muted ? 1 : 0}&playsinline=1`;
+              const id = url.searchParams.get("v");
+              if (id) return `https://www.youtube.com/embed/${id}?autoplay=1&mute=${muted ? 1 : 0}&playsinline=1`;
+              if (url.pathname.includes("/embed/")) return raw;
+            } catch {}
+            return raw;
+          })()}
+          allow="autoplay; encrypted-media; picture-in-picture"
+          allowFullScreen
+          className={`absolute inset-0 size-full border-0 select-none pointer-events-none ${sessionPhase === "live" ? "" : "opacity-0"}`}
+        />
+      ) : (
+        <video
+          autoPlay
+          loop
+          muted={muted}
+          playsInline
+          poster={activeHost?.media_url ?? undefined}
+          src={activeHost?.media_url ?? undefined}
+          className={`absolute inset-0 size-full object-cover select-none pointer-events-none ${sessionPhase === "live" ? "" : "opacity-0"}`}
+        />
+      )}
 
       
       {activeHost && sessionPhase === "paused" && (
