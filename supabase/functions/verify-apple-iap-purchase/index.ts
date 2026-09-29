@@ -26,6 +26,9 @@ Deno.serve(async(req)=>{
   const transactionJws=(response as any).signedTransactionInfo;if(!transactionJws)throw new Error("Apple did not return signed transaction information");
   const verified=decodePayload(transactionJws);if(verified.bundleId!==bundle)throw new Error("Apple bundle ID mismatch");
   const productId=String(verified.productId||"");if(!productId)throw new Error("Apple product ID missing");
+  if(String(verified.appAccountToken||"")!==user.id) {
+    return new Response(JSON.stringify({ok:false,error:"Apple purchase is not linked to this Circle Panda account"}),{status:403,headers:cors});
+  }
   const expiresAt=verified.expiresDate?new Date(Number(verified.expiresDate)).toISOString():null;
   if(itemType==="vip_subscription"&&(!expiresAt||new Date(expiresAt).getTime()<=Date.now()))throw new Error("Apple subscription is not currently entitled");
   if(verified.revocationDate)throw new Error("Apple transaction has been revoked");
