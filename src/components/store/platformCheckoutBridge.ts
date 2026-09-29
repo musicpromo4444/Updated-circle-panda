@@ -1,4 +1,5 @@
 import type { CoinPackage, PricingConfig, VipPlan } from "@/lib/pricingTypes";
+import { supabase } from "@/integrations/supabase/client";
 
 declare global {
   interface Window {
@@ -9,6 +10,8 @@ declare global {
       onPaymentComplete?: (success: boolean, transactionId: string) => void;
     getDistribution?: () => "google_play" | "external";
       requestGooglePlayPurchase?: (payloadJson: string) => boolean;
+      onPurchaseResult?: (payloadJson: string) => void;
+      onPurchaseResult?: (payloadJson: string) => void;
     };
     Android?: {
       openUrl?: (url: string) => void;
@@ -17,7 +20,9 @@ declare global {
     };
     CirclePandaIOS?: {
       requestApplePurchase?: (payloadJson: string) => boolean;
+      onPurchaseResult?: (payloadJson: string) => void;
     };
+    CirclePandaNativePurchaseComplete?: (payloadJson: string) => void;
     PaystackPop?: {
       setup: (options: {
         key: string;
@@ -120,8 +125,8 @@ export async function executeNativeStoreCheckout(
   const reference = makeReference(platform === "google_play" ? "CP_GPLAY" : "CP_APPLE");
   const catalog = platform === "google_play" ? request.pricingConfig?.googlePlay : request.pricingConfig?.appleIap;
   const productId = itemType === "vip_subscription"
-    ? catalog?.subscriptionIds[item.id]
-    : catalog?.productIds[item.id];
+    ? (item as VipPlan).androidProductId && platform === "google_play" ? (item as VipPlan).androidProductId : platform === "apple_iap" && (item as VipPlan).iosProductId ? (item as VipPlan).iosProductId : catalog?.subscriptionIds[item.id]
+    : (item as CoinPackage).androidProductId && platform === "google_play" ? (item as CoinPackage).androidProductId : platform === "apple_iap" && (item as CoinPackage).iosProductId ? (item as CoinPackage).iosProductId : catalog?.productIds[item.id];
 
   if (!productId) {
     return {
@@ -144,15 +149,34 @@ export async function executeNativeStoreCheckout(
   onStatus?.(`Opening ${platform === "google_play" ? "Google Play" : "Apple"} purchase...`);
 
   try {
+    const nativeResult = await new Promise<any>((resolve) => {
+      const handler = (raw: string) => {
+        try { const parsed = typeof raw === "string" ? JSON.parse(raw) : raw; if (parsed?.reference === reference) resolve(parsed); } catch { /* ignore malformed bridge events */ }
+      };
+      window.CirclePandaNativePurchaseComplete = handler;
+      const timer = window.setTimeout(() => resolve({ reference, success: false, message: "Native store purchase timed out." }), 10 * 60 * 1000);
+      (window as any).__circlePandaNativeCleanup = () => { window.clearTimeout(timer); if (window.CirclePandaNativePurchaseComplete === handler) delete window.CirclePandaNativePurchaseComplete; };
+    });
     const dispatched = platform === "google_play"
       ? (window.AndroidBridge?.requestGooglePlayPurchase?.(payload) ?? window.Android?.requestGooglePlayPurchase?.(payload) ?? false)
       : (window.CirclePandaIOS?.requestApplePurchase?.(payload) ?? false);
     if (!dispatched) {
       return { success: false, platformUsed: platform, reference, message: "Native store purchase bridge is unavailable." };
     }
-    // Native shells must complete the purchase and send the signed receipt/token
-    // to the backend. The browser does not award currency from this dispatch.
-    return { success: true, platformUsed: platform, reference, message: "Native store purchase started. Server receipt verification is required." };
+    if (!nativeResult?.success) {
+      (window as any).__circlePandaNativeCleanup?.();
+      return { success: false, platformUsed: platform, reference, message: nativeResult?.message || "Native store purchase was not completed." };
+    }
+    onStatus?.("Verifying the store purchase securely...");
+    const functionName = platform === "google_play" ? "verify-google-play-purchase" : "verify-apple-iap-purchase";
+    const body = platform === "google_play"
+      ? { reference, itemId: item.id, itemType, purchaseToken: nativeResult.purchaseToken }
+      : { reference, itemId: item.id, itemType, signedTransaction: nativeResult.signedTransaction || nativeResult.jwsRepresentation };
+    if (!body.purchaseToken && !body.signedTransaction) throw new Error("Native purchase receipt/token was not returned.");
+    const verification = await supabase.functions.invoke(functionName, { body });
+    (window as any).__circlePandaNativeCleanup?.();
+    if (verification.error || !verification.data?.ok) throw new Error(verification.data?.error || verification.error?.message || "Native store verification failed");
+    return { success: true, platformUsed: platform, reference, message: "Purchase verified and delivered securely." };
   } catch {
     return { success: false, platformUsed: platform, reference, message: "Native store purchase could not be started." };
   }
