@@ -12,7 +12,7 @@ Deno.serve(async(req)=>{
   const key=Deno.env.get("APPLE_IAP_PRIVATE_KEY")!,keyId=Deno.env.get("APPLE_IAP_KEY_ID")!,issuer=Deno.env.get("APPLE_IAP_ISSUER_ID")!,bundle=Deno.env.get("APPLE_IAP_BUNDLE_ID")!;
   const client=new AppStoreServerAPIClient(key.replace(/\\n/g,"\n"),keyId,issuer,bundle,env);
   const hinted=data.signedTransactionInfo?decodePayload(data.signedTransactionInfo):null;const transactionId=String(hinted?.transactionId||"");if(!transactionId)throw new Error("Apple transaction ID missing");
-  const response=await client.getTransactionInfo(transactionId),txJws=(response as any).signedTransactionInfo);if(!txJws)throw new Error("Apple transaction lookup failed");
+  const response=await client.getTransactionInfo(transactionId);\n  const txJws=(response as any).signedTransactionInfo;if(!txJws)throw new Error("Apple transaction lookup failed");
   const tx=decodePayload(txJws);if(tx.bundleId!==bundle)throw new Error("Apple bundle ID mismatch");
   const supabase=createClient(Deno.env.get("SUPABASE_URL")!,Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
   const original=String(tx.originalTransactionId||transactionId),expiresAt=tx.expiresDate?new Date(Number(tx.expiresDate)).toISOString():null;
