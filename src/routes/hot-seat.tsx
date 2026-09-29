@@ -161,6 +161,19 @@ function HotSeatPage() {
         const m: any = payload.new;
         if (activeHost && m.host_id === activeHost.id) setChatMessages((prev) => [...prev.slice(-49), { id: m.id, user: m.alias, text: m.body, time: "just now", isGift: m.is_gift }]);
       })
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "hot_seat_gifts" }, (payload) => {
+        const g: any = payload.new;
+        if (activeHost && g.host_id === activeHost.id) {
+          setGiftBanner(`Anon Panda sent ${g.gift_emoji ?? "🎁"} ${g.gift_name ?? "a gift"}!`);
+          window.setTimeout(() => setGiftBanner(null), 3500);
+        }
+      })
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "hot_seat_hosts" }, (payload) => {
+        const next: any = payload.new;
+        if (activeHost && next.id === activeHost.id) {
+          setActiveHost(next);
+        }
+      })
       .subscribe();
     return () => { void supabase.removeChannel(channel); };
   }, [activeHost]);
@@ -210,8 +223,8 @@ function HotSeatPage() {
 
   useEffect(() => {
     if (!userId) return;
-    void (supabase as any).from("hot_seat_likes").select("user_id", { count: "exact", head: true }).then((r:any)=>setLikeCount(r.count ?? 0));
-    void (supabase as any).from("hot_seat_follows").select("user_id").eq("user_id", userId).maybeSingle().then((r:any)=>setIsFollowing(Boolean(r.data)));
+    if (!activeHost) return;\n    void (supabase as any).from("hot_seat_likes").select("user_id", { count: "exact", head: true }).eq("host_id", activeHost.id).then((r:any)=>setLikeCount(r.count ?? 0));
+    if (!activeHost) return;\n    void (supabase as any).from("hot_seat_follows").select("user_id").eq("host_id", activeHost.id).eq("user_id", userId).maybeSingle().then((r:any)=>setIsFollowing(Boolean(r.data)));
   }, [userId, activeHost?.id]);
 
   // Live chat is now driven by Supabase Realtime; no synthetic messages are generated.
@@ -236,7 +249,7 @@ function HotSeatPage() {
     e.stopPropagation();
     const rect = e.currentTarget.getBoundingClientRect();
     spawnHeart(rect.left + rect.width / 2, rect.top);
-    void (supabase as any).rpc("toggle_hot_seat_like").then(({ data, error }: any) => {
+    void (supabase as any).rpc("toggle_hot_seat_like", { p_host_id: activeHost?.id }).then(({ data, error }: any) => {
       if (error) throw error;
       setLikeCount((c) => Math.max(0, c + (data?.liked ? 1 : -1)));
     }).catch((error:any) => toast.error(error?.message ?? "Could not update like."));
@@ -244,9 +257,10 @@ function HotSeatPage() {
 
   // Follow toggle
   const handleToggleFollow = () => {
+    if (!userId || !activeHost) { toast.error("Sign in while a Hot Seat host is live."); return; }
     setIsFollowing((prev) => {
       const next = !prev;
-      if (userId) void (next ? (supabase as any).from("hot_seat_follows").upsert({host_id:activeHost?.id,user_id:userId}) : (supabase as any).from("hot_seat_follows").delete().eq("host_id",activeHost?.id).eq("user_id",userId));
+      if (userId && activeHost) void (next ? (supabase as any).from("hot_seat_follows").upsert({host_id:activeHost?.id,user_id:userId}) : (supabase as any).from("hot_seat_follows").delete().eq("host_id",activeHost?.id).eq("user_id",userId));
       if (next) {
         toast.success(`Following ${activeHost?.alias ?? "the host"}! 🐼`, {
           description: "You'll be notified when upcoming Hot Seat sessions go live.",
