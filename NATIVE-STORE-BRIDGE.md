@@ -5,7 +5,7 @@ The web checkout selects the provider automatically:
 - Google Play Android -> Google Play Billing
 - iOS App Store -> Apple StoreKit
 
-The native shell must never award BC/VIP locally.
+The native shell must never award BC/VIP locally. The signed-in Circle Panda user ID is included in the purchase payload so the native billing request can bind the store transaction to the correct account.
 
 ## Completion callback
 
@@ -15,11 +15,11 @@ After the native store purchase succeeds, the Android/iOS shell must call:
 
 Google Play payload:
 
-`{ "reference": "CP_GPLAY_...", "success": true, "purchaseToken": "...", "productId": "..." }`
+`{ "reference": "CP_GPLAY_...", "success": true, "purchaseToken": "...", "productId": "..." }`\n\nThe Android shell must pass the SHA-256 of the `accountId` from the purchase payload into Google Play Billing `setObfuscatedAccountId()`. The backend checks the returned `obfuscatedExternalAccountId` against the authenticated user.
 
 Apple StoreKit payload:
 
-`{ "reference": "CP_APPLE_...", "success": true, "signedTransaction": "<StoreKit JWS>", "productId": "..." }`
+`{ "reference": "CP_APPLE_...", "success": true, "signedTransaction": "<StoreKit JWS>", "productId": "..." }`\n\nThe iOS shell must use the `accountId` from the purchase payload as the StoreKit `appAccountToken(UUID)`. The backend checks the returned token against the authenticated user.
 
 If the user cancels:
 
