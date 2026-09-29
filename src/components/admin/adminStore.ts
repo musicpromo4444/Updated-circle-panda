@@ -298,10 +298,10 @@ export function useAdminStore() {
         p_tagline: "",
         p_image_url: creativeData.imageUrl ?? null,
         p_destination_url: creativeData.destinationUrl,
-        p_video_url: null,
-        p_poster_url: null,
+        p_video_url: creativeData.videoUrl ?? null,
+        p_poster_url: creativeData.posterUrl ?? null,
         p_placement: creativeData.placement,
-        p_format: "banner",
+        p_format: creativeData.placement === "crush_native" ? "native" : creativeData.placement === "crush_interstitial" ? "interstitial" : creativeData.placement === "crush_popup" ? "sponsor" : creativeData.placement === "crush_playable" ? "playable" : "banner",
         p_category: creativeData.category,
         p_call_to_action: creativeData.callToAction,
         p_duration_seconds: 8,
@@ -323,10 +323,11 @@ export function useAdminStore() {
       const next = { ...current, ...partial };
       const { error } = await (supabase as any).rpc("admin_upsert_ad_creative", {
         p_id: id, p_sponsor: next.sponsor, p_headline: next.headline, p_description: next.description,
-        p_tagline: "", p_image_url: next.imageUrl ?? null, p_destination_url: next.destinationUrl,
-        p_video_url: null, p_poster_url: null, p_placement: next.placement, p_format: "banner",
-        p_category: next.category, p_call_to_action: next.callToAction, p_duration_seconds: 8,
-        p_skip_after_seconds: 5, p_status: next.status,
+        p_tagline: next.tagline ?? "", p_image_url: next.imageUrl ?? null, p_destination_url: next.destinationUrl,
+        p_video_url: next.videoUrl ?? null, p_poster_url: next.posterUrl ?? null, p_placement: next.placement,
+        p_format: next.placement === "crush_native" ? "native" : next.placement === "crush_interstitial" ? "interstitial" : next.placement === "crush_popup" ? "sponsor" : next.placement === "crush_playable" ? "playable" : "banner",
+        p_category: next.category, p_call_to_action: next.callToAction, p_duration_seconds: next.durationSeconds ?? 8,
+        p_skip_after_seconds: next.skipAfterSeconds ?? 5, p_status: next.status,
       });
       if (error) { toast.error(error.message); return; }
       setAdConfig((prev) => ({ ...prev, creatives: (prev.creatives || []).map((x) => x.id === id ? next : x) }));
