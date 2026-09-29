@@ -43,12 +43,25 @@ function DatingPage() {
   const [registerOpen, setRegisterOpen] = useState(false);
   const [sent, setSent] = useState<Record<string,string>>({});
   const [incoming, setIncoming] = useState<any[]>([]);
+  const [, setClock] = useState(Date.now());
   const [connections, setConnections] = useState<any[]>([]);
+  const loadConnections = async () => {
+    const [userRes, connRes] = await Promise.all([
+      (supabase as any).auth.getUser(),
+      (supabase as any).from("dating_connections").select("id,requester_id,recipient_id,status,requester_confirmed,recipient_confirmed,matched_at,reveal_at"),
+    ]);
+    const uid = userRes?.data?.user?.id;
+    const rows = connRes?.data ?? [];
+    if (!connRes?.error) {
+      setConnections(rows);
+      setIncoming(rows.filter((x:any) => x.status === "pending" && x.recipient_id === uid));
+    }
+  };
+
   useEffect(() => {
-    void Promise.all([(supabase as any).auth.getUser(), (supabase as any).from("dating_connections").select("id,requester_id,recipient_id,status,requester_confirmed,recipient_confirmed,reveal_at")]).then(([userRes,connRes]:any)=>{
-      const uid=userRes?.data?.user?.id; const rows=connRes?.data??[];
-      if(!connRes?.error){ setConnections(rows); setIncoming(rows.filter((x:any)=>x.status==="pending" && x.recipient_id===uid)); }
-    });
+    void loadConnections();
+    const timer = window.setInterval(() => setClock(Date.now()), 1000);
+    return () => window.clearInterval(timer);
   }, []);
 
   // Pre-cache video ad units
@@ -83,6 +96,16 @@ function DatingPage() {
         </Button>
       </div>
 
+      {connections.filter((x:any)=>x.status==="matched" && x.reveal_at && new Date(x.reveal_at).getTime()>Date.now()).map((x:any)=>{
+        const remaining=Math.max(0,new Date(x.reveal_at).getTime()-Date.now());
+        const h=Math.floor(remaining/3600000), m=Math.floor((remaining%3600000)/60000), sec=Math.floor((remaining%60000)/1000);
+        return <section key={x.id} className="mb-5 rounded-2xl border border-[var(--dating)]/20 bg-[var(--dating)]/5 p-4">
+          <p className="font-display font-bold">Mutual match 💗</p>
+          <p className="mt-1 text-xs text-muted-foreground">The full 72-hour waiting period must finish before either person can confirm.</p>
+          <p className="mt-3 text-center text-2xl font-black tabular-nums text-[var(--dating)]">{String(h).padStart(2,"0")}:{String(m).padStart(2,"0")}:{String(sec).padStart(2,"0")}</p>
+        </section>;
+      })}
+
       {connections.filter((x:any)=>x.status==="matched" && new Date(x.reveal_at).getTime()<=Date.now() && (!x.requester_confirmed || !x.recipient_confirmed)).length ? (
         <section className="mb-5 rounded-2xl border border-[var(--dating)]/25 bg-[var(--dating)]/5 p-4">
           <p className="font-display font-bold">72-hour confirmation ready</p>
@@ -91,7 +114,7 @@ function DatingPage() {
             {connections.filter((x:any)=>x.status==="matched" && new Date(x.reveal_at).getTime()<=Date.now() && (!x.requester_confirmed || !x.recipient_confirmed)).map((x:any)=>(
               <div key={x.id} className="flex items-center gap-2 rounded-xl bg-background/70 p-3">
                 <span className="grid size-9 place-items-center rounded-full bg-secondary">🐼</span><span className="flex-1 text-sm">Mutual Panda match</span>
-                <Button size="sm" onClick={()=>void (supabase as any).rpc("confirm_dating_match_secure",{p_connection_id:x.id}).then(({data,error}:any)=>{if(error)throw error;if(data?.thread_id) void navigate({to:"/messages",search:{thread:data.thread_id}}); else {toast.success("Confirmation saved 💗");setConnections(y=>y.map(z=>z.id===x.id?{...z,requester_confirmed:true}:z));}})}>Confirm</Button>
+                <Button size="sm" onClick={()=>void (supabase as any).rpc("confirm_dating_match_secure",{p_connection_id:x.id}).then(async ({data,error}:any)=>{if(error){toast.error(error.message??"Confirmation failed");return;} await loadConnections(); if(data?.thread_id) void navigate({to:"/messages",search:{thread:data.thread_id}}); else toast.success("Confirmation saved 💗");})}>Confirm</Button>
               </div>
             ))}
           </div>
@@ -106,7 +129,7 @@ function DatingPage() {
             {incoming.map((r:any)=>(
               <div key={r.id} className="flex items-center gap-2 rounded-xl bg-background/70 p-3">
                 <span className="grid size-9 place-items-center rounded-full bg-secondary">🐼</span><span className="flex-1 text-sm">Anonymous Panda</span>
-                <Button size="sm" onClick={()=>void (supabase as any).rpc("respond_dating_match_secure",{p_connection_id:r.id,p_accept:true}).then(({data,error}:any)=>{if(error)throw error;setIncoming(x=>x.filter(y=>y.id!==r.id));toast.success("Mutual match 💗",{description:"Your 72-hour confirmation period has started."});})}>Accept</Button>
+                <Button size="sm" onClick={()=>void (supabase as any).rpc("respond_dating_match_secure",{p_connection_id:r.id,p_accept:true}).then(async ({data,error}:any)=>{if(error){toast.error(error.message??"Could not accept request");return;} await loadConnections();toast.success("Mutual match 💗",{description:"Your 72-hour confirmation period has started."});})}>Accept</Button>
                 <Button size="sm" variant="outline" onClick={()=>void (supabase as any).rpc("respond_dating_match_secure",{p_connection_id:r.id,p_accept:false}).then(({error}:any)=>{if(error)throw error;setIncoming(x=>x.filter(y=>y.id!==r.id));})}>Decline</Button>
               </div>
             ))}
