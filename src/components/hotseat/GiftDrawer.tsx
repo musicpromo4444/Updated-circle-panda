@@ -40,7 +40,20 @@ export function GiftDrawer({
   hostName?: string;
 }) {
   const { coins, syncCoins } = useStore();
-  const [gifts, setGifts] = useState<VirtualGift[]>(VIRTUAL_GIFTS);\n  const [selectedGift, setSelectedGift] = useState<VirtualGift>(VIRTUAL_GIFTS[0]);\n\n  useEffect(() => {\n    let cancelled = false;\n    void supabase.from("hot_seat_gift_catalog").select("gift_id,name,emoji,cost_bc,effect").eq("enabled", true).order("cost_bc", { ascending: true })\n      .then(({ data, error }) => {\n        if (cancelled || error || !data?.length) return;\n        const next = data.map((g: any) => ({ id: g.gift_id, name: g.name, emoji: g.emoji, cost: Number(g.cost_bc), effect: g.effect ?? "" }));\n        setGifts(next);\n        setSelectedGift(next[0]);\n      });\n    return () => { cancelled = true; };\n  }, []);
+  const [gifts, setGifts] = useState<VirtualGift[]>(VIRTUAL_GIFTS);
+  const [selectedGift, setSelectedGift] = useState<VirtualGift>(VIRTUAL_GIFTS[0]);
+
+  useEffect(() => {
+    let cancelled = false;
+    void supabase.from("hot_seat_gift_catalog").select("gift_id,name,emoji,cost_bc,effect").eq("enabled", true).order("cost_bc", { ascending: true })
+      .then(({ data, error }) => {
+        if (cancelled || error || !data?.length) return;
+        const next = data.map((g: any) => ({ id: g.gift_id, name: g.name, emoji: g.emoji, cost: Number(g.cost_bc), effect: g.effect ?? "" }));
+        setGifts(next);
+        setSelectedGift(next[0]);
+      });
+    return () => { cancelled = true; };
+  }, []);
   const [showRewardedAd, setShowRewardedAd] = useState(false);
   const [watching, setWatching] = useState(false);
   const [countdown, setCountdown] = useState(5);
