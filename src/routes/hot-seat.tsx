@@ -184,6 +184,9 @@ function HotSeatPage() {
   const [hostProfileOpen, setHostProfileOpen] = useState(false);
   const [waitingRoomOpen, setWaitingRoomOpen] = useState(false);
   const [joined, setJoined] = useState(false);
+  const [breakPoll, setBreakPoll] = useState<any>(null);
+  const [pollChoice, setPollChoice] = useState<number | null>(null);
+  const [pollSaving, setPollSaving] = useState(false);
 
   // Floating Hearts Hook
   const { hearts, spawnHeart } = useFloatingHearts();
@@ -206,6 +209,8 @@ function HotSeatPage() {
         setSessionHosts(slots ?? []);
       } else setSessionHosts([]);
       const { data: breakRows } = await supabase.from("hot_seat_break_content").select("*").eq("enabled", true).order("sort_order", { ascending: true });
+      const { data: pollRow } = await supabase.from("hot_seat_break_polls").select("*").eq("enabled", true).order("created_at", { ascending: false }).limit(1).maybeSingle();
+      setBreakPoll(pollRow ?? null);
       setBreakContent(breakRows ?? []);
       if (hostResult.data) {
         const { data } = await supabase.from("hot_seat_questions").select("*, hot_seat_answers(*)").eq("host_id", hostResult.data.id).order("is_priority", { ascending: false }).order("created_at", { ascending: false });
@@ -558,9 +563,30 @@ function HotSeatPage() {
             <p className="mt-2 text-sm text-white/60">The 3-hour live block has ended. The live player is closed for 1 hour, then the next live block resumes automatically.</p>
             <div className="mt-5 text-3xl font-black tabular-nums text-white">{formatLongTimer(windowSeconds)}</div>
             <BreakLounge content={breakContent} onOpen={(item) => {
+              if (item.content_type === "poll" && breakPoll) {
+                setPollChoice(null);
+                return;
+              }
               if (item.action_url) window.open(item.action_url, "_blank", "noopener,noreferrer");
               else toast.info(item.title + " is ready", { description: item.description ?? "Admin can attach the live destination from Hot Seat Control." });
             }} />
+            {breakPoll && (
+              <div className="mt-4 w-full max-w-2xl rounded-3xl border border-emerald-400/20 bg-black/65 p-5 text-left backdrop-blur-xl">
+                <div className="text-[10px] font-black uppercase tracking-widest text-emerald-300">Live break poll</div>
+                <h3 className="mt-2 text-lg font-black text-white">{breakPoll.question}</h3>
+                <div className="mt-3 grid gap-2">
+                  {(Array.isArray(breakPoll.options) ? breakPoll.options : []).map((option:any,i:number)=>(
+                    <button key={i} type="button" disabled={pollSaving} onClick={async()=>{
+                      setPollSaving(true);
+                      const {error}=await (supabase as any).rpc("vote_hot_seat_break_poll",{p_poll_id:breakPoll.id,p_option_index:i});
+                      setPollSaving(false);
+                      if(error) toast.error(error.message); else { setPollChoice(i); toast.success("Vote recorded 🐼"); }
+                    }} className={`rounded-xl border px-4 py-3 text-left text-sm font-bold transition ${pollChoice===i?"border-emerald-400 bg-emerald-400/15 text-emerald-200":"border-white/10 bg-white/[.04] text-white hover:bg-white/[.08]"}`}>{String(option)}</button>
+                  ))}
+                </div>
+                {pollChoice !== null && <div className="mt-3 text-xs text-white/50">Your vote is saved. You can change it while the poll is open.</div>}
+              </div>
+            )}
             <div className="mt-4 w-full max-w-2xl">
               <StandardBannerAd variant="feed-card" placement="hot_seat_water_break" />
             </div>
