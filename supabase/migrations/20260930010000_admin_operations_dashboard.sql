@@ -36,7 +36,7 @@ revoke all on function public.admin_update_sweepstakes_config(uuid,bigint,text,t
 revoke all on function public.admin_moderate_confession(uuid,boolean) from public,anon,authenticated;
 revoke all on function public.admin_set_hotseat_presence(boolean,text,text) from public,anon,authenticated;
 grant execute on function public.admin_get_operations_dashboard() to authenticated;
-grant execute on function public.admin_update_store_product(text,numeric,numeric,bigint,integer,boolean,boolean,boolean) to authenticated;
+grant execute on function public.admin_update_store_product(text,numeric,numeric,bigint,integer,boolean,boolean,boolean,boolean) to authenticated;
 grant execute on function public.admin_update_sweepstakes_config(uuid,bigint,text,text,timestamptz,boolean,text,boolean,jsonb) to authenticated;
 grant execute on function public.admin_moderate_confession(uuid,boolean) to authenticated;
 grant execute on function public.admin_set_hotseat_presence(boolean,text,text) to authenticated;
