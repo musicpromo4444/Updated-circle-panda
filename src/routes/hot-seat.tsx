@@ -97,6 +97,41 @@ function QueuePanel({ joined, onJoin, onBid }: { joined: boolean; onJoin: () => 
   );
 }
 
+function GiftTransferOverlay({ gift, phase, hostName }: { gift: VirtualGift; phase: "sending" | "received"; hostName: string }) {
+  return (
+    <div className="pointer-events-none absolute inset-0 z-[80] grid place-items-center overflow-hidden">
+      <style>{`
+        @keyframes cpGiftFly { 0%{transform:translate(-38vw,34vh) scale(.55) rotate(-15deg);opacity:0} 15%{opacity:1} 55%{transform:translate(0,-4vh) scale(1.35) rotate(8deg);opacity:1} 100%{transform:translate(34vw,-34vh) scale(.45) rotate(25deg);opacity:0} }
+        @keyframes cpGiftReceive { 0%{transform:scale(.35) rotate(-12deg);opacity:0} 35%{transform:scale(1.25) rotate(5deg);opacity:1} 65%{transform:scale(1) rotate(-2deg);opacity:1} 100%{transform:scale(.9);opacity:0} }
+        @keyframes cpGiftRing { 0%{transform:scale(.4);opacity:.8} 100%{transform:scale(2.2);opacity:0} }
+        @keyframes cpGiftSpark { 0%{transform:translateY(20px) scale(.4);opacity:0} 30%{opacity:1} 100%{transform:translateY(-90px) scale(1);opacity:0} }
+      `}</style>
+      <div className="absolute inset-0 bg-black/25 backdrop-blur-[1px]" />
+      {phase === "sending" ? (
+        <div className="relative flex flex-col items-center">
+          <div className="absolute -inset-16 rounded-full bg-fuchsia-500/15 blur-3xl animate-pulse" />
+          {["✨","💫","⚡","✨","💛"].map((s,i)=><span key={i} className="absolute text-2xl" style={{animation:`cpGiftSpark 1.1s ease-out ${i*90}ms infinite`, left: ((i-2)*48) + "px", top: (80-(i%2)*25) + "px"}}>{s}</span>)}
+          <div className="relative text-8xl drop-shadow-2xl" style={{animation:"cpGiftFly 1.8s cubic-bezier(.2,.8,.2,1) forwards"}}>{gift.emoji}</div>
+          <div className="mt-3 rounded-full border border-amber-400/40 bg-black/75 px-5 py-2 text-sm font-black text-amber-200 backdrop-blur-xl">
+            Sending {gift.name} · {gift.cost.toLocaleString()} BC to {hostName}…
+          </div>
+        </div>
+      ) : (
+        <div className="relative flex flex-col items-center text-center">
+          <div className="absolute size-40 rounded-full border-2 border-amber-300/70" style={{animation:"cpGiftRing 1.2s ease-out infinite"}} />
+          <div className="absolute size-56 rounded-full border border-fuchsia-300/40" style={{animation:"cpGiftRing 1.6s ease-out infinite .2s"}} />
+          <div className="text-9xl drop-shadow-2xl" style={{animation:"cpGiftReceive 2.2s ease-out forwards"}}>{gift.emoji}</div>
+          <div className="mt-3 rounded-2xl border border-emerald-300/30 bg-black/80 px-6 py-3 shadow-[0_0_45px_rgba(16,185,129,.25)] backdrop-blur-xl">
+            <div className="text-lg font-black text-white">🎁 Gift received!</div>
+            <div className="mt-1 text-sm font-bold text-amber-300">{gift.name} · {gift.cost.toLocaleString()} BC</div>
+            <div className="mt-1 text-xs text-white/60">{hostName} just received your live gift.</div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function HotSeatPage() {
   const navigate = useNavigate();
   const { syncCoins, isAdmin } = useStore();
@@ -115,6 +150,7 @@ function HotSeatPage() {
   const [chatMessages, setChatMessages] = useState<LiveChatMessage[]>([]);
   const [giftBanner, setGiftBanner] = useState<string | null>(null);
   const [giftTier, setGiftTier] = useState<"small" | "premium" | "mega" | "ultimate">("small");
+  const [giftTransfer, setGiftTransfer] = useState<{ gift: VirtualGift; phase: "sending" | "received" } | null>(null);
 
   // Modals / Drawers states
   const [chatDrawerOpen, setChatDrawerOpen] = useState(false);
@@ -348,17 +384,25 @@ function HotSeatPage() {
   // Send virtual gift
   const handleSendGift = (gift: VirtualGift) => {
     if (!userId || !activeHost) { toast.error("You must be signed in while a Hot Seat host is live."); return; }
+    setGiftTransfer({ gift, phase: "sending" });
     void (supabase as any).rpc("send_hot_seat_gift", { p_host_id: activeHost.id, p_gift_id: gift.id, p_gift_name: gift.name, p_gift_emoji: gift.emoji, p_cost_bc: gift.cost })
       .then(async ({ data, error }: any) => {
         if (error) throw error;
         await syncCoins();
         setGiftTier(gift.cost >= 20000 ? "ultimate" : gift.cost >= 5000 ? "mega" : gift.cost >= 1000 ? "premium" : "small");
         setGiftBanner(`Anon Panda sent ${gift.emoji} ${gift.name}!`);
-        window.setTimeout(() => setGiftBanner(null), 3500);
-        for (let i = 0; i < 4; i++) window.setTimeout(() => spawnHeart(), i * 150);
+        setGiftTransfer({ gift, phase: "received" });
+        window.setTimeout(() => {
+          setGiftBanner(null);
+          setGiftTransfer(null);
+        }, 2600);
+        for (let i = 0; i < 8; i++) window.setTimeout(() => spawnHeart(), i * 120);
         toast.success(`Sent ${gift.emoji} ${gift.name}!`, { description: `${Number(data?.cost_bc ?? gift.cost)} BC sent securely.` });
       })
-      .catch((error:any) => toast.error(error?.message ?? "Could not send gift."));
+      .catch((error:any) => {
+        setGiftTransfer(null);
+        toast.error(error?.message ?? "Could not send gift.");
+      });
   };
 
   // Universal share trigger
@@ -507,6 +551,10 @@ function HotSeatPage() {
 
       {/* Floating Hearts Container */}
       <FloatingHearts hearts={hearts} />
+
+      {giftTransfer && activeHost && (
+        <GiftTransferOverlay gift={giftTransfer.gift} phase={giftTransfer.phase} hostName={activeHost.alias ?? "the host"} />
+      )}
 
       {/* Floating Gift Broadcast Banner */}
       {giftBanner && (
