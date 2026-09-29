@@ -63,7 +63,7 @@ export type Thread = {
   kind: "dm" | "dating";
   blurb: string;
   messages: ChatMessage[];
-  /** When a dating match started; dating chats expire 24h after this. */
+  /** When a dating match started; billing is free for the first 72h after the mutual match. */
   startedAt?: number;
 };
 export type PandaEvent = {
@@ -872,7 +872,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     if (!dbUserId || !userId) { toast.error("Dating profile unavailable"); return Promise.resolve(null); }
     return (async () => {
       const { data, error } = await (supabase as any).rpc("create_direct_thread", { p_other_user_id:userId, p_kind:"dating", p_blurb:"Matched from Dating" });
-      if (error) { toast.error(error.message ?? "Could not open dating chat"); return null; }
+      if (error) { toast.error(error.message ?? "Dating chat is still locked"); return null; }
       const id = data.id as string;
       setState(s => s.threads.some(t=>t.id===id) ? s : {...s,threads:[{id,name,kind:"dating",blurb:"Matched from Dating",messages:[],startedAt:Date.now()},...s.threads]});
       return id;
