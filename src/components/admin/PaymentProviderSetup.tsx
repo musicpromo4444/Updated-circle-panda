@@ -18,6 +18,8 @@ type ProviderSettings = {
   apple_key_id: string;
   apple_iap_private_key_configured: boolean;
   paystack_enabled: boolean;
+  paystack_public_key: string;
+  paystack_secret_key_configured: boolean;
   updated_at: string;
 };
 
@@ -36,7 +38,7 @@ const emptySettings: ProviderSettings = {
   google_enabled: false, google_package_name: "", google_service_account_email: "", google_rtdn_topic: "",
   google_service_account_configured: false, google_rtdn_secret_configured: false,
   apple_enabled: false, apple_bundle_id: "", apple_team_id: "", apple_issuer_id: "", apple_key_id: "",
-  apple_iap_private_key_configured: false, paystack_enabled: true, updated_at: "",
+  apple_iap_private_key_configured: false, paystack_enabled: true, paystack_public_key: "", paystack_secret_key_configured: false, updated_at: "",
 };
 
 function Field({ label, value, onChange, placeholder, secret = false }: {
@@ -62,6 +64,7 @@ export function PaymentProviderSetup() {
   const [googleJson, setGoogleJson] = useState("");
   const [rtdnSecret, setRtdnSecret] = useState("");
   const [appleKey, setAppleKey] = useState("");
+  const [paystackSecret, setPaystackSecret] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [savingProduct, setSavingProduct] = useState<string | null>(null);
@@ -99,11 +102,13 @@ export function PaymentProviderSetup() {
       p_apple_key_id: settings.apple_key_id,
       p_apple_iap_private_key: appleKey.trim() || null,
       p_paystack_enabled: settings.paystack_enabled,
+      p_paystack_public_key: settings.paystack_public_key,
+      p_paystack_secret_key: paystackSecret.trim() || null,
     });
     setSaving(false);
     if (error) return toast.error(error.message ?? "Could not save payment settings");
     setSettings(data ?? settings);
-    setGoogleJson(""); setRtdnSecret(""); setAppleKey("");
+    setGoogleJson(""); setRtdnSecret(""); setAppleKey(""); setPaystackSecret("");
     toast.success("Payment setup saved securely");
   };
 
@@ -169,7 +174,14 @@ export function PaymentProviderSetup() {
     <div className="mt-4 rounded-2xl border border-border/70 bg-secondary/20 p-4">
       <div className="flex items-center gap-2"><ShieldCheck className="size-4 text-primary" /><p className="font-semibold text-sm">Web payments</p></div>
       <label className="mt-3 inline-flex items-center gap-2 text-xs font-semibold"><input type="checkbox" checked={settings.paystack_enabled} onChange={e => setSettings(s => ({...s, paystack_enabled: e.target.checked}))} /> Paystack enabled</label>
-      <p className="mt-1 text-[11px] text-muted-foreground">The existing server-verified Paystack flow remains available for web purchases.</p>
+      <div className="mt-3 grid gap-3 sm:grid-cols-2">
+        <Field label="Paystack public key" value={settings.paystack_public_key} onChange={v => setSettings(s => ({...s, paystack_public_key: v}))} placeholder="pk_test_... or pk_live_..." />
+        <Field label="Paystack secret key" value={paystackSecret} onChange={setPaystackSecret} placeholder={settings.paystack_secret_key_configured ? "Already saved — paste only to replace" : "sk_test_... or sk_live_..."} secret />
+      </div>
+      <div className="mt-3 flex flex-wrap gap-2 text-[10px] font-semibold">
+        {settings.paystack_secret_key_configured ? <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-1 text-primary"><CheckCircle2 className="size-3" /> Secret key saved</span> : null}
+      </div>
+      <p className="mt-2 text-[11px] text-muted-foreground">The secret key is stored securely and used only by the payment server.</p>
     </div>
 
     <div className="mt-4 rounded-2xl border border-border/70 bg-card p-4">
