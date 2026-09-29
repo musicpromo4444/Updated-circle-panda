@@ -184,13 +184,13 @@ function HotSeatPage() {
         const state = channel.presenceState();
         const ids = new Set<string>();
         Object.values(state).flat().forEach((entry: any) => {
-          if (entry?.user_id) ids.add(String(entry.user_id));
+          if (entry?.viewer_id) ids.add(String(entry.viewer_id));
         });
         setActiveHost((prev: any) => prev ? { ...prev, viewer_count: ids.size } : prev);
       })
       .subscribe(async (status) => {
         if (status === "SUBSCRIBED" && userId && activeHost) {
-          await channel.track({ user_id: userId, host_id: activeHost.id });
+          await channel.track({ viewer_id: crypto.randomUUID(), host_id: activeHost.id });
         }
       });
     return () => { void supabase.removeChannel(channel); };
