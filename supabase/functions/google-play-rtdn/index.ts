@@ -8,20 +8,26 @@ function pemToBytes(p:string){const c=p.replace(/-----BEGIN PRIVATE KEY-----|---
 function b64url(input:Uint8Array|string){const bytes=typeof input==="string"?new TextEncoder().encode(input):input;let b="";for(const x of bytes)b+=String.fromCharCode(x);return btoa(b).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/g,"");}
 const jsonB64=(v:unknown)=>b64url(JSON.stringify(v));
 async function sha256(v:string){const h=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(v));return [...new Uint8Array(h)].map(x=>x.toString(16).padStart(2,"0")).join("");}
-async function googleAccessToken(){const raw=Deno.env.get("GOOGLE_PLAY_SERVICE_ACCOUNT_JSON");if(!raw)throw new Error("GOOGLE_PLAY_SERVICE_ACCOUNT_JSON is not configured");const a=JSON.parse(raw),n=Math.floor(Date.now()/1000),h=jsonB64({alg:"RS256",typ:"JWT"}),p=jsonB64({iss:a.client_email,scope:"https://www.googleapis.com/auth/androidpublisher",aud:"https://oauth2.googleapis.com/token",iat:n,exp:n+3600}),k=await crypto.subtle.importKey("pkcs8",pemToBytes(a.private_key),{name:"RSASSA-PKCS1-v1_5",hash:"SHA-256"},false,["sign"]),sig=await crypto.subtle.sign("RSASSA-PKCS1-v1_5",k,new TextEncoder().encode(h+"."+p)),assertion=h+"."+p+"."+b64url(new Uint8Array(sig)),r=await fetch("https://oauth2.googleapis.com/token",{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:new URLSearchParams({grant_type:"urn:ietf:params:oauth:grant-type:jwt-bearer",assertion})}),body=await r.json();if(!r.ok||!body.access_token)throw new Error("Google Play authorization failed");return body.access_token;}
+async function googleAccessToken(raw){if(!raw)throw new Error("Google Play service account is not configured");const a=JSON.parse(raw),n=Math.floor(Date.now()/1000),h=jsonB64({alg:"RS256",typ:"JWT"}),p=jsonB64({iss:a.client_email,scope:"https://www.googleapis.com/auth/androidpublisher",aud:"https://oauth2.googleapis.com/token",iat:n,exp:n+3600}),k=await crypto.subtle.importKey("pkcs8",pemToBytes(a.private_key),{name:"RSASSA-PKCS1-v1_5",hash:"SHA-256"},false,["sign"]),sig=await crypto.subtle.sign("RSASSA-PKCS1-v1_5",k,new TextEncoder().encode(h+"."+p)),assertion=h+"."+p+"."+b64url(new Uint8Array(sig)),r=await fetch("https://oauth2.googleapis.com/token",{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:new URLSearchParams({grant_type:"urn:ietf:params:oauth:grant-type:jwt-bearer",assertion})}),body=await r.json();if(!r.ok||!body.access_token)throw new Error("Google Play authorization failed");return body.access_token;}
 async function googleApi(url:string,t:string,init:RequestInit={}){const r=await fetch(url,{...init,headers:{Authorization:"Bearer "+t,"Content-Type":"application/json",...(init.headers||{})}}),b=await r.json().catch(()=>({}));if(!r.ok)throw new Error(b?.error?.message||`Google Play request failed (${r.status})`);return b;}
 
 Deno.serve(async req=>{
  if(req.method==="OPTIONS")return new Response("ok",{headers:cors});
  try{
-  const secret=Deno.env.get("GOOGLE_PLAY_RTDN_SECRET");const supplied=new URL(req.url).searchParams.get("token");if(!secret||supplied!==secret)return new Response(JSON.stringify({ok:false,error:"Unauthorized"}),{status:401,headers:cors});
-  const body=await req.json(),message=body?.message||{},messageId=String(message.messageId||"");if(!messageId)return new Response(JSON.stringify({ok:true,ignored:true}),{headers:cors});
   const sb=createClient(Deno.env.get("SUPABASE_URL")!,Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+  const {data:secret}=await sb.rpc("service_get_payment_secret",{p_name:"circle_panda_google_play_rtdn_secret"});
+  const supplied=new URL(req.url).searchParams.get("token");if(!secret||supplied!==secret)return new Response(JSON.stringify({ok:false,error:"Unauthorized"}),{status:401,headers:cors});
+  const body=await req.json(),message=body?.message||{},messageId=String(message.messageId||"");if(!messageId)return new Response(JSON.stringify({ok:true,ignored:true}),{headers:cors});
+
   const eventTime=body?.message?.publishTime?new Date(body.message.publishTime).toISOString():null;
   const {error:dedupeError}=await sb.from("google_play_rtdn_events").insert({message_id:messageId,event_time:eventTime});if(dedupeError?.code==="23505")return new Response(JSON.stringify({ok:true,duplicate:true}),{headers:cors});if(dedupeError)throw dedupeError;
   if(!message.data)return new Response(JSON.stringify({ok:true,ignored:true}),{headers:cors});
-  const event=decodeData(String(message.data)),pkg=String(Deno.env.get("GOOGLE_PLAY_PACKAGE_NAME")||"");if(!pkg||String(event.packageName||"")!==pkg)return new Response(JSON.stringify({ok:true,ignored:true}),{headers:cors});
-  const access=await googleAccessToken();
+  const event=decodeData(String(message.data));
+  const {data:settings}=await sb.from("payment_provider_settings").select("google_enabled,google_package_name").eq("id",1).single();
+  const pkg=String(settings?.google_package_name||"");if(!settings?.google_enabled||!pkg||String(event.packageName||"")!==pkg)return new Response(JSON.stringify({ok:true,ignored:true}),{headers:cors});
+  const {data:serviceAccount,error:serviceAccountError}=await sb.rpc("service_get_payment_secret",{p_name:"circle_panda_google_play_service_account"});
+  if(serviceAccountError||!serviceAccount)throw new Error("Google Play service account is not configured");
+  const access=await googleAccessToken(serviceAccount);
 
   if(event.subscriptionNotification){
     const token=String(event.subscriptionNotification.purchaseToken||"");
