@@ -7,6 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { CrushAdFrame } from "@/components/ads/CrushAdFrame";
+import { CrushPopupAd } from "@/components/ads/CrushPopupAd";
+import { StandardBannerAd } from "@/components/ads/StandardBannerAd";
+import { PlayableVideoAd } from "@/components/ads/PlayableVideoAd";
 import { supabase } from "@/integrations/supabase/client";
 import { useStore, FREE_DAILY_VOTES, WINNER_REWARD, type CrushKind } from "@/lib/store";
 import { cn } from "@/lib/utils";
@@ -32,6 +35,19 @@ function CrushPage() {
   const [reportReason, setReportReason] = useState("Inappropriate content");
   const [showAd, setShowAd] = useState(false);
   const [swipeCount, setSwipeCount] = useState(0);
+  const [adSlotIndex, setAdSlotIndex] = useState(0);
+
+  const AD_BLOCKS = [5, 5, 10];
+  const AD_FORMATS = ["native", "interstitial", "popup", "banner", "playable"] as const;
+  const nextAdBoundary = useMemo(() => {
+    let boundary = 0;
+    let blockIndex = 0;
+    while (boundary <= swipeCount) {
+      boundary += AD_BLOCKS[Math.min(blockIndex, 2)];
+      blockIndex += 1;
+    }
+    return boundary;
+  }, [swipeCount]);
   const [loadingComments, setLoadingComments] = useState(false);
   const [sending, setSending] = useState(false);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
@@ -75,7 +91,8 @@ function CrushPage() {
     if (!pool.length) return;
     const nextCount = direction === 1 ? swipeCount + 1 : swipeCount;
     setSwipeCount(nextCount);
-    if (direction === 1 && (nextCount === 5 || (nextCount > 5 && (nextCount - 5) % 10 === 0))) {
+    if (direction === 1 && nextCount === nextAdBoundary) {
+      setAdSlotIndex((value) => value + 1);
       setShowAd(true);
       return;
     }
@@ -140,7 +157,18 @@ function CrushPage() {
         </div>
 
         {showAd ? (
-          <CrushAdFrame onContinue={() => { setShowAd(false); setIndex((v) => (v + 1) % Math.max(1, pool.length)); }} />
+          (() => {
+            const format = AD_FORMATS[(adSlotIndex - 1) % AD_FORMATS.length];
+            const continueToFeed = () => {
+              setShowAd(false);
+              setIndex((v) => (v + 1) % Math.max(1, pool.length));
+            };
+            if (format === "interstitial") return <CrushAdFrame onContinue={continueToFeed} />;
+            if (format === "popup") return <CrushPopupAd onContinue={continueToFeed} />;
+            if (format === "playable") return <div className="min-h-[calc(100vh-8rem)] bg-black p-3"><PlayableVideoAd placement="crush_playable" index={adSlotIndex} onSkipped={continueToFeed} onComplete={continueToFeed} /></div>;
+            if (format === "native") return <div className="min-h-[calc(100vh-8rem)] bg-background p-3"><StandardBannerAd placement="crush_native" variant="feed-card" className="mx-auto max-w-2xl" /><button type="button" onClick={continueToFeed} className="mt-3 w-full text-center text-xs font-bold text-primary">Continue to pictures →</button></div>;
+            return <div className="min-h-[calc(100vh-8rem)] bg-background p-3"><StandardBannerAd placement="crush_banner" variant="card" className="mx-auto max-w-2xl" /><button type="button" onClick={continueToFeed} className="mt-3 w-full text-center text-xs font-bold text-primary">Continue to pictures →</button></div>;
+          })()
         ) : card ? (
           <div className="flex min-h-[calc(100vh-8rem)] flex-col">
             <div className="relative flex min-h-[62vh] flex-1 items-center justify-center bg-black">
@@ -181,7 +209,7 @@ function CrushPage() {
 
               <div className="mt-3 flex items-center justify-between text-[10px] text-muted-foreground">
                 <span>{freeVotesLeft} free votes left today</span>
-                <span>Swipe/scroll • Sponsored sequence: 5 pictures, then every 10 pictures</span>
+                <span>Swipe/scroll • Sponsored sequence: 5, 5, then every 10 pictures · Native → Interstitial → Popup → Banner → Playable</span>
               </div>
             </div>
           </div>
