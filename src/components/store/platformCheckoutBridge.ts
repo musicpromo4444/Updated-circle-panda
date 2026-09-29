@@ -177,7 +177,7 @@ export async function executeNativeStoreCheckout(
     }
     onStatus?.("Verifying the store purchase securely...");
     const functionName = platform === "google_play" ? "verify-google-play-purchase" : "verify-apple-iap-purchase";
-    const body = platform === "google_play"
+    const body: Record<string, unknown> = platform === "google_play"
       ? { reference, itemId: item.id, itemType, purchaseToken: nativeResult.purchaseToken }
       : { reference, itemId: item.id, itemType, signedTransaction: nativeResult.signedTransaction || nativeResult.jwsRepresentation };
     if (!body.purchaseToken && !body.signedTransaction) throw new Error("Native purchase receipt/token was not returned.");
