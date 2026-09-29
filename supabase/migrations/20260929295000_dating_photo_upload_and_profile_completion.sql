@@ -90,5 +90,5 @@ begin
   return jsonb_build_object('user_id',uid,'name',pname,'country',trim(p_country),'gender',trim(p_gender),'photo_path',nullif(trim(p_photo_path),''),'blurred_photo_path',nullif(trim(p_blurred_photo_path),''));
 end $$;
 
-revoke all on function public.register_dating_profile_secure(integer,text,text,text,text,text[],text,text[],text[],text[],text,text,text,text,text,text,text,text,text,integer,text,text,text,text,text) from public;
+revoke execute on function public.register_dating_profile_secure(integer,text,text,text,text,text[],text,text[],text[],text[],text,text,text,text,text,text,text,text,text,integer,text,text,text,text,text) from anon, public;
 grant execute on function public.register_dating_profile_secure(integer,text,text,text,text,text[],text,text[],text[],text[],text,text,text,text,text,text,text,text,text,integer,text,text,text,text,text) to authenticated;
