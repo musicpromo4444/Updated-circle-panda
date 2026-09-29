@@ -184,7 +184,7 @@ function MessagesPage() {
                   />
                 ) : null}
               </button>
-              {(idx + 1) % 4 === 0 ? <StandardBannerAd index={Math.floor(idx / 4)} /> : null}
+              {(idx + 1) % 4 === 0 ? <StandardBannerAd index={Math.floor(idx / 4)} placement="messages_inline" /> : null}
             </div>
           ))}
         </div>
