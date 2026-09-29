@@ -33,17 +33,21 @@ export const Route = createFileRoute("/messages")({
 
 function DatingPhotoBubble({ path, onOpen }: { path?: string; onOpen: (url: string) => void }) {
   const [url, setUrl] = useState<string | null>(null);
+  const [revealed, setRevealed] = useState(false);
   useEffect(() => {
     let active = true;
     if (!path) return;
     void supabase.storage.from("dating-photos").createSignedUrl(path, 120).then(({data,error}:any) => {
-      if (active && !error) setUrl(data?.signedUrl ?? null);
+      if (active && !error && data?.signedUrl) {
+        setUrl(data.signedUrl);
+        window.setTimeout(() => { if (active) setRevealed(true); }, 80);
+      }
     });
     return () => { active = false; };
   }, [path]);
   if (!url) return <div className="grid size-44 place-items-center rounded-2xl bg-secondary text-4xl">💗</div>;
   return <button type="button" onClick={() => onOpen(url)} className="block overflow-hidden rounded-2xl border border-[var(--dating)]/30 bg-card shadow-sm" aria-label="Open matched photo">
-    <img src={url} alt="Dating match" className="h-44 w-44 object-cover" draggable={false} onContextMenu={(e)=>e.preventDefault()} />
+    <img src={url} alt="Dating match" className={`h-44 w-44 object-cover transition-all duration-700 ease-out ${revealed ? "blur-0 scale-100 opacity-100" : "blur-md scale-110 opacity-70"}`} draggable={false} onContextMenu={(e)=>e.preventDefault()} />
   </button>;
 }
 
