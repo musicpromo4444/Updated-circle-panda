@@ -19,6 +19,8 @@ export function AdminHotSeatManager() {
   const [saving, setSaving] = useState(false);
   const [presenceEnabled, setPresenceEnabled] = useState(false);
   const [presenceSaving, setPresenceSaving] = useState(false);
+  const [sessionHosts, setSessionHosts] = useState<any[]>([]);
+  const [newHostAlias, setNewHostAlias] = useState("");
 
   const load = async () => {
     setLoading(true);
@@ -31,6 +33,10 @@ export function AdminHotSeatManager() {
       .maybeSingle();
     if (error) toast.error(error.message);
     setActive(data);
+    if (data?.id) {
+      const { data: slots } = await supabase.from("hot_seat_session_hosts").select("*").eq("session_id", data.id).eq("is_active", true).order("host_order");
+      setSessionHosts(slots ?? []);
+    } else setSessionHosts([]);
     setLoading(false);
   };
 
@@ -62,7 +68,9 @@ export function AdminHotSeatManager() {
     setSaving(false);
     if (error) return toast.error(error.message);
     setActive(data);
-    toast.success("Hot Seat is live");
+    const { data: slots } = await supabase.from("hot_seat_session_hosts").select("*").eq("session_id", data.id).eq("is_active", true).order("host_order");
+    setSessionHosts(slots ?? []);
+    toast.success(startAt && new Date(startAt).getTime() > Date.now() ? "Hot Seat scheduled" : "Hot Seat is live");
   };
 
   const end = async () => {
@@ -117,6 +125,30 @@ export function AdminHotSeatManager() {
           <p className="text-xs text-muted-foreground">
             {active.stream_provider} · {active.max_hosts} host slots · 3h live / 1h water break · {active.session_duration_hours}h session
           </p>
+          <div className="rounded-xl border border-white/10 bg-black/10 p-3 space-y-2">
+            <b className="text-sm">Host slots</b>
+            <div className="flex flex-wrap gap-2">
+              {sessionHosts.map((slot) => (
+                <div key={slot.id} className="flex items-center gap-2 rounded-lg border border-white/10 px-3 py-2 text-xs">
+                  <span>#{slot.host_order} {slot.alias}</span>
+                  <button type="button" className="text-red-400" onClick={async () => {
+                    const { error } = await (supabase as any).rpc("admin_hot_seat_remove_host", { p_session_host_id: slot.id });
+                    if (error) toast.error(error.message); else { setSessionHosts(prev => prev.filter(x => x.id !== slot.id)); toast.success("Host removed"); }
+                  }}>Remove</button>
+                </div>
+              ))}
+            </div>
+            {sessionHosts.length < Number(active.max_hosts ?? 1) && (
+              <div className="flex gap-2">
+                <Input placeholder="Additional host Panda name" value={newHostAlias} onChange={e => setNewHostAlias(e.target.value)} />
+                <Button disabled={!newHostAlias.trim()} onClick={async () => {
+                  const { data, error } = await (supabase as any).rpc("admin_hot_seat_add_host", { p_session_id: active.id, p_alias: newHostAlias.trim() });
+                  if (error) toast.error(error.message); else { setSessionHosts(prev => [...prev, data]); setNewHostAlias(""); toast.success("Host added"); }
+                }}>Add</Button>
+              </div>
+            )}
+          </div>
+
           <div className="flex flex-wrap gap-2">
             <Button onClick={async () => {
               const { error } = await (supabase as any).rpc("admin_hot_seat_pause", { p_host_id: active.id, p_minutes: 15 });
