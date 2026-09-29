@@ -195,7 +195,12 @@ export async function executeWebPaystackCheckout(
   onStatus?: (status: string) => void,
 ): Promise<CheckoutResult> {
   const { item, itemType, userEmail = "" } = request;
-  const key = request.paystackPublicKey?.trim();
+  let key = request.paystackPublicKey?.trim() || "";
+  if (!key) {
+    const { data: paystackConfig, error: configError } = await supabase.rpc("get_paystack_public_config");
+    if (configError) throw new Error("Paystack configuration could not be loaded.");
+    key = String(paystackConfig?.public_key || "").trim();
+  }
   if (!key) throw new Error("Paystack public key is not configured.");
   if (typeof window === "undefined") throw new Error("Web checkout is unavailable.");
   if (!window.PaystackPop?.setup) throw new Error("Paystack checkout is not loaded.");
