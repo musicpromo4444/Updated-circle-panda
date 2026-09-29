@@ -13,6 +13,7 @@ export function AdminHotSeatManager() {
   const [provider, setProvider] = useState("youtube");
   const [hosts, setHosts] = useState(5);
   const [duration, setDuration] = useState(24);
+  const [startAt, setStartAt] = useState("");
   const [active, setActive] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -55,7 +56,7 @@ export function AdminHotSeatManager() {
       p_max_hosts: hosts,
       p_topic: topic || null,
       p_location: location || null,
-      p_start_at: new Date().toISOString(),
+      p_start_at: startAt ? new Date(startAt).toISOString() : new Date().toISOString(),
       p_duration_hours: duration,
     });
     setSaving(false);
@@ -138,19 +139,20 @@ export function AdminHotSeatManager() {
           </div>
           <Input placeholder="Topic" value={topic} onChange={e => setTopic(e.target.value)} />
           <Input placeholder="Worldwide location label (optional)" value={location} onChange={e => setLocation(e.target.value)} />
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-4">
             <select value={provider} onChange={e => setProvider(e.target.value)} className="rounded-lg border border-border bg-background px-3 py-2 text-sm">
               <option value="youtube">YouTube</option><option value="aws">AWS / Own Stream</option><option value="zegocloud">ZEGOCLOUD</option>
             </select>
             <select value={hosts} onChange={e => setHosts(Number(e.target.value))} className="rounded-lg border border-border bg-background px-3 py-2 text-sm">
               {[1, 2, 5, 10, 20].map(n => <option key={n} value={n}>{n} host slots</option>)}
             </select>
+            <Input type="datetime-local" value={startAt} onChange={e => setStartAt(e.target.value)} aria-label="Hot Seat start time" />
             <select value={duration} onChange={e => setDuration(Number(e.target.value))} className="rounded-lg border border-border bg-background px-3 py-2 text-sm">
               {[4, 8, 12, 24, 48, 72].map(n => <option key={n} value={n}>{n}h session</option>)}
             </select>
           </div>
           <Button onClick={() => void start()} disabled={saving || !alias || !url} className="w-full">
-            <Radio className="mr-2 size-4" />{saving ? "Starting…" : "Start Hot Seat"}
+            <Radio className="mr-2 size-4" />{saving ? "Saving…" : startAt && new Date(startAt).getTime() > Date.now() ? "Schedule Hot Seat" : "Start Hot Seat"}
           </Button>
         </div>
       )}
