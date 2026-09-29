@@ -207,7 +207,7 @@ function DatingPage() {
             {incoming.map((r:any)=>(
               <div key={r.id} className="flex items-center gap-2 rounded-xl bg-background/70 p-3">
                 <span className="grid size-9 place-items-center rounded-full bg-secondary">🐼</span><span className="flex-1 text-sm">Anonymous Panda</span>
-                <Button size="sm" onClick={()=>void (supabase as any).rpc("respond_dating_match_secure",{p_connection_id:r.id,p_accept:true}).then(async ({data,error}:any)=>{if(error){toast.error(error.message??"Could not accept request");return;} await loadConnections();toast.success("Mutual match 💗",{description:"Your 72-hour confirmation period has started."});})}>Accept</Button>
+                <Button size="sm" onClick={()=>void (supabase as any).rpc("respond_dating_match_secure",{p_connection_id:r.id,p_accept:true}).then(async ({data,error}:any)=>{if(error){toast.error(error.message??"Could not accept request");return;} await loadConnections();toast.success("Mutual match 💗",{description:"Your free 72-hour Dating Chat is ready."}); if(data?.thread_id) void navigate({to:"/messages",search:{thread:data.thread_id}});})}>Accept</Button>
                 <Button size="sm" variant="outline" onClick={()=>void (supabase as any).rpc("respond_dating_match_secure",{p_connection_id:r.id,p_accept:false}).then(({error}:any)=>{if(error)throw error;setIncoming(x=>x.filter(y=>y.id!==r.id));})}>Decline</Button>
               </div>
             ))}
