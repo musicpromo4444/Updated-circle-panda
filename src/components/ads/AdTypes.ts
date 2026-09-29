@@ -1,5 +1,5 @@
 export type AdPlacementTarget =
-  "popup_1_daily_login" | "popup_1_daily_login_bottom" | "popup_2_engagement" | "main_feed_card" | "speed_dating_interstitial" | "crush_interstitial" | "seven_day_banner" | "seven_day_playable" | "hot_seat_comments" | "hot_seat_questions" | "hot_seat_water_break";
+  "popup_1_daily_login" | "popup_1_daily_login_bottom" | "popup_2_engagement" | "main_feed_card" | "speed_dating_interstitial" | "crush_native" | "crush_interstitial" | "crush_popup" | "crush_banner" | "crush_playable" | "seven_day_banner" | "seven_day_playable" | "hot_seat_comments" | "hot_seat_questions" | "hot_seat_water_break";
 
 export interface BannerAdData {
   id: string;
