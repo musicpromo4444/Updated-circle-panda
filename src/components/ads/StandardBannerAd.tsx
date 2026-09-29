@@ -61,7 +61,7 @@ export function StandardBannerAd({
   // Production: creatives come from the server inventory. A caller may pass a server-resolved creative explicitly.
   const ad = adData ?? adminAdData;
 
-  const telemetryFormat = placement === "crush_native" || placement.endsWith("_inline") ? "native" : "banner";
+  const telemetryFormat = placement === "crush_native" || (placement.endsWith("_inline") && placement !== "messages_inline") ? "native" : "banner";
 
   // Report ad impression on mount
   useEffect(() => {
