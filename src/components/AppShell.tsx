@@ -22,6 +22,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { UniversalWinnerFlow } from "@/components/UniversalWinnerFlow";
+import { UniversalFloatingCampaign } from "@/components/UniversalFloatingCampaign";
 
 const TABS = [
   { to: "/", label: "Confessions", icon: MessageSquare },
@@ -74,9 +75,11 @@ export function GlobalActionWidget() {
 }
 
 export function BottomNav() {
+  const { pathname } = useLocation();
+  const pageKey = pathname === "/" ? "home" : pathname.replace(/^\/+/, "").split("/")[0] || "home";
   return (
     <>
-      <GlobalActionWidget />
+      <UniversalFloatingCampaign pageKey={pageKey} />
       <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-border/70 bg-background/95 backdrop-blur-xl">
         <div className="mx-auto grid w-full max-w-3xl grid-cols-5 px-1.5 pt-1.5 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
           {TABS.map(({ to, label, icon: Icon }) => (
