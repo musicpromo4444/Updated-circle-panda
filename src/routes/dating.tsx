@@ -62,7 +62,7 @@ export const Route = createFileRoute("/dating")({
 });
 
 function DatingPage() {
-  const { requestDatingMatch, startDatingChat, threads, datingProfile, datingMatches } = useStore();
+  const { requestDatingMatch, startDatingChat, searchDatingProfiles, datingProfile, datingMatches } = useStore();
   const navigate = useNavigate();
   const [openMatch, setOpenMatch] = useState<Match | null>(null);
   const [registerOpen, setRegisterOpen] = useState(false);
@@ -131,7 +131,6 @@ function DatingPage() {
     if (m.age < ageMin || m.age > ageMax) return false;
     if (sameCountryOnly && datingProfile?.country && String(m.country).toLowerCase() !== String(datingProfile.country).toLowerCase()) return false;
     if (countryFilter && !String(m.country ?? "").toLowerCase().includes(countryFilter.toLowerCase())) return false;
-    if (locationFilter && !String(m.location ?? "").toLowerCase().includes(locationFilter.toLowerCase())) return false;
     if (genderFilter && String(m.gender ?? "").toLowerCase() !== genderFilter.toLowerCase()) return false;
     if (goalFilter && !String(m.relationshipGoal ?? "").toLowerCase().includes(goalFilter.toLowerCase())) return false;
     if (lookingForFilter && !(m.lookingFor ?? []).some((v:string)=>v.toLowerCase().includes(lookingForFilter.toLowerCase()))) return false;
@@ -146,6 +145,16 @@ function DatingPage() {
     return true;
   });
   const activeFilterCount = [ageMin > 18, ageMax < 99, countryFilter, locationFilter, genderFilter, goalFilter, lookingForFilter, lifestyleFilter, smokingFilter, drinkingFilter, childrenFilter, educationFilter, heightMin, heightMax, zodiacFilter, !sameCountryOnly].filter(Boolean).length;
+  const applyFilters = async () => {
+    await searchDatingProfiles({
+      ageMin, ageMax, country: countryFilter, location: locationFilter, gender: genderFilter,
+      relationshipGoal: goalFilter, lookingFor: lookingForFilter, lifestyle: lifestyleFilter,
+      smoking: smokingFilter, drinking: drinkingFilter, children: childrenFilter, education: educationFilter,
+      heightMin, heightMax, zodiac: zodiacFilter, sameCountryOnly,
+    });
+    setFiltersOpen(false);
+  };
+
   const resetFilters = () => {
     setAgeMin(18); setAgeMax(99); setCountryFilter(""); setLocationFilter(""); setGenderFilter(""); setGoalFilter("");
     setLookingForFilter(""); setLifestyleFilter(""); setSmokingFilter(""); setDrinkingFilter(""); setChildrenFilter("");
@@ -301,7 +310,7 @@ function DatingPage() {
             <label className="text-xs font-semibold">Maximum height (cm)<Input type="number" min={0} value={heightMax || ""} onChange={e=>setHeightMax(Math.max(0,Number(e.target.value)||0))} className="mt-1" /></label>
             <label className="text-xs font-semibold">Zodiac<Input value={zodiacFilter} onChange={e=>setZodiacFilter(e.target.value)} placeholder="e.g. Leo" className="mt-1" /></label>
           </div>
-          <div className="flex gap-2"><Button variant="outline" className="flex-1" onClick={resetFilters}><X className="size-4" /> Reset</Button><Button className="flex-1 bg-[var(--dating)] text-white hover:bg-[var(--dating)]/90" onClick={()=>setFiltersOpen(false)}>Show matches</Button></div>
+          <div className="flex gap-2"><Button variant="outline" className="flex-1" onClick={resetFilters}><X className="size-4" /> Reset</Button><Button className="flex-1 bg-[var(--dating)] text-white hover:bg-[var(--dating)]/90" onClick={()=>void applyFilters()}>Show matches</Button></div>
         </DialogContent>
       </Dialog>
 
