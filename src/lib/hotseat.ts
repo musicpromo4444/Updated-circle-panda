@@ -44,6 +44,7 @@ export type AppSettings = {
   waiting_media_url: string;
   waiting_cta_label: string;
   waiting_cta_url: string;
+  hot_seat_enabled?: boolean;
   waiting_sponsor_name: string;
   feed_ads_enabled: boolean;
   dating_enabled: boolean;
