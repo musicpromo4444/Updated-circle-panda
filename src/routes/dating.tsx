@@ -140,7 +140,7 @@ function DatingPage() {
             {connections.filter((x:any)=>x.status==="matched" && new Date(x.reveal_at).getTime()<=Date.now() && (!x.requester_confirmed || !x.recipient_confirmed)).map((x:any)=>(
               <div key={x.id} className="flex items-center gap-2 rounded-xl bg-background/70 p-3">
                 <span className="grid size-9 place-items-center rounded-full bg-secondary">🐼</span><span className="flex-1 text-sm">Mutual Panda match</span>
-                <Button size="sm" onClick={()=>void (supabase as any).rpc("confirm_dating_match_secure",{p_connection_id:x.id}).then(async ({data,error}:any)=>{if(error){toast.error(error.message??"Confirmation failed");return;} await loadConnections(); if(data?.thread_id) void navigate({to:"/messages",search:{thread:data.thread_id}}); else toast.success("Confirmation saved 💗");})}>Confirm</Button>
+                <Button size="sm" onClick={()=>void navigate({to:"/messages"})}>Open Messages</Button>
               </div>
             ))}
           </div>
