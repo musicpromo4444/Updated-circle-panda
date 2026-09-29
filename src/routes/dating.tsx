@@ -4,6 +4,7 @@ import { Heart, MessageCircle, Sparkles, SlidersHorizontal, X } from "lucide-rea
 import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { PlayableVideoAd } from "@/components/ads/PlayableVideoAd";
 import { RegisterDatingModal } from "@/components/dating/RegisterDatingModal";
@@ -154,7 +155,7 @@ function DatingPage() {
   return (
     <AppShell
       title="Dating"
-      subtitle="Tap a card for the full profile. Send a request first. Mutual matches follow the 72-hour confirmation flow before chat unlocks."
+      subtitle="Tap a card for the full profile. Send a request first. Mutual matches open a free 72-hour Dating Chat. Photos stay hidden until both people continue after 72 hours."
     >
       {/* Primary CTA button immediately below subtitle description and above main content cards */}
       <div className="mb-5">
@@ -265,9 +266,9 @@ function DatingPage() {
             </article>
 
             {/* Short, playable video advertisement (5-10 seconds, skippable) after every sequence of 5 user profiles */}
-            {(idx + 1) % 5 === 0 ? (
+            {((idx + 1 - (datingProfile ? 1 : 0)) > 0 && ((idx + 1 - (datingProfile ? 1 : 0)) % 5 === 0)) ? (
               <div className="my-2 sm:col-span-2">
-                <PlayableVideoAd index={Math.floor(idx / 5)} />
+                <PlayableVideoAd index={Math.floor((idx + 1 - (datingProfile ? 1 : 0)) / 5) - 1} />
               </div>
             ) : null}
           </div>
@@ -275,7 +276,7 @@ function DatingPage() {
       </div>
 
       <p className="mt-5 flex items-center justify-center gap-2 text-xs text-muted-foreground">
-        <MessageCircle className="size-3.5" /> Chat unlocks only after mutual confirmation and the 72-hour waiting period. Normal messages then cost 1 BC; VIP is free.
+        <MessageCircle className="size-3.5" /> Mutual matches can chat free for 72 hours. After that, both must continue before normal 1 BC messages unlock; VIP is free.
       </p>
 
       <Dialog open={filtersOpen} onOpenChange={setFiltersOpen}>
