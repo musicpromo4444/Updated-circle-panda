@@ -21,6 +21,10 @@ export function AdminHotSeatManager() {
   const [presenceSaving, setPresenceSaving] = useState(false);
   const [sessionHosts, setSessionHosts] = useState<any[]>([]);
   const [newHostAlias, setNewHostAlias] = useState("");
+  const [breakContent, setBreakContent] = useState<any[]>([]);
+  const [breakTitle, setBreakTitle] = useState("");
+  const [breakType, setBreakType] = useState("movie");
+  const [breakUrl, setBreakUrl] = useState("");
 
   const load = async () => {
     setLoading(true);
@@ -49,6 +53,10 @@ export function AdminHotSeatManager() {
         .eq("id", true)
         .maybeSingle();
       setPresenceEnabled(Boolean(data?.enabled));
+    })();
+    void (async () => {
+      const { data } = await supabase.from("hot_seat_break_content").select("*").order("sort_order", { ascending: true });
+      setBreakContent(data ?? []);
     })();
   }, []);
 
@@ -114,6 +122,38 @@ export function AdminHotSeatManager() {
             aria-label="Toggle Hot Seat floating seat">
             <span className={`absolute top-1 size-5 rounded-full bg-white shadow transition-transform ${presenceEnabled ? "translate-x-6" : "translate-x-1"}`} />
           </button>
+        </div>
+      </div>
+
+      <div className="rounded-2xl border border-white/10 bg-card p-4 space-y-3">
+        <div>
+          <b className="text-sm">Water-break Break Lounge</b>
+          <p className="mt-1 text-xs text-muted-foreground">Control the giveaway, movie, comedy, music, poll and investment slots shown during the mandatory break.</p>
+        </div>
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+          <Input placeholder="Activity title" value={breakTitle} onChange={e => setBreakTitle(e.target.value)} />
+          <select value={breakType} onChange={e => setBreakType(e.target.value)} className="rounded-lg border border-border bg-background px-3 py-2 text-sm">
+            <option value="giveaway">Giveaway</option><option value="movie">Movie</option><option value="comedy">Comedy</option><option value="music">Music</option><option value="poll">Poll</option><option value="investment">Investment game</option>
+          </select>
+          <Input placeholder="Destination URL (optional)" value={breakUrl} onChange={e => setBreakUrl(e.target.value)} />
+        </div>
+        <Button disabled={!breakTitle.trim()} onClick={async () => {
+          const { data, error } = await (supabase as any).rpc("admin_hot_seat_break_content_upsert", {
+            p_title: breakTitle.trim(), p_content_type: breakType, p_action_url: breakUrl.trim() || null,
+            p_enabled: true, p_sort_order: breakContent.length + 1
+          });
+          if (error) toast.error(error.message); else { setBreakContent(prev => [...prev, data]); setBreakTitle(""); setBreakUrl(""); toast.success("Break activity added"); }
+        }}>Add break activity</Button>
+        <div className="grid gap-2">
+          {breakContent.map((item) => (
+            <div key={item.id} className="flex items-center justify-between gap-3 rounded-xl border border-white/10 px-3 py-2">
+              <div className="min-w-0"><div className="text-xs font-bold truncate">{item.title}</div><div className="text-[10px] text-muted-foreground">{item.content_type} · {item.enabled ? "enabled" : "off"}</div></div>
+              <button type="button" className="text-xs text-red-400" onClick={async () => {
+                const { error } = await (supabase as any).rpc("admin_hot_seat_break_content_delete", { p_id: item.id });
+                if (error) toast.error(error.message); else { setBreakContent(prev => prev.filter(x => x.id !== item.id)); toast.success("Break activity removed"); }
+              }}>Remove</button>
+            </div>
+          ))}
         </div>
       </div>
 
