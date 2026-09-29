@@ -21,6 +21,28 @@ type Match = {
   location: string;
 };
 
+function DatingPhoto({ match, connection }: { match: Match; connection?: any }) {
+  const [revealedUrl, setRevealedUrl] = useState<string | null>(null);
+  const revealed = Boolean(connection?.status === "matched" && connection?.requester_confirmed && connection?.recipient_confirmed);
+  useEffect(() => {
+    let active = true;
+    if (!revealed || !match.photoPath) { setRevealedUrl(null); return; }
+    void supabase.storage.from("dating-photos").createSignedUrl(match.photoPath, 60 * 60).then(({ data, error }: any) => {
+      if (active && !error) setRevealedUrl(data?.signedUrl ?? null);
+    });
+    return () => { active = false; };
+  }, [revealed, match.photoPath]);
+
+  if (revealed && revealedUrl) {
+    return <img src={revealedUrl} alt="Dating profile" className="size-full object-cover" />;
+  }
+  if (match.blurredPhotoPath) {
+    const url = supabase.storage.from("dating-photo-blur").getPublicUrl(match.blurredPhotoPath).data.publicUrl;
+    return <img src={url} alt="Blurred Dating profile" className="size-full object-cover" />;
+  }
+  return <span aria-hidden="true">{match.emoji}</span>;
+}
+
 export const Route = createFileRoute("/dating")({
   head: () => ({
     meta: [
@@ -74,6 +96,8 @@ function DatingPage() {
     setOpenMatch(null);
   };
 
+  const connectionFor = (userId?: string) => connections.find((x:any) => userId && ((x.requester_id === userId && x.recipient_id === datingProfile?.userId) || (x.recipient_id === userId && x.requester_id === datingProfile?.userId)));
+
   const allMatches: Match[] = [
     ...(datingProfile ? [{ ...datingProfile, name: `${datingProfile.name} (You)` }] : []),
     ...datingMatches,
@@ -101,7 +125,7 @@ function DatingPage() {
         const h=Math.floor(remaining/3600000), m=Math.floor((remaining%3600000)/60000), sec=Math.floor((remaining%60000)/1000);
         return <section key={x.id} className="mb-5 rounded-2xl border border-[var(--dating)]/20 bg-[var(--dating)]/5 p-4">
           <p className="font-display font-bold">Mutual match 💗</p>
-          <p className="mt-1 text-xs text-muted-foreground">The full 72-hour waiting period must finish before either person can confirm.</p>
+          <p className="mt-1 text-xs text-muted-foreground">The full 72-hour waiting period must finish before either person can confirm. Photos remain blurred until both confirmations are complete.</p>
           <p className="mt-3 text-center text-2xl font-black tabular-nums text-[var(--dating)]">{String(h).padStart(2,"0")}:{String(m).padStart(2,"0")}:{String(sec).padStart(2,"0")}</p>
         </section>;
       })}
@@ -152,7 +176,7 @@ function DatingPage() {
                 aria-label={`Open ${m.name}'s profile`}
               >
                 <span className="relative grid h-32 place-items-center bg-[color-mix(in_oklab,var(--dating)_22%,transparent)] text-5xl">
-                  {m.emoji}
+                  <DatingPhoto match={m} connection={idx === 0 ? undefined : connectionFor(m.userId)} />
                   {datingProfile && idx === 0 ? (
                     <span className="absolute top-2.5 right-2.5 rounded-full bg-[var(--dating)] px-2.5 py-0.5 text-[10px] font-bold text-white uppercase tracking-wide shadow">
                       Your Profile
@@ -209,7 +233,7 @@ function DatingPage() {
           {openMatch ? (
             <div>
               <div className="grid h-40 place-items-center bg-[color-mix(in_oklab,var(--dating)_22%,transparent)] text-6xl">
-                {openMatch.emoji}
+                <DatingPhoto match={openMatch} connection={connectionFor(openMatch.userId)} />
               </div>
               <div className="p-5">
                 <DialogTitle className="flex items-center gap-2 font-display text-2xl">
