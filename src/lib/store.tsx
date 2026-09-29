@@ -580,6 +580,14 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       })
       .subscribe();
     const directMessageChannel = (supabase as any).channel(`circle-panda-dm-${dbUserId}`)
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "cp_threads" }, (payload:any) => {
+        const t = payload.new;
+        if (!t?.id || (t.owner_id !== dbUserId && t.participant_id !== dbUserId)) return;
+        setState(current => current.threads.some(x => x.id === t.id) ? current : {
+          ...current,
+          threads: [{ id:t.id, name:t.owner_id===dbUserId ? (t.other_alias ?? "Anonymous Panda") : "Anonymous Panda", kind:t.kind==="dating" ? "dating" : "dm", blurb:t.blurb ?? "", messages:[], startedAt:t.kind==="dating" ? new Date(t.created_at).getTime() : undefined }, ...current.threads]
+        });
+      })
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "cp_thread_messages" }, (payload:any) => {
         const m = payload.new;
         setState(current => current.threads.some(t=>t.messages.some(x=>x.id===m.id)) || (m.message_type==="dating_photo" && m.user_id===dbUserId) ? current : ({...current,threads:current.threads.map(t=>t.id===m.thread_id?{...t,messages:[...t.messages,{id:m.id,body:m.body,at:new Date(m.created_at).getTime(),mine:m.user_id===dbUserId,messageType:m.message_type==="dating_photo"?"dating_photo":"text",mediaPath:m.media_path ?? undefined}]}:t)}));
