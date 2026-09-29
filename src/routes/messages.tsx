@@ -1,8 +1,9 @@
 import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { Check, ChevronLeft, Heart, Send, ShieldBan, X } from "lucide-react";
+import { Check, ChevronLeft, Heart, Send, ShieldBan, X, Sparkles } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { TimeAgo } from "@/components/TimeAgo";
 import { StandardBannerAd } from "@/components/ads/StandardBannerAd";
@@ -10,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useStore } from "@/lib/store";
 
 type Search = { thread?: string };
+type PendingDatingDecision = { connection_id:string; other_id:string; other_name:string; other_age:number; other_vibe:string; other_blurred_photo_path:string; reveal_at:string; matched_at:string };
 
 export const Route = createFileRoute("/messages")({
   validateSearch: (search: Record<string, unknown>): Search =>
@@ -28,6 +30,22 @@ export const Route = createFileRoute("/messages")({
   component: MessagesPage,
 });
 
+function DatingPhotoBubble({ path, onOpen }: { path?: string; onOpen: (url: string) => void }) {
+  const [url, setUrl] = useState<string | null>(null);
+  useEffect(() => {
+    let active = true;
+    if (!path) return;
+    void supabase.storage.from("dating-photos").createSignedUrl(path, 120).then(({data,error}:any) => {
+      if (active && !error) setUrl(data?.signedUrl ?? null);
+    });
+    return () => { active = false; };
+  }, [path]);
+  if (!url) return <div className="grid size-44 place-items-center rounded-2xl bg-secondary text-4xl">💗</div>;
+  return <button type="button" onClick={() => onOpen(url)} className="block overflow-hidden rounded-2xl border border-[var(--dating)]/30 bg-card shadow-sm" aria-label="Open matched photo">
+    <img src={url} alt="Dating match" className="h-44 w-44 object-cover" draggable={false} onContextMenu={(e)=>e.preventDefault()} />
+  </button>;
+}
+
 function MessagesPage() {
   const { threads, sendMessage, coins } = useStore();
   const search = useSearch({ from: "/messages" });
@@ -36,6 +54,9 @@ function MessagesPage() {
   const [draft, setDraft] = useState("");
   const [crushRequests, setCrushRequests] = useState<any[]>([]);
   const [messageRequests, setMessageRequests] = useState<any[]>([]);
+  const [pendingDating, setPendingDating] = useState<PendingDatingDecision | null>(null);
+  const [decisionBusy, setDecisionBusy] = useState(false);
+  const [photoPreviewUrl, setPhotoPreviewUrl] = useState<string | null>(null);
   const bottom = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -45,7 +66,35 @@ function MessagesPage() {
   useEffect(() => {
     void (supabase as any).rpc("get_my_crush_message_requests").then(({ data }: any) => setCrushRequests(data ?? []));
     void (supabase as any).from("direct_message_requests").select("id,sender_id,message,kind,created_at").eq("status","pending").order("created_at",{ascending:false}).then(({data,error}:any)=>{ if(!error) setMessageRequests(data??[]); });
+    void (supabase as any).rpc("get_pending_dating_decisions_secure").then(({data,error}:any)=>{
+      if (!error && Array.isArray(data) && data.length) setPendingDating(data[0]);
+    });
   }, []);
+
+  const decideDating = async (decision: "continue" | "ignore") => {
+    if (!pendingDating || decisionBusy) return;
+    setDecisionBusy(true);
+    try {
+      const { data, error } = await (supabase as any).rpc("decide_dating_match_secure", {
+        p_connection_id: pendingDating.connection_id,
+        p_decision: decision,
+      });
+      if (error) throw error;
+      setPendingDating(null);
+      if (data?.status === "matched" && data?.thread_id) {
+        toast.success("It's a match 💗", { description: "Their photo is now in your Dating Chat." });
+        void navigate({ to: "/messages", search: { thread: data.thread_id } });
+      } else if (data?.status === "waiting") {
+        toast.success("Match saved 💗", { description: "Waiting for the other person to accept too." });
+      } else if (data?.status === "ended") {
+        toast("Dating connection ended");
+      }
+    } catch (e:any) {
+      toast.error(e?.message ?? "Could not save your decision");
+    } finally {
+      setDecisionBusy(false);
+    }
+  };
 
   const active = threads.find((t) => t.id === activeId) ?? null;
 
@@ -164,17 +213,19 @@ function MessagesPage() {
             active.messages.map((m, idx) => (
               <div key={m.id} className="space-y-2.5">
                 <div className={m.mine ? "text-right" : ""}>
-                  <p
-                    className={`inline-block max-w-[80%] rounded-2xl px-3.5 py-2 text-sm ${
+                  {m.messageType === "dating_photo" && active.kind === "dating" ? (
+                    <DatingPhotoBubble path={m.mediaPath} onOpen={setPhotoPreviewUrl} />
+                  ) : (
+                    <p className={`inline-block max-w-[80%] rounded-2xl px-3.5 py-2 text-sm ${
                       m.mine
                         ? active.kind === "dating"
                           ? "bg-[var(--dating)] text-[var(--dating-foreground)]"
                           : "bg-primary text-primary-foreground"
                         : "bg-card"
-                    }`}
-                  >
-                    {m.body}
-                  </p>
+                    }`}>
+                      {m.body}
+                    </p>
+                  )}
                   <TimeAgo at={m.at} className="mt-0.5 block text-[10px] text-muted-foreground" />
                 </div>
 
@@ -209,6 +260,51 @@ function MessagesPage() {
           </Button>
         </form>
       </div>
+
+      <Dialog open={!!pendingDating} onOpenChange={(open)=>{ if (!open && !decisionBusy) setPendingDating(null); }}>
+        <DialogContent className="max-w-md overflow-hidden border-[var(--dating)]/30 p-0">
+          {pendingDating ? (
+            <div className="relative">
+              <div className="absolute inset-0 bg-[var(--dating)]/10 backdrop-blur-[2px]" />
+              <div className="relative p-6">
+                <div className="mx-auto mb-4 grid size-14 place-items-center rounded-2xl bg-[var(--dating)]/15 text-[var(--dating)]">
+                  <Heart className="size-7 fill-current" />
+                </div>
+                <DialogTitle className="text-center font-display text-2xl">72-hour Dating period ended</DialogTitle>
+                <DialogDescription className="mt-2 text-center">
+                  You and {pendingDating.other_name} completed the 72-hour dating period. Do you want to continue and match?
+                </DialogDescription>
+                <div className="mx-auto mt-5 size-40 overflow-hidden rounded-3xl border-4 border-background/70 shadow-xl">
+                  {pendingDating.other_blurred_photo_path ? (
+                    <img
+                      src={supabase.storage.from("dating-photo-blur").getPublicUrl(pendingDating.other_blurred_photo_path).data.publicUrl}
+                      alt="Blurred dating match"
+                      className="size-full object-cover blur-md scale-105"
+                      draggable={false}
+                    />
+                  ) : <div className="grid size-full place-items-center bg-secondary text-5xl">🐼</div>}
+                </div>
+                <p className="mt-3 text-center text-sm font-semibold">{pendingDating.other_name} · {pendingDating.other_age}</p>
+                <p className="mt-1 text-center text-xs text-muted-foreground">{pendingDating.other_vibe || "Anonymous Panda"}</p>
+                <div className="mt-6 grid grid-cols-2 gap-3">
+                  <Button variant="outline" disabled={decisionBusy} onClick={()=>void decideDating("ignore")}>Ignore</Button>
+                  <Button disabled={decisionBusy} onClick={()=>void decideDating("continue")} className="gap-2 bg-[var(--dating)] text-white hover:bg-[var(--dating)]/90">
+                    <Sparkles className="size-4" /> Match
+                  </Button>
+                </div>
+              </div>
+            </div>
+          ) : null}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!photoPreviewUrl} onOpenChange={(open)=>{ if(!open) setPhotoPreviewUrl(null); }}>
+        <DialogContent className="max-w-3xl border-none bg-black/90 p-2">
+          <DialogTitle className="sr-only">Matched dating photo</DialogTitle>
+          <DialogDescription className="sr-only">Full-size matched dating photo.</DialogDescription>
+          {photoPreviewUrl ? <img src={photoPreviewUrl} alt="Matched dating photo" className="max-h-[82vh] w-full rounded-xl object-contain" draggable={false} onContextMenu={(e)=>e.preventDefault()} /> : null}
+        </DialogContent>
+      </Dialog>
     </AppShell>
   );
 }
