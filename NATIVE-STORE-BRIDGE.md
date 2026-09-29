@@ -33,24 +33,15 @@ The browser sends the token/JWS to the matching Supabase Edge Function. Only a s
 - `verify-apple-iap-purchase`
 - `apple-iap-notifications`
 
-Google Play requires the server service-account credentials and Android package name in Supabase Edge Function secrets.
+Google Play package name, service-account JSON, and RTDN secret are entered in Circle Panda Admin under Production payment setup. The private values are stored in Supabase Vault. Product IDs remain in `store_catalog.android_product_id` and are configured by Admin.
 
-Apple requires the App Store Server API In-App Purchase key, key ID, issuer ID and bundle ID in Supabase Edge Function secrets.
-
-Product IDs remain in `store_catalog.android_product_id` and `store_catalog.ios_product_id` and are configured by Admin. Private credentials never belong in `VITE_*` variables.
+Apple bundle ID, Team ID, issuer ID, key ID, and App Store Server API private key are entered in Circle Panda Admin under Production payment setup. The private key is stored in Supabase Vault. Private credentials never belong in `VITE_*` variables.
 
 ## Google Play subscription lifecycle
 
 The backend also exposes `google-play-rtdn` for Google Play Real-time Developer Notifications. Configure a Pub/Sub push subscription to:
 `https://<supabase-project>.supabase.co/functions/v1/google-play-rtdn?token=<GOOGLE_PLAY_RTDN_SECRET>`
 
-Set these server secrets in Supabase Edge Function Secrets:
-- `GOOGLE_PLAY_PACKAGE_NAME`
-- `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON`
-- `GOOGLE_PLAY_RTDN_SECRET`
-- `APPLE_IAP_BUNDLE_ID`
-- `APPLE_IAP_KEY_ID`
-- `APPLE_IAP_ISSUER_ID`
-- `APPLE_IAP_PRIVATE_KEY`
+The Admin Dashboard is the configuration surface for these values. You do not need to create the Apple/Google console accounts while Circle Panda is being built. When those accounts exist, enter the real values in Admin and no code change is required.
 
 Google Play and Apple both require their store-side products/subscriptions to exist and be active before the matching IDs in Circle Panda can process real purchases.
