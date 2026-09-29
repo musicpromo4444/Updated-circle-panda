@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
+import { StandardBannerAd } from "@/components/ads/StandardBannerAd";
 import { CoinStoreView } from "@/components/store/CoinStoreView";
 
 function StorePage() {
@@ -9,6 +10,7 @@ function StorePage() {
       subtitle="Acquire Panda Coins or activate your VIP Campus Pass."
     >
       <CoinStoreView />
+      <div className="mt-5"><StandardBannerAd variant="feed-card" placement="store" /></div>
     </AppShell>
   );
 }
