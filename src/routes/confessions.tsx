@@ -7,6 +7,7 @@ import { StandardBannerAd } from "@/components/ads/StandardBannerAd";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
+import { QuickVoteSignup } from "@/components/auth/QuickVoteSignup";
 
 export const Route = createFileRoute("/confessions")({
   head: () => ({ meta: [{ title: "Confessions — Circle Panda" }] }),
@@ -14,8 +15,8 @@ export const Route = createFileRoute("/confessions")({
 });
 
 type Confession = { id: string; content: string; is_anonymous: boolean; created_at: string };
-
 type WeeklyEntry = { id: string; user_id?: string; display_name?: string; panda_name?: string; kind?: string; blurb?: string; emoji?: string; media_url?: string; media_type?: string; week_start?: string; vote_count?: number; reaction_count?: number; my_vote?: boolean; my_reaction?: string | null };
+
 export function ConfessionsPage() {
   const [weekly, setWeekly] = useState<{ wcw: WeeklyEntry[]; mcm: WeeklyEntry[] }>({ wcw: [], mcm: [] });
   const [weeklyWinner, setWeeklyWinner] = useState<{ wcw: any | null; mcm: any | null }>({ wcw: null, mcm: null });
@@ -30,6 +31,7 @@ export function ConfessionsPage() {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [showSignup, setShowSignup] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const remaining = useMemo(() => 2000 - content.length, [content.length]);
 
@@ -128,19 +130,33 @@ export function ConfessionsPage() {
     });
   };
 
-  const submit = async () => {
-    const trimmed = content.trim();
-    if (trimmed.length < 3) return toast.error("Write at least 3 characters first.");
-    if (trimmed.length > 2000) return toast.error("Your confession is too long.");
+  const submitNow = async (trimmed: string, postAnonymous: boolean) => {
     setSubmitting(true);
-    const { data, error } = await (supabase as any).rpc("submit_confession_secure", { p_content: trimmed, p_anonymous: anonymous });
+    const { data, error } = await (supabase as any).rpc("submit_confession_secure", { p_content: trimmed, p_anonymous: postAnonymous });
     setSubmitting(false);
     if (error) return toast.error(error.message ?? "Your confession could not be submitted.");
     if (data?.id) {
       void (supabase as any).rpc("record_activity_participation", { p_activity_id: null, p_activity_type: "post_confession", p_reference_id: data.id, p_points: 0 });
     }
-    setContent(""); setOpen(false);
+    setContent("");
+    setOpen(false);
+    setShowSignup(false);
     toast.success("Confession submitted for review.", { description: "It will appear here after moderation approves it." });
+  };
+
+  const submit = async () => {
+    const trimmed = content.trim();
+    if (trimmed.length < 3) return toast.error("Write at least 3 characters first.");
+    if (trimmed.length > 2000) return toast.error("Your confession is too long.");
+
+    const { data: authData } = await supabase.auth.getUser();
+    if (!authData.user || authData.user.is_anonymous) {
+      setOpen(true);
+      setShowSignup(true);
+      toast("Create a free Circle Panda account before posting.", { description: "Your confession will be posted automatically after signup." });
+      return;
+    }
+    await submitNow(trimmed, anonymous);
   };
 
   const react = async (id: string, reaction: string) => {
@@ -165,26 +181,14 @@ export function ConfessionsPage() {
           <div className="rounded-2xl bg-secondary/30 p-3">
             <p className="mb-3 text-center text-sm text-muted-foreground">Upload • Vote • React • Win weekly VIP</p>
             <div className="grid grid-cols-3 gap-2">
-              <button
-                type="button"
-                onClick={() => { setUploadOpen(true); window.setTimeout(() => document.getElementById("wcw-mcm-upload")?.scrollIntoView({ behavior: "smooth", block: "center" }), 50); }}
-                className="group flex flex-col items-center gap-2 rounded-2xl p-2 transition-colors hover:bg-background/70"
-              >
-                <span className="grid size-16 place-items-center rounded-full border-2 border-primary/70 bg-background text-2xl shadow-sm transition-transform group-active:scale-95">＋</span>
-                <span className="text-xs font-bold">Upload</span>
-              </button>
-              <Link to="/crush" hash="wcw" className="group flex flex-col items-center gap-2 rounded-2xl p-2 transition-colors hover:bg-background/70">
-                <span className="grid size-16 place-items-center rounded-full border-2 border-pink-400/80 bg-background text-2xl shadow-sm transition-transform group-active:scale-95">❤️</span>
-                <span className="text-xs font-bold">WCW ❤️</span>
-              </Link>
-              <Link to="/crush" hash="mcm" className="group flex flex-col items-center gap-2 rounded-2xl p-2 transition-colors hover:bg-background/70">
-                <span className="grid size-16 place-items-center rounded-full border-2 border-sky-400/80 bg-background text-2xl shadow-sm transition-transform group-active:scale-95">💙</span>
-                <span className="text-xs font-bold">MCM 💙</span>
-              </Link>
+              <button type="button" onClick={() => { setUploadOpen(true); window.setTimeout(() => document.getElementById("wcw-mcm-upload")?.scrollIntoView({ behavior: "smooth", block: "center" }), 50); }} className="group flex flex-col items-center gap-2 rounded-2xl p-2 transition-colors hover:bg-background/70"><span className="grid size-16 place-items-center rounded-full border-2 border-primary/70 bg-background text-2xl shadow-sm transition-transform group-active:scale-95">＋</span><span className="text-xs font-bold">Upload</span></button>
+              <Link to="/crush" hash="wcw" className="group flex flex-col items-center gap-2 rounded-2xl p-2 transition-colors hover:bg-background/70"><span className="grid size-16 place-items-center rounded-full border-2 border-pink-400/80 bg-background text-2xl shadow-sm transition-transform group-active:scale-95">❤️</span><span className="text-xs font-bold">WCW ❤️</span></Link>
+              <Link to="/crush" hash="mcm" className="group flex flex-col items-center gap-2 rounded-2xl p-2 transition-colors hover:bg-background/70"><span className="grid size-16 place-items-center rounded-full border-2 border-sky-400/80 bg-background text-2xl shadow-sm transition-transform group-active:scale-95">💙</span><span className="text-xs font-bold">MCM 💙</span></Link>
             </div>
           </div>
           <p className="mt-3 text-center text-[10px] text-muted-foreground">Upload to enter • WCW Wednesday • MCM Monday</p>
         </section>
+
         <section className="rounded-3xl border border-border/70 bg-card p-5 shadow-sm">
           <div className="flex items-start justify-between gap-4">
             <div><p className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-primary"><Sparkles className="size-4" /> Anonymous corner</p><h1 className="mt-1 font-display text-2xl font-bold">Say what you really think.</h1><p className="mt-1 text-sm text-muted-foreground">Confessions stay anonymous when you choose. New submissions are reviewed before publication.</p></div>
@@ -197,6 +201,17 @@ export function ConfessionsPage() {
         {!loading && items.length === 0 ? <div className="rounded-3xl border border-dashed border-border p-10 text-center text-sm text-muted-foreground">No published confessions yet. Be the first.</div> : null}
         {items.map((item, idx) => <div key={item.id} className="space-y-4"><article className="rounded-3xl border border-border/70 bg-card p-5 shadow-sm"><div className="flex items-center gap-2 text-xs text-muted-foreground"><Eye className="size-3.5" /> {item.is_anonymous ? "Anonymous Panda" : "Panda"} · {new Date(item.created_at).toLocaleDateString()}</div><p className="mt-4 whitespace-pre-wrap break-words text-[15px] leading-7">{item.content}</p><div className="mt-4 flex gap-2"><Button variant="outline" size="sm" onClick={() => void react(item.id,"heart")}><Heart className="mr-1 size-4" /> Heart</Button><Button variant="outline" size="sm" onClick={() => void react(item.id,"laugh")}><Laugh className="mr-1 size-4" /> Laugh</Button></div></article>{((idx + 1) === 4 || (idx + 1) === 8 || ((idx + 1) >= 15 && (idx + 1 - 15) % 7 === 0)) ? <StandardBannerAd index={idx} variant="feed-card" placement="confessions_inline" /> : null}</div>)}
       </div>
+
+      <QuickVoteSignup
+        open={showSignup}
+        onOpenChange={setShowSignup}
+        actionLabel="post your confession"
+        successDescription="Your confession will now be posted automatically."
+        onComplete={() => {
+          const trimmed = content.trim();
+          if (trimmed.length >= 3) void submitNow(trimmed, anonymous);
+        }}
+      />
     </AppShell>
   );
 }
