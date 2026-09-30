@@ -20,17 +20,7 @@ export type VirtualGift = {
   effect: string;
 };
 
-export const VIRTUAL_GIFTS: VirtualGift[] = [
-  { id: "stylish_hat", name: "Stylish Hat", emoji: "🎩", cost: 100, effect: "A glowing hat spins onto the stage with a sparkling ribbon trail." },
-  { id: "rose_of_love", name: "Rose of Love", emoji: "🌹", cost: 200, effect: "A luminous rose blooms and sends petals across the live stage." },
-  { id: "lovely_panda", name: "Lovely Panda", emoji: "🐼", cost: 350, effect: "A heart-holding panda bounces forward with a pink aura." },
-  { id: "tiger_power", name: "Tiger Power", emoji: "🐯", cost: 700, effect: "A roaring tiger streaks across the screen with fiery energy." },
-  { id: "diamond", name: "Diamond", emoji: "💎", cost: 1000, effect: "A giant diamond rotates through a burst of blue light." },
-  { id: "panda_boss", name: "Panda Boss", emoji: "🕶️", cost: 5000, effect: "A boss panda steps forward with gold energy and a spotlight." },
-  { id: "dragon_panda", name: "Dragon Panda", emoji: "🐉", cost: 12000, effect: "A golden dragon coils around the host with blazing particles." },
-  { id: "mystic_panda", name: "Mystic Panda", emoji: "🥋", cost: 17000, effect: "A mystic warrior panda channels swirling purple chi." },
-  { id: "panda_general", name: "Panda General", emoji: "🐼", cost: 20000, effect: "The ultimate kung-fu panda general unleashes golden chi, moving cheese charms, and a full-stage victory aura." },
-];
+export const VIRTUAL_GIFTS: VirtualGift[] = [];
 
 export function GiftDrawer({
   open,
@@ -44,8 +34,8 @@ export function GiftDrawer({
   hostName?: string;
 }) {
   const { coins, syncCoins } = useStore();
-  const [gifts, setGifts] = useState<VirtualGift[]>(VIRTUAL_GIFTS);
-  const [selectedGift, setSelectedGift] = useState<VirtualGift>(VIRTUAL_GIFTS[0]);
+  const [gifts, setGifts] = useState<VirtualGift[]>([]);
+  const [selectedGift, setSelectedGift] = useState<VirtualGift | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -54,7 +44,7 @@ export function GiftDrawer({
         if (cancelled || error || !data?.length) return;
         const next = data.map((g: any) => ({ id: g.gift_id, name: g.name, emoji: g.emoji, cost: Number(g.cost_bc), effect: g.effect ?? "" }));
         setGifts(next);
-        setSelectedGift(next[0]);
+        setSelectedGift(next[0] ?? null);
       });
     return () => { cancelled = true; };
   }, []);
@@ -64,6 +54,10 @@ export function GiftDrawer({
   const [progress, setProgress] = useState(0);
 
   const handleSend = () => {
+    if (!selectedGift) {
+      toast.info("No live gifts are available right now.");
+      return;
+    }
     if (coins < selectedGift.cost) {
       toast.error("Low Panda Coin balance!", {
         description: `You need ${selectedGift.cost} BC to send ${selectedGift.name}. Watch a short ad to earn free coins!`,
@@ -148,13 +142,13 @@ export function GiftDrawer({
             <div className="relative mx-auto flex h-28 items-center justify-center">
               <div className="absolute size-24 rounded-full bg-fuchsia-500/20 blur-2xl animate-pulse" />
               <div className="absolute text-xl opacity-70" style={{ animation: "cpGiftOrbit 2.2s linear infinite" }}>✦</div>
-              <div className="absolute -translate-x-12 text-lg opacity-80 animate-bounce">{selectedGift.cost >= 12000 ? "🧀" : selectedGift.cost >= 5000 ? "✨" : "💫"}</div>
-              <div className="absolute translate-x-12 text-lg opacity-80 animate-pulse">{selectedGift.cost >= 17000 ? "⚡" : "✨"}</div>
-              <div className="relative text-7xl drop-shadow-2xl" style={{ animation: "cpGiftFloat 1.35s ease-in-out infinite" }}>{selectedGift.emoji}</div>
+              <div className="absolute -translate-x-12 text-lg opacity-80 animate-bounce">{selectedGift ? (selectedGift.cost >= 12000 ? "🧀" : selectedGift.cost >= 5000 ? "✨" : "💫") : "🎁"}</div>
+              <div className="absolute translate-x-12 text-lg opacity-80 animate-pulse">{selectedGift ? (selectedGift.cost >= 17000 ? "⚡" : "✨") : "✨"}</div>
+              <div className="relative text-7xl drop-shadow-2xl" style={{ animation: "cpGiftFloat 1.35s ease-in-out infinite" }}>{selectedGift?.emoji ?? "🎁"}</div>
             </div>
-            <div className="text-sm font-black text-white">{selectedGift.name}</div>
-            <div className="mt-1 text-sm font-black text-amber-300">{selectedGift.cost.toLocaleString()} BC</div>
-            <div className="mt-1 text-[11px] leading-4 text-white/55">{selectedGift.effect}</div>
+            <div className="text-sm font-black text-white">{selectedGift?.name ?? "Live gifts"}</div>
+            <div className="mt-1 text-sm font-black text-amber-300">{selectedGift ? `${selectedGift.cost.toLocaleString()} BC` : "—"}</div>
+            <div className="mt-1 text-[11px] leading-4 text-white/55">{selectedGift?.effect ?? "Gift options are controlled by Circle Panda Admin."}</div>
             <div className="mt-2 text-[10px] font-bold uppercase tracking-[0.16em] text-fuchsia-300">LIVE ANIMATED GIFT</div>
           </div>
 
@@ -216,10 +210,11 @@ export function GiftDrawer({
           <div className="pt-2">
             <Button
               onClick={handleSend}
+              disabled={!selectedGift}
               className="w-full gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 font-bold text-white shadow-lg hover:opacity-95 cursor-pointer py-5 text-sm"
             >
               <Gift className="size-4" />
-              Send {selectedGift.emoji} {selectedGift.name} · {selectedGift.cost.toLocaleString()} BC
+              {selectedGift ? `Send ${selectedGift.emoji} ${selectedGift.name} · ${selectedGift.cost.toLocaleString()} BC` : "No gifts available"}
             </Button>
           </div>
         </DialogContent>
