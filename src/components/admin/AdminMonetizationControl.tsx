@@ -563,7 +563,6 @@ export function AdminMonetizationControl({
                   </select>
                   <p className="text-[10px] text-muted-foreground">For Secret Profile, choose Banner, Native, or Sponsored Card. Playable is reserved for later.</p>
                 </div>
-                </div>
 
                 {/* 2. Sponsor Name */}
                 <div className="space-y-1.5">
