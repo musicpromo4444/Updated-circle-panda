@@ -149,6 +149,7 @@ function EventsPage() {
       ) : (
         <div className="grid gap-4 sm:grid-cols-2">
           {events.map((e, idx) => (
+            <>
             <button key={e.id} type="button" onClick={() => setOpenEvent(e)} className="panda-panel rounded-2xl p-4 text-left transition-transform hover:-translate-y-0.5">
               <div className="flex items-center justify-between gap-2">
                 <span className="rounded-full bg-primary/15 px-2.5 py-1 text-[11px] font-semibold text-primary">{e.tag}</span>
@@ -164,6 +165,7 @@ function EventsPage() {
               {e.rsvp ? <p className="mt-3 rounded-lg bg-primary/15 py-1.5 text-center text-xs font-semibold text-primary">You're going 🐼</p> : null}
             </button>
             {(idx + 1) % 4 === 0 ? <StandardBannerAd index={Math.floor(idx / 4)} variant="feed-card" placement="events_inline" /> : null}
+            </>
           ))}
         </div>
       )}
