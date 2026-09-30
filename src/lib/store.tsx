@@ -599,10 +599,18 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         setState(current => current.threads.some(t=>t.messages.some(x=>x.id===m.id)) || (m.message_type==="dating_photo" && m.user_id===dbUserId) ? current : ({...current,threads:current.threads.map(t=>t.id===m.thread_id?{...t,messages:[...t.messages,{id:m.id,body:m.body,at:new Date(m.created_at).getTime(),mine:m.user_id===dbUserId,messageType:m.message_type==="dating_photo"?"dating_photo":"text",mediaPath:m.media_path ?? undefined}]}:t)}));
       }).subscribe();
     const crushChannel = (supabase as any).channel(`circle-panda-crush-${dbUserId}`)
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "crush_votes" }, (payload:any) => {
-        const id = payload.new?.nominee_id;
-        if (!id) return;
-        setState(current => ({ ...current, nominees: current.nominees.map(n => n.id===id ? { ...n, votes:n.votes+1 } : n) }));
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "crush_votes" }, async () => {
+        const periodStart = new Date(Date.now() - ((new Date().getDay() + 6) % 7) * 86400000)
+          .toISOString().slice(0, 10);
+        const { data: results } = await (supabase as any).rpc("get_crush_results", { p_week_start: periodStart });
+        if (!Array.isArray(results)) return;
+        const counts = new Map<string, number>(
+          results.map((row:any) => [row.nominee_id, Number(row.vote_count ?? row.votes ?? 0)]),
+        );
+        setState(current => ({
+          ...current,
+          nominees: current.nominees.map(n => ({ ...n, votes: counts.get(n.id) ?? n.votes })),
+        }));
       }).subscribe();
     const notificationChannel = (supabase as any).channel(`circle-panda-notifications-${dbUserId}`)
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "cp_notifications", filter:`user_id=eq.${dbUserId}` }, async (payload:any) => {
@@ -627,9 +635,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       const id = data.id;
       setState((s) => {
         const { level, xp } = gainXp(s.level, s.xp, Number(data.xp ?? 15));
-        return { ...s, coins: s.coins + Number(data.reward_bc ?? 2), reputation: s.reputation + Number(data.xp ?? 15), level, xp, posts: [{ id, author:"You (anonymous)", authorId:dbUserId, authorVip:Boolean(data.author_vip_at ?? state.isVip), body, at:Date.now(), replies:[] }, ...s.posts] };
+        return { ...s, coins: s.coins + Number(data.reward_bc ?? 2), reputation: s.reputation + Number(data.xp ?? 15), level, xp, posts: [{ id, author:"You (anonymous)", authorId:dbUserId, authorVip:Boolean(data.author_vip_at ?? s.isVip), body, at:data.created_at ? new Date(data.created_at).getTime() : Date.now(), replies:[] }, ...s.posts] };
       });
-      toast.success("Posted anonymously 🐼", { description: "+2 BC · +15 XP earned." });
+      toast.success("Posted anonymously 🐼", { description: `+${Number(data.reward_bc ?? 0)} BC · +${Number(data.xp ?? 0)} XP earned.` });
     })();
   }, [dbUserId]);
 
@@ -928,8 +936,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       if (error) { toast.error(error.message ?? "Nomination could not be created"); return; }
       setState((s) => ({
         ...s,
-        coins: Math.max(0, s.coins - NOMINATION_COST),
-        nominees: [...s.nominees, { id: data.id, name, kind, emoji, blurb, votes: 0, mine: name === "You (anonymous)" }],
+        coins: Number(data?.balance ?? Math.max(0, s.coins - NOMINATION_COST)),
+        nominees: [...s.nominees, { id: data.id, name, kind: data?.kind ?? kind, emoji, blurb, votes: 0, mine: name === "You (anonymous)" }],
       }));
       toast.success("Nomination live 💫", { description: `−${NOMINATION_COST} BC · added to this week's ${kind.toUpperCase()} tray.` });
     })();
@@ -1098,7 +1106,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     void (async()=>{
       const { data, error } = await (supabase as any).rpc("buy_sweepstake_ticket_secure", { p_draw: draw });
       if (error) { toast.error(error.message ?? "Could not secure ticket"); return; }
-      setState((s) => ({ ...s, coins: Math.max(0, s.coins - TICKET_COST), sweepTickets: [...s.sweepTickets, { id: data.id, draw, at: Date.now() }] }));
+      setState((s) => ({ ...s, coins: Number(data?.balance ?? Math.max(0, s.coins - TICKET_COST)), sweepTickets: [...s.sweepTickets, { id: String(data?.ticket_id ?? data?.id), draw, at: Date.now() }] }));
       toast.success("Ticket secured 🎟️", { description: `−${TICKET_COST} BC · you're in the ${draw} draw.` });
     })();
     return true;
