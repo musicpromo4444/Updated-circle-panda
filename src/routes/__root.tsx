@@ -185,6 +185,7 @@ function CircleWelcome() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <StoreProvider>
+          <CircleWelcome />
           {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
           <Outlet />
           <AppDownloadPromotion />
