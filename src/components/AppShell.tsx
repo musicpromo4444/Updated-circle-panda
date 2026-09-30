@@ -338,7 +338,7 @@ export function AppShell({
           <Link to="/" className="flex min-w-0 flex-1 items-center gap-2">
             <span className="min-w-0">
               <span className="block truncate whitespace-nowrap font-display text-lg leading-none font-semibold">
-                Hi am Circle Panda 🐼
+                Circle Panda 🐼
               </span>
               <span className="block truncate whitespace-nowrap text-[11px] text-muted-foreground">
                 {tier.emoji} {tier.name} · {reputation} rep
