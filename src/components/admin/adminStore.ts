@@ -33,21 +33,6 @@ const INITIAL_AD_METRICS: AdPerformanceMetrics = {
   ctrWeb: 0, ctrAndroid: 0, fillRateWeb: 0, fillRateAndroid: 0, eCpmWeb: 0, eCpmAndroid: 0,
 };
 
-const INITIAL_AD_METRICS: AdPerformanceMetrics = {
-  impressionsWeb: 0, impressionsAndroid: 0, revenueWeb: 0, revenueAndroid: 0,
-  ctrWeb: 0, ctrAndroid: 0, fillRateWeb: 0, fillRateAndroid: 0, eCpmWeb: 0, eCpmAndroid: 0,
-};
-
-const INITIAL_AD_CONFIG: AdPlacementConfig = {
-  dailyLoginPopupBanner: true,
-  mainFeedBanner: true,
-  feedBannerInterval: 4,
-  videoAdCrushFrequency: 5,
-  androidNativeBridgeEnabled: true,
-  sponsorPartners: [],
-};
-
-
 export function useAdminStore() {
   const [users, setUsers] = useState<AdminUser[]>([]);
 
