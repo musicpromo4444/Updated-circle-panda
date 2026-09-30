@@ -12,6 +12,7 @@ import {
   Star,
   Trophy,
   Users,
+  Share2,
 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { StandardBannerAd } from "@/components/ads/StandardBannerAd";
@@ -49,12 +50,27 @@ function ProfilePage() {
   const COSMETICS = ["", "✨", "🔥", "🌸", "💎", "⚡", "🦋", "🌈"];
   const [avatar, setAvatar] = useState("🐼");
   const [accountGender, setAccountGender] = useState<"male" | "female" | null>(null);
+  const [profileId, setProfileId] = useState<string | null>(null);
+  const [displayName, setDisplayName] = useState("Your Panda");
+  const [country, setCountry] = useState("");
+  const [bio, setBio] = useState("");
   const [avatarHead, setAvatarHead] = useState("🐼");
   const [avatarGlasses, setAvatarGlasses] = useState("");
   const [avatarFace, setAvatarFace] = useState("");
   const [avatarCosmetic, setAvatarCosmetic] = useState("");
   const composeAvatar = (head=avatarHead, glasses=avatarGlasses, face=avatarFace, cosmetic=avatarCosmetic) => `${head}${glasses}${face}${cosmetic}`;
-  useEffect(() => { void supabase.auth.getUser().then(({data}) => { if (!data.user) return; void (supabase as any).from("profiles").select("avatar_url,gender").eq("id",data.user.id).maybeSingle().then((r:any)=>{ if (r.data?.avatar_url) setAvatar(r.data.avatar_url); if (r.data?.gender === "male" || r.data?.gender === "female") setAccountGender(r.data.gender); }); }); }, []);
+  useEffect(() => {
+    void supabase.auth.getUser().then(async ({ data }) => {
+      if (!data.user) return;
+      setProfileId(data.user.id);
+      const { data: profile } = await (supabase as any).from("profiles").select("display_name,avatar_url,gender,country,bio").eq("id", data.user.id).maybeSingle();
+      if (profile?.display_name) setDisplayName(profile.display_name);
+      if (profile?.avatar_url) setAvatar(profile.avatar_url);
+      if (profile?.country) setCountry(profile.country);
+      if (profile?.bio) setBio(profile.bio);
+      if (profile?.gender === "male" || profile?.gender === "female") setAccountGender(profile.gender);
+    });
+  }, []);
   const saveAvatar = (next:string) => {
     void (supabase as any).rpc("set_panda_avatar_secure", { p_avatar: next }).then(({ data, error }: any) => {
       if (error) { toast.error(error.message ?? "Avatar could not be updated"); return; }
@@ -86,7 +102,7 @@ function ProfilePage() {
             {avatar}
           </span>
           <div className="min-w-0">
-            <p className="truncate font-display text-xl font-semibold">You (anonymous)</p>
+            <p className="truncate font-display text-xl font-semibold">{displayName}</p>
             <p className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
               <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-black text-primary">{pandaRank.current.name}</span> {xp.toLocaleString()} XP
             </p>
@@ -217,6 +233,18 @@ function ProfilePage() {
           ))}
         </div>
       </section>
+
+      {profileId ? <section className="panda-panel mt-4 rounded-2xl p-4">
+        <div className="flex items-center justify-between gap-3">
+          <div><h2 className="font-display text-base font-semibold">Your Secret Profile</h2><p className="mt-1 text-xs text-muted-foreground">Share this link so people can leave anonymous secrets about you.</p></div>
+          <Share2 className="size-5 text-primary" />
+        </div>
+        <div className="mt-3 flex gap-2">
+          <input readOnly value={window.location.origin + "/secret/" + profileId} className="cp-input min-w-0 flex-1 text-xs" aria-label="Secret profile link" />
+          <Button type="button" variant="outline" onClick={() => { const url = window.location.origin + "/secret/" + profileId; void navigator.clipboard?.writeText(url); toast.success("Secret Profile link copied."); }}>Copy</Button>
+          <Link to="/secret/$userId" params={{ userId: profileId }} className="inline-flex items-center justify-center rounded-xl bg-primary px-3 text-xs font-bold text-primary-foreground">Open</Link>
+        </div>
+      </section> : null}
 
       <div className="mt-4 grid grid-cols-2 gap-3">
         <Link
