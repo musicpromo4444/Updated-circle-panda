@@ -177,7 +177,8 @@ function CircleWelcome() {
   }, []);
   return null;
 }
-\nfunction RootComponent() {
+
+function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const location = useLocation();
   const hideHotSeatPresence = location.pathname === "/profile" || location.pathname.startsWith("/profile/");
