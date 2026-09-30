@@ -16,6 +16,8 @@ import { UniversalFloatingIconManager } from "@/components/admin/UniversalFloati
 import { AdminOperationsCenter } from "@/components/admin/AdminOperationsCenter";
 import { AdminAppDownloadPromotion } from "@/components/admin/AdminAppDownloadPromotion";
 import { AdminCampaignReports } from "@/components/admin/AdminCampaignReports";
+import { AdminMonetizationControl } from "@/components/admin/AdminMonetizationControl";
+import { useAdminStore } from "@/components/admin/adminStore";
 
 export const Route = createFileRoute("/admin-dashboard")({ component: AdminDashboardPage });
 
@@ -39,6 +41,7 @@ function InputLike({value,onChange,maxLength,placeholder}:{value:string;onChange
 
 function AdminDashboardPage() {
   const { isAdmin } = useStore();
+  const admin = useAdminStore();
   const [activities, setActivities] = useState<Activity[]>([]);
   const [days, setDays] = useState<Day[]>([]);
   const [loading, setLoading] = useState(true);
@@ -116,6 +119,16 @@ function AdminDashboardPage() {
       <AdminControlCenter />
       <AdminAppDownloadPromotion />
       <AdminCampaignReports />
+      <AdminMonetizationControl
+        adConfig={admin.adConfig}
+        adMetrics={admin.adMetrics}
+        onUpdateConfig={admin.updateAdConfig}
+        onTogglePartner={admin.toggleSponsorPartner}
+        onAddCreative={admin.addCreative}
+        onUpdateCreative={admin.updateCreative}
+        onDeleteCreative={admin.deleteCreative}
+        onToggleCreativeStatus={admin.toggleCreativeStatus}
+      />
       <AdminPermissionManager />
       <UniversalAdManager />
       <UniversalFloatingIconManager />
