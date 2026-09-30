@@ -509,7 +509,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         (supabase as any).from("user_app_state").select("state").eq("user_id", uid).maybeSingle(),
         (supabase as any).from("cp_posts").select("id,body,created_at,author_id").order("created_at", {ascending:false}).limit(100),
         (supabase as any).from("cp_post_replies").select("id,post_id,body,created_at,author_id").order("created_at", {ascending:true}).limit(500),
-        (supabase as any).rpc("get_group_summaries_nearby", (() => { const p = typeof navigator !== "undefined" && navigator.geolocation ? null : null; return { p_latitude: null, p_longitude: null }; })()),
+        (supabase as any).rpc("get_group_summaries_nearby", { p_latitude:viewerCoords?.latitude ?? null, p_longitude:viewerCoords?.longitude ?? null }),
         
         (supabase as any).from("cp_group_messages").select("id,group_id,body,created_at,author_id").order("created_at", {ascending:true}).limit(1000),
         (supabase as any).from("cp_threads").select("id,owner_id,participant_id,other_alias,kind,blurb,created_at").order("created_at", {ascending:false}).limit(100),
