@@ -20,6 +20,7 @@ export type Post = {
   replies: Reply[];
   likes?: number;
   authorVip?: boolean;
+  liked?: boolean;
 };
 export type GroupChatMessage = {
   id: string;
@@ -539,7 +540,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       if (cancelled) return;
       const stData = st.data?.state ?? {};
       const replies = repliesRes.data ?? [];
-      const posts = (postsRes.data ?? []).map((p:any) => ({ id:p.id, author:p.author_id===uid?"You (anonymous)":"Anonymous Panda", authorId:p.author_id, authorVip:Boolean(p.author_vip_at), body:p.body, at:new Date(p.created_at).getTime(), replies:replies.filter((r:any)=>r.post_id===p.id).map((r:any)=>({id:r.id,author:r.author_id===uid?"You (anonymous)":"Anonymous Panda",body:r.body,at:new Date(r.created_at).getTime()})) }));
+      const rawPosts = postsRes.data ?? [];
+      const likeSummaryRes = rawPosts.length ? await (supabase as any).rpc("get_post_like_summaries", { p_post_ids: rawPosts.map((p:any)=>p.id) }) : { data: [] };
+      const likeSummary = new Map((likeSummaryRes.data ?? []).map((x:any)=>[x.post_id,x]));
+      const posts = rawPosts.map((p:any) => { const likes = likeSummary.get(p.id); return { id:p.id, author:p.author_id===uid?"You (anonymous)":"Anonymous Panda", authorId:p.author_id, authorVip:Boolean(p.author_vip_at), likes:Number(likes?.like_count ?? 0), liked:Boolean(likes?.liked), body:p.body, at:new Date(p.created_at).getTime(), replies:replies.filter((r:any)=>r.post_id===p.id).map((r:any)=>({id:r.id,author:r.author_id===uid?"You (anonymous)":"Anonymous Panda",body:r.body,at:new Date(r.created_at).getTime()})) }; });
       
       const groupMessages = groupMessagesRes.data ?? [];
       const groupSettings = groupSettingsRes.data ?? [];
