@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { Check, ChevronLeft, Heart, Send, ShieldBan, X, Sparkles } from "lucide-react";
+import { Check, ChevronLeft, Heart, Send, ShieldBan, X, Sparkles, Phone, Video } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
@@ -10,6 +10,7 @@ import { StandardBannerAd } from "@/components/ads/StandardBannerAd";
 import { supabase } from "@/integrations/supabase/client";
 import { useStore } from "@/lib/store";
 import { toast } from "sonner";
+import { VipPrivateCall } from "@/components/messages/VipPrivateCall";
 
 type Search = { thread?: string };
 type PendingDatingDecision = { connection_id:string; other_id:string; other_name:string; other_age:number; other_vibe:string; other_blurred_photo_path:string; reveal_at:string; matched_at:string };
@@ -52,7 +53,7 @@ function DatingPhotoBubble({ path, onOpen }: { path?: string; onOpen: (url: stri
 }
 
 function MessagesPage() {
-  const { threads, sendMessage, coins } = useStore();
+  const { threads, sendMessage, coins, isVip } = useStore();
   const search = useSearch({ from: "/messages" });
   const navigate = useNavigate();
   const [activeId, setActiveId] = useState<string | null>(search.thread ?? null);
@@ -62,6 +63,8 @@ function MessagesPage() {
   const [pendingDating, setPendingDating] = useState<PendingDatingDecision | null>(null);
   const [decisionBusy, setDecisionBusy] = useState(false);
   const [photoPreviewUrl, setPhotoPreviewUrl] = useState<string | null>(null);
+  const [callId, setCallId] = useState<string | null>(null);
+  const [incomingCallId, setIncomingCallId] = useState<string | null>(null);
   const bottom = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -112,6 +115,18 @@ function MessagesPage() {
   };
 
   const active = threads.find((t) => t.id === activeId) ?? null;
+
+  useEffect(() => {
+    let activePolling = true;
+    const checkIncoming = async () => {
+      if (!isVip || !activePolling || callId) return;
+      const { data } = await (supabase as any).rpc("get_my_incoming_vip_calls");
+      if (activePolling && Array.isArray(data) && data[0]?.id) setIncomingCallId(String(data[0].id));
+    };
+    void checkIncoming();
+    const timer = window.setInterval(() => void checkIncoming(), 3000);
+    return () => { activePolling = false; window.clearInterval(timer); };
+  }, [isVip, callId]);
 
   useEffect(() => {
     bottom.current?.scrollIntoView({ behavior: "smooth" });
@@ -249,10 +264,20 @@ function MessagesPage() {
           <span className={`grid size-11 place-items-center rounded-full ${active.kind === "dating" ? "bg-red-500/15 text-red-500" : "bg-secondary text-lg"}`}>
             {active.kind === "dating" ? <Heart className="size-6 fill-current" /> : "🐼"}
           </span>
-          <div className="leading-tight">
-            <p className="text-sm font-bold">{active.name}</p>
-            <p className={active.kind === "dating" ? "text-[11px] font-bold text-red-500" : "text-[11px] text-muted-foreground"}>{active.kind === "dating" ? "DATING MESSAGE · FREE FOR 72 HOURS" : "Direct message · 1 BC per message"}</p>
+          <div className="min-w-0 flex-1 leading-tight">
+            <p className="truncate text-sm font-bold">{active.name}</p>
+            <p className={active.kind === "dating" ? "text-[11px] font-bold text-red-500" : "text-[11px] text-muted-foreground"}>{active.kind === "dating" ? "DATING MESSAGE · FREE FOR 72 HOURS" : active.otherVip ? "VIP private chat · calls free" : "Direct message · 1 BC per message"}</p>
           </div>
+          {active.kind === "dm" && active.otherVip && isVip ? (
+            <div className="flex gap-1">
+              <Button size="icon" variant="ghost" aria-label="VIP voice call" onClick={async()=>{ const {data,error}=await (supabase as any).rpc("start_vip_private_call",{p_thread_id:active.id,p_call_type:"voice"}); if(error){toast.error(error.message??"Call unavailable");return;} setCallId(String(data.id)); }}>
+                <Phone className="size-4" />
+              </Button>
+              <Button size="icon" variant="ghost" aria-label="VIP video call" onClick={async()=>{ const {data,error}=await (supabase as any).rpc("start_vip_private_call",{p_thread_id:active.id,p_call_type:"video"}); if(error){toast.error(error.message??"Call unavailable");return;} setCallId(String(data.id)); }}>
+                <Video className="size-4" />
+              </Button>
+            </div>
+          ) : null}
         </div>
 
         <div className="min-h-0 flex-1 space-y-2.5 overflow-y-auto bg-secondary/20 p-3 sm:p-5">
@@ -313,6 +338,9 @@ function MessagesPage() {
         </form>
       </div>
 
+      <VipPrivateCall callId={callId} onClose={()=>setCallId(null)} />
+      <VipPrivateCall callId={incomingCallId} incoming onClose={()=>setIncomingCallId(null)} />
+      
       <Dialog open={!!photoPreviewUrl} onOpenChange={(open)=>{ if(!open) setPhotoPreviewUrl(null); }}>
         <DialogContent className="max-w-3xl border-none bg-black/90 p-2">
           <DialogTitle className="sr-only">Matched dating photo</DialogTitle>
