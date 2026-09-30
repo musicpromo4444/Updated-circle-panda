@@ -193,7 +193,7 @@ export function FreeCoinsButton() {
           const { data, error } = await (supabase as any).rpc("claim_rewarded_ad_secure", { p_surface: "free_coins" });
           if (error) { toast.error(error.message ?? "Reward could not be claimed"); return; }
           await syncCoins();
-          toast.success(`🎉 +${Number(data?.reward ?? 10)} BC Added!`, {
+          toast.success(`🎉 +${Number(data?.reward ?? 30)} BC Added!`, {
             description: "Free Panda Coins credited to your account wallet.",
           });
         })();
@@ -218,7 +218,7 @@ export function FreeCoinsButton() {
             <Gift className="size-5 text-emerald-500" /> Free Panda Coins
           </DialogTitle>
           <DialogDescription className="text-xs text-muted-foreground">
-            Watch a quick 5-second rewarded video ad to receive 10 BC immediately into your balance.
+            Watch a quick rewarded video ad to receive 30 BC immediately into your balance.
           </DialogDescription>
 
           {/* Ad Video Player Stage */}
@@ -246,7 +246,7 @@ export function FreeCoinsButton() {
                   <Sparkles className="size-6 animate-bounce" />
                 </span>
                 <div>
-                  <p className="text-sm font-semibold text-neutral-200">Earn +10 BC for Free</p>
+                  <p className="text-sm font-semibold text-neutral-200">Earn +30 BC for Free</p>
                   <p className="text-[11px] text-neutral-400">No purchase required</p>
                 </div>
               </div>
@@ -259,7 +259,7 @@ export function FreeCoinsButton() {
             disabled={watching}
           >
             <Play className="size-4 fill-current" />{" "}
-            {watching ? `Playing ad (${countdown}s)…` : "Watch Ad & Earn 10 BC"}
+            {watching ? `Playing ad (${countdown}s)…` : "Watch Ad & Earn 30 BC"}
           </Button>
         </DialogContent>
       </Dialog>
