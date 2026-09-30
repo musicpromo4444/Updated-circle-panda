@@ -8,7 +8,7 @@ import {
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
-import { useEffect, type ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";\nimport { toast } from "sonner";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
@@ -158,7 +158,7 @@ function ThemedToaster() {
   return <Toaster position="top-center" richColors closeButton theme={theme} />;
 }
 
-\nfunction CircleWelcome() {\n  useEffect(() => {\n    try {\n      if (localStorage.getItem("circle_panda_welcomed") === "1") return;\n      const timer = window.setTimeout(() => {\n        localStorage.setItem("circle_panda_welcomed", "1");\n        window.dispatchEvent(new CustomEvent("circle-panda-welcome"));\n      }, 700);\n      return () => window.clearTimeout(timer);\n    } catch {\n      return;\n    }\n  }, []);\n  return null;\n}\n\nfunction RootComponent() {
+\nfunction CircleWelcome() {\n  useEffect(() => {\n    try {\n      if (localStorage.getItem("circle_panda_welcomed") === "1") return;\n      const timer = window.setTimeout(() => {\n        localStorage.setItem("circle_panda_welcomed", "1");\n        toast.success("Welcome to the Circle 🐼", {\n          description: "Come in, have a seat, and find your people.",\n        });\n      }, 700);\n      return () => window.clearTimeout(timer);\n    } catch {\n      return;\n    }\n  }, []);\n  return null;\n}\n\nfunction RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const location = useLocation();
   const hideHotSeatPresence = location.pathname === "/profile" || location.pathname.startsWith("/profile/");
