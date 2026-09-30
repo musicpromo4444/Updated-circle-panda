@@ -337,10 +337,10 @@ export function AppShell({
         <div className="mx-auto flex w-full max-w-3xl items-center gap-3 px-4 py-3">
           <Link to="/" className="flex min-w-0 flex-1 items-center gap-2">
             <span className="min-w-0">
-              <span className="block truncate font-display text-lg leading-none font-semibold">
-                Circle Panda
+              <span className="block truncate whitespace-nowrap font-display text-lg leading-none font-semibold">
+                Hi am Circle Panda 🐼
               </span>
-              <span className="block truncate text-[11px] text-muted-foreground">
+              <span className="block truncate whitespace-nowrap text-[11px] text-muted-foreground">
                 {tier.emoji} {tier.name} · {reputation} rep
               </span>
             </span>
