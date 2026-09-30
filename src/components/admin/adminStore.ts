@@ -47,21 +47,9 @@ const INITIAL_AD_CONFIG: AdPlacementConfig = {
   sponsorPartners: [],
 };
 
-const STORAGE_KEY_ADMIN_USERS = "cp_admin_users_data";
-const STORAGE_KEY_LOGS = "cp_admin_audit_logs";
 
 export function useAdminStore() {
-  const [users, setUsers] = useState<AdminUser[]>(() => {
-    try {
-      if (typeof window !== "undefined" && window.localStorage) {
-        const saved = window.localStorage.getItem(STORAGE_KEY_ADMIN_USERS);
-        if (saved) return JSON.parse(saved);
-      }
-    } catch {
-      // ignore
-    }
-    return INITIAL_USERS;
-  });
+  const [users, setUsers] = useState<AdminUser[]>([]);
 
   const [adConfig, setAdConfig] = useState<AdPlacementConfig>({
     ...DEFAULT_AD_CONFIG,
@@ -70,48 +58,9 @@ export function useAdminStore() {
 
   const [adMetrics] = useState<AdPerformanceMetrics>(INITIAL_AD_METRICS);
 
-  const [engagementConfig, setEngagementConfig] = useState<EngagementConfig>(() => {
-    const defaults: EngagementConfig = { ...DEFAULT_ENGAGEMENT_CONFIG };
+  const [engagementConfig, setEngagementConfig] = useState<EngagementConfig>({ ...DEFAULT_ENGAGEMENT_CONFIG });
 
-    try {
-      if (typeof window !== "undefined" && window.localStorage) {
-        const saved = window.localStorage.getItem(STORAGE_KEY_ENGAGEMENT);
-        if (saved) {
-          const parsed = JSON.parse(saved);
-          return {
-            ...defaults,
-            ...parsed,
-            externalSurvey: {
-              ...defaults.externalSurvey,
-              ...(parsed.externalSurvey || {}),
-            },
-          };
-        }
-      }
-    } catch {
-      // ignore
-    }
-    return defaults;
-  });
-
-  const [logs, setLogs] = useState<AdminActivityLog[]>(() => {
-    try {
-      if (typeof window !== "undefined" && window.localStorage) {
-        const saved = window.localStorage.getItem(STORAGE_KEY_LOGS);
-        if (saved) return JSON.parse(saved);
-      }
-    } catch {
-      // ignore
-    }
-    return [
-      {
-        id: "log-1",
-        timestamp: "Today at 09:15 AM",
-        adminAction: "SYSTEM_INITIALIZED",
-        details: "Admin panel connected to Web and Android WebView telemetry.",
-      },
-    ];
-  });
+  const [logs, setLogs] = useState<AdminActivityLog[]>([]);
 
   const loadRealUsers = async () => {
     const { data, error } = await (supabase as any).rpc("admin_list_users");
@@ -161,43 +110,27 @@ export function useAdminStore() {
     })();
   }, []);
 
-  // Sync users to storage
-  useEffect(() => {
-    try {
-      if (typeof window !== "undefined" && window.localStorage) {
-        window.localStorage.setItem(STORAGE_KEY_ADMIN_USERS, JSON.stringify(users));
-      }
-    } catch {
-      // ignore
-    }
-  }, [users]);
-
   // Notify the current UI; the actual configuration is persisted in Supabase.
   useEffect(() => {
     if (typeof window !== "undefined") window.dispatchEvent(new CustomEvent(EVENT_AD_CONFIG_UPDATED));
   }, [adConfig]);
 
-  // Sync engagementConfig to storage + update dailyBonusStorage & dispatch live event
   useEffect(() => {
-    try {
-      if (typeof window !== "undefined" && window.localStorage) {
-        window.localStorage.setItem(STORAGE_KEY_ENGAGEMENT, JSON.stringify(engagementConfig));
-        window.dispatchEvent(new CustomEvent(EVENT_ENGAGEMENT_UPDATED));
+    void (async () => {
+      const { data } = await (supabase as any).rpc("admin_get_engagement_config");
+      if (data?.config) {
+        const config = data.config;
+        setEngagementConfig({
+          ...DEFAULT_ENGAGEMENT_CONFIG,
+          ...config,
+          externalSurvey: {
+            ...DEFAULT_ENGAGEMENT_CONFIG.externalSurvey,
+            ...(config.externalSurvey || {}),
+          },
+        });
       }
-    } catch {
-      // ignore
-    }
-  }, [engagementConfig]);
-
-  useEffect(() => {
-    try {
-      if (typeof window !== "undefined" && window.localStorage) {
-        window.localStorage.setItem(STORAGE_KEY_LOGS, JSON.stringify(logs.slice(0, 50)));
-      }
-    } catch {
-      // ignore
-    }
-  }, [logs]);
+    })();
+  }, []);
 
   // Pricing & Subscription Config State
   const [pricingConfig, setPricingConfig] = useState<PricingConfig>(getPricingConfig);
@@ -365,39 +298,50 @@ export function useAdminStore() {
 
   // Update Engagement Config
   const updateEngagementConfig = (partial: Partial<EngagementConfig>) => {
-    setEngagementConfig((prev) => ({ ...prev, ...partial }));
-    addLog("UPDATE_ENGAGEMENT_CONFIG", "Updated login bonus & engagement switches");
-    toast.success("Engagement configurations saved and applied");
+    const next = { ...engagementConfig, ...partial };
+    void (async () => {
+      const { data, error } = await (supabase as any).rpc("admin_save_engagement_config", { p_config: next });
+      if (error) {
+        toast.error(error.message ?? "Could not save engagement settings");
+        return;
+      }
+      const saved = data?.config ?? next;
+      setEngagementConfig({
+        ...DEFAULT_ENGAGEMENT_CONFIG,
+        ...saved,
+        externalSurvey: {
+          ...DEFAULT_ENGAGEMENT_CONFIG.externalSurvey,
+          ...(saved.externalSurvey || {}),
+        },
+      });
+      addLog("UPDATE_ENGAGEMENT_CONFIG", "Updated login bonus & engagement switches");
+      toast.success("Engagement configurations saved and applied");
+    })();
   };
 
-  // Update External Survey Configuration
   const updateExternalSurveyConfig = (partial: Partial<ExternalSurveyConfig>) => {
-    setEngagementConfig((prev) => {
-      const updatedExternal = {
-        ...prev.externalSurvey,
-        ...partial,
-      };
-      return {
-        ...prev,
-        externalSurvey: updatedExternal,
-      };
-    });
-
-    const isModeSwitch = "enabled" in partial;
-    if (isModeSwitch) {
-      addLog(
-        "SWITCH_QUIZ_ENGINE",
-        `Quiz engine switched to ${partial.enabled ? "External Partner API" : "Internal Manual Trivia"}`,
-      );
-      toast.success(
-        partial.enabled
-          ? "Switched to External Survey & Quiz Partner API"
-          : "Switched to Internal Manual Trivia Questions",
-      );
-    } else {
-      addLog("UPDATE_SURVEY_API", "Updated external quiz/survey API parameters");
-      toast.success("External survey partner integration updated");
-    }
+    const next = {
+      ...engagementConfig,
+      externalSurvey: { ...engagementConfig.externalSurvey, ...partial },
+    };
+    void (async () => {
+      const { data, error } = await (supabase as any).rpc("admin_save_engagement_config", { p_config: next });
+      if (error) {
+        toast.error(error.message ?? "Could not save survey settings");
+        return;
+      }
+      const saved = data?.config ?? next;
+      setEngagementConfig({
+        ...DEFAULT_ENGAGEMENT_CONFIG,
+        ...saved,
+        externalSurvey: {
+          ...DEFAULT_ENGAGEMENT_CONFIG.externalSurvey,
+          ...(saved.externalSurvey || {}),
+        },
+      });
+      addLog("UPDATE_SURVEY_API", "Updated external survey partner configuration");
+      toast.success("External survey configuration saved");
+    })();
   };
 
   // Export Users CSV
