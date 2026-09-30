@@ -1,4 +1,4 @@
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Loader2, MapPin, ShieldCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -15,6 +15,8 @@ function RegisterPage() {
   const navigate = useNavigate();
   const [form, setForm] = useState({ name:"", identifier:"", password:"", confirmPassword:"", country:"", state:"", city:"", area:"", gender:"", dob:"", avatar:"0" });
   const [busy,setBusy]=useState(false); const [error,setError]=useState(""); const [notice,setNotice]=useState("");
+  const [platform, setPlatform] = useState<"ios" | "android" | "other">("other");
+  useEffect(() => { const ua=navigator.userAgent||""; const ios=/iPad|iPhone|iPod/.test(ua)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1); const android=/Android/i.test(ua); setPlatform(ios?"ios":android?"android":"other"); }, []);
   const age = useMemo(() => form.dob ? Math.floor((Date.now()-new Date(form.dob).getTime())/31557600000) : 0,[form.dob]);
   const set=(key:string,value:string)=>setForm(f=>({...f,[key]:value}));
 
@@ -73,10 +75,7 @@ function RegisterPage() {
               <div className="border-t border-white/10" />
               <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#111f1b] px-3 text-xs font-bold text-white/40">OR</span>
             </div>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <button type="button" onClick={()=>signInWithProvider("google")} className="rounded-2xl border border-white/10 bg-white px-4 py-3 font-black text-[#111]">Continue with Google</button>
-              <button type="button" onClick={()=>signInWithProvider("apple")} className="rounded-2xl border border-white/10 bg-black px-4 py-3 font-black text-white">Continue with Apple</button>
-            </div>
+            <div className="space-y-3">{platform === "ios" ? <button type="button" onClick={()=>signInWithProvider("apple")} className="w-full rounded-2xl border border-white/10 bg-black px-4 py-4 font-black text-white">Continue with Apple</button> : platform === "android" ? <button type="button" onClick={()=>signInWithProvider("google")} className="w-full rounded-2xl border border-white/10 bg-white px-4 py-4 font-black text-[#111]">Continue with Google</button> : <div className="grid gap-3 sm:grid-cols-2"><button type="button" onClick={()=>signInWithProvider("google")} className="rounded-2xl border border-white/10 bg-white px-4 py-3 font-black text-[#111]">Continue with Google</button><button type="button" onClick={()=>signInWithProvider("apple")} className="rounded-2xl border border-white/10 bg-black px-4 py-3 font-black text-white">Continue with Apple</button></div>}</div>
           </form>
           <p className="mt-6 text-center text-sm text-white/55">Already a Panda? <Link to="/login" className="font-black text-emerald-300">Log in</Link></p>
         </div>
