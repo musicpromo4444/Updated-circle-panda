@@ -120,7 +120,7 @@ function MessagesPage() {
 
   if (!active) {
     return (
-      <AppShell title="Direct Messages" subtitle="Requests first. Normal messages cost 1 BC; VIP messages are free.">
+      <AppShell title="Messages" subtitle="Real conversations · 1 BC per normal message · VIP free · Dating free for 72 hours">
         <div className="space-y-3">
           {messageRequests.length ? (
             <section className="panda-panel rounded-2xl border border-primary/20 bg-primary/5 p-4">
@@ -159,19 +159,24 @@ function MessagesPage() {
               <button
                 type="button"
                 onClick={() => setActiveId(t.id)}
-                className="panda-panel flex w-full items-center gap-3 rounded-2xl p-4 text-left transition-colors hover:bg-accent/40"
+                className={`panda-panel flex min-h-[84px] w-full items-center gap-4 rounded-2xl p-4 text-left transition-colors hover:bg-accent/40 ${t.kind === "dating" ? "border-2 border-red-500/30 bg-red-500/5" : ""}`}
               >
-                <span className="grid size-11 shrink-0 place-items-center rounded-full bg-secondary text-lg">
-                  {t.kind === "dating" ? "💗" : "🐼"}
-                </span>
+                {t.kind === "dating" ? (
+                  <span className="grid size-14 shrink-0 place-items-center rounded-full bg-red-500/15 text-red-500 shadow-sm">
+                    <Heart className="size-8 fill-current" />
+                  </span>
+                ) : (
+                  <span className="grid size-14 shrink-0 place-items-center rounded-full bg-secondary text-xl">🐼</span>
+                )}
                 <span className="min-w-0 flex-1">
+                  {t.kind === "dating" ? (
+                    <span className="mb-1 flex items-center gap-2 text-red-500">
+                      <Heart className="size-4 fill-current" />
+                      <span className="font-display text-xs font-black tracking-[0.16em] uppercase">Dating Message</span>
+                    </span>
+                  ) : null}
                   <span className="flex items-center gap-2">
-                    <span className="truncate font-medium">{t.name}</span>
-                    {t.kind === "dating" ? (
-                      <span className="rounded-full bg-[var(--dating)]/20 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-[var(--dating)] uppercase">
-                        Dating
-                      </span>
-                    ) : null}
+                    <span className="truncate font-semibold">{t.name}</span>
                   </span>
                   <span className="mt-0.5 block truncate text-sm text-muted-foreground">
                     {t.messages.at(-1)?.body ?? t.blurb}
@@ -225,14 +230,14 @@ function MessagesPage() {
 
   return (
     <AppShell title="Chat" subtitle={`Balance: ${coins} BC · normal messages 1 BC · VIP free · dating free for 72h`}>
-      <div className="panda-panel overflow-hidden rounded-2xl">
+      <div className="panda-panel flex min-h-[calc(100dvh-8.5rem)] flex-col overflow-hidden rounded-2xl">
         {active.kind === "dating" ? (
           <div className="flex items-center justify-center gap-2 bg-[var(--dating)] px-4 py-2 font-display text-sm font-bold tracking-[0.18em] text-[var(--dating-foreground)] uppercase">
             <Heart className="size-4 fill-current" /> Dating Chat
           </div>
         ) : null}
 
-        <div className="flex items-center gap-2 border-b border-border px-3 py-3">
+        <div className="flex items-center gap-3 border-b border-border bg-card px-3 py-3 sm:px-4">
           <Button
             variant="ghost"
             size="sm"
@@ -241,16 +246,16 @@ function MessagesPage() {
           >
             <ChevronLeft className="size-4" /> All
           </Button>
-          <span className="grid size-8 place-items-center rounded-full bg-secondary text-sm">
-            {active.kind === "dating" ? "💗" : "🐼"}
+          <span className={`grid size-11 place-items-center rounded-full ${active.kind === "dating" ? "bg-red-500/15 text-red-500" : "bg-secondary text-lg"}`}>
+            {active.kind === "dating" ? <Heart className="size-6 fill-current" /> : "🐼"}
           </span>
           <div className="leading-tight">
-            <p className="text-sm font-medium">{active.name}</p>
-            <p className="text-[11px] text-muted-foreground">{active.blurb}</p>
+            <p className="text-sm font-bold">{active.name}</p>
+            <p className={active.kind === "dating" ? "text-[11px] font-bold text-red-500" : "text-[11px] text-muted-foreground"}>{active.kind === "dating" ? "DATING MESSAGE · FREE FOR 72 HOURS" : "Direct message · 1 BC per message"}</p>
           </div>
         </div>
 
-        <div className="max-h-[50vh] min-h-48 space-y-2.5 overflow-y-auto bg-secondary/20 p-3">
+        <div className="min-h-0 flex-1 space-y-2.5 overflow-y-auto bg-secondary/20 p-3 sm:p-5">
           {active.messages.length === 0 ? (
             <p className="py-8 text-center text-sm text-muted-foreground">
               Say something first. Dating Chat is free for the first 72 hours.
@@ -288,7 +293,7 @@ function MessagesPage() {
         </div>
 
         <form
-          className="flex gap-2 border-t border-border p-3"
+          className="sticky bottom-0 flex gap-2 border-t border-border bg-card p-3 sm:p-4"
           onSubmit={(e) => {
             e.preventDefault();
             if (!draft.trim()) return;
@@ -297,11 +302,12 @@ function MessagesPage() {
           }}
         >
           <Input
+            className="h-12 rounded-2xl px-4"
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
             placeholder={active.kind === "dating" ? "Type a message (free for 72h)…" : "Type a message (1 BC)…"}
           />
-          <Button type="submit" className="shrink-0">
+          <Button type="submit" className="h-12 w-12 shrink-0 rounded-2xl">
             <Send className="size-4" />
           </Button>
         </form>
