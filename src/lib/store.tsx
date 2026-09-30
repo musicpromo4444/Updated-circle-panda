@@ -171,6 +171,10 @@ export type SpinPrize = {
   blurb: string;
   /** relative rarity weight; higher = more likely */
   weight: number;
+  qualificationId?: string;
+  qualificationStageId?: string;
+  qualificationForm?: Record<string, unknown>;
+  requiresQualification?: boolean;
 };
 export type SweepWinner = { draw: DrawKind; name: string; prize: string; wonAt: number };
 
@@ -1121,6 +1125,20 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       await syncCoins();
     }
     if (data.prize_type === "vip") await syncAccountEntitlements();
+    let qualificationStage: any = null;
+    if (data.qualification_id) {
+      const { data: stage } = await (supabase as any)
+        .from("cp_reward_stages")
+        .select("id,form_config,title,instructions")
+        .eq("campaign_id", campaign.id)
+        .eq("stage_number", 1)
+        .eq("enabled", true)
+        .not("released_at", "is", null)
+        .order("stage_number", { ascending: true })
+        .limit(1)
+        .maybeSingle();
+      qualificationStage = stage ?? null;
+    }
     setState((current) => ({ ...current, lastSpinAt: Date.now() }));
     if (slice) {
       toast.success(`You won ${data.title}! ${data.emoji ?? ""}`, {
@@ -1129,7 +1147,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           : slice.blurb,
       });
     }
-    return slice ?? {
+    const result: SpinPrize = slice ? { ...slice } : {
       id: String(data.prize_id ?? "reward"),
       title: String(data.title ?? "Reward"),
       label: String(data.title ?? "Reward"),
@@ -1141,6 +1159,13 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       rarity: "common",
       blurb: String(data.description ?? ""),
       weight: 1,
+    };
+    return {
+      ...result,
+      qualificationId: data.qualification_id ?? undefined,
+      qualificationStageId: qualificationStage?.id ?? undefined,
+      qualificationForm: qualificationStage?.form_config ?? undefined,
+      requiresQualification: Boolean(data.qualification_id && qualificationStage?.id),
     };
   }, [dbUserId, syncCoins, syncAccountEntitlements]);
 
