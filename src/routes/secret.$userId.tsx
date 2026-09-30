@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft, Copy, Eye, Lock, Send, Share2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -15,13 +15,13 @@ export const Route = createFileRoute("/secret/$userId")({
 
 function SecretProfilePage() {
   const { userId } = Route.useParams();
-  const navigate = useNavigate();
   const [profile, setProfile] = useState<SharedProfile | null>(null);
   const [secrets, setSecrets] = useState<Secret[]>([]);
   const [content, setContent] = useState("");
   const [loading, setLoading] = useState(true);
   const [signedIn, setSignedIn] = useState(false);
   const [posting, setPosting] = useState(false);
+  const [justPosted, setJustPosted] = useState(false);
 
   useEffect(() => {
     void (async () => {
@@ -37,15 +37,7 @@ function SecretProfilePage() {
     })();
   }, [userId]);
 
-  const requireAccount = (action: string) => {
-    if (signedIn) return true;
-    toast("Please sign up or log in", { description: action });
-    void navigate({ to: "/register", search: { redirect: "/secret/" + userId } as any });
-    return false;
-  };
-
   const submit = async () => {
-    if (!requireAccount("Create an account to post a secret about this Panda.")) return;
     if (content.trim().length < 3) return toast.error("Write at least 3 characters.");
     setPosting(true);
     const { data, error } = await (supabase as any).rpc("submit_profile_secret", { p_target_user_id: userId, p_content: content.trim() });
@@ -53,6 +45,7 @@ function SecretProfilePage() {
     if (error) return toast.error(error.message);
     if (data) setSecrets((current) => [{ id: String(data), content: content.trim(), created_at: new Date().toISOString() }, ...current]);
     setContent("");
+    setJustPosted(true);
     toast.success("Secret posted anonymously.");
   };
 
@@ -106,16 +99,21 @@ function SecretProfilePage() {
             )) : <p className="rounded-2xl border border-dashed border-border p-6 text-center text-sm text-muted-foreground">No secrets yet. Be the first.</p>}
           </div>
 
-          {!signedIn ? (
-            <div className="mt-4 rounded-2xl border border-primary/25 bg-primary/5 p-4">
-              <p className="text-sm font-bold">Please sign up to post a secret or view the full profile.</p>
-              <p className="mt-1 text-xs text-muted-foreground">Your secret will appear anonymously.</p>
-              <Link to="/register" search={{ redirect: "/secret/" + userId } as any} className="mt-3 inline-flex w-full items-center justify-center rounded-xl bg-primary px-4 py-3 text-sm font-black text-primary-foreground">Sign up to continue</Link>
-            </div>
-          ) : (
+          <div className="mt-4 rounded-2xl border border-primary/25 bg-primary/5 p-4">
+            <p className="text-sm font-bold">Anyone can post a secret — no account required.</p>
+            <p className="mt-1 text-xs text-muted-foreground">Post anonymously first. After posting, you can create a free Circle Panda account and share your own Secret Profile.</p>
+          </div>
+          {!justPosted ? (
             <div className="mt-4 space-y-3">
               <textarea value={content} onChange={(e) => setContent(e.target.value)} maxLength={1000} placeholder="Write a secret about this Panda…" className="cp-input min-h-28 w-full resize-y" />
               <Button className="w-full rounded-2xl" disabled={posting || content.trim().length < 3} onClick={() => void submit()}>{posting ? "Posting…" : <><Send className="mr-2 size-4" /> Post secret anonymously</>}</Button>
+            </div>
+          ) : (
+            <div className="mt-4 rounded-2xl border border-primary/30 bg-primary/5 p-4 text-center">
+              <p className="text-sm font-bold">Your secret has been posted anonymously.</p>
+              <p className="mt-1 text-xs text-muted-foreground">Want to share your own Secret Profile? Create a free Circle Panda account.</p>
+              <Link to="/register" search={{ redirect: "/secret/" + userId } as any} className="mt-3 inline-flex w-full items-center justify-center rounded-xl bg-primary px-4 py-3 text-sm font-black text-primary-foreground">Create my free account</Link>
+              <Button variant="ghost" className="mt-1 w-full" onClick={() => setJustPosted(false)}>Post another secret</Button>
             </div>
           )}
         </section>
