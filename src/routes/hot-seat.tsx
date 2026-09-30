@@ -171,7 +171,6 @@ function HotSeatPage() {
   const [muted, setMuted] = useState(true);
   const [windowSeconds, setWindowSeconds] = useState(0);
   const [likeCount, setLikeCount] = useState(0);
-  const [isFollowing, setIsFollowing] = useState(false);
   const [questions, setQuestions] = useState<HotSeatQuestion[]>([]);
   const [chatMessages, setChatMessages] = useState<LiveChatMessage[]>([]);
   const [giftBanner, setGiftBanner] = useState<string | null>(null);
@@ -418,23 +417,6 @@ function HotSeatPage() {
       if (error) throw error;
       setLikeCount(Number(data?.count ?? 0));
     }).catch((error:any) => toast.error(error?.message ?? "Could not update like."));
-  };
-
-  // Follow toggle
-  const handleToggleFollow = () => {
-    if (!userId || !activeHost) { toast.error("Sign in while a Hot Seat host is live."); return; }
-    setIsFollowing((prev) => {
-      const next = !prev;
-      if (userId && activeHost) void (next ? (supabase as any).from("hot_seat_follows").upsert({host_id:activeHost?.id,user_id:userId}) : (supabase as any).from("hot_seat_follows").delete().eq("host_id",activeHost?.id).eq("user_id",userId));
-      if (next) {
-        toast.success(`Following ${activeHost?.alias ?? "the host"}! 🐼`, {
-          description: "You'll be notified when upcoming Hot Seat sessions go live.",
-        });
-      } else {
-        toast(`Unfollowed ${activeHost?.alias ?? "the host"}`);
-      }
-      return next;
-    });
   };
 
   // Ask question
@@ -787,8 +769,6 @@ function HotSeatPage() {
         <FloatingActionColumn
           likeCount={likeCount}
           commentCount={questions.length}
-          isFollowing={isFollowing}
-          onToggleFollow={handleToggleFollow}
           onOpenHostProfile={() => {
             if (activeHost) setHostProfileOpen(true);
             else toast.info("A live host profile will appear when the next Hot Seat starts.");
@@ -852,8 +832,6 @@ function HotSeatPage() {
         open={hostProfileOpen && Boolean(activeHost)}
         onOpenChange={setHostProfileOpen}
         windowSeconds={windowSeconds}
-        isFollowing={isFollowing}
-        onToggleFollow={handleToggleFollow}
         onOpenWaitingRoom={() => setWaitingRoomOpen(true)}
         hostName={activeHost?.alias ?? ""}
         reputation={Number(activeHost?.reputation ?? 0)}
