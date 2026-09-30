@@ -76,7 +76,7 @@ function SponsorCard({ compact = false }: { compact?: boolean }) {
   </div>;
 }
 
-function GameModal({ activity, onClose, onDone }: { activity: Activity; onClose: () => void; onDone: () => void }) {
+export function GameModal({ activity, onClose, onDone }: { activity: Activity; onClose: () => void; onDone: () => void }) {
   const { syncCoins } = useStore();
   const slug = activity.activity_type;
   const [phase, setPhase] = useState<"play" | "ad" | "result" | "secret-choice">("play");
