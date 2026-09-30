@@ -932,8 +932,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, [dbUserId]);
 
   const voteFor = useCallback((id: string) => {
-    if (!dbUserId) { toast.error("Sign in to vote"); return; }
     void (async()=>{
+      const { data: authData } = await supabase.auth.getUser();
+      if (!authData.user || authData.user.is_anonymous) { toast.error("Sign in to vote"); return; }
       const { data: voteData, error } = await (supabase as any).rpc("cast_crush_vote_secure", { p_nominee_id: id });
       if (error) { toast.error(error.message ?? "Vote could not be counted"); return; }
       const { data: results } = await (supabase as any).rpc("get_crush_results", { p_week_start: new Date(Date.now() - ((new Date().getDay() + 6) % 7) * 86400000).toISOString().slice(0,10) });
@@ -941,7 +942,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       setState((s) => ({ ...s, coins: voteData?.charged_bc ? Math.max(0, s.coins - Number(voteData.charged_bc)) : s.coins, votesUsedToday: Number(voteData?.free_votes_used ?? s.votesUsedToday), voteDay: todayKey(), votedIds: s.votedIds.includes(id) ? s.votedIds : [...s.votedIds,id], nominees: s.nominees.map((n) => ({...n,votes:counts.get(n.id) ?? n.votes})) }));
       toast.success(voteData?.charged_bc ? "Vote counted · 1 BC" : "Vote counted 💗");
     })();
-  }, [dbUserId]);
+  }, []);
 
   /** Server-authoritative WCW/MCM weekly close. */
   useEffect(() => {
