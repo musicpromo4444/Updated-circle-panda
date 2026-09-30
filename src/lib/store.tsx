@@ -67,22 +67,11 @@ export type Thread = {
   startedAt?: number;
 };
 export type PandaEvent = {
-  id: string;
-  title: string;
-  tag: string;
-  date: string;
-  time: string;
-  place: string;
-  cost: number;
-  blurb: string;
-  details: string;
-  rsvp: boolean;
-  reachScope?: "worldwide" | "country" | "state" | "city" | "area";
-  reachCountry?: string;
-  reachState?: string;
-  reachCity?: string;
-  reachArea?: string;
-  durationMinutes?: number;
+  id: string; title: string; tag: string; date: string; time: string; place: string;
+  cost: number; currency?: string; blurb: string; details: string; rsvp: boolean;
+  coverUrl?: string; venueName?: string; addressLine?: string; country?: string;
+  stateProvince?: string; city?: string; area?: string; latitude?: number | null; longitude?: number | null;
+  reachScope?: "worldwide" | "country" | "state" | "city" | "area"; reachCountry?: string; reachState?: string; reachCity?: string; reachArea?: string; durationMinutes?: number;
 };
 
 export type DatingProfile = {
@@ -524,7 +513,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         (supabase as any).from("cp_threads").select("id,owner_id,participant_id,other_alias,kind,blurb,created_at").order("created_at", {ascending:false}).limit(100),
         (supabase as any).from("cp_thread_messages").select("id,thread_id,user_id,body,created_at,message_type,media_path").order("created_at", {ascending:true}).limit(2000),
         (supabase as any).from("group_settings").select("group_id,edit_group_info,send_messages,approve_new_members"),
-        (supabase as any).from("events").select("id,title,description,location,starts_at,ends_at,category,entry_fee_bc,duration_minutes,reach_scope,reach_country,reach_state,reach_city,reach_area,cover_url,is_published,owner_id").eq("is_published",true).order("starts_at", {ascending:true}),
+        (supabase as any).from("events").select("id,title,description,location,starts_at,ends_at,category,entry_fee_bc,entry_fee_amount,entry_fee_currency,duration_minutes,reach_scope,reach_country,reach_state,reach_city,reach_area,cover_url,venue_name,address_line,country,state_province,city,area,latitude,longitude,is_published,owner_id").eq("is_published",true).order("starts_at", {ascending:true}),
         (supabase as any).from("event_attendees").select("event_id,user_id"),
         (supabase as any).rpc("get_dating_discovery_secure", { p_age_min:18,p_age_max:99,p_same_country_only:true }),
         (supabase as any).from("dating_profiles").select("user_id,name,age,vibe,emoji,bio,interests,location,country,gender,relationship_goal,looking_for,lifestyle,personality,love_language,smoking,drinking,children,education,occupation,sexual_experience,intimacy_preference,relationship_status,height_cm,zodiac,favorite_date,photo_path,blurred_photo_path,updated_at").eq("user_id",uid).maybeSingle(),
@@ -548,7 +537,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         return {id:g.id,name:g.name,topic:g.topic,ownerId:g.owner_id,memberRole:g.member_role,editGroupInfo:settings?.edit_group_info ?? "admins",sendMessages:settings?.send_messages ?? true,approveNewMembers:settings?.approve_new_members ?? false,joinPending:Boolean(g.join_pending),members:Number(g.member_count ?? 0),openedAt:g.activated_at?new Date(g.activated_at).getTime():null,messages:groupMessages.filter((m:any)=>m.group_id===g.id).map((m:any)=>({id:m.id,author:m.author_id===uid?"You (anonymous)":"Anonymous Panda",body:m.body,at:new Date(m.created_at).getTime(),mine:m.author_id===uid}))};
       });
       const attendees = attendeesRes.data ?? [];
-      const events = (eventsRes.data ?? []).map((e:any)=>({id:e.id,title:e.title,tag:e.category ?? "Meetup",date:e.starts_at?new Date(e.starts_at).toLocaleDateString():"",time:e.starts_at?`${new Date(e.starts_at).toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"})}${e.ends_at ? ` · ${Math.max(1,Math.round((new Date(e.ends_at).getTime()-new Date(e.starts_at).getTime())/60000))} min` : ""}`:"",place:e.location??"",cost:Number(e.entry_fee_bc ?? 0),blurb:e.description,details:e.description,rsvp:attendees.some((a:any)=>a.event_id===e.id&&a.user_id===uid),reachScope:e.reach_scope ?? "worldwide",reachCountry:e.reach_country ?? "",reachState:e.reach_state ?? "",reachCity:e.reach_city ?? "",reachArea:e.reach_area ?? "",durationMinutes:Number(e.duration_minutes ?? 120)}));
+      const events = (eventsRes.data ?? []).map((e:any)=>({id:e.id,title:e.title,tag:e.category ?? "Meetup",date:e.starts_at?new Date(e.starts_at).toLocaleDateString():"",time:e.starts_at?`${new Date(e.starts_at).toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"})}${e.ends_at ? ` · ${Math.max(1,Math.round((new Date(e.ends_at).getTime()-new Date(e.starts_at).getTime())/60000))} min` : ""}`:"",place:e.location??"",cost:Number(e.entry_fee_amount ?? 0),currency:e.entry_fee_currency ?? "NGN",blurb:e.description,details:e.description,rsvp:attendees.some((a:any)=>a.event_id===e.id&&a.user_id===uid),reachScope:e.reach_scope ?? "worldwide",reachCountry:e.reach_country ?? "",reachState:e.reach_state ?? "",reachCity:e.reach_city ?? "",reachArea:e.reach_area ?? "",durationMinutes:Number(e.duration_minutes ?? 120),coverUrl:e.cover_url ?? "",venueName:e.venue_name ?? "",addressLine:e.address_line ?? "",country:e.country ?? "",stateProvince:e.state_province ?? "",city:e.city ?? "",area:e.area ?? "",latitude:e.latitude ?? null,longitude:e.longitude ?? null}));
       const dating = datingOwnRes.data;
       const crushCounts = new Map<string, number>((crushResultsRes.data ?? []).map((r:any)=>[r.nominee_id, Number(r.vote_count ?? r.votes ?? 0)]));
       const nominees = (crushResultsRes.data ?? []).map((n:any)=>({id:n.nominee_id,name:n.display_name,kind:n.kind,emoji:n.emoji,blurb:n.blurb,votes:Number(n.vote_count ?? 0),avatarUrl:n.media_url,mediaUrl:n.media_url,mediaType:n.media_type,mine:Boolean(n.mine)}));
@@ -995,34 +984,22 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const createEvent = useCallback((eventData: Omit<PandaEvent, "id" | "rsvp">): PandaEvent => {
     const localId = crypto.randomUUID();
     const optimistic: PandaEvent = { ...eventData, id: localId, rsvp: false };
-    if (!dbUserId) {
-      toast.error("Sign in to create an event");
-      return optimistic;
-    }
+    if (!dbUserId) { toast.error("Sign in to create an event"); return optimistic; }
     void (async () => {
       const startsAt = eventData.date ? new Date(eventData.date).toISOString() : new Date(Date.now() + 60 * 60 * 1000).toISOString();
-      const durationMatch = String(eventData.time || "120").toLowerCase().match(/(\d+(?:\.\d+)?)\s*(hour|hr|h|minute|min|m)/);
-      const rawDuration = durationMatch ? Number(durationMatch[1]) * (/hour|hr|h/.test(durationMatch[2]) ? 60 : 1) : Number(eventData.time);
-      const durationMinutes = Math.max(15, Math.min(10080, Number.isFinite(rawDuration) && rawDuration > 0 ? Math.round(rawDuration) : 120));
+      const durationMinutes = Math.max(15, Math.min(10080, Number(eventData.durationMinutes) || 120));
       const endsAt = new Date(new Date(startsAt).getTime() + durationMinutes * 60 * 1000).toISOString();
       const { data, error } = await (supabase as any).rpc("create_event_secure", {
-        p_title: eventData.title,
-        p_description: eventData.details || eventData.blurb,
-        p_location: eventData.place,
-        p_starts_at: startsAt,
-        p_ends_at: endsAt,
-        p_category: eventData.tag,
-        p_entry_fee_bc: Math.max(0, Math.floor(Number(eventData.cost) || 0)),
-        p_duration_minutes: durationMinutes,
-        p_reach_scope: eventData.reachScope ?? "worldwide",
-        p_reach_country: eventData.reachCountry ?? null,
-        p_reach_state: eventData.reachState ?? null,
-        p_reach_city: eventData.reachCity ?? null,
-        p_reach_area: eventData.reachArea ?? null,
+        p_title:eventData.title,p_description:eventData.details || eventData.blurb,p_location:eventData.place,p_starts_at:startsAt,p_ends_at:endsAt,
+        p_category:eventData.tag,p_entry_fee_bc:0,p_duration_minutes:durationMinutes,p_reach_scope:eventData.reachScope ?? "worldwide",
+        p_reach_country:eventData.reachCountry ?? null,p_reach_state:eventData.reachState ?? null,p_reach_city:eventData.reachCity ?? null,p_reach_area:eventData.reachArea ?? null,
+        p_entry_fee_amount:Math.max(0,Number(eventData.cost)||0),p_entry_fee_currency:eventData.currency ?? "NGN",p_venue_name:eventData.venueName ?? null,
+        p_address_line:eventData.addressLine ?? null,p_country:eventData.country ?? null,p_state_province:eventData.stateProvince ?? null,p_city:eventData.city ?? null,p_area:eventData.area ?? null,
+        p_latitude:eventData.latitude ?? null,p_longitude:eventData.longitude ?? null,p_cover_url:eventData.coverUrl ?? null,
       });
       if (error) { toast.error(error.message ?? "Could not publish event"); return; }
-      setState((s) => ({ ...s, events: [{ ...optimistic, id: data.id }, ...s.events] }));
-      void (supabase as any).rpc("record_activity_participation", { p_activity_id: null, p_activity_type: "event_created", p_reference_id: data.id, p_points: 5 });
+      setState(s=>({...s,events:[{...optimistic,id:data.id},...s.events]}));
+      void (supabase as any).rpc("record_activity_participation",{p_activity_id:null,p_activity_type:"event_created",p_reference_id:data.id,p_points:5});
       toast.success("Event published 🐼");
     })();
     return optimistic;
