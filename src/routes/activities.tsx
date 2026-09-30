@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { supabase } from "@/integrations/supabase/client";
 import { SpinWheel } from "@/components/SpinWheel";
 import { PlayableVideoAd } from "@/components/ads/PlayableVideoAd";
+import { StandardBannerAd } from "@/components/ads/StandardBannerAd";
 import { useStore } from "@/lib/store";
 
 export const Route = createFileRoute("/activities")({
@@ -64,16 +65,7 @@ function iconFor(type: string) {
 }
 
 function SponsorCard({ compact = false }: { compact?: boolean }) {
-  return <div className={`rounded-2xl border border-border/70 bg-card overflow-hidden ${compact ? "" : "mb-3"}`}>
-    <div className="flex items-center justify-between border-b border-border/60 px-3 py-2">
-      <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground">Sponsored</span>
-      <span className="rounded-full bg-primary/10 px-2 py-1 text-[9px] font-bold text-primary">AD</span>
-    </div>
-    <div className="p-3">
-      <p className="text-sm font-semibold">Circle Panda sponsor</p>
-      <p className="mt-1 text-xs text-muted-foreground">A short sponsor message appears before the result reveal.</p>
-    </div>
-  </div>;
+  return <StandardBannerAd placement="home_inline" variant={compact ? "compact" : "card"} className={compact ? "mb-2" : "mb-3"} />;
 }
 
 export function GameModal({ activity, onClose, onDone }: { activity: Activity; onClose: () => void; onDone: () => void }) {
@@ -316,7 +308,7 @@ export function GameModal({ activity, onClose, onDone }: { activity: Activity; o
           {slug === "wheel_spin" ? <div className="text-center"><div className="mx-auto grid size-44 place-items-center rounded-full border-8 border-primary/30 bg-primary/10 text-6xl">🎡</div><p className="mt-3 text-sm text-muted-foreground">{started ? "Choose your wheel lane." : "Spin once to begin."}</p>{!started ? <Button className="mt-4 w-full" disabled={busy} onClick={() => void startChoiceGame()}>Spin Wheel</Button> : <div className="mt-4 grid grid-cols-3 gap-2">{[0,1,2].map(i=><Button key={i} variant="outline" onClick={() => void finishChoiceGame(i)}>Lane {i+1}</Button>)}</div>}</div> : null}
           {slug === "mystery_box" ? <div className="space-y-3">{!started ? <Button className="w-full" disabled={busy} onClick={() => void startChoiceGame()}>Open Mystery Box</Button> : <div className="grid grid-cols-3 gap-3">{[0,1,2].map(i => <button key={i} className="grid aspect-square place-items-center rounded-2xl border border-border bg-card text-5xl active:scale-95" onClick={() => void finishChoiceGame(i)}>🎁</button>)}</div>}</div> : null}
           {slug === "target" ? <div className="space-y-3"><div className="grid min-h-64 place-items-center rounded-3xl border border-border bg-secondary/20"><button className="grid size-28 place-items-center rounded-full border-8 border-primary/40 bg-primary/10 text-5xl" disabled={busy || !started} onClick={() => setTargetHits(v => v+1)}>🎯</button></div><p className="text-center text-sm">Hits: {targetHits}/5</p>{!started ? <Button className="w-full" disabled={busy} onClick={() => void startChoiceGame()}>Start Target</Button> : <Button className="w-full" disabled={busy} onClick={() => void finishChoiceGame()}>Lock Target</Button>}</div> : null}
-          {slug === "guess_sponsor" ? <div className="space-y-3">{!started ? <Button className="w-full" disabled={busy} onClick={() => void startChoiceGame()}>Reveal Sponsor Challenge</Button> : <div className="grid gap-2">{["Panda Cola","Panda Mobile","Panda Fashion"].map((x,i)=><Button key={x} variant="outline" onClick={() => void finishChoiceGame(i)}>{x}</Button>)}</div>}</div> : null}
+          {slug === "guess_sponsor" ? <div className="space-y-3">{!started ? <Button className="w-full" disabled={busy} onClick={() => void startChoiceGame()}>Reveal Sponsor Challenge</Button> : <div className="grid gap-2">{[0,1,2].map((i)=><Button key={i} variant="outline" onClick={() => void finishChoiceGame(i)}>Option {i + 1}</Button>)}</div>}</div> : null}
           {slug === "puzzle" ? <div className="space-y-3"><div className="rounded-2xl border border-border p-4 text-center text-sm font-semibold">{puzzleQuestion}</div>{!puzzle.length ? <Button className="w-full" disabled={busy} onClick={() => void loadPuzzle()}>Load Puzzle</Button> : <><div className="grid gap-2">{puzzle.map((x)=><Button key={x} variant={answer[0]===x ? "secondary" : "outline"} disabled={busy} onClick={() => setAnswer([x])}>{x}</Button>)}</div><Button className="w-full" disabled={busy || answer.length!==1} onClick={() => void completePuzzle()}>Check Answer</Button></>}</div> : null}
           {(slug === "coin_drop" || slug === "slots") ? <div className="space-y-3 text-center"><div className="rounded-3xl border border-border bg-secondary/20 p-8"><Timer className="mx-auto size-8 text-primary"/><p className="mt-2 font-display text-4xl font-black">{started ? timer : 60}s</p><p className="text-sm text-muted-foreground">{slug === "coin_drop" ? "Catch coins 🪙 and avoid stones 🪨." : "Keep the neon reels running until the reveal."}</p></div>{!started ? <Button className="w-full" disabled={busy} onClick={() => void play()}>Start {title}</Button> : <p className="text-xs text-muted-foreground">Game running… the server controls the final reward.</p>}</div> : null}
           {slug === "lucky_card" ? <div className="grid grid-cols-3 gap-3">{[0,1,2].map(i=><button key={i} className="grid aspect-[3/4] place-items-center rounded-2xl border border-border bg-card text-4xl" disabled={busy} onClick={() => void choose(i)}>🃏</button>)}</div> : null}
