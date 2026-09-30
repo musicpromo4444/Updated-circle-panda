@@ -25,7 +25,7 @@ export function QuickVoteSignup({ open, onOpenChange, onComplete }: { open: bool
       </DialogHeader>
       {step === "account" ? <form onSubmit={async e => {
         e.preventDefault(); if (!identifier.trim() || password.trim().length < 6) { toast.error("Enter a phone/email and a password of at least 6 characters"); return; }
-        setBusy(true); try {
+        setBusy(true); try {\n          await supabase.auth.signOut();
           const value = identifier.trim(); const result = value.includes("@") ? await supabase.auth.signUp({ email: value, password, options: { data: { name: `Panda #${Math.floor(1000 + Math.random() * 9000)}` } } }) : await supabase.auth.signUp({ phone: value, password, options: { data: { name: `Panda #${Math.floor(1000 + Math.random() * 9000)}`, phone_number: value } } }); const { error, data } = result;
           if (error) { toast.error("Signup failed", { description: error.message }); return; }
           if (!data.session) { toast.message("Verification required", { description: "Finish the verification, then return to Circle Panda to vote." }); return; }
