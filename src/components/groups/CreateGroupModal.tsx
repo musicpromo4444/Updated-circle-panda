@@ -27,6 +27,9 @@ export function CreateGroupModal({
 
   const [name, setName] = useState("");
   const [topic, setTopic] = useState("");
+  const [country, setCountry] = useState("");
+  const [city, setCity] = useState("");
+  const [area, setArea] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,13 +42,16 @@ export function CreateGroupModal({
       return;
     }
 
-    const group = await createGroup(name.trim(), topic.trim());
+    const group = await createGroup(name.trim(), topic.trim(), country.trim(), "", city.trim(), area.trim());
     if (!group) return;
 
 
 
     setName("");
     setTopic("");
+    setCountry("");
+    setCity("");
+    setArea("");
     onOpenChange(false);
 
     void navigate({ to: "/groups/$groupId", params: { groupId: group.id } });
@@ -81,6 +87,13 @@ export function CreateGroupModal({
               required
             />
           </div>
+
+          {/* Location */}
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div><label className="mb-1 block text-xs font-semibold text-muted-foreground">Country</label><Input value={country} onChange={(e) => setCountry(e.target.value)} placeholder="e.g. Nigeria" /></div>
+            <div><label className="mb-1 block text-xs font-semibold text-muted-foreground">City / Area</label><Input value={city} onChange={(e) => setCity(e.target.value)} placeholder="e.g. Port Harcourt" /></div>
+          </div>
+          <div><label className="mb-1 block text-xs font-semibold text-muted-foreground">Neighbourhood / Area (optional)</label><Input value={area} onChange={(e) => setArea(e.target.value)} placeholder="e.g. GRA" /></div>
 
           {/* Topic */}
           <div>
