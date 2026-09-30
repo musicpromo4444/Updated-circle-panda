@@ -161,12 +161,12 @@ function EventsPage() {
           <DialogHeader>
             <DialogTitle className="font-display text-2xl">🚀 Event Blast</DialogTitle>
           </DialogHeader>
-          <p className="text-sm text-muted-foreground">Promote <strong>{current?.title}</strong> for 60 minutes. Reach is measured in unique users; notification capacity can reach up to 200% of the purchased reach.</p>
+          <p className="text-sm text-muted-foreground">Promote <strong>{current?.title}</strong> for {plans[0]?.duration_minutes ?? 60} minutes. Your purchased reach is the base audience, plus up to <strong>20% extra notification reach</strong> at no additional cost.</p>
           <div className="space-y-3">
             {plans.map((plan) => (
               <div key={plan.id} className="rounded-2xl border border-border p-4">
                 <div className="flex items-center justify-between gap-3">
-                  <div><p className="font-semibold">{plan.name}</p><p className="text-xs text-muted-foreground">{plan.unique_reach.toLocaleString()} unique users · 60 min</p></div>
+                  <div><p className="font-semibold">{plan.name}</p><p className="text-xs text-muted-foreground">{plan.unique_reach.toLocaleString()} base reach · up to {(Math.ceil(plan.unique_reach * 1.2)).toLocaleString()} notifications (+20%) · {plan.duration_minutes} min</p></div>
                   <p className="font-bold">${Number(plan.price_usd).toFixed(2)}</p>
                 </div>
                 <div className="mt-3 flex flex-wrap gap-2">
