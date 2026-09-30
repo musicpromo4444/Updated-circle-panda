@@ -730,111 +730,36 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     [state.hotSeats],
   );
 
+  // Hot Seat is server-owned. The client never fabricates hosts, queues, timers, or balances.
   const startHotSeat = useCallback((groupId: string) => {
-    setState((s) => {
-      if (s.hotSeats.some((h) => h.group_id === groupId)) return s;
-      const session: HotSeatSession = {
-        group_id: groupId,
-        current_user_id: ME_ID,
-        current_user_name: "You (anonymous)",
-        started_at: Date.now(),
-        duration_seconds: HOT_SEAT_DEFAULT_SECONDS,
-        queue: [],
-      };
-      return {
-        ...s,
-        hotSeats: [...s.hotSeats, session],
-        groups: s.groups.map((g) =>
-          g.id === groupId
-            ? {
-                ...g,
-                messages: [
-                  ...g.messages,
-                  {
-                    id: rid(),
-                    author: "Circle Panda",
-                    body: "🔥 Hot Seat mode started — you're up first for 5 minutes.",
-                    at: Date.now(),
-                  },
-                ],
-              }
-            : g,
-        ),
-      };
-    });
-    toast.success("Hot Seat mode on 🔥", {
-      description: "You're in the seat for 5:00. Next up queued.",
-    });
+    if (!dbUserId) { toast.error("Sign in to use Hot Seat"); return; }
+    if (!dbIsAdmin) { toast.error("Hot Seat sessions are started by the host/admin"); return; }
+    toast.error("Use the Hot Seat Admin controls to start a live session");
+  }, [dbUserId, dbIsAdmin]);
+
+  const stopHotSeat = useCallback((_groupId: string) => {
+    toast.error("Live Hot Seat sessions are ended from the host/admin controls");
   }, []);
 
-  const stopHotSeat = useCallback((groupId: string) => {
-    setState((s) => ({ ...s, hotSeats: s.hotSeats.filter((h) => h.group_id !== groupId) }));
+  const rotateHotSeat = useCallback((_groupId: string) => {
+    toast.error("Hot Seat rotation is controlled by the live server session");
   }, []);
 
-  const rotateHotSeat = useCallback((groupId: string) => {
-    setState((s) => ({
-      ...s,
-      hotSeats: s.hotSeats.map((h) => {
-        if (h.group_id !== groupId || h.queue.length === 0) return h;
-        const [next, ...rest] = h.queue;
-        return {
-          ...h,
-          current_user_id: next === "You (anonymous)" ? ME_ID : next!,
-          current_user_name: next!,
-          started_at: Date.now(),
-          duration_seconds: HOT_SEAT_DEFAULT_SECONDS,
-          queue: [...rest, h.current_user_name],
-        };
-      }),
-    }));
+  const joinHotSeatQueue = useCallback(async (_groupId: string) => {
+    if (!dbUserId) { toast.error("Sign in to join the Hot Seat queue"); return; }
+    const { data, error } = await (supabase as any).rpc("join_hot_seat_queue_secure", { p_bid_bc: 5 });
+    if (error) { toast.error(error.message ?? "Could not join the Hot Seat queue"); return; }
+    await syncCoins();
+    const position = data?.position ? " Queue position " + Number(data.position) + "." : "";
+    toast.success("You joined the Hot Seat queue 🔥", { description: "Your place is secured server-side." + position });
+  }, [dbUserId, syncCoins]);
+
+  const useSkipPass = useCallback((_groupId: string) => {
+    toast.error("Skip-the-queue passes are only granted and consumed by verified server-side rewards.");
   }, []);
 
-  const joinHotSeatQueue = useCallback((groupId: string) => {
-    let joined = false;
-    setState((s) => ({
-      ...s,
-      hotSeats: s.hotSeats.map((h) => {
-        if (h.group_id !== groupId) return h;
-        if (h.current_user_id === ME_ID || h.queue.includes("You (anonymous)")) return h;
-        joined = true;
-        return { ...h, queue: [...h.queue, "You (anonymous)"] };
-      }),
-    }));
-    if (joined) toast.success("You joined the Hot Seat queue");
-  }, []);
-
-  const useSkipPass = useCallback((groupId: string) => {
-    let used = false;
-    setState((s) => {
-      if (s.skipPasses < 1) return s;
-      used = true;
-      return {
-        ...s,
-        skipPasses: s.skipPasses - 1,
-        hotSeats: s.hotSeats.map((h) =>
-          h.group_id === groupId
-            ? {
-                ...h,
-                current_user_id: ME_ID,
-                current_user_name: "You (anonymous)",
-                started_at: Date.now(),
-                duration_seconds: HOT_SEAT_DEFAULT_SECONDS,
-                queue: h.queue.filter((q) => q !== "You (anonymous)"),
-              }
-            : h,
-        ),
-      };
-    });
-    toast[used ? "success" : "error"](used ? "Skip-the-queue pass used 🔥" : "No skip passes left");
-  }, []);
-
-  const extendHotSeat = useCallback((groupId: string, seconds: number) => {
-    setState((s) => ({
-      ...s,
-      hotSeats: s.hotSeats.map((h) =>
-        h.group_id === groupId ? { ...h, duration_seconds: h.duration_seconds + seconds } : h,
-      ),
-    }));
+  const extendHotSeat = useCallback((_groupId: string, _seconds: number) => {
+    toast.error("Hot Seat duration is controlled by the live server session");
   }, []);
 
   const markAdShown = useCallback(() => {
@@ -842,9 +767,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const grantSkipPass = useCallback(() => {
-    setState((s) => ({ ...s, skipPasses: s.skipPasses + 1 }));
+    toast.error("Skip passes can only be granted by a verified reward/admin flow.");
   }, []);
-
   const syncCoins = useCallback(async () => {
     if (!dbUserId) return;
     const [bcRes, xpRes] = await Promise.all([
@@ -863,23 +787,13 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     if (!error && data) setState((s) => ({ ...s, isVip: Boolean(data.is_vip && (!data.vip_expires_at || new Date(data.vip_expires_at).getTime() > Date.now())), vipExpiresAt: data.vip_expires_at ? new Date(data.vip_expires_at).getTime() : null }));
   }, [dbUserId]);
 
-  const spendCoins = useCallback((amount: number, reason?: string) => {
-    let ok = false;
-    setState((s) => {
-      if (s.coins < amount) return s;
-      ok = true;
-      return { ...s, coins: s.coins - amount };
-    });
-    if (ok) {
-      toast.success(`-${amount} BC`, reason ? { description: reason } : undefined);
-    } else {
-      toast.error("Not enough Panda Coins", { description: `You need ${amount} BC for this.` });
-    }
-    return ok;
+  const spendCoins = useCallback((_amount: number, _reason?: string) => {
+    toast.error("This action must use a server-authorized Panda Coin transaction.");
+    return false;
   }, []);
 
   const grantFreeSpin = useCallback(() => {
-    setState((s) => ({ ...s, lastSpinAt: null }));
+    toast.error("Free spins are issued by the server reward engine.");
   }, []);
 
   const sendMessage = useCallback((threadId: string, body: string) => {
@@ -1189,18 +1103,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const canSpin = state.lastSpinAt === null || Date.now() - state.lastSpinAt >= SPIN_COOLDOWN_MS;
   const nextSpinAt = state.lastSpinAt === null ? null : state.lastSpinAt + SPIN_COOLDOWN_MS;
 
-  const activateVip = useCallback((days: number) => {
-    setState((s) => {
-      const currentTime = Date.now();
-      const currentExpiry =
-        s.vipExpiresAt && s.vipExpiresAt > currentTime ? s.vipExpiresAt : currentTime;
-      return {
-        ...s,
-        isVip: true,
-        vipExpiresAt: currentExpiry + days * DAY_MS,
-      };
-    });
-  }, []);
+  const activateVip = useCallback((_days: number) => {
+    void syncAccountEntitlements();
+  }, [syncAccountEntitlements]);
 
   const myTicketCount = useCallback(
     (draw: DrawKind) => state.sweepTickets.filter((t) => t.draw === draw).length,
