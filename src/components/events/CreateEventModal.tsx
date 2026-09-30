@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { CalendarPlus, ImagePlus, MapPin, Sparkles, Upload } from "lucide-react";
+import { CalendarPlus, ImagePlus, MapPin, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
