@@ -4,6 +4,7 @@ import { useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { TierBadge } from "@/components/TierBadge";
 import { TimeAgo } from "@/components/TimeAgo";
+import { VipIdentity } from "@/components/VipIdentity";
 import { SharePostSheet } from "@/components/feed/SharePostSheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,6 +32,7 @@ interface MiniHeartParticle {
 
 export function PostCard({ post }: { post: Post }) {
   const { addReply, openPaidDm, threads } = useStore();
+  const vipContent = post.authorVip === true;
   const navigate = useNavigate();
 
   // Dialog & reply states
@@ -157,7 +159,7 @@ export function PostCard({ post }: { post: Post }) {
     <article
       id={`post-${post.id}`}
       onClick={handleCardClick}
-      className="panda-panel relative overflow-hidden rounded-2xl p-4 transition-all hover:border-border/90"
+      className={cn("panda-panel relative overflow-hidden rounded-2xl p-4 transition-all hover:border-border/90", vipContent)}
     >
       {/* Center Big Heart Burst Animation Overlay */}
       {burstHearts.map((burst) => (
@@ -203,9 +205,7 @@ export function PostCard({ post }: { post: Post }) {
 
       {/* Post Header */}
       <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2.5">
-        <span className="grid size-8 shrink-0 place-items-center rounded-full bg-secondary text-sm">
-          🐼
-        </span>
+        <VipIdentity isVip={vipContent} seed={post.authorId ?? post.id} compact />
         <div className="min-w-0 leading-tight">
           <p className="truncate text-sm font-medium">{post.author}</p>
           <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
