@@ -72,6 +72,10 @@ const UNIVERSAL_PLACEMENT_MAP: Partial<Record<AdPlacementTarget, string>> = {
   groups_inline: "groups_inline",
   messages_inline: "messages_inline",
   dating_inline: "dating_inline",
+  secret_profile_slot_1: "secret_profile_slot_1",
+  secret_profile_slot_2: "secret_profile_slot_2",
+  secret_profile_slot_3: "secret_profile_slot_3",
+  secret_profile_slot_4: "secret_profile_slot_4",
 };
 
 export function useActiveAdCreative(placement: AdPlacementTarget) {
@@ -122,7 +126,7 @@ export function useActiveAdCreative(placement: AdPlacementTarget) {
         posterUrl: match.poster_url || undefined, videoUrl: match.video_url || undefined,
         tagline: match.tagline || undefined, durationSeconds: match.duration_seconds || 8,
         skipAfterSeconds: match.skip_after_seconds ?? 5, destinationUrl: match.destination_url || "",
-        placement: match.placement, category: match.category || "Sponsored Partner",
+        placement: match.placement, format: match.format || undefined, category: match.category || "Sponsored Partner",
         callToAction: match.call_to_action || "Learn More", status: match.status,
         impressions: 0, clicks: 0, createdAt: match.created_at || new Date().toISOString(),
       });
