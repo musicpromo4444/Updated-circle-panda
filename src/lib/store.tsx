@@ -505,6 +505,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       setDbUserId(session.user.id);
     void (supabase as any).rpc("get_my_admin_status").then(({data}: any) => setDbIsAdmin(data === true));
       const uid = session.user.id;
+      const viewerCoords = await new Promise<{latitude:number;longitude:number}|null>((resolve) => { if (typeof navigator === "undefined" || !navigator.geolocation) return resolve(null); navigator.geolocation.getCurrentPosition((pos) => resolve({ latitude:pos.coords.latitude, longitude:pos.coords.longitude }), () => resolve(null), { enableHighAccuracy:false, maximumAge:300000, timeout:5000 }); });
       const [st, postsRes, repliesRes, groupsRes, groupMessagesRes, threadsRes, threadMessagesRes, groupSettingsRes, eventsRes, attendeesRes, datingRes, datingOwnRes, coinsRes, xpRes, nomineesRes, crushResultsRes, winnersRes, ticketsRes, crushWinnersRes] = await Promise.all([
         (supabase as any).from("user_app_state").select("state").eq("user_id", uid).maybeSingle(),
         (supabase as any).from("cp_posts").select("id,body,created_at,author_id").order("created_at", {ascending:false}).limit(100),
