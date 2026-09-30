@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { toast } from "sonner";
 import {
   Crown,
@@ -224,7 +224,7 @@ function SweepstakesPage() {
 
       <div className="grid gap-4 md:grid-cols-2">
         {items.map((item, idx) => (
-          <React.Fragment key={item.id}>
+          <Fragment key={item.id}>
             <DailyItemCard
               item={item}
               coins={coins}
@@ -232,7 +232,7 @@ function SweepstakesPage() {
               onBuy={() => buyDailyTicket(item)}
             />
             {(idx + 1) % 4 === 0 ? <StandardBannerAd index={Math.floor(idx / 4)} variant="feed-card" placement="sweepstakes_inline" /> : null}
-          </React.Fragment>
+          </Fragment>
         ))}
       </div>
 
