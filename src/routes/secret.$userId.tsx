@@ -79,11 +79,16 @@ function SecretProfilePage() {
 
         <section className="panda-panel rounded-3xl p-6 text-center">
           <div className="mx-auto grid size-20 place-items-center rounded-full bg-secondary text-4xl">{profile.avatar_url || "🐼"}</div>
-          <h1 className="mt-3 font-display text-2xl font-bold">{profile.display_name}</h1>
-          {profile.country ? <p className="mt-1 text-sm text-muted-foreground">{profile.country}</p> : null}
-          {profile.bio ? <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-muted-foreground">{profile.bio}</p> : null}
+          {signedIn ? <>
+            <h1 className="mt-3 font-display text-2xl font-bold">{profile.display_name}</h1>
+            {profile.country ? <p className="mt-1 text-sm text-muted-foreground">{profile.country}</p> : null}
+            {profile.bio ? <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-muted-foreground">{profile.bio}</p> : null}
+          </> : <>
+            <h1 className="mt-3 font-display text-2xl font-bold blur-sm select-none">Secret Panda</h1>
+            <p className="mt-2 text-sm text-muted-foreground">Please sign up or log in to view this Panda's full profile.</p>
+          </>}
           <div className="mt-4 rounded-2xl border border-primary/20 bg-primary/5 p-3 text-xs text-muted-foreground">
-            <Eye className="mx-auto mb-1 size-4 text-primary" /> This is a shared Circle Panda profile. Sign up or log in to fully view the profile and interact.
+            <Eye className="mx-auto mb-1 size-4 text-primary" /> {signedIn ? "You're signed in. You can view the profile and interact." : "Sign up or log in to unlock the full profile and post secrets."}
           </div>
         </section>
 
