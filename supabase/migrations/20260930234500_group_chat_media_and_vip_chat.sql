@@ -47,14 +47,14 @@ on conflict (id) do update set public=false,file_size_limit=26214400,allowed_mim
 drop policy if exists "group media member read" on storage.objects;
 create policy "group media member read" on storage.objects for select to authenticated
 using (bucket_id='circle-panda-group-media' and (
-  exists (select 1 from public.group_members gm where gm.group_id=split_part(name,'/',1)::uuid and gm.user_id=auth.uid() and gm.left_at is null)
+  exists (select 1 from public.group_members gm where gm.group_id=nullif(split_part(name,'/',1),'vip')::uuid and gm.user_id=auth.uid() and gm.left_at is null)
   or exists (select 1 from public.profiles p where p.id=auth.uid() and p.is_vip=true and (p.vip_expires_at is null or p.vip_expires_at>now()) and split_part(name,'/',1)='vip')
 ));
 
 drop policy if exists "group media member upload" on storage.objects;
 create policy "group media member upload" on storage.objects for insert to authenticated
 with check (bucket_id='circle-panda-group-media' and split_part(name,'/',2)=auth.uid()::text and (
-  exists (select 1 from public.group_members gm where gm.group_id=split_part(name,'/',1)::uuid and gm.user_id=auth.uid() and gm.left_at is null)
+  exists (select 1 from public.group_members gm where gm.group_id=nullif(split_part(name,'/',1),'vip')::uuid and gm.user_id=auth.uid() and gm.left_at is null)
   or (split_part(name,'/',1)='vip' and exists (select 1 from public.profiles p where p.id=auth.uid() and p.is_vip=true and (p.vip_expires_at is null or p.vip_expires_at>now()))
 ));
 
