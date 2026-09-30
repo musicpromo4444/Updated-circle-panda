@@ -154,7 +154,7 @@ export function GiftDrawer({
 
           <div className="grid grid-cols-3 gap-2.5 my-3">
             {gifts.map((g) => {
-              const isSelected = selectedGift.id === g.id;
+              const isSelected = selectedGift?.id === g.id;
               const canAfford = coins >= g.cost;
               return (
                 <button
