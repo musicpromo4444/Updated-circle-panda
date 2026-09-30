@@ -19,6 +19,7 @@ export type Post = {
   at: number;
   replies: Reply[];
   likes?: number;
+  authorVip?: boolean;
 };
 export type GroupChatMessage = {
   id: string;
@@ -515,8 +516,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       const viewerCoords = await new Promise<{latitude:number;longitude:number}|null>((resolve) => { if (typeof navigator === "undefined" || !navigator.geolocation) return resolve(null); navigator.geolocation.getCurrentPosition((pos) => resolve({ latitude:pos.coords.latitude, longitude:pos.coords.longitude }), () => resolve(null), { enableHighAccuracy:false, maximumAge:300000, timeout:5000 }); });
       const [st, postsRes, repliesRes, groupsRes, groupMessagesRes, threadsRes, threadMessagesRes, groupSettingsRes, eventsRes, attendeesRes, datingRes, datingOwnRes, coinsRes, xpRes, nomineesRes, crushResultsRes, winnersRes, ticketsRes, crushWinnersRes] = await Promise.all([
         (supabase as any).from("user_app_state").select("state").eq("user_id", uid).maybeSingle(),
-        (supabase as any).from("cp_posts").select("id,body,created_at,author_id").order("created_at", {ascending:false}).limit(100),
-        (supabase as any).from("cp_post_replies").select("id,post_id,body,created_at,author_id").order("created_at", {ascending:true}).limit(500),
+        (supabase as any).from("cp_posts").select("id,body,created_at,author_id,author_vip_at").order("created_at", {ascending:false}).limit(100),
+        (supabase as any).from("cp_post_replies").select("id,post_id,body,created_at,author_id,author_vip_at").order("created_at", {ascending:true}).limit(500),
         (supabase as any).rpc("get_group_summaries_nearby", { p_latitude:viewerCoords?.latitude ?? null, p_longitude:viewerCoords?.longitude ?? null }),
         
         (supabase as any).from("cp_group_messages").select("id,group_id,body,created_at,author_id").order("created_at", {ascending:true}).limit(1000),
@@ -538,7 +539,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       if (cancelled) return;
       const stData = st.data?.state ?? {};
       const replies = repliesRes.data ?? [];
-      const posts = (postsRes.data ?? []).map((p:any) => ({ id:p.id, author:p.author_id===uid?"You (anonymous)":"Anonymous Panda", authorId:p.author_id, body:p.body, at:new Date(p.created_at).getTime(), replies:replies.filter((r:any)=>r.post_id===p.id).map((r:any)=>({id:r.id,author:r.author_id===uid?"You (anonymous)":"Anonymous Panda",body:r.body,at:new Date(r.created_at).getTime()})) }));
+      const posts = (postsRes.data ?? []).map((p:any) => ({ id:p.id, author:p.author_id===uid?"You (anonymous)":"Anonymous Panda", authorId:p.author_id, authorVip:Boolean(p.author_vip_at), body:p.body, at:new Date(p.created_at).getTime(), replies:replies.filter((r:any)=>r.post_id===p.id).map((r:any)=>({id:r.id,author:r.author_id===uid?"You (anonymous)":"Anonymous Panda",body:r.body,at:new Date(r.created_at).getTime()})) }));
       
       const groupMessages = groupMessagesRes.data ?? [];
       const groupSettings = groupSettingsRes.data ?? [];
@@ -622,7 +623,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       const id = data.id;
       setState((s) => {
         const { level, xp } = gainXp(s.level, s.xp, Number(data.xp ?? 15));
-        return { ...s, coins: s.coins + Number(data.reward_bc ?? 2), reputation: s.reputation + Number(data.xp ?? 15), level, xp, posts: [{ id, author:"You (anonymous)", authorId:dbUserId, body, at:Date.now(), replies:[] }, ...s.posts] };
+        return { ...s, coins: s.coins + Number(data.reward_bc ?? 2), reputation: s.reputation + Number(data.xp ?? 15), level, xp, posts: [{ id, author:"You (anonymous)", authorId:dbUserId, authorVip:Boolean(data.author_vip_at ?? state.isVip), body, at:Date.now(), replies:[] }, ...s.posts] };
       });
       toast.success("Posted anonymously 🐼", { description: "+2 BC · +15 XP earned." });
     })();
