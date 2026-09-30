@@ -14,6 +14,7 @@ where dp.user_id=g.owner_id
   and (g.country is null or g.city is null);
 
 drop function if exists public.create_group_secure(text,text);
+drop function if exists public.create_group_secure(text,text,double precision,double precision);
 create or replace function public.create_group_secure(
   p_name text, p_topic text, p_country text default '', p_state_province text default '',
   p_city text default '', p_area text default ''
