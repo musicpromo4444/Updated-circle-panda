@@ -139,6 +139,7 @@ export function SevenDayActivitiesModal({open,onClose,onComplete}:{open:boolean;
               <div className="cp-cup-reveal"><span>✨</span><strong>{result?.reward_label || "Prize Revealed"}</strong><b>{Number(result?.reward_bc || 0) > 0 ? "+" + result?.reward_bc + " BC" : ""}</b></div>
             ) : null}
           </div>
+          </>
         ) : null}
 
         {activity.slug==="puzzle"&&<><div className="cp-game-card"><div className="cp-puzzle-art"><div className="cp-puzzle-piece">✦</div><div className="cp-puzzle-piece">?</div><div className="cp-puzzle-piece">★</div><div className="cp-puzzle-piece">✦</div></div><div className="cp-section-label">PANDA PUZZLE</div><p className="cp-question">{puzzleQuestion}</p><input value={puzzleAnswer} onChange={e=>setPuzzleAnswer(e.target.value)} placeholder="Type your answer" className="cp-game-input"/><Button className="cp-neon-button cp-big-button" disabled={busy||attemptLeft<=0||!puzzleAnswer.trim()||completed} onClick={()=>void play("solve",{answer:puzzleAnswer.trim().toLowerCase()})}>SUBMIT PUZZLE</Button></div><Banner placement="seven_day_banner" className="cp-ad-banner"/></>}
