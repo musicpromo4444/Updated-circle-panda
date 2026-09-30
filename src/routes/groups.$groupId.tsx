@@ -153,7 +153,7 @@ function GroupRoom() {
       </header>
 
       {group && group.memberRole ? (
-        <div className="border-b border-border/60 bg-background/80 px-3 py-2">
+        <div className="border-b border-border/60 bg-background/80 px-3 py-2">\n          <div className="mx-auto mb-2 max-w-3xl rounded-xl border border-primary/20 bg-primary/5 px-3 py-2 text-center">\n            <p className="text-sm font-semibold">Welcome to the circle 🐼</p>\n            <p className="mt-0.5 text-[11px] text-muted-foreground">You’re in. Have a seat and join the conversation.</p>\n          </div>
           <div className="mx-auto flex max-w-3xl items-center gap-2">
             <span className="text-[11px] text-muted-foreground">
               {group.memberRole === "owner" ? "Group owner" : group.memberRole === "admin" ? "Group admin" : "Member"}
