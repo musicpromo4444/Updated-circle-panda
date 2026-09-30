@@ -13,15 +13,15 @@ const looks = Array.from({length: 12}, (_, i) => i);
 
 function RegisterPage() {
   const navigate = useNavigate();
-  const [form, setForm] = useState({ name:"", identifier:"", password:"", country:"", state:"", city:"", area:"", gender:"", dob:"", avatar:"0" });
+  const [form, setForm] = useState({ name:"", identifier:"", password:"", confirmPassword:"", country:"", state:"", city:"", area:"", gender:"", dob:"", avatar:"0" });
   const [busy,setBusy]=useState(false); const [error,setError]=useState(""); const [notice,setNotice]=useState("");
   const age = useMemo(() => form.dob ? Math.floor((Date.now()-new Date(form.dob).getTime())/31557600000) : 0,[form.dob]);
   const set=(key:string,value:string)=>setForm(f=>({...f,[key]:value}));
 
-  async function submit(e: FormEvent) {
+  async function signInWithProvider(provider: "google" | "apple") {\n    setError(""); setNotice("");\n    const { error } = await supabase.auth.signInWithOAuth({ provider, options: { redirectTo: `${window.location.origin}/` } });\n    if (error) setError(error.message);\n  }\n\n  async function submit(e: FormEvent) {
     e.preventDefault(); setError(""); setNotice("");
     if (age < 18) { setError("Circle Panda is 18+."); return; }
-    if (!form.name.trim() || !form.identifier.trim() || form.password.length < 8 || !form.country || !form.state || !form.city || !form.area || !form.gender) { setError("Please complete all required fields."); return; }
+    if (!form.name.trim() || !form.identifier.trim() || form.password.length < 8 || !form.country || !form.state || !form.city || !form.area || !form.gender) { setError("Please complete all required fields."); return; }\n    if (form.password !== form.confirmPassword) { setError("Passwords do not match."); return; }
     setBusy(true);
     try {
       const metadata = { name: form.name.trim(), country: form.country.trim(), state_province: form.state.trim(), city: form.city.trim(), area: form.area.trim(), gender: form.gender, date_of_birth: form.dob, avatar_style: form.avatar, age };
@@ -48,7 +48,7 @@ function RegisterPage() {
             <div className="grid gap-4 sm:grid-cols-2">
               <label className="text-sm font-bold">Panda name<input required value={form.name} onChange={e=>set("name",e.target.value)} className="cp-input" placeholder="Panda Amanda" /></label>
               <label className="text-sm font-bold">Phone number or email<input required value={form.identifier} onChange={e=>set("identifier",e.target.value)} className="cp-input" placeholder="+234… or email" /></label>
-              <label className="text-sm font-bold sm:col-span-2">Password<input required minLength={8} type="password" value={form.password} onChange={e=>set("password",e.target.value)} className="cp-input" placeholder="At least 8 characters" /></label>
+              <label className="text-sm font-bold">Password<input required minLength={8} type="password" value={form.password} onChange={e=>set("password",e.target.value)} className="cp-input" placeholder="At least 8 characters" /></label>\n              <label className="text-sm font-bold">Re-enter password<input required minLength={8} type="password" value={form.confirmPassword} onChange={e=>set("confirmPassword",e.target.value)} className="cp-input" placeholder="Enter your password again" /></label>
               <label className="text-sm font-bold">Country<input required value={form.country} onChange={e=>set("country",e.target.value)} className="cp-input" placeholder="Nigeria" /></label>
               <label className="text-sm font-bold">State / region<input required value={form.state} onChange={e=>set("state",e.target.value)} className="cp-input" placeholder="Rivers" /></label>
               <label className="text-sm font-bold">City<input required value={form.city} onChange={e=>set("city",e.target.value)} className="cp-input" placeholder="Port Harcourt" /></label>
@@ -69,6 +69,14 @@ function RegisterPage() {
             {error && <div className="rounded-xl border border-red-400/20 bg-red-400/10 p-3 text-sm text-red-200">{error}</div>}
             {notice && <div className="rounded-xl border border-emerald-400/20 bg-emerald-400/10 p-3 text-sm text-emerald-200">{notice}</div>}
             <button disabled={busy} className="flex w-full items-center justify-center gap-2 rounded-2xl bg-emerald-400 px-5 py-4 font-black text-[#06120f] disabled:opacity-60">{busy && <Loader2 className="h-5 w-5 animate-spin" />} Join the Circle</button>
+            <div className="relative my-2">
+              <div className="border-t border-white/10" />
+              <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#111f1b] px-3 text-xs font-bold text-white/40">OR</span>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <button type="button" onClick={()=>signInWithProvider("google")} className="rounded-2xl border border-white/10 bg-white px-4 py-3 font-black text-[#111]">Continue with Google</button>
+              <button type="button" onClick={()=>signInWithProvider("apple")} className="rounded-2xl border border-white/10 bg-black px-4 py-3 font-black text-white">Continue with Apple</button>
+            </div>
           </form>
           <p className="mt-6 text-center text-sm text-white/55">Already a Panda? <Link to="/login" className="font-black text-emerald-300">Log in</Link></p>
         </div>
