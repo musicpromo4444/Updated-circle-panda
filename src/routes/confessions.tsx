@@ -8,13 +8,14 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { QuickVoteSignup } from "@/components/auth/QuickVoteSignup";
+import { VipIdentity } from "@/components/VipIdentity";
 
 export const Route = createFileRoute("/confessions")({
   head: () => ({ meta: [{ title: "Confessions — Circle Panda" }] }),
   component: ConfessionsPage,
 });
 
-type Confession = { id: string; content: string; is_anonymous: boolean; created_at: string };
+type Confession = { id: string; content: string; is_anonymous: boolean; created_at: string; author_id?: string | null; author_vip_at?: string | null };
 type WeeklyEntry = { id: string; user_id?: string; display_name?: string; panda_name?: string; kind?: string; blurb?: string; emoji?: string; media_url?: string; media_type?: string; week_start?: string; vote_count?: number; reaction_count?: number; my_vote?: boolean; my_reaction?: string | null };
 
 export function ConfessionsPage() {
@@ -37,7 +38,7 @@ export function ConfessionsPage() {
 
   const load = async (background = false) => {
     if (background) setRefreshing(true); else setLoading(true);
-    const { data, error } = await supabase.from("confessions").select("id,content,is_anonymous,created_at").eq("is_published", true).order("created_at", { ascending: false }).limit(50);
+    const { data, error } = await supabase.from("confessions").select("id,content,is_anonymous,created_at,author_id,author_vip_at").eq("is_published", true).order("created_at", { ascending: false }).limit(50);
     if (error) toast.error(error.message); else setItems((data ?? []) as Confession[]);
     setLoading(false);
     setRefreshing(false);
@@ -199,7 +200,7 @@ export function ConfessionsPage() {
 
         {loading ? <div className="rounded-3xl border border-border/70 bg-card p-8 text-center text-sm text-muted-foreground">Loading confessions…</div> : null}
         {!loading && items.length === 0 ? <div className="rounded-3xl border border-dashed border-border p-10 text-center text-sm text-muted-foreground">No published confessions yet. Be the first.</div> : null}
-        {items.map((item, idx) => <div key={item.id} className="space-y-4"><article className="rounded-3xl border border-border/70 bg-card p-5 shadow-sm"><div className="flex items-center gap-2 text-xs text-muted-foreground"><Eye className="size-3.5" /> {item.is_anonymous ? "Anonymous Panda" : "Panda"} · {new Date(item.created_at).toLocaleDateString()}</div><p className="mt-4 whitespace-pre-wrap break-words text-[15px] leading-7">{item.content}</p><div className="mt-4 flex gap-2"><Button variant="outline" size="sm" onClick={() => void react(item.id,"heart")}><Heart className="mr-1 size-4" /> Heart</Button><Button variant="outline" size="sm" onClick={() => void react(item.id,"laugh")}><Laugh className="mr-1 size-4" /> Laugh</Button></div></article>{((idx + 1) === 4 || (idx + 1) === 8 || ((idx + 1) >= 15 && (idx + 1 - 15) % 7 === 0)) ? <StandardBannerAd index={idx} variant="feed-card" placement="confessions_inline" /> : null}</div>)}
+        {items.map((item, idx) => <div key={item.id} className="space-y-4"><article className={`rounded-3xl border border-border/70 bg-card p-5 shadow-sm ${item.author_vip_at ? "vip-content-card" : ""}`}><div className="flex items-center gap-2 text-xs text-muted-foreground"><VipIdentity isVip={Boolean(item.author_vip_at)} seed={item.author_id ?? item.id} compact /> <span className="truncate"><Eye className="mr-1 inline size-3.5" /> {item.is_anonymous ? "Anonymous Panda" : "Panda"} · {new Date(item.created_at).toLocaleDateString()}</span></div><p className="mt-4 whitespace-pre-wrap break-words text-[15px] leading-7">{item.content}</p><div className="mt-4 flex gap-2"><Button variant="outline" size="sm" onClick={() => void react(item.id,"heart")}><Heart className="mr-1 size-4" /> Heart</Button><Button variant="outline" size="sm" onClick={() => void react(item.id,"laugh")}><Laugh className="mr-1 size-4" /> Laugh</Button></div></article>{((idx + 1) === 4 || (idx + 1) === 8 || ((idx + 1) >= 15 && (idx + 1 - 15) % 7 === 0)) ? <StandardBannerAd index={idx} variant="feed-card" placement="confessions_inline" /> : null}</div>)}
       </div>
 
       <QuickVoteSignup
