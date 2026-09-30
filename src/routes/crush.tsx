@@ -54,6 +54,8 @@ function CrushPage() {
   const [sending, setSending] = useState(false);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [showAuth, setShowAuth] = useState(false);
+  const [showQuickSignup, setShowQuickSignup] = useState(false);
+  const [pendingVote, setPendingVote] = useState(false);
 
   const pool = useMemo(() => nominees.filter((n) => n.kind === kind && n.mediaUrl), [nominees, kind]);
   const card = pool[index] ?? null;
@@ -106,8 +108,9 @@ function CrushPage() {
     if (!card) return;
     const { data } = await supabase.auth.getUser();
     if (!data.user) {
-      setShowAuth(true);
-      toast("Create a free Circle Panda account to vote.", { description: "You can browse WCW/MCM freely. Sign in or create an account to cast your vote." });
+      setPendingVote(true);
+      setShowQuickSignup(true);
+      toast("Quick signup to vote.", { description: "Use your phone or email and password. Your vote will continue automatically." });
       return;
     }
     voteFor(card.id);
@@ -225,6 +228,7 @@ function CrushPage() {
         ) : <div className="grid min-h-[70vh] place-items-center p-8 text-center text-white"><div><p className="text-4xl">🐼</p><h2 className="mt-3 font-display text-xl font-bold">No {kind === "wcw" ? "WCW" : "MCM"} pictures yet</h2><p className="mt-1 text-sm text-white/60">Use the first round story on the home page to add yours.</p></div></div>}
       </div>
 
+      <QuickVoteSignup open={showQuickSignup} onOpenChange={setShowQuickSignup} onComplete={() => { if (pendingVote && card) { setPendingVote(false); voteFor(card.id); next(1); } }} />
       <AuthModal open={showAuth} onOpenChange={setShowAuth} defaultTab="signup" />
 
       <Dialog open={reportOpen} onOpenChange={setReportOpen}>
