@@ -509,7 +509,7 @@ function HotSeatPage() {
       className="fixed inset-0 z-50 h-[100dvh] w-screen overflow-hidden bg-black select-none"
     >
       {/* 1. Main Live Video Feed (Spans 100% of the screen width and height) */}
-      {activeHost?.stream_provider === "youtube" ? (
+      {sessionPhase === "live" && activeHost?.stream_provider === "youtube" ? (
         <iframe
           title="Circle Panda Hot Seat live stream"
           src={(() => {
@@ -535,9 +535,9 @@ function HotSeatPage() {
           playsInline
           poster={activeHost?.media_url ?? undefined}
           src={activeHost?.media_url ?? undefined}
-          className={`absolute inset-0 size-full object-cover select-none pointer-events-none ${sessionPhase === "live" ? "" : "opacity-0"}`}
+          className="absolute inset-0 size-full object-cover select-none pointer-events-none"
         />
-      )}
+      ) : null}
 
       
       {activeHost && sessionPhase === "paused" && (
