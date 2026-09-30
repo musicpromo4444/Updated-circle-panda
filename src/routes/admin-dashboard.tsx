@@ -14,6 +14,7 @@ import { AdminControlCenter } from "@/components/admin/AdminControlCenter";
 import { AdminPermissionManager } from "@/components/admin/AdminPermissionManager";
 import { UniversalFloatingIconManager } from "@/components/admin/UniversalFloatingIconManager";
 import { AdminOperationsCenter } from "@/components/admin/AdminOperationsCenter";
+import { AdminAppDownloadPromotion } from "@/components/admin/AdminAppDownloadPromotion";
 
 export const Route = createFileRoute("/admin-dashboard")({ component: AdminDashboardPage });
 
@@ -112,6 +113,7 @@ function AdminDashboardPage() {
   return <AppShell title="Admin Dashboard" hidePageHeader>
     <main className="mx-auto max-w-4xl space-y-5 p-4 pb-24 sm:p-6">
       <AdminControlCenter />
+      <AdminAppDownloadPromotion />
       <AdminPermissionManager />
       <UniversalAdManager />
       <UniversalFloatingIconManager />
