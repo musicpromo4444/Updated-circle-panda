@@ -207,3 +207,27 @@ end $$;
 
 revoke all on function public.record_ad_event_secure(uuid,text,text,text) from public,anon;
 grant execute on function public.record_ad_event_secure(uuid,text,text,text) to authenticated;
+
+create or replace function public.record_ad_event_secure(
+  p_ad_id uuid,
+  p_event_type text,
+  p_format text,
+  p_placement text,
+  p_country_code text,
+  p_value numeric default 0
+) returns boolean
+language plpgsql security definer set search_path=public,pg_temp
+as $$
+declare v_uid uuid:=auth.uid(); v_campaign uuid;
+begin
+  if v_uid is null then raise exception 'Authentication required'; end if;
+  if p_event_type not in ('impression','click','skipped','complete') then raise exception 'Invalid ad event'; end if;
+  select campaign_id into v_campaign from public.ad_creatives where id=p_ad_id and status='active';
+  if not found then return false; end if;
+  insert into public.ad_events(ad_id,user_id,campaign_id,event_type,format,placement,country_code,value)
+  values(p_ad_id,v_uid,v_campaign,p_event_type,p_format,p_placement,nullif(upper(trim(p_country_code)),''),greatest(0,coalesce(p_value,0)));
+  return true;
+end $$;
+
+revoke all on function public.record_ad_event_secure(uuid,text,text,text,text,numeric) from public,anon;
+grant execute on function public.record_ad_event_secure(uuid,text,text,text,text,numeric) to authenticated;
