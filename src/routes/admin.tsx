@@ -25,6 +25,7 @@ import {
   AdminRoute,
   AdminDailyGamesManager,
   AdminHotSeatManager,
+  UniversalAdManager,
   useAdminStore,
 } from "@/components/admin";
 import { useCurrentUser } from "@/lib/auth";
@@ -214,7 +215,8 @@ function AdminDashboardPage() {
 
         {/* TAB 4: AD & MONETIZATION CONTROL */}
         {activeTab === "monetization" ? (
-          <AdminMonetizationControl
+          <div className="space-y-6">
+            <AdminMonetizationControl
             adConfig={adConfig}
             adMetrics={adMetrics}
             onUpdateConfig={updateAdConfig}
@@ -224,6 +226,8 @@ function AdminDashboardPage() {
             onDeleteCreative={deleteCreative}
             onToggleCreativeStatus={toggleCreativeStatus}
           />
+            <UniversalAdManager />
+          </div>
         ) : null}
 
         {/* TAB 4: ENGAGEMENT & EVENTS MANAGER */}
