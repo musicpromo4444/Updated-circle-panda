@@ -13,6 +13,7 @@ import { PlayableVideoAd } from "@/components/ads/PlayableVideoAd";
 import { supabase } from "@/integrations/supabase/client";
 import { useStore, FREE_DAILY_VOTES, WINNER_REWARD, type CrushKind } from "@/lib/store";
 import { cn } from "@/lib/utils";
+import { AuthModal } from "@/components/auth/AuthModal";
 
 export const Route = createFileRoute("/crush")({
   head: () => ({ meta: [{ title: "MCM & WCW — Circle Panda" }, { name: "description", content: "Full-screen Circle Panda Man Crush Monday and Woman Crush Wednesday photo voting." }] }),
@@ -51,6 +52,7 @@ function CrushPage() {
   const [loadingComments, setLoadingComments] = useState(false);
   const [sending, setSending] = useState(false);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
+  const [showAuth, setShowAuth] = useState(false);
 
   const pool = useMemo(() => nominees.filter((n) => n.kind === kind && n.mediaUrl), [nominees, kind]);
   const card = pool[index] ?? null;
@@ -101,6 +103,12 @@ function CrushPage() {
 
   const vote = async () => {
     if (!card) return;
+    const { data } = await supabase.auth.getUser();
+    if (!data.user) {
+      setShowAuth(true);
+      toast("Create a free Circle Panda account to vote.", { description: "You can browse WCW/MCM freely. Sign in or create an account to cast your vote." });
+      return;
+    }
     voteFor(card.id);
     next(1);
   };
@@ -215,6 +223,8 @@ function CrushPage() {
           </div>
         ) : <div className="grid min-h-[70vh] place-items-center p-8 text-center text-white"><div><p className="text-4xl">🐼</p><h2 className="mt-3 font-display text-xl font-bold">No {kind === "wcw" ? "WCW" : "MCM"} pictures yet</h2><p className="mt-1 text-sm text-white/60">Use the first round story on the home page to add yours.</p></div></div>}
       </div>
+
+      <AuthModal open={showAuth} onOpenChange={setShowAuth} defaultTab="signup" />
 
       <Dialog open={reportOpen} onOpenChange={setReportOpen}>
         <DialogContent className="max-w-sm"><DialogTitle>Report this picture</DialogTitle><DialogDescription>Tell Circle Panda what is wrong with this submission.</DialogDescription><div className="space-y-2">{["Inappropriate content","Harassment","Impersonation","Copyright concern","Other"].map((r)=><button key={r} type="button" onClick={()=>setReportReason(r)} className={cn("w-full rounded-xl border p-3 text-left text-sm",reportReason===r?"border-primary bg-primary/10":"border-border")}>{r}</button>)}<Button className="w-full" onClick={()=>void report()}>Submit report</Button></div></DialogContent>
