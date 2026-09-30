@@ -33,7 +33,7 @@ type BlastPlan = {
 };
 
 function EventsPage() {
-  const { events, toggleRsvp, startEventBlast } = useStore();
+  const { events, startEventBlast } = useStore();
   const [openEvent, setOpenEvent] = useState<PandaEvent | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
   const [blastOpen, setBlastOpen] = useState(false);
