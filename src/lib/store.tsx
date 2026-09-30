@@ -1005,13 +1005,13 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     return optimistic;
   }, [dbUserId]);
 
-  const startEventBlast = useCallback(async (eventId: string, planId = "starter", paymentMethod: "bc" | "cash" = "bc") => {
+  const startEventBlast = useCallback(async (eventId: string, planId = "starter", paymentMethod: "bc" | "cash" = "bc", targetScope = "worldwide", targetCountry = "", targetState = "", targetCity = "", targetArea = "") => {
     if (!dbUserId) { toast.error("Sign in to promote an event"); return false; }
-    const { data, error } = await (supabase as any).rpc("start_event_blast_secure", { p_event_id: eventId, p_plan_id: planId, p_payment_method: paymentMethod });
+    const { data, error } = await (supabase as any).rpc("start_event_blast_secure", { p_event_id:eventId,p_plan_id:planId,p_payment_method:paymentMethod,p_target_scope:targetScope,p_target_country:targetCountry || null,p_target_state:targetState || null,p_target_city:targetCity || null,p_target_area:targetArea || null });
     if (error) { toast.error(error.message ?? "Could not start Event Blast"); return false; }
     const charged = Number(data?.bc_cost ?? 0);
-    if (charged > 0) setState((s) => ({ ...s, coins: Math.max(0, s.coins - charged) }));
-    toast.success("Event Blast is live 🚀", { description: `${data?.unique_reach ?? 500} unique users · 60 minutes.` });
+    if (charged > 0) setState(s=>({...s,coins:Math.max(0,s.coins-charged)}));
+    toast.success("Event Blast is live 🚀",{description:`${Number(data?.unique_reach??500).toLocaleString()} people + 20% extra notifications.`});
     return true;
   }, [dbUserId]);
 
