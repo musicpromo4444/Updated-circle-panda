@@ -1,0 +1,7 @@
+-- Circle Panda exact XP schedule, server-authoritative.
+-- Production migration applied through Supabase.
+-- Values are enforced by public.award_xp_secure() and database triggers.
+-- 5 reply, 7 post/confession, 5 daily activity, 6 create event,
+-- 2 attend event, 6 join group, 10 complete profile, 3 daily login,
+-- 1 direct message, 1 group message, 2 WCW/MCM vote, 10 create group,
+-- 3 dating match chat, 5 reward wheel spin, 10 gift purchase, VIP = 0 XP.
