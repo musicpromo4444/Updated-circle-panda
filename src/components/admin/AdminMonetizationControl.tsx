@@ -553,6 +553,18 @@ export function AdminMonetizationControl({
                   </p>
                 </div>
 
+                <div className="space-y-1.5">
+                  <Label htmlFor="creative-format" className="text-xs font-semibold text-foreground">Ad Format *</Label>
+                  <select id="creative-format" value={format} onChange={(e) => setFormat(e.target.value as typeof format)} className="flex h-9 w-full rounded-xl border border-border/80 bg-background px-3 py-1 text-xs text-foreground shadow-xs focus:border-primary focus:outline-hidden">
+                    <option value="banner">Banner</option>
+                    <option value="native">Native</option>
+                    <option value="sponsor">Sponsored Card / Direct Sponsor</option>
+                    <option value="playable">Playable (later)</option>
+                  </select>
+                  <p className="text-[10px] text-muted-foreground">For Secret Profile, choose Banner, Native, or Sponsored Card. Playable is reserved for later.</p>
+                </div>
+                </div>
+
                 {/* 2. Sponsor Name */}
                 <div className="space-y-1.5">
                   <Label
