@@ -111,7 +111,6 @@ export function notifyAdEvent(
   try {
     if (typeof window === "undefined") return;
 
-    // Send to Android native bridge if available
     if (event === "impression") {
       window.AndroidBridge?.trackAdImpression?.(payload.adId, payload.format);
       window.Android?.trackAdImpression?.(payload.adId, payload.format);
@@ -123,15 +122,25 @@ export function notifyAdEvent(
     }
 
     if (event !== "rewarded_complete" || payload.rewardAmount) {
-      const eventType = event === "rewarded_complete" ? "completed" : event;
-      void (supabase as any).rpc("record_ad_event_secure", {
-        p_ad_id: payload.adId,
-        p_event_type: eventType,
-        p_format: payload.format,
-      });
+      const eventType = event === "rewarded_complete" || event === "completed" ? "complete" : event;
+      const send = async () => {
+        let country = "";
+        try {
+          const res = await fetch("https://ipapi.co/country/", { headers: { Accept: "text/plain" } });
+          if (res.ok) country = (await res.text()).trim().toUpperCase();
+        } catch { /* country is optional telemetry */ }
+        await (supabase as any).rpc("record_ad_event_secure", {
+          p_ad_id: payload.adId,
+          p_event_type: eventType,
+          p_format: payload.format,
+          p_placement: null,
+          p_country_code: country,
+          p_value: payload.rewardAmount ?? 0,
+        });
+      };
+      void send();
     }
 
-    // Fire custom browser event for web telemetry/event bus
     window.dispatchEvent(
       new CustomEvent("circle_panda_ad_event", {
         detail: { event, ...payload, timestamp: Date.now() },
