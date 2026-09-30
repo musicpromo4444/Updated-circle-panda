@@ -17,6 +17,7 @@ import {
 import { AppShell } from "@/components/AppShell";
 import { StandardBannerAd } from "@/components/ads/StandardBannerAd";
 import { ProfileProgressCard } from "@/components/ProfileProgressCard";
+import { VipIdentity } from "@/components/VipIdentity";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useStore, pandaProgress, starRating } from "@/lib/store";
 import { Button } from "@/components/ui/button";
@@ -101,9 +102,7 @@ function ProfilePage() {
     <AppShell title="Your Profile" subtitle="Anonymous to everyone else. Tracked only for you.">
       <section className="panda-panel rounded-2xl p-5">
         <div className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-3">
-          <span className="grid size-14 shrink-0 place-items-center rounded-full bg-secondary text-2xl">
-            {avatar}
-          </span>
+          <VipIdentity isVip={isVip} seed={profileId ?? displayName} avatar={avatar} />
           <div className="min-w-0">
             <p className="truncate font-display text-xl font-semibold">{displayName}</p>
             <p className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
