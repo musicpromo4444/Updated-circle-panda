@@ -1,10 +1,11 @@
 import { Crown, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
+import type { ReactNode } from "react";
 
 type VipIdentityProps = {
   isVip?: boolean;
   seed?: string;
-  avatar?: React.ReactNode;
+  avatar?: ReactNode;
   name?: string;
   compact?: boolean;
   className?: string;
