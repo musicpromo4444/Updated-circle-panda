@@ -14,6 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useStore, FREE_DAILY_VOTES, WINNER_REWARD, type CrushKind } from "@/lib/store";
 import { cn } from "@/lib/utils";
 import { AuthModal } from "@/components/auth/AuthModal";
+import { QuickVoteSignup } from "@/components/auth/QuickVoteSignup";
 
 export const Route = createFileRoute("/crush")({
   head: () => ({ meta: [{ title: "MCM & WCW — Circle Panda" }, { name: "description", content: "Full-screen Circle Panda Man Crush Monday and Woman Crush Wednesday photo voting." }] }),
