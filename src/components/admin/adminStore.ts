@@ -69,7 +69,21 @@ export function useAdminStore() {
     setUsers(mapped);
   };
 
-  useEffect(() => { void loadRealUsers(); }, []);
+  useEffect(() => { void loadRealUsers(); }, []);\n  useEffect(() => {
+    void (async () => {
+      const { data, error } = await (supabase as any).rpc("admin_get_recent_audit", { p_limit: 100 });
+      if (error || !Array.isArray(data)) return;
+      setLogs(data.map((row: any) => ({
+        id: String(row.id),
+        timestamp: row.created_at ? new Date(row.created_at).toLocaleString() : "",
+        adminAction: String(row.action ?? "ADMIN_ACTION"),
+        details: String(row.metadata?.details ?? ""),
+        targetUser: row.target_user_id ? String(row.target_user_id) : undefined,
+      })));
+    })();
+  }, []);
+
+
   useEffect(() => {
     void (async () => {
       const { data, error } = await (supabase as any).rpc("get_ad_runtime_config");
@@ -131,13 +145,31 @@ export function useAdminStore() {
 
   const addLog = (adminAction: string, details: string, targetUser?: string) => {
     const newLog: AdminActivityLog = {
-      id: `log-${Date.now()}`,
+      id: `local-${Date.now()}`,
       timestamp: "Just now",
       adminAction,
       details,
       targetUser,
     };
     setLogs((prev) => [newLog, ...prev]);
+    void (supabase as any).rpc("admin_record_audit", {
+      p_action: adminAction,
+      p_details: details,
+      p_target_user: targetUser ?? null,
+    }).then(({ error }: any) => {
+      if (error) return;
+      void (supabase as any).rpc("admin_get_recent_audit", { p_limit: 100 }).then(({ data }: any) => {
+        if (Array.isArray(data)) {
+          setLogs(data.map((row: any) => ({
+            id: String(row.id),
+            timestamp: row.created_at ? new Date(row.created_at).toLocaleString() : "",
+            adminAction: String(row.action ?? "ADMIN_ACTION"),
+            details: String(row.metadata?.details ?? ""),
+            targetUser: row.target_user_id ? String(row.target_user_id) : undefined,
+          })));
+        }
+      });
+    });
   };
 
   // Adjust User BC
