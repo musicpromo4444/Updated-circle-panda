@@ -18,7 +18,16 @@ type Country = { country_code:string; impressions:number; clicks:number; complet
 const money=(v:number,c:string)=>new Intl.NumberFormat(undefined,{style:"currency",currency:c||"USD",maximumFractionDigits:2}).format(Number(v)||0);
 const pct=(a:number,b:number)=>b?((a/b)*100).toFixed(1)+"%":"0%";
 
-function copyText(value:string,label:string){void navigator.clipboard?.writeText(value).then(()=>toast.success(label+" copied"));}
+async function copyText(value:string,label:string){
+  try {
+    if (navigator.clipboard) {
+      await navigator.clipboard.writeText(value);
+      toast.success(label+" copied");
+      return;
+    }
+  } catch {}
+  toast.error("Copy is not available on this device.");
+}
 
 function downloadCsv(name:string, rows:Record<string,unknown>[]){
   if(!rows.length){toast.error("There is no report data to export yet.");return;}
