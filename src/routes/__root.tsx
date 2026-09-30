@@ -16,6 +16,7 @@ import { StoreProvider } from "@/lib/store";
 import { ThemeProvider, useTheme } from "@/lib/theme";
 import { Toaster } from "@/components/ui/sonner";
 import { HotSeatFloatingPresence } from "@/components/hotseat/HotSeatFloatingPresence";
+import { AppDownloadPromotion } from "@/components/AppDownloadPromotion";
 
 function NotFoundComponent() {
   return (
@@ -168,6 +169,7 @@ function RootComponent() {
         <StoreProvider>
           {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
           <Outlet />
+          <AppDownloadPromotion />
           {!hideHotSeatPresence ? <HotSeatFloatingPresence /> : null}
           <ThemedToaster />
         </StoreProvider>
