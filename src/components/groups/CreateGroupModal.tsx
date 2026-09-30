@@ -60,9 +60,9 @@ export function CreateGroupModal({
               <MessagesSquare className="size-5" />
             </span>
             <div>
-              <DialogTitle className="font-display text-xl font-bold">Create Group</DialogTitle>
+              <DialogTitle className="font-display text-xl font-bold">Create Your Circle</DialogTitle>
               <DialogDescription className="text-xs text-muted-foreground">
-                Anonymous group chat. Rooms lock 24 hours after being opened.
+                A place for people to come together, sit in the circle, and talk. Rooms lock 24 hours after being opened.
               </DialogDescription>
             </div>
           </div>
@@ -110,7 +110,7 @@ export function CreateGroupModal({
             </Button>
             <Button type="submit" className="gap-1.5 font-bold">
               <Sparkles className="size-4" />
-              Create & Open Room
+              Create & Open Circle
             </Button>
           </DialogFooter>
         </form>
