@@ -307,6 +307,13 @@ function HotSeatPage() {
     return () => { void supabase.removeChannel(channel); };
   }, [activeHost?.id, userId]);
 
+  useEffect(() => {
+    if (sessionPhase !== "water-break" || !activeHost?.id) return;
+    void (supabase as any).rpc("get_hot_seat_current_break", { p_host_id: activeHost.id }).then(({ data, error }: any) => {
+      if (!error) setBreakContent(Array.isArray(data) ? data : []);
+    });
+  }, [sessionPhase, activeHost?.id]);
+
   // Hot Seat session clock: 3 hours live + mandatory 1 hour water break.
   // The phase is derived from the scheduled start time so the UI stays correct even if the
   // browser is refreshed. Admin-created sessions can still override the provider/slot metadata.
