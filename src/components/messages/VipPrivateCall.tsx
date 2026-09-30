@@ -68,7 +68,7 @@ export function VipPrivateCall({ callId, incoming = false, onClose }: Props) {
     let cleanup: (()=>void)|undefined;
     void run().then(x=>{cleanup=x;}).catch(e=>{ if(!dead) toast.error(e?.message ?? "Could not start the VIP call"); onClose(); });
     return () => { dead=true; cleanup?.(); localStream.current?.getTracks().forEach(t=>t.stop()); pc.current?.close(); pc.current=null; };
-  }, [callId, accepted, remoteOffer, remoteAnswer, onClose]);
+  }, [callId, accepted]);
 
   if (!callId) return null;
   const end = async () => {
