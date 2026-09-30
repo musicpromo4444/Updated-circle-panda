@@ -151,7 +151,7 @@ function GroupsPage() {
   const [createGroupOpen, setCreateGroupOpen] = useState(false);
 
   return (
-    <AppShell title="Group Chats" subtitle="Hidden until opened. Locked 24 hours later.">
+    <AppShell title="The Circle" subtitle="Welcome to the circle 🐼 Come in, have a seat, and talk.">
       {/* Primary CTA button immediately below subtitle description and above main content cards */}
       <div className="mb-5">
         <Button
