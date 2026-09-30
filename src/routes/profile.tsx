@@ -15,10 +15,9 @@ import {
 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { StandardBannerAd } from "@/components/ads/StandardBannerAd";
-import { TierBadge } from "@/components/TierBadge";
 import { ProfileProgressCard } from "@/components/ProfileProgressCard";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { useStore, pandaTier, starRating, TIERS } from "@/lib/store";
+import { useStore, pandaProgress, starRating } from "@/lib/store";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useEffect, useState } from "react";
@@ -65,7 +64,7 @@ function ProfilePage() {
   };
   const { coins, reputation, level, xp, posts, threads, groups, mySpotlight, isVip, vipExpiresAt } =
     useStore();
-  const tier = pandaTier(reputation);
+  const pandaRank = pandaProgress(xp);
   const myPosts = posts.filter((p) => p.author === "You (anonymous)").length;
 
   const stats = [
@@ -89,7 +88,7 @@ function ProfilePage() {
           <div className="min-w-0">
             <p className="truncate font-display text-xl font-semibold">You (anonymous)</p>
             <p className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
-              <TierBadge score={reputation} compact /> {reputation} rep
+              <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-black text-primary">{pandaRank.current.name}</span> {xp.toLocaleString()} XP
             </p>
             {mySpotlight ? (
               <p className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-[var(--coin)]/15 px-2.5 py-1 text-xs font-semibold text-[var(--coin)]">
@@ -102,15 +101,15 @@ function ProfilePage() {
 
         <div className="mt-4">
           <div className="flex items-center justify-between text-xs text-muted-foreground">
-            <span>{tier.blurb}</span>
+            <span>{`Panda Rank · ${pandaRank.current.name}`}</span>
             <span className="tabular-nums">
-              {tier.next ? `${tier.next.min - reputation} rep to ${tier.next.name}` : "Max tier"}
+              {pandaRank.next ? `${(pandaRank.next.minXp - xp).toLocaleString()} XP to ${pandaRank.next.name}` : "Max rank"}
             </span>
           </div>
           <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-secondary">
             <div
               className="h-full rounded-full bg-primary"
-              style={{ width: `${tier.progress}%` }}
+              style={{ width: `${pandaRank.progress}%` }}
             />
           </div>
         </div>
