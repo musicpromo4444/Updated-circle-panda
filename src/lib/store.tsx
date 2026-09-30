@@ -507,6 +507,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       if (!session) session = (await supabase.auth.signInAnonymously()).data.session ?? null;
       if (!session?.user || cancelled) return;
       setDbUserId(session.user.id);
+      if (!session.user.is_anonymous) {
+        void (supabase as any).rpc("ensure_my_circle_panda_profile").catch(() => {});
+      }
     void (supabase as any).rpc("get_my_admin_status").then(({data}: any) => setDbIsAdmin(data === true));
       const uid = session.user.id;
       const viewerCoords = await new Promise<{latitude:number;longitude:number}|null>((resolve) => { if (typeof navigator === "undefined" || !navigator.geolocation) return resolve(null); navigator.geolocation.getCurrentPosition((pos) => resolve({ latitude:pos.coords.latitude, longitude:pos.coords.longitude }), () => resolve(null), { enableHighAccuracy:false, maximumAge:300000, timeout:5000 }); });
