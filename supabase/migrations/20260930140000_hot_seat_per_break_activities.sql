@@ -4,6 +4,7 @@ alter table public.hot_seat_break_content
   add column if not exists water_break_number integer;
 
 alter table public.hot_seat_break_content drop constraint if exists hot_seat_break_content_type_check;
+alter table public.hot_seat_break_content drop constraint if exists hot_seat_break_content_break_number_check;
 alter table public.hot_seat_break_content
   add constraint hot_seat_break_content_type_check
   check (content_type in ('giveaway','movie','comedy','music','poll','investment','activity','video'));
@@ -11,7 +12,7 @@ alter table public.hot_seat_break_content
 alter table public.hot_seat_break_content drop constraint if exists hot_seat_break_content_break_number_check;
 alter table public.hot_seat_break_content
   add constraint hot_seat_break_content_break_number_check
-  check (water_break_number is null or water_break_number between 1 and 24);
+  check (water_break_number is null or water_break_number between 1 and 42);
 
 create index if not exists hot_seat_break_content_break_idx
   on public.hot_seat_break_content(water_break_number, enabled, sort_order);
@@ -26,7 +27,7 @@ as $$
 declare v_row public.hot_seat_break_content;
 begin
   if not public.is_admin(auth.uid()) then raise exception 'Admin access required'; end if;
-  if p_break_number < 1 or p_break_number > 24 then raise exception 'Invalid water break number'; end if;
+  if p_break_number < 1 or p_break_number > 42 then raise exception 'Invalid water break number'; end if;
   if p_activity_slug not in ('wheel_spin','mystery_box','target','guess_sponsor','puzzle','coin_drop','slots','lucky_card','secret_reveal','playable_ad','cup_shuffle') then raise exception 'Invalid activity'; end if;
   if p_id is null then
     insert into public.hot_seat_break_content(title,content_type,description,enabled,sort_order,water_break_number,activity_slug,config)
@@ -101,3 +102,16 @@ revoke execute on function public.admin_hot_seat_break_activity_upsert(uuid,inte
 revoke execute on function public.sync_hot_seat_cycle() from public,anon,authenticated;
 revoke execute on function public.start_hot_seat_water_break_session(integer,integer) from public,anon,authenticated;
 grant execute on function public.get_hot_seat_current_break(uuid) to authenticated;
+
+
+-- Seed an Admin-editable activity slot for every possible 3h-live/1h-break cycle
+do $$
+declare i integer; slugs text[] := array['wheel_spin','mystery_box','target','guess_sponsor','puzzle','coin_drop','slots','lucky_card','secret_reveal','cup_shuffle','playable_ad'];
+begin
+ for i in 1..42 loop
+  if not exists(select 1 from public.hot_seat_break_content where water_break_number=i and content_type='activity') then
+    insert into public.hot_seat_break_content(title,content_type,description,enabled,sort_order,water_break_number,activity_slug,config)
+    values('Water Break Activity · '||i,'activity','Admin can change this activity before the break.',true,0,i,slugs[((i-1)%array_length(slugs,1))+1],jsonb_build_object('water_break_number',i,'activity_slug',slugs[((i-1)%array_length(slugs,1))+1]));
+  end if;
+ end loop;
+end $$;
