@@ -1,12 +1,10 @@
-import { Check, Gift, Heart, MessageCircle, Plus, Share2 } from "lucide-react";
+import { Gift, Heart, MessageCircle, Share2 } from "lucide-react";
 import { useState } from "react";
 import { useStore } from "@/lib/store";
 
 export function FloatingActionColumn({
   likeCount,
   commentCount,
-  isFollowing,
-  onToggleFollow,
   onOpenHostProfile,
   onLike,
   onOpenComments,
@@ -15,8 +13,6 @@ export function FloatingActionColumn({
 }: {
   likeCount: number;
   commentCount: number;
-  isFollowing: boolean;
-  onToggleFollow: () => void;
   onOpenHostProfile: () => void;
   onLike: (e: React.MouseEvent<HTMLButtonElement>) => void;
   onOpenComments: () => void;
@@ -43,40 +39,7 @@ export function FloatingActionColumn({
       id="hot-sit-floating-action-bar"
       className="absolute right-3.5 bottom-24 sm:bottom-20 z-30 flex flex-col items-center gap-4 select-none pointer-events-auto"
     >
-      {/* 1. Profile/Host Icon (Shows host avatar with a "+" follow button) */}
-      <div className="relative flex flex-col items-center">
-        <button
-          type="button"
-          onClick={onOpenHostProfile}
-          aria-label="View live host profile"
-          className="relative grid size-12 place-items-center rounded-full border-2 border-orange-500/80 bg-neutral-900 text-2xl shadow-[0_0_20px_rgba(234,88,12,0.45)] transition-transform hover:scale-105 active:scale-95 cursor-pointer"
-        >
-          🐼
-        </button>
-
-        {/* Plus / Follow badge positioned over the bottom of the avatar */}
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            onToggleFollow();
-          }}
-          aria-label={isFollowing ? "Following host" : "Follow host"}
-          className={`absolute -bottom-2 z-10 grid size-5 place-items-center rounded-full text-[10px] font-black text-white shadow-md transition-all cursor-pointer ${
-            isFollowing
-              ? "bg-emerald-600 scale-100 ring-2 ring-neutral-900"
-              : "bg-red-600 hover:bg-red-500 hover:scale-110 active:scale-90"
-          }`}
-        >
-          {isFollowing ? (
-            <Check className="size-3 stroke-[3]" />
-          ) : (
-            <Plus className="size-3.5 stroke-[3]" />
-          )}
-        </button>
-      </div>
-
-      {/* 2. Heart/Like Icon (Displays real-time like count with floating heart animation on tap) */}
+      {/* 1. Heart/Like Icon (Displays real-time like count with floating heart animation on tap) */}
       <div className="flex flex-col items-center gap-1">
         <button
           type="button"
