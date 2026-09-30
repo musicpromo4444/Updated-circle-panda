@@ -10,7 +10,7 @@ Deno.serve(async (req)=>{
     const secret=Deno.env.get("PAYSTACK_SECRET_KEY"); if(!secret) return new Response(JSON.stringify({error:"PAYSTACK_SECRET_KEY is not configured"}),{status:503});
     const verify=await fetch(`https://api.paystack.co/transaction/verify/${encodeURIComponent(reference)}`,{headers:{Authorization:`Bearer ${secret}`}});
     const payload=await verify.json(); if(!verify.ok||payload?.data?.status!=="success") return new Response(JSON.stringify({error:"Payment could not be verified"}),{status:400});
-    const amount=Number(payload.data.amount||0); const {data,eventError}=await service.from("events").select("id,entry_fee_amount,entry_fee_currency,owner_id,is_published").eq("id",eventId).maybeSingle();
+    const amount=Number(payload.data.amount||0); const {data,error:eventError}=await service.from("events").select("id,entry_fee_amount,entry_fee_currency,owner_id,is_published").eq("id",eventId).maybeSingle();
     if(eventError||!eventError&& !eventId) return new Response(JSON.stringify({error:"Event lookup failed"}),{status:400});
     const event=data; if(!event||!event.is_published) return new Response(JSON.stringify({error:"Event not found"}),{status:404});
     if(user.id===event.owner_id) return new Response(JSON.stringify({error:"Event owner does not pay entry"}),{status:400});
