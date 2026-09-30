@@ -15,7 +15,8 @@ export const Route = createFileRoute("/secret/$userId")({
 });
 
 function SecretProfilePage() {
-  const adAfter = (count: number) => count <= 5 ? 5 : count <= 10 ? 10 : count <= 24 ? (count === 17 ? 17 : 24) : 24 + Math.ceil((count - 24) / 10) * 10;
+  const adAfter = (count: number) => count === 5 || count === 10 || count === 17 || count === 24 ? count : count > 24 && (count - 24) % 10 === 0 ? count : -1;
+  const adSlotForCount = (count: number) => count === 5 ? "secret_profile_slot_1" : count === 10 ? "secret_profile_slot_2" : count === 17 ? "secret_profile_slot_3" : "secret_profile_slot_4";
   const { userId } = Route.useParams();
   const [profile, setProfile] = useState<SharedProfile | null>(null);
   const [secrets, setSecrets] = useState<Secret[]>([]);
@@ -102,7 +103,7 @@ function SecretProfilePage() {
                     <p className="whitespace-pre-wrap break-words text-sm leading-6">{secret.content}</p>
                     <p className="mt-2 text-[10px] text-muted-foreground">{new Date(secret.created_at).toLocaleString()}</p>
                   </article>
-                  {showAd ? <StandardBannerAd placement="secret_profile_inline" variant="card" /> : null}
+                  {showAd ? <StandardBannerAd placement={adSlotForCount(count)} variant="card" /> : null}
                 </div>
               );
             }) : <p className="rounded-2xl border border-dashed border-border p-6 text-center text-sm text-muted-foreground">No secrets yet. Be the first.</p>}
