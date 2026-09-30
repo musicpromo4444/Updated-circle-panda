@@ -33,36 +33,6 @@ const INITIAL_AD_METRICS: AdPerformanceMetrics = {
   ctrWeb: 0, ctrAndroid: 0, fillRateWeb: 0, fillRateAndroid: 0, eCpmWeb: 0, eCpmAndroid: 0,
 };
 
-mport { useEffect, useState } from "react";
-import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
-import {
-  DEFAULT_AD_CONFIG,
-  DEFAULT_ENGAGEMENT_CONFIG,
-  EVENT_AD_CONFIG_UPDATED,
-  INITIAL_CREATIVES,
-} from "@/components/ads/adInventoryStorage";
-import {
-  type ActionLogCategory,
-  type AdCreative,
-  type AdminActivityLog,
-  type AdminUser,
-  type AdPerformanceMetrics,
-  type AdPlacementConfig,
-  type AndroidBridgeGatewayConfig,
-  type CoinPackage,
-  type EngagementConfig,
-  type ExternalSurveyConfig,
-  type PaystackGatewayConfig,
-  type PricingConfig,
-  type VipPlan,
-} from "./adminTypes";
-import {
-  DEFAULT_PRICING_CONFIG,
-  getPricingConfig,
-  savePricingConfig,
-} from "@/components/store/pricingStorage";
-
 const INITIAL_AD_METRICS: AdPerformanceMetrics = {
   impressionsWeb: 0, impressionsAndroid: 0, revenueWeb: 0, revenueAndroid: 0,
   ctrWeb: 0, ctrAndroid: 0, fillRateWeb: 0, fillRateAndroid: 0, eCpmWeb: 0, eCpmAndroid: 0,
