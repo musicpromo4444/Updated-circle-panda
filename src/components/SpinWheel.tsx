@@ -45,32 +45,28 @@ export function SpinWheel({
 
   const sliceAngle = 360 / SPIN_SLICES.length;
 
-  const doSpin = () => {
+  const doSpin = async () => {
     if (spinning || !canSpin) return;
     setSpinning(true);
     setResult(null);
-    // Land on a weighted random slice.
-    const idx = (() => {
-      const total = SPIN_SLICES.reduce((n, s) => n + s.weight, 0);
-      let r = Math.random() * total;
-      for (let i = 0; i < SPIN_SLICES.length; i++) {
-        r -= SPIN_SLICES[i]!.weight;
-        if (r <= 0) return i;
-      }
-      return 0;
-    })();
-    // We want the pointer (at top, 0deg) to point at slice idx center.
-    // Each slice spans sliceAngle starting at idx*sliceAngle.
-    const target = 360 * 6 + (360 - (idx * sliceAngle + sliceAngle / 2));
-    setAngle((prev) => prev + (target - (prev % 360)));
-    window.setTimeout(async () => {
-      try {
-        const prize = await spinWheel();
-        setResult(prize);
-      } finally {
+    try {
+      // Resolve the prize on the server first. The animation must never
+      // display a different slice from the authoritative result.
+      const prize = await spinWheel();
+      if (!prize) {
         setSpinning(false);
+        return;
       }
-    }, 4200);
+      const idx = Math.max(0, SPIN_SLICES.findIndex((slice) => slice.id === prize.id));
+      const target = 360 * 6 + (360 - (idx * sliceAngle + sliceAngle / 2));
+      setAngle((prev) => prev + (target - (prev % 360)));
+      window.setTimeout(() => {
+        setResult(prize);
+        setSpinning(false);
+      }, 4200);
+    } catch {
+      setSpinning(false);
+    }
   };
 
   return (
