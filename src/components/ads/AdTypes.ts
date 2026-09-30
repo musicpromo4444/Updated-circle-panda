@@ -1,5 +1,5 @@
 export type AdPlacementTarget =
-  "popup_1_daily_login" | "popup_1_daily_login_bottom" | "popup_2_engagement" | "main_feed_card" | "speed_dating_interstitial" | "crush_native" | "crush_interstitial" | "crush_popup" | "crush_banner" | "crush_playable" | "seven_day_banner" | "seven_day_playable" | "hot_seat_comments" | "hot_seat_questions" | "hot_seat_water_break" | "events_inline" | "sweepstakes_inline" | "live_inline" | "music_time_inline" | "profile_inline" | "leaders_inline" | "notifications_inline" | "home_inline" | "confessions_inline" | "groups_inline" | "messages_inline" | "dating_inline";
+  "popup_1_daily_login" | "popup_1_daily_login_bottom" | "popup_2_engagement" | "main_feed_card" | "speed_dating_interstitial" | "crush_native" | "crush_interstitial" | "crush_popup" | "crush_banner" | "crush_playable" | "seven_day_banner" | "seven_day_playable" | "hot_seat_comments" | "hot_seat_questions" | "hot_seat_water_break" | "events_inline" | "sweepstakes_inline" | "live_inline" | "music_time_inline" | "profile_inline" | "leaders_inline" | "notifications_inline" | "home_inline" | "confessions_inline" | "groups_inline" | "messages_inline" | "dating_inline" | "secret_profile_slot_1" | "secret_profile_slot_2" | "secret_profile_slot_3" | "secret_profile_slot_4";
 
 export interface BannerAdData {
   id: string;
@@ -30,6 +30,8 @@ export interface VideoAdData {
   category?: string;
 }
 
+export type AdCreativeFormat = "banner" | "native" | "sponsor" | "playable" | "interstitial" | "rewarded" | "offerwall" | "link";
+
 export interface AdCreative {
   id: string;
   sponsor: string;
@@ -43,6 +45,7 @@ export interface AdCreative {
   skipAfterSeconds?: number;
   destinationUrl: string;
   placement: AdPlacementTarget;
+  format?: AdCreativeFormat;
   category: string;
   callToAction: string;
   status: "active" | "paused";
