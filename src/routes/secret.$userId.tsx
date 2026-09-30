@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { StandardBannerAd } from "@/components/ads/StandardBannerAd";
+import { VipIdentity } from "@/components/VipIdentity";
 
 type SharedProfile = { id: string; display_name: string; avatar_url?: string | null; bio?: string | null; country?: string | null; is_vip?: boolean };
 type Secret = { id: string; content: string; created_at: string };
@@ -71,7 +72,7 @@ function SecretProfilePage() {
         </div>
 
         <section className="panda-panel rounded-3xl p-6 text-center">
-          <div className="mx-auto grid size-20 place-items-center rounded-full bg-secondary text-4xl">{profile.avatar_url || "🐼"}</div>
+          <VipIdentity isVip={Boolean(profile.is_vip)} seed={profile.id} avatar={profile.avatar_url || "🐼"} />
           <h1 className="mt-3 font-display text-2xl font-bold">{profile.display_name}</h1>
           {profile.country ? <p className="mt-1 text-sm text-muted-foreground">{profile.country}</p> : null}
           {profile.bio ? <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-muted-foreground">{profile.bio}</p> : null}
