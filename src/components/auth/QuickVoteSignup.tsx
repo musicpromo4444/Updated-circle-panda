@@ -2,11 +2,11 @@ import { useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { useCurrentUser } from "@/lib/auth";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 export function QuickVoteSignup({ open, onOpenChange, onComplete }: { open: boolean; onOpenChange: (open: boolean) => void; onComplete: () => void }) {
-  const { signUpWithPassword, updateQuickProfile } = useCurrentUser();
+
   const [step, setStep] = useState<"account"|"location">("account");
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
@@ -26,7 +26,7 @@ export function QuickVoteSignup({ open, onOpenChange, onComplete }: { open: bool
       {step === "account" ? <form onSubmit={async e => {
         e.preventDefault(); if (!identifier.trim() || password.trim().length < 6) { toast.error("Enter a phone/email and a password of at least 6 characters"); return; }
         setBusy(true); try {
-          const { error, data } = await signUpWithPassword(identifier, password);
+          const value = identifier.trim(); const result = value.includes("@") ? await supabase.auth.signUp({ email: value, password, options: { data: { name: `Panda #${Math.floor(1000 + Math.random() * 9000)}` } } }) : await supabase.auth.signUp({ phone: value, password, options: { data: { name: `Panda #${Math.floor(1000 + Math.random() * 9000)}`, phone_number: value } } }); const { error, data } = result;
           if (error) { toast.error("Signup failed", { description: error.message }); return; }
           if (!data.session) { toast.message("Verification required", { description: "Finish the verification, then return to Circle Panda to vote." }); return; }
           setStep("location");
@@ -38,7 +38,7 @@ export function QuickVoteSignup({ open, onOpenChange, onComplete }: { open: bool
       </form> : <form onSubmit={async e => {
         e.preventDefault(); if (!country) { toast.error("Choose your country"); return; }
         setBusy(true); try {
-          const result = await updateQuickProfile(country, stateProvince, city);
+          const result = await (supabase as any).rpc("complete_quick_profile", { p_country: country, p_state_province: stateProvince || null, p_city: city || null });
           if (result?.error) { toast.error("Location could not be saved", { description: result.error.message }); return; }
           toast.success("Account ready 🐼", { description: "Your vote will now be counted." });
           reset(); onOpenChange(false); onComplete();
