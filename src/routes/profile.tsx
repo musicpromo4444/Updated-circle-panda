@@ -63,6 +63,9 @@ function ProfilePage() {
     void supabase.auth.getUser().then(async ({ data }) => {
       if (!data.user) return;
       setProfileId(data.user.id);
+      if (!data.user.is_anonymous) {
+        await (supabase as any).rpc("ensure_my_circle_panda_profile");
+      }
       const { data: profile } = await (supabase as any).from("profiles").select("display_name,avatar_url,gender,country,bio").eq("id", data.user.id).maybeSingle();
       if (profile?.display_name) setDisplayName(profile.display_name);
       if (profile?.avatar_url) setAvatar(profile.avatar_url);
