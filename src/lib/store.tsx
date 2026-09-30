@@ -461,7 +461,7 @@ type StoreValue = State & {
   canSpin: boolean;
   nextSpinAt: number | null;
   activateVip: (days: number) => void;
-  createGroup: (name: string, topic: string) => Promise<GroupChat | null>;
+  createGroup: (name: string, topic: string, country?: string, stateProvince?: string, city?: string, area?: string) => Promise<GroupChat | null>;
   createEvent: (event: Omit<PandaEvent, "id" | "rsvp">) => PandaEvent;
   requestDatingMatch: (userId: string) => Promise<string | null>;
   searchDatingProfiles: (filters: { ageMin?: number; ageMax?: number; country?: string; location?: string; gender?: string; relationshipGoal?: string; lookingFor?: string; lifestyle?: string; smoking?: string; drinking?: string; children?: string; education?: string; heightMin?: number; heightMax?: number; zodiac?: string; sameCountryOnly?: boolean }) => Promise<boolean>;
@@ -974,12 +974,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     })();
   }, [dbUserId]);
 
-  const createGroup = useCallback(async (name: string, topic: string): Promise<GroupChat | null> => {
+  const createGroup = useCallback(async (name: string, topic: string, country = "", stateProvince = "", city = "", area = ""): Promise<GroupChat | null> => {
     if (!dbUserId) { toast.error("Sign in to create a group"); return null; }
     const coords = await new Promise<{latitude:number;longitude:number}|null>((resolve) => { if (typeof navigator === "undefined" || !navigator.geolocation) return resolve(null); navigator.geolocation.getCurrentPosition((pos) => resolve({ latitude:pos.coords.latitude, longitude:pos.coords.longitude }), () => resolve(null), { enableHighAccuracy:false, maximumAge:300000, timeout:5000 }); });
     const { data, error } = await (supabase as any).rpc("create_group_secure", { p_name:name, p_topic:topic, p_latitude:coords?.latitude ?? null, p_longitude:coords?.longitude ?? null });
     if (error) { toast.error(error.message ?? "Group could not be created"); return null; }
-    const group: GroupChat = { id:data.id, name:data.name ?? name, topic:data.topic ?? topic, members:Number(data.members ?? 1), ownerId:dbUserId, memberRole:"owner", editGroupInfo:"admins", sendMessages:true, approveNewMembers:false, joinPending:false, openedAt:null, latitude:coords?.latitude ?? null, longitude:coords?.longitude ?? null, messages:[] };
+    const group: GroupChat = { id:data.id, name:data.name ?? name, topic:data.topic ?? topic, members:Number(data.members ?? 1), ownerId:dbUserId, memberRole:"owner", editGroupInfo:"admins", sendMessages:true, approveNewMembers:false, joinPending:false, openedAt:null, latitude:coords?.latitude ?? null, longitude:coords?.longitude ?? null, messages:[], country:data.country ?? country, stateProvince:data.state_province ?? stateProvince, city:data.city ?? city, area:data.area ?? area };
     setState((s) => ({ ...s, groups:[group, ...s.groups] }));
     toast.success("Group created 🐼", { description:"Invite members, then open it when 3+ members are ready." });
     return group;
