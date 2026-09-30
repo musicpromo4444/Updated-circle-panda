@@ -107,4 +107,12 @@ end $$;
 revoke all on function public.send_vip_group_media_secure(text,text,text,integer,text) from public,anon;
 grant execute on function public.send_vip_group_media_secure(text,text,text,integer,text) to authenticated;
 
-alter publication supabase_realtime add table public.cp_vip_group_messages;
+do $
+begin
+  if not exists (
+    select 1 from pg_publication_tables
+    where pubname='supabase_realtime' and schemaname='public' and tablename='cp_vip_group_messages'
+  ) then
+    alter publication supabase_realtime add table public.cp_vip_group_messages;
+  end if;
+end $;
