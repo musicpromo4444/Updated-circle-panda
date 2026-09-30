@@ -224,14 +224,15 @@ function SweepstakesPage() {
 
       <div className="grid gap-4 md:grid-cols-2">
         {items.map((item, idx) => (
-          <DailyItemCard
-            key={item.id}
-            item={item}
-            coins={coins}
-            tickets={tickets[item.id] ?? 0}
-            onBuy={() => buyDailyTicket(item)}
-          />
-          {(idx + 1) % 4 === 0 ? <StandardBannerAd index={Math.floor(idx / 4)} variant="feed-card" placement="sweepstakes_inline" /> : null}
+          <React.Fragment key={item.id}>
+            <DailyItemCard
+              item={item}
+              coins={coins}
+              tickets={tickets[item.id] ?? 0}
+              onBuy={() => buyDailyTicket(item)}
+            />
+            {(idx + 1) % 4 === 0 ? <StandardBannerAd index={Math.floor(idx / 4)} variant="feed-card" placement="sweepstakes_inline" /> : null}
+          </React.Fragment>
         ))}
       </div>
 
