@@ -90,6 +90,10 @@ const PLACEMENT_OPTIONS: { id: AdPlacementTarget; label: string; tag: string }[]
   { id: "hot_seat_comments", label: "Hot Seat Comments", tag: "After every 5 comments" },
   { id: "hot_seat_questions", label: "Hot Seat Questions", tag: "After every 5 questions" },
   { id: "hot_seat_water_break", label: "Hot Seat Water Break", tag: "Admin-controlled" },
+  { id: "secret_profile_slot_1", label: "Secret Profile — Slot 1", tag: "After secret #5" },
+  { id: "secret_profile_slot_2", label: "Secret Profile — Slot 2", tag: "After secret #10" },
+  { id: "secret_profile_slot_3", label: "Secret Profile — Slot 3", tag: "After secret #17" },
+  { id: "secret_profile_slot_4", label: "Secret Profile — Slot 4 / Repeat", tag: "After secret #24, then every 10" },
 ];
 
 const PRESET_IMAGE_TEMPLATES: { label: string; url: string }[] = [];
@@ -119,6 +123,7 @@ export function AdminMonetizationControl({
   const [category, setCategory] = useState("");
   const [callToAction, setCallToAction] = useState("");
   const [status, setStatus] = useState<"active" | "paused">("active");
+  const [format, setFormat] = useState<"banner" | "native" | "sponsor" | "playable" | "interstitial" | "rewarded" | "offerwall" | "link">("banner");
 
   // Filters
   const [filterPlacement, setFilterPlacement] = useState<string>("all");
@@ -155,6 +160,7 @@ export function AdminMonetizationControl({
     setCategory("");
     setCallToAction("");
     setStatus("active");
+    setFormat("banner");
     setIsFormOpen(true);
   };
 
@@ -170,6 +176,7 @@ export function AdminMonetizationControl({
     setCategory(creative.category);
     setCallToAction(creative.callToAction);
     setStatus(creative.status);
+    setFormat(creative.format ?? "banner");
     setIsFormOpen(true);
   };
 
@@ -193,6 +200,7 @@ export function AdminMonetizationControl({
           category: category.trim(),
           callToAction: callToAction.trim() || "Learn More",
           status,
+          format,
         });
       }
     } else {
@@ -207,6 +215,7 @@ export function AdminMonetizationControl({
           category: category.trim(),
           callToAction: callToAction.trim() || "Learn More",
           status,
+          format,
         });
       }
     }
