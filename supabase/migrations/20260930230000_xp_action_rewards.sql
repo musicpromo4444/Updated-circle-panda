@@ -53,3 +53,7 @@ grant execute on function public.award_xp_secure(text,uuid,text) to authenticate
 -- cast_crush_vote_secure=2, cp_spin_reward=5, send_hot_seat_gift=10.
 -- record_activity_participation maps complete_profile=10, daily_login=3,
 -- attend_event=2, and all other daily activity participation=5.
+
+
+-- Remove the legacy client-supplied XP overload.
+drop function if exists public.award_xp_secure(text,uuid,bigint);
