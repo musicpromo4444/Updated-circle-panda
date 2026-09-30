@@ -49,6 +49,7 @@ import {
 } from "@/components/hotseat/LiveChatDrawer";
 import { ShareModal } from "@/components/hotseat/ShareModal";
 import { StandardBannerAd } from "@/components/ads/StandardBannerAd";
+import { GameModal } from "@/routes/activities";
 
 export const Route = createFileRoute("/hot-seat")({
   head: () => ({
@@ -185,6 +186,7 @@ function HotSeatPage() {
   const [waitingRoomOpen, setWaitingRoomOpen] = useState(false);
   const [joined, setJoined] = useState(false);
   const [breakPoll, setBreakPoll] = useState<any>(null);
+  const [breakGame, setBreakGame] = useState<any>(null);
   const [pollChoice, setPollChoice] = useState<number | null>(null);
   const [pollSaving, setPollSaving] = useState(false);
 
@@ -208,10 +210,12 @@ function HotSeatPage() {
         const { data: slots } = await supabase.from("hot_seat_session_hosts").select("*").eq("session_id", hostResult.data.id).eq("is_active", true).order("host_order");
         setSessionHosts(slots ?? []);
       } else setSessionHosts([]);
-      const { data: breakRows } = await supabase.from("hot_seat_break_content").select("*").eq("enabled", true).order("sort_order", { ascending: true });
+      const { data: breakRows } = hostResult.data
+        ? await (supabase as any).rpc("get_hot_seat_current_break", { p_host_id: hostResult.data.id })
+        : { data: [] };
       const { data: pollRow } = await supabase.from("hot_seat_break_polls").select("*").eq("enabled", true).order("created_at", { ascending: false }).limit(1).maybeSingle();
       setBreakPoll(pollRow ?? null);
-      setBreakContent(breakRows ?? []);
+      setBreakContent(Array.isArray(breakRows) ? breakRows : []);
       if (hostResult.data) {
         const { data } = await supabase.from("hot_seat_questions").select("*, hot_seat_answers(*)").eq("host_id", hostResult.data.id).order("is_priority", { ascending: false }).order("created_at", { ascending: false });
         const { data: voteRows } = await (supabase as any).rpc("get_hot_seat_question_vote_counts", { p_host_id: hostResult.data.id });
@@ -275,13 +279,11 @@ function HotSeatPage() {
           return next.sort((a, b) => Number(a.host_order) - Number(b.host_order));
         });
       })
-      .on("postgres_changes", { event: "*", schema: "public", table: "hot_seat_break_content" }, (payload) => {
-        const row: any = payload.new ?? payload.old;
-        setBreakContent((prev) => {
-          if (payload.eventType === "DELETE") return prev.filter((x) => x.id !== row.id);
-          if (row.enabled === false) return prev.filter((x) => x.id !== row.id);
-          return prev.filter((x) => x.id !== row.id).concat(row).sort((a, b) => Number(a.sort_order) - Number(b.sort_order));
-        });
+      .on("postgres_changes", { event: "*", schema: "public", table: "hot_seat_break_content" }, async () => {
+        if (activeHost) {
+          const { data } = await (supabase as any).rpc("get_hot_seat_current_break", { p_host_id: activeHost.id });
+          setBreakContent(Array.isArray(data) ? data : []);
+        }
       })
       .on("postgres_changes", { event: "UPDATE", schema: "public", table: "hot_seat_hosts" }, (payload) => {
         const next: any = payload.new;
@@ -502,6 +504,14 @@ function HotSeatPage() {
     }).catch((error:any) => toast.error(error?.message ?? "Could not boost queue."));
   };
 
+  if (breakGame) {
+    return (
+      <>
+        <GameModal activity={breakGame} onClose={() => setBreakGame(null)} onDone={() => setBreakGame(null)} />
+      </>
+    );
+  }
+
   return (
     <div
       id="hot-seat-immersive-viewport"
@@ -563,12 +573,25 @@ function HotSeatPage() {
             <p className="mt-2 text-sm text-white/60">The 3-hour live block has ended. The live player is closed for 1 hour, then the next live block resumes automatically.</p>
             <div className="mt-5 text-3xl font-black tabular-nums text-white">{formatLongTimer(windowSeconds)}</div>
             <BreakLounge content={breakContent} onOpen={(item) => {
+              if (item.content_type === "activity" && item.activity_slug) {
+                setBreakGame({
+                  id: item.id,
+                  title: item.title,
+                  description: item.description ?? "Hot Seat water-break activity",
+                  activity_type: item.activity_slug,
+                  reward_bc: 0,
+                  requires_ad: item.activity_slug === "playable_ad",
+                  completed: false,
+                  last_completed_at: null,
+                });
+                return;
+              }
               if (item.content_type === "poll" && breakPoll) {
                 setPollChoice(null);
                 return;
               }
               if (item.action_url) window.open(item.action_url, "_blank", "noopener,noreferrer");
-              else toast.info(item.title + " is ready", { description: item.description ?? "Admin can attach the live destination from Hot Seat Control." });
+              else toast.info(item.title + " is ready", { description: item.description ?? "Admin controls this break activity." });
             }} />
             {breakPoll && (
               <div className="mt-4 w-full max-w-2xl rounded-3xl border border-emerald-400/20 bg-black/65 p-5 text-left backdrop-blur-xl">
