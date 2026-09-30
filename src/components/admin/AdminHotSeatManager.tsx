@@ -25,6 +25,9 @@ export function AdminHotSeatManager() {
   const [breakTitle, setBreakTitle] = useState("");
   const [breakType, setBreakType] = useState("movie");
   const [breakUrl, setBreakUrl] = useState("");
+  const [breakNumber, setBreakNumber] = useState(1);
+  const [breakActivity, setBreakActivity] = useState("wheel_spin");
+  const [breakActivityTitle, setBreakActivityTitle] = useState("");
   const [earnings, setEarnings] = useState({ gross: 0, hostShare: 0 });
   const [providerConfig, setProviderConfig] = useState<any>({});
   const [providerSaving, setProviderSaving] = useState(false);
@@ -206,6 +209,54 @@ export function AdminHotSeatManager() {
               <button type="button" className="text-xs text-red-400" onClick={async () => {
                 const { error } = await (supabase as any).rpc("admin_hot_seat_break_content_delete", { p_id: item.id });
                 if (error) toast.error(error.message); else { setBreakContent(prev => prev.filter(x => x.id !== item.id)); toast.success("Break activity removed"); }
+              }}>Remove</button>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="rounded-2xl border border-cyan-400/20 bg-cyan-400/5 p-4 space-y-3">
+        <div>
+          <b className="text-sm">Water-break activity schedule</b>
+          <p className="mt-1 text-xs text-muted-foreground">Choose the exact game/activity for each water break. Break 1, Break 2, Break 3 and later breaks are stored separately and run automatically.</p>
+        </div>
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-4">
+          <select value={breakNumber} onChange={e=>setBreakNumber(Number(e.target.value))} className="rounded-lg border border-border bg-background px-3 py-2 text-sm">
+            {Array.from({length:24},(_,i)=>i+1).map(n=><option key={n} value={n}>Water Break {n}</option>)}
+          </select>
+          <select value={breakActivity} onChange={e=>setBreakActivity(e.target.value)} className="rounded-lg border border-border bg-background px-3 py-2 text-sm">
+            <option value="wheel_spin">🎡 Lucky Wheel</option>
+            <option value="mystery_box">🎁 Mystery Box</option>
+            <option value="target">🎯 Panda Target</option>
+            <option value="guess_sponsor">🃏 Guess the Sponsor</option>
+            <option value="puzzle">🧩 Panda Puzzle</option>
+            <option value="coin_drop">🪙 Coin Drop</option>
+            <option value="slots">🎰 Panda Slots</option>
+            <option value="lucky_card">🃏 Lucky Card</option>
+            <option value="secret_reveal">🕵️ Secret Reveal</option>
+            <option value="playable_ad">▶️ Just Playbo Ads</option>
+            <option value="cup_shuffle">🥤 Panda Cup Shuffle</option>
+          </select>
+          <Input placeholder="Activity title (optional)" value={breakActivityTitle} onChange={e=>setBreakActivityTitle(e.target.value)} />
+          <Button onClick={async()=>{
+            const {data,error}=await (supabase as any).rpc("admin_hot_seat_break_activity_upsert",{
+              p_break_number:breakNumber,p_activity_slug:breakActivity,p_title:breakActivityTitle.trim() || null,
+              p_description:"Admin-selected Hot Seat water-break activity.",p_enabled:true,p_sort_order:0
+            });
+            if(error) toast.error(error.message); else {
+              setBreakContent(prev=>[...prev.filter(x=>!(x.content_type==="activity"&&Number(x.water_break_number)===breakNumber)),data]);
+              setBreakActivityTitle("");
+              toast.success("Water-break activity selected");
+            }
+          }}>Save activity</Button>
+        </div>
+        <div className="grid gap-2">
+          {breakContent.filter(x=>x.content_type==="activity").sort((a,b)=>Number(a.water_break_number)-Number(b.water_break_number)).map(item=>(
+            <div key={item.id} className="flex items-center justify-between gap-3 rounded-xl border border-white/10 px-3 py-2">
+              <div className="min-w-0"><div className="text-xs font-bold truncate">Break {item.water_break_number} · {item.title}</div><div className="text-[10px] text-muted-foreground">{item.activity_slug} · {item.enabled ? "enabled" : "off"}</div></div>
+              <button type="button" className="text-xs text-red-400" onClick={async()=>{
+                const {error}=await (supabase as any).rpc("admin_hot_seat_break_content_delete",{p_id:item.id});
+                if(error) toast.error(error.message); else {setBreakContent(prev=>prev.filter(x=>x.id!==item.id));toast.success("Break activity removed");}
               }}>Remove</button>
             </div>
           ))}
