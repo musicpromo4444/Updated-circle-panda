@@ -222,7 +222,7 @@ export function AdminHotSeatManager() {
         </div>
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-4">
           <select value={breakNumber} onChange={e=>setBreakNumber(Number(e.target.value))} className="rounded-lg border border-border bg-background px-3 py-2 text-sm">
-            {Array.from({length:24},(_,i)=>i+1).map(n=><option key={n} value={n}>Water Break {n}</option>)}
+            {Array.from({length:42},(_,i)=>i+1).map(n=><option key={n} value={n}>Water Break {n}</option>)}
           </select>
           <select value={breakActivity} onChange={e=>setBreakActivity(e.target.value)} className="rounded-lg border border-border bg-background px-3 py-2 text-sm">
             <option value="wheel_spin">🎡 Lucky Wheel</option>
