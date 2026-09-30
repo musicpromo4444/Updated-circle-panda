@@ -20,10 +20,17 @@ function RegisterPage() {
   const age = useMemo(() => form.dob ? Math.floor((Date.now()-new Date(form.dob).getTime())/31557600000) : 0,[form.dob]);
   const set=(key:string,value:string)=>setForm(f=>({...f,[key]:value}));
 
-  async function signInWithProvider(provider: "google" | "apple") {\n    setError(""); setNotice("");\n    const { error } = await supabase.auth.signInWithOAuth({ provider, options: { redirectTo: `${window.location.origin}/` } });\n    if (error) setError(error.message);\n  }\n\n  async function submit(e: FormEvent) {
+  async function signInWithProvider(provider: "google" | "apple") {
+    setError(""); setNotice("");
+    const { error } = await supabase.auth.signInWithOAuth({ provider, options: { redirectTo: `${window.location.origin}/` } });
+    if (error) setError(error.message);
+  }
+
+  async function submit(e: FormEvent) {
     e.preventDefault(); setError(""); setNotice("");
     if (age < 18) { setError("Circle Panda is 18+."); return; }
-    if (!form.name.trim() || !form.identifier.trim() || form.password.length < 8 || !form.country || !form.state || !form.city || !form.area || !form.gender) { setError("Please complete all required fields."); return; }\n    if (form.password !== form.confirmPassword) { setError("Passwords do not match."); return; }
+    if (!form.name.trim() || !form.identifier.trim() || form.password.length < 8 || !form.country || !form.state || !form.city || !form.area || !form.gender) { setError("Please complete all required fields."); return; }
+    if (form.password !== form.confirmPassword) { setError("Passwords do not match."); return; }
     setBusy(true);
     try {
       const metadata = { name: form.name.trim(), country: form.country.trim(), state_province: form.state.trim(), city: form.city.trim(), area: form.area.trim(), gender: form.gender, date_of_birth: form.dob, avatar_style: form.avatar, age };
@@ -50,7 +57,8 @@ function RegisterPage() {
             <div className="grid gap-4 sm:grid-cols-2">
               <label className="text-sm font-bold">Panda name<input required value={form.name} onChange={e=>set("name",e.target.value)} className="cp-input" placeholder="Panda Amanda" /></label>
               <label className="text-sm font-bold">Phone number or email<input required value={form.identifier} onChange={e=>set("identifier",e.target.value)} className="cp-input" placeholder="+234… or email" /></label>
-              <label className="text-sm font-bold">Password<input required minLength={8} type="password" value={form.password} onChange={e=>set("password",e.target.value)} className="cp-input" placeholder="At least 8 characters" /></label>\n              <label className="text-sm font-bold">Re-enter password<input required minLength={8} type="password" value={form.confirmPassword} onChange={e=>set("confirmPassword",e.target.value)} className="cp-input" placeholder="Enter your password again" /></label>
+              <label className="text-sm font-bold">Password<input required minLength={8} type="password" value={form.password} onChange={e=>set("password",e.target.value)} className="cp-input" placeholder="At least 8 characters" /></label>
+              <label className="text-sm font-bold">Re-enter password<input required minLength={8} type="password" value={form.confirmPassword} onChange={e=>set("confirmPassword",e.target.value)} className="cp-input" placeholder="Enter your password again" /></label>
               <label className="text-sm font-bold">Country<input required value={form.country} onChange={e=>set("country",e.target.value)} className="cp-input" placeholder="Nigeria" /></label>
               <label className="text-sm font-bold">State / region<input required value={form.state} onChange={e=>set("state",e.target.value)} className="cp-input" placeholder="Rivers" /></label>
               <label className="text-sm font-bold">City<input required value={form.city} onChange={e=>set("city",e.target.value)} className="cp-input" placeholder="Port Harcourt" /></label>
