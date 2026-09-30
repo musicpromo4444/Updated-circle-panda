@@ -1,5 +1,5 @@
 import { useNavigate } from "@tanstack/react-router";
-import { Heart, MessageCircle, MessageSquare, Send, Share2, Star } from "lucide-react";
+import { Heart, MessageCircle, MessageSquare, Send, Share2 } from "lucide-react";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { TimeAgo } from "@/components/TimeAgo";
@@ -7,7 +7,7 @@ import { VipIdentity } from "@/components/VipIdentity";
 import { SharePostSheet } from "@/components/feed/SharePostSheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useStore, starRating, type Post } from "@/lib/store";
+import { useStore, type Post } from "@/lib/store";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -93,7 +93,7 @@ export function PostCard({ post }: { post: Post }) {
     const now = Date.now();
     const DOUBLE_TAP_DELAY = 350;
     if (now - lastTapRef.current < DOUBLE_TAP_DELAY) {
-      if (!liked) triggerHeartAnimation();
+      if (!liked) void handleLike();
     }
     lastTapRef.current = now;
   };
