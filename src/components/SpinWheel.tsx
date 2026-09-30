@@ -63,10 +63,13 @@ export function SpinWheel({
     // Each slice spans sliceAngle starting at idx*sliceAngle.
     const target = 360 * 6 + (360 - (idx * sliceAngle + sliceAngle / 2));
     setAngle((prev) => prev + (target - (prev % 360)));
-    setTimeout(() => {
-      const prize = spinWheel();
-      setResult(prize);
-      setSpinning(false);
+    window.setTimeout(async () => {
+      try {
+        const prize = await spinWheel();
+        setResult(prize);
+      } finally {
+        setSpinning(false);
+      }
     }, 4200);
   };
 
