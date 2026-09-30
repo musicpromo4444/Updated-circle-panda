@@ -123,7 +123,7 @@ export function AdminHotSeatManager() {
     <section className="space-y-4">
       <div>
         <h2 className="font-display text-xl font-bold sm:text-2xl">Hot Seat Control</h2>
-        <p className="text-xs text-muted-foreground">Start and control the worldwide 3-hour live block.</p>
+        <p className="text-xs text-muted-foreground">Start and control the worldwide 3-hour live block with a mandatory 1-hour water break.</p>
       </div>
 
       <div className="rounded-2xl border border-white/10 bg-card p-4 space-y-3">
@@ -310,7 +310,7 @@ export function AdminHotSeatManager() {
             </select>
             <Input type="datetime-local" value={startAt} onChange={e => setStartAt(e.target.value)} aria-label="Hot Seat start time" />
             <select value={duration} onChange={e => setDuration(Number(e.target.value))} className="rounded-lg border border-border bg-background px-3 py-2 text-sm">
-              {[4, 8, 12, 24, 48, 72].map(n => <option key={n} value={n}>{n}h session</option>)}
+              {[4, 8, 12, 24, 48, 72].map(n => <option key={n} value={n}>{n}h total cycle</option>)}
             </select>
           </div>
           <Button onClick={() => void start()} disabled={saving || !alias || !url} className="w-full">
