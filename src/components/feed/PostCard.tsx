@@ -1,8 +1,7 @@
 import { useNavigate } from "@tanstack/react-router";
 import { Heart, MessageCircle, MessageSquare, Send, Share2, Star } from "lucide-react";
-import { useMemo, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { toast } from "sonner";
-import { TierBadge } from "@/components/TierBadge";
 import { TimeAgo } from "@/components/TimeAgo";
 import { VipIdentity } from "@/components/VipIdentity";
 import { SharePostSheet } from "@/components/feed/SharePostSheet";
@@ -10,13 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useStore, starRating, type Post } from "@/lib/store";
 import { cn } from "@/lib/utils";
-
-/** Deterministic pseudo-reputation for anonymous handles. */
-function authorScore(name: string) {
-  let h = 0;
-  for (const ch of name) h = (h * 31 + ch.charCodeAt(0)) % 1600;
-  return h;
-}
+import { supabase } from "@/integrations/supabase/client";
 
 interface BurstHeart {
   id: string;
@@ -40,20 +33,9 @@ export function PostCard({ post }: { post: Post }) {
   const [reply, setReply] = useState("");
   const [shareSheetOpen, setShareSheetOpen] = useState(false);
 
-  // Stable deterministic base likes for realistic feed banter
-  const baseLikes = useMemo(() => {
-    if (typeof post.likes === "number") return post.likes;
-    let hash = 0;
-    for (let i = 0; i < post.id.length; i++) {
-      hash = (hash << 5) - hash + post.id.charCodeAt(i);
-      hash |= 0;
-    }
-    return Math.abs(hash % 24) + 5;
-  }, [post.id, post.likes]);
-
-  // Like states
-  const [liked, setLiked] = useState(false);
-  const [likeCount, setLikeCount] = useState(baseLikes);
+  const [liked, setLiked] = useState(Boolean(post.liked));
+  const [likeCount, setLikeCount] = useState(Number(post.likes ?? 0));
+  const [liking, setLiking] = useState(false);
   const [burstHearts, setBurstHearts] = useState<BurstHeart[]>([]);
   const [miniHearts, setMiniHearts] = useState<MiniHeartParticle[]>([]);
   const [isBouncing, setIsBouncing] = useState(false);
@@ -94,15 +76,16 @@ export function PostCard({ post }: { post: Post }) {
   // Like button click handler
   const handleLike = (e?: React.MouseEvent) => {
     e?.stopPropagation();
-
-    if (!liked) {
-      setLiked(true);
-      setLikeCount((c) => c + 1);
-      triggerHeartAnimation();
-    } else {
-      setLiked(false);
-      setLikeCount((c) => Math.max(0, c - 1));
-    }
+    if (liking) return;
+    setLiking(true);
+    void (async () => {
+      const { data, error } = await (supabase as any).rpc("toggle_post_like_secure", { p_post_id: post.id });
+      setLiking(false);
+      if (error) { toast.error(error.message ?? "Like could not be saved"); return; }
+      setLiked(Boolean(data?.liked));
+      setLikeCount(Number(data?.count ?? 0));
+      if (Boolean(data?.liked)) triggerHeartAnimation();
+    })();
   };
 
   // Double tap on card to like
@@ -110,11 +93,7 @@ export function PostCard({ post }: { post: Post }) {
     const now = Date.now();
     const DOUBLE_TAP_DELAY = 350;
     if (now - lastTapRef.current < DOUBLE_TAP_DELAY) {
-      if (!liked) {
-        setLiked(true);
-        setLikeCount((c) => c + 1);
-      }
-      triggerHeartAnimation();
+      if (!liked) triggerHeartAnimation();
     }
     lastTapRef.current = now;
   };
@@ -209,13 +188,10 @@ export function PostCard({ post }: { post: Post }) {
         <div className="min-w-0 leading-tight">
           <p className="truncate text-sm font-medium">{post.author}</p>
           <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
-            <Star className="size-3 fill-current text-primary" />
-            {starRating(authorScore(post.author)).toFixed(1)}
-            <span aria-hidden>·</span>
-            <TimeAgo at={post.at} />
+<TimeAgo at={post.at} />
           </p>
         </div>
-        <TierBadge score={authorScore(post.author)} compact />
+
       </div>
 
       {/* Post Body */}
