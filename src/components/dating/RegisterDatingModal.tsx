@@ -13,7 +13,7 @@ const INTERESTS = ["Books", "Late walks", "Vinyl", "Matcha", "Gaming", "Memes", 
 const LOOKING_FOR = ["Long-term relationship", "Something casual", "Friendship first", "Dating / getting to know people", "Not sure yet"];
 const LIFESTYLE = ["Early bird", "Night owl", "Homebody", "Social butterfly", "Adventurous", "Work-focused", "Fitness-minded", "Creative"];
 const PERSONALITY = ["Funny", "Romantic", "Quiet", "Confident", "Spontaneous", "Caring", "Ambitious", "Flirty", "Introverted", "Outgoing"];
-const SEXUAL_EXPERIENCE = ["Novice", "Some experience", "Experienced", "Good in bed", "Prefer not to say"];
+const SEXUAL_EXPERIENCE = ["Virgin", "Novice", "Expert", "Good in bed", "Pro", "Prefer not to say"];
 const INTIMACY = ["Take it slow", "Affectionate", "Open to exploring", "Prefer to discuss privately", "Prefer not to say"];
 
 const emptyProfile: Omit<DatingProfile, "registeredAt" | "userId"> = {
@@ -151,7 +151,7 @@ export function RegisterDatingModal({ open, onOpenChange }: { open: boolean; onO
         </section>}
         {step === 3 && <section className="space-y-5">
           <div className="rounded-2xl border border-[var(--dating)]/20 bg-[var(--dating)]/5 p-4"><p className="font-black uppercase tracking-wide">SEXUAL EXPERIENCE</p><p className="mt-1 text-xs text-muted-foreground">Optional adult profile information. You control what you share on your card.</p></div>
-          <div><label className="mb-1.5 block text-sm font-black uppercase tracking-wide">SEXUAL EXPERIENCE</label><div className="grid gap-2 sm:grid-cols-2">{SEXUAL_EXPERIENCE.map(v=><button type="button" key={v} onClick={()=>set("sexualExperience",v)} className={`rounded-xl border px-3 py-3 text-left text-sm ${p.sexualExperience===v ? "border-[var(--dating)] bg-[var(--dating)]/10 text-[var(--dating)]" : "border-border bg-background"}`}>{v}</button>)}</div></div>
+          <div><label className="mb-1.5 block text-sm font-black uppercase tracking-wide">Sexual Experience</label><div className="grid gap-2 sm:grid-cols-2">{SEXUAL_EXPERIENCE.map(v=><button type="button" key={v} onClick={()=>set("sexualExperience",v)} className={`rounded-xl border px-3 py-3 text-left text-sm ${p.sexualExperience===v ? "border-[var(--dating)] bg-[var(--dating)]/10 text-[var(--dating)]" : "border-border bg-background"}`}>{v}</button>)}</div></div>
           <div><label className="mb-1.5 block text-xs font-semibold">Intimacy preference</label><Chips values={INTIMACY} selected={p.intimacyPreference ? [p.intimacyPreference] : []} onToggle={v=>set("intimacyPreference",v)} /></div>
         </section>}
         {step === 4 && <section className="space-y-4"><div className="rounded-2xl bg-secondary/50 p-4"><p className="font-display font-bold">Your dating card is ready</p><p className="mt-1 text-sm text-muted-foreground">Review your answers before publishing. You can update your answers, but your Panda name stays fixed.</p></div><div className="grid grid-cols-2 gap-2 text-sm">{[["Panda name",p.name],["Age",String(p.age)],["Country",p.country||"—"],["Gender",p.gender||"—"],["Vibe",p.vibe||"—"],["Looking for",p.relationshipGoal||p.lookingFor[0]||"—"],["Experience",p.sexualExperience||"Prefer not to say"],["Ideal date",p.favoriteDate||"—"]].map(([k,v])=><div key={k} className="rounded-xl border border-border p-3"><p className="text-[10px] uppercase tracking-wider text-muted-foreground">{k}</p><p className="mt-1 font-medium">{v}</p></div>)}</div></section>}
