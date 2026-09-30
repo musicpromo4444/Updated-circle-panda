@@ -1162,10 +1162,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     };
     return {
       ...result,
-      qualificationId: data.qualification_id ?? undefined,
-      qualificationStageId: qualificationStage?.id ?? undefined,
-      qualificationForm: qualificationStage?.form_config ?? undefined,
-      requiresQualification: Boolean(data.qualification_id && qualificationStage?.id),
+      ...(data.qualification_id ? { qualificationId: String(data.qualification_id) } : {}),
+      ...(qualificationStage?.id ? { qualificationStageId: String(qualificationStage.id) } : {}),
+      ...(qualificationStage?.form_config ? { qualificationForm: qualificationStage.form_config as Record<string, unknown> } : {}),
+      ...(data.qualification_id && qualificationStage?.id ? { requiresQualification: true } : {}),
     };
   }, [dbUserId, syncCoins, syncAccountEntitlements]);
 
