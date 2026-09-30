@@ -22,20 +22,17 @@ function SecretProfilePage() {
   const [secrets, setSecrets] = useState<Secret[]>([]);
   const [content, setContent] = useState("");
   const [loading, setLoading] = useState(true);
-  const [signedIn, setSignedIn] = useState(false);
   const [posting, setPosting] = useState(false);
   const [justPosted, setJustPosted] = useState(false);
 
   useEffect(() => {
     void (async () => {
-      const [{ data: profileData }, { data: secretData }, { data: authData }] = await Promise.all([
+      const [{ data: profileData }, { data: secretData }] = await Promise.all([
         (supabase as any).rpc("get_shared_profile_public", { p_user_id: userId }),
         (supabase as any).from("profile_secrets").select("id,content,created_at").eq("target_user_id", userId).eq("is_published", true).order("created_at", { ascending: false }).limit(50),
-        supabase.auth.getUser(),
       ]);
       setProfile(Array.isArray(profileData) ? profileData[0] ?? null : profileData ?? null);
       setSecrets(secretData ?? []);
-      setSignedIn(Boolean(authData.user && !authData.user.is_anonymous));
       setLoading(false);
     })();
   }, [userId]);
@@ -75,16 +72,11 @@ function SecretProfilePage() {
 
         <section className="panda-panel rounded-3xl p-6 text-center">
           <div className="mx-auto grid size-20 place-items-center rounded-full bg-secondary text-4xl">{profile.avatar_url || "🐼"}</div>
-          {signedIn ? <>
-            <h1 className="mt-3 font-display text-2xl font-bold">{profile.display_name}</h1>
-            {profile.country ? <p className="mt-1 text-sm text-muted-foreground">{profile.country}</p> : null}
-            {profile.bio ? <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-muted-foreground">{profile.bio}</p> : null}
-          </> : <>
-            <h1 className="mt-3 font-display text-2xl font-bold blur-sm select-none">Secret Panda</h1>
-            <p className="mt-2 text-sm text-muted-foreground">Please sign up or log in to view this Panda's full profile.</p>
-          </>}
+          <h1 className="mt-3 font-display text-2xl font-bold">{profile.display_name}</h1>
+          {profile.country ? <p className="mt-1 text-sm text-muted-foreground">{profile.country}</p> : null}
+          {profile.bio ? <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-muted-foreground">{profile.bio}</p> : null}
           <div className="mt-4 rounded-2xl border border-primary/20 bg-primary/5 p-3 text-xs text-muted-foreground">
-            <Eye className="mx-auto mb-1 size-4 text-primary" /> {signedIn ? "You're signed in. You can view the profile and interact." : "Sign up or log in to unlock the full profile and post secrets."}
+            <Eye className="mx-auto mb-1 size-4 text-primary" /> Browse the public profile and secrets. No account is required to read or leave a secret.
           </div>
         </section>
 
@@ -111,7 +103,7 @@ function SecretProfilePage() {
 
           <div className="mt-4 rounded-2xl border border-primary/25 bg-primary/5 p-4">
             <p className="text-sm font-bold">Anyone can post a secret — no account required.</p>
-            <p className="mt-1 text-xs text-muted-foreground">Post anonymously first. After posting, you can create a free Circle Panda account and share your own Secret Profile.</p>
+            <p className="mt-1 text-xs text-muted-foreground">Your secret is published first. Then you can create a free Circle Panda account.</p>
           </div>
           {!justPosted ? (
             <div className="mt-4 space-y-3">
@@ -120,8 +112,8 @@ function SecretProfilePage() {
             </div>
           ) : (
             <div className="mt-4 rounded-2xl border border-primary/30 bg-primary/5 p-4 text-center">
-              <p className="text-sm font-bold">Your secret has been posted anonymously.</p>
-              <p className="mt-1 text-xs text-muted-foreground">Want to share your own Secret Profile? Create a free Circle Panda account.</p>
+              <p className="text-sm font-bold">Your secret has been published anonymously.</p>
+              <p className="mt-1 text-xs text-muted-foreground">Create a free Circle Panda account to continue.</p>
               <Link to="/register" search={{ redirect: "/secret/" + userId } as any} className="mt-3 inline-flex w-full items-center justify-center rounded-xl bg-primary px-4 py-3 text-sm font-black text-primary-foreground">Create my free account</Link>
               <Button variant="ghost" className="mt-1 w-full" onClick={() => setJustPosted(false)}>Post another secret</Button>
             </div>
