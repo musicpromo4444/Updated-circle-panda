@@ -158,7 +158,7 @@ function ThemedToaster() {
   return <Toaster position="top-center" richColors closeButton theme={theme} />;
 }
 
-function RootComponent() {
+\nfunction CircleWelcome() {\n  useEffect(() => {\n    try {\n      if (localStorage.getItem("circle_panda_welcomed") === "1") return;\n      const timer = window.setTimeout(() => {\n        localStorage.setItem("circle_panda_welcomed", "1");\n        window.dispatchEvent(new CustomEvent("circle-panda-welcome"));\n      }, 700);\n      return () => window.clearTimeout(timer);\n    } catch {\n      return;\n    }\n  }, []);\n  return null;\n}\n\nfunction RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const location = useLocation();
   const hideHotSeatPresence = location.pathname === "/profile" || location.pathname.startsWith("/profile/");
