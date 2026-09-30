@@ -81,8 +81,8 @@ export function StandardBannerAd({
     openAdExternalUrl(ad.ctaUrl, ad.sponsor);
   };
 
-  const isFeedCard = variant === "feed-card";
-  const hasVideo = Boolean(liveAdminCreative?.videoUrl);
+  const isFeedCard = variant === "feed-card" || liveAdminCreative?.format === "native" || liveAdminCreative?.format === "sponsor";
+  const hasVideo = Boolean(liveAdminCreative?.videoUrl) && liveAdminCreative?.format === "playable";
 
   return (
     <aside
