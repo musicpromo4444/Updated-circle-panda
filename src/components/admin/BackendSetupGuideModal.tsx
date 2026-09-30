@@ -8,7 +8,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { hasSupabaseConfig } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 interface BackendSetupGuideModalProps {
@@ -19,7 +18,7 @@ interface BackendSetupGuideModalProps {
 export function BackendSetupGuideModal({ open, onOpenChange }: BackendSetupGuideModalProps) {
   const [copiedEnv, setCopiedEnv] = useState(false);
   const [copiedSql, setCopiedSql] = useState(false);
-  const isConnected = hasSupabaseConfig();
+  const isConnected = Boolean(import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY);
 
   const envTemplate = `# Circle Panda Supabase Backend Credentials
 VITE_SUPABASE_URL=https://your-project-id.supabase.co
@@ -82,12 +81,12 @@ SUPABASE_SERVICE_ROLE_KEY=your_service_role_key_here`;
               <p className="text-sm font-bold text-foreground">
                 {isConnected
                   ? "Supabase Live Backend Connected"
-                  : "Local Prototype / Preview Mode Active"}
+                  : "Supabase Configuration Missing"}
               </p>
               <p className="text-xs text-muted-foreground mt-0.5">
                 {isConnected
                   ? "Real-time subscriptions, server RPCs and database storage are active."
-                  : "Using local in-memory storage fallback. Add your Supabase credentials below to go live."}
+                  : "The production app requires Supabase configuration. There is no local-data fallback."}
               </p>
             </div>
           </div>
