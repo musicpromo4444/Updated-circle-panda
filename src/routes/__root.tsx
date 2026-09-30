@@ -158,7 +158,25 @@ function ThemedToaster() {
   return <Toaster position="top-center" richColors closeButton theme={theme} />;
 }
 
-\nfunction CircleWelcome() {\n  useEffect(() => {\n    try {\n      if (localStorage.getItem("circle_panda_welcomed") === "1") return;\n      const timer = window.setTimeout(() => {\n        localStorage.setItem("circle_panda_welcomed", "1");\n        toast.success("Welcome to the Circle 🐼", {\n          description: "Come in, have a seat, and find your people.",\n        });\n      }, 700);\n      return () => window.clearTimeout(timer);\n    } catch {\n      return;\n    }\n  }, []);\n  return null;\n}\n\nfunction RootComponent() {
+
+function CircleWelcome() {
+  useEffect(() => {
+    try {
+      if (localStorage.getItem("circle_panda_welcomed") === "1") return;
+      const timer = window.setTimeout(() => {
+        localStorage.setItem("circle_panda_welcomed", "1");
+        toast.success("Welcome to the Circle 🐼", {
+          description: "Come in, have a seat, and find your people.",
+        });
+      }, 700);
+      return () => window.clearTimeout(timer);
+    } catch {
+      return;
+    }
+  }, []);
+  return null;
+}
+\nfunction RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const location = useLocation();
   const hideHotSeatPresence = location.pathname === "/profile" || location.pathname.startsWith("/profile/");
