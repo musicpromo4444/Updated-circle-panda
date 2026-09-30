@@ -60,6 +60,44 @@ function EventsPage() {
 
   const openBlast = () => { if (!current) return; setTargetScope("worldwide"); setTargetCountry(""); setTargetState(""); setTargetCity(""); setTargetArea(""); setBlastOpen(true); };
 
+  const payEventEntry = async () => {
+    if (!current || Number(current.cost ?? 0) <= 0) return;
+    if (!email.trim()) { toast.error("Enter an email for the secure cash checkout."); return; }
+    setProcessing(true);
+    try {
+      const config = await loadPricingConfig();
+      const key = config.paystack.publicKey.trim();
+      if (!key || !window.PaystackPop?.setup) throw new Error("Paystack checkout is not configured yet.");
+      const reference = `CP_EVENT_${Date.now()}_${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
+      await new Promise<void>((resolve, reject) => {
+        const popup = window.PaystackPop!.setup({
+          key,
+          email: email.trim(),
+          amount: Math.round(Number(current.cost) * 100),
+          currency: String(current.currency ?? "NGN").toUpperCase(),
+          ref: reference,
+          metadata: { eventId: current.id, purpose: "event_entry" },
+          callback: async (response) => {
+            if (response.status !== "success") { reject(new Error("Payment was not confirmed.")); return; }
+            const { error } = await supabase.functions.invoke("verify-event-entry-payment", {
+              body: { reference: response.reference, eventId: current.id },
+            });
+            if (error) { reject(new Error(error.message || "Payment verification failed.")); return; }
+            toast.success("Event entry confirmed 🐼");
+            setOpenEvent(null);
+            resolve();
+          },
+          onClose: () => reject(new Error("Checkout closed before confirmation.")),
+        });
+        popup.openIframe();
+      });
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Event payment failed.");
+    } finally {
+      setProcessing(false);
+    }
+  };
+
   const payCashBlast = async (plan: BlastPlan) => {
     if (!current || !email.trim()) {
       toast.error("Enter an email for the secure cash checkout.");
@@ -147,7 +185,7 @@ function EventsPage() {
             </div>
             <p className="text-sm leading-relaxed text-muted-foreground">{current.details}</p>
             <div className="grid gap-2 sm:grid-cols-2">
-              <Button variant={current.rsvp ? "secondary" : "default"} onClick={() => { if (current.cost > 0) { toast.message("Paid entry is handled at checkout."); } else { void (async () => { const { data, error } = await (supabase as any).rpc("toggle_event_rsvp_secure", { p_event_id: current.id }); if (error) toast.error(error.message); else toast.success(data?.joined ? "You’re going 🐼" : "RSVP cancelled"); })(); } }}>
+              <Button variant={current.rsvp ? "secondary" : "default"} onClick={() => { if (current.cost > 0) { void payEventEntry(); } else { void (async () => { const { data, error } = await (supabase as any).rpc("toggle_event_rsvp_secure", { p_event_id: current.id }); if (error) toast.error(error.message); else toast.success(data?.joined ? "You’re going 🐼" : "RSVP cancelled"); })(); } }}>
                 {current.rsvp ? "You’re going 🐼" : current.cost > 0 ? `Pay ${current.currency === "NGN" ? "₦" : current.currency + " "}${current.cost.toLocaleString()} & RSVP` : "RSVP anonymously"}
               </Button>
               <Button type="button" variant="outline" onClick={openBlast} className="gap-2"><Rocket className="size-4" /> Event Blast</Button>
