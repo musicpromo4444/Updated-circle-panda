@@ -509,7 +509,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       if (!session) session = (await supabase.auth.signInAnonymously()).data.session ?? null;
       if (!session?.user || cancelled) return;
       setDbUserId(session.user.id);
-      void (supabase as any).rpc("award_xp_secure", { p_action:"daily_login" });
+      await (supabase as any).rpc("award_xp_secure", { p_action:"daily_login" });
       if (!session.user.is_anonymous) {
         void (supabase as any).rpc("ensure_my_circle_panda_profile").catch(() => {});
       }
