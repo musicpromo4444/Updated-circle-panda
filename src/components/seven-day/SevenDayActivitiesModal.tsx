@@ -8,7 +8,9 @@ import { notifyAdEvent, openAdExternalUrl } from "@/components/ads/platformAdBri
 import { supabase } from "@/integrations/supabase/client";
 import { useStore } from "@/lib/store";
 
-const PLAYABLE_RESULT_SLUGS = new Set(["wheel_spin","mystery_box","target","cup_shuffle","puzzle","coin_drop","slots","lucky_card","guess_sponsor"]);\n\nconst GAMES = [
+const PLAYABLE_RESULT_SLUGS = new Set(["wheel_spin","mystery_box","target","cup_shuffle","puzzle","coin_drop","slots","lucky_card","guess_sponsor"]);
+
+const GAMES = [
   { slug:"wheel_spin", title:"Lucky Wheel", icon:"🎡", description:"Spin the glowing Circle Panda wheel and reveal your reward." },
   { slug:"mystery_box", title:"Mystery Box", icon:"🎁", description:"Choose one glowing box and watch it open to reveal your prize." },
   { slug:"target", title:"Panda Target", icon:"🎯", description:"Hit Panda's neon target as accurately as you can." },
