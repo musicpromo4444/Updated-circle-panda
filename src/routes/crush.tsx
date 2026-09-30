@@ -107,7 +107,7 @@ function CrushPage() {
   const vote = async () => {
     if (!card) return;
     const { data } = await supabase.auth.getUser();
-    if (!data.user) {
+    if (!data.user || data.user.is_anonymous) {
       setPendingVote(true);
       setShowQuickSignup(true);
       toast("Quick signup to vote.", { description: "Use your phone or email and password. Your vote will continue automatically." });
