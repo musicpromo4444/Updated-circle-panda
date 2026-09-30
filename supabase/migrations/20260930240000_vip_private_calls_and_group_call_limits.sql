@@ -63,3 +63,8 @@ begin
  return query select true,greatest(0,v_limit-v_used-p_seconds);
 end $$;
 grant execute on function public.start_vip_private_call(uuid,text),public.get_my_incoming_vip_calls(),public.get_vip_call(uuid),public.set_vip_call_offer(uuid,jsonb),public.set_vip_call_answer(uuid,jsonb),public.add_vip_call_candidate(uuid,jsonb),public.get_vip_call_candidates(uuid),public.end_vip_private_call(uuid,text),public.consume_vip_group_call_time(text,integer) to authenticated;
+
+revoke execute on function public.start_vip_private_call(uuid,text),public.get_my_incoming_vip_calls(),public.get_vip_call(uuid),public.set_vip_call_offer(uuid,jsonb),public.set_vip_call_answer(uuid,jsonb),public.add_vip_call_candidate(uuid,jsonb),public.get_vip_call_candidates(uuid),public.end_vip_private_call(uuid,text),public.consume_vip_group_call_time(text,integer) from anon;
+create policy "deny_vip_call_sessions_api" on public.cp_vip_call_sessions for all to authenticated using(false) with check(false);
+create policy "deny_vip_call_candidates_api" on public.cp_vip_call_candidates for all to authenticated using(false) with check(false);
+create policy "deny_vip_group_call_usage_api" on public.cp_vip_group_call_usage for all to authenticated using(false) with check(false);
