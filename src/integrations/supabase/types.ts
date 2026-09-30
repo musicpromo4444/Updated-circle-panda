@@ -12,6 +12,14 @@ export type Database = {
         Row: {
           apk_url: string;
           daily_drops: number;
+          download_popup_cta: string;
+          download_popup_cooldown_hours: number;
+          download_popup_enabled: boolean;
+          download_popup_message: string;
+          download_popup_mobile_only: boolean;
+          download_popup_reward: string;
+          download_popup_title: string;
+          download_popup_version: string;
           dating_enabled: boolean;
           feed_ads_enabled: boolean;
           hot_seat_mode: string;
@@ -30,6 +38,14 @@ export type Database = {
         Insert: {
           apk_url?: string;
           daily_drops?: number;
+          download_popup_cta?: string;
+          download_popup_cooldown_hours?: number;
+          download_popup_enabled?: boolean;
+          download_popup_message?: string;
+          download_popup_mobile_only?: boolean;
+          download_popup_reward?: string;
+          download_popup_title?: string;
+          download_popup_version?: string;
           dating_enabled?: boolean;
           feed_ads_enabled?: boolean;
           hot_seat_mode?: string;
@@ -48,6 +64,14 @@ export type Database = {
         Update: {
           apk_url?: string;
           daily_drops?: number;
+          download_popup_cta?: string;
+          download_popup_cooldown_hours?: number;
+          download_popup_enabled?: boolean;
+          download_popup_message?: string;
+          download_popup_mobile_only?: boolean;
+          download_popup_reward?: string;
+          download_popup_title?: string;
+          download_popup_version?: string;
           dating_enabled?: boolean;
           feed_ads_enabled?: boolean;
           hot_seat_mode?: string;
