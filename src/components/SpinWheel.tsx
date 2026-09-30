@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Sparkles } from "lucide-react";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { useStore, SPIN_SLICES, SPIN_COOLDOWN_MS, type SpinPrize } from "@/lib/store";
@@ -33,6 +35,8 @@ export function SpinWheel({
   const [spinning, setSpinning] = useState(false);
   const [angle, setAngle] = useState(0);
   const [result, setResult] = useState<SpinPrize | null>(null);
+  const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [submittingQualification, setSubmittingQualification] = useState(false);
   const [, setTick] = useState(0);
   const wheelRef = useRef<HTMLDivElement>(null);
 
@@ -118,15 +122,68 @@ export function SpinWheel({
         </div>
 
         {result ? (
-          <p className="text-center text-sm font-semibold text-primary">
-            You won {result.title} {result.emoji}
-            <span className="ml-1 text-[10px] uppercase tracking-wide text-muted-foreground">
-              {result.rarity.replace("-", " ")}
-            </span>
-          </p>
+          result.requiresQualification && result.qualificationId && result.qualificationStageId ? (
+            <div className="space-y-3">
+              <div className="text-center">
+                <p className="text-lg font-semibold text-primary">🎉 You qualified: {result.title}</p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Complete this form now. Your qualification is saved immediately.
+                </p>
+              </div>
+              {Array.isArray((result.qualificationForm as any)?.fields) ? (result.qualificationForm as any).fields.map((field: any) => (
+                <label key={String(field.key)} className="block space-y-1.5">
+                  <span className="text-xs font-semibold">{String(field.label ?? field.key)}</span>
+                  <input
+                    value={answers[String(field.key)] ?? ""}
+                    onChange={(e) => setAnswers((current) => ({ ...current, [String(field.key)]: e.target.value }))}
+                    required={field.required !== false}
+                    className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm outline-none focus:border-primary"
+                  />
+                </label>
+              ))}
+              <Button
+                className="w-full"
+                disabled={submittingQualification}
+                onClick={async () => {
+                  const fields = Array.isArray((result.qualificationForm as any)?.fields) ? (result.qualificationForm as any).fields : [];
+                  const missing = fields.find((field: any) => field.required !== false && !String(answers[String(field.key)] ?? "").trim());
+                  if (missing) {
+                    toast.error(`Please complete: ${String(missing.label ?? missing.key)}`);
+                    return;
+                  }
+                  setSubmittingQualification(true);
+                  try {
+                    const { data, error } = await (supabase as any).rpc("cp_submit_reward_stage", {
+                      p_qualification_id: result.qualificationId,
+                      p_stage_id: result.qualificationStageId,
+                      p_answers: answers,
+                    });
+                    if (error) throw error;
+                    toast.success(data?.next_stage ? "Qualification submitted successfully." : "Qualification completed.");
+                    setResult(null);
+                    setAnswers({});
+                  } catch (error: any) {
+                    toast.error(error?.message ?? "Could not submit your qualification.");
+                  } finally {
+                    setSubmittingQualification(false);
+                  }
+                }}
+              >
+                {submittingQualification ? "Submitting…" : "Complete qualification"}
+              </Button>
+            </div>
+          ) : (
+            <p className="text-center text-sm font-semibold text-primary">
+              You won {result.title} {result.emoji}
+              <span className="ml-1 text-[10px] uppercase tracking-wide text-muted-foreground">
+                {result.rarity.replace("-", " ")}
+              </span>
+            </p>
+          )
         ) : null}
 
-        <Button className="w-full gap-2" onClick={doSpin} disabled={spinning || !canSpin}>
+        <Button className="w-full gap-2" onClick={doSpin} disabled={spinning || !canSpin || Boolean(result?.requiresQualification)}>
+
           <Sparkles className="size-4" />
           {spinning
             ? "Spinning…"
