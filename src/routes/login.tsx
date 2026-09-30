@@ -25,7 +25,13 @@ function LoginPage() {
     setPlatform(ios ? "ios" : android ? "android" : "other");
   }, []);
 
-  async function signInWithProvider(provider: "google" | "apple") {\n    setError(""); setNotice("");\n    const { error } = await supabase.auth.signInWithOAuth({ provider, options: { redirectTo: `${window.location.origin}/` } });\n    if (error) setError(error.message);\n  }\n\n  async function submit(e: FormEvent) {
+  async function signInWithProvider(provider: "google" | "apple") {
+    setError(""); setNotice("");
+    const { error } = await supabase.auth.signInWithOAuth({ provider, options: { redirectTo: `${window.location.origin}/` } });
+    if (error) setError(error.message);
+  }
+
+  async function submit(e: FormEvent) {
     e.preventDefault();
     setBusy(true); setError(""); setNotice("");
     try {
@@ -53,7 +59,9 @@ function LoginPage() {
             <label className="block text-sm font-bold">Password<input required type="password" value={password} onChange={e=>setPassword(e.target.value)} className="cp-input" placeholder="Your password" /></label>
             {error && <div className="rounded-xl border border-red-400/20 bg-red-400/10 p-3 text-sm text-red-200">{error}</div>}
             {notice && <div className="rounded-xl border border-emerald-400/20 bg-emerald-400/10 p-3 text-sm text-emerald-200">{notice}</div>}
-            <button disabled={busy} className="flex w-full items-center justify-center gap-2 rounded-2xl bg-emerald-400 px-5 py-4 font-black text-[#06120f] disabled:opacity-60">{busy ? <Loader2 className="h-5 w-5 animate-spin" /> : <ArrowRight className="h-5 w-5" />} Enter the Circle</button>\n            <div className="relative my-2"><div className="border-t border-white/10" /><span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#111f1b] px-3 text-xs font-bold text-white/40">OR</span></div>\n            <div className="space-y-3">{platform === "ios" ? <button type="button" onClick={()=>signInWithProvider("apple")} className="w-full rounded-2xl border border-white/10 bg-black px-4 py-4 font-black text-white">Continue with Apple</button> : platform === "android" ? <button type="button" onClick={()=>signInWithProvider("google")} className="w-full rounded-2xl border border-white/10 bg-white px-4 py-4 font-black text-[#111]">Continue with Google</button> : <div className="grid gap-3 sm:grid-cols-2"><button type="button" onClick={()=>signInWithProvider("google")} className="rounded-2xl border border-white/10 bg-white px-4 py-3 font-black text-[#111]">Continue with Google</button><button type="button" onClick={()=>signInWithProvider("apple")} className="rounded-2xl border border-white/10 bg-black px-4 py-3 font-black text-white">Continue with Apple</button></div>}</div>
+            <button disabled={busy} className="flex w-full items-center justify-center gap-2 rounded-2xl bg-emerald-400 px-5 py-4 font-black text-[#06120f] disabled:opacity-60">{busy ? <Loader2 className="h-5 w-5 animate-spin" /> : <ArrowRight className="h-5 w-5" />} Enter the Circle</button>
+            <div className="relative my-2"><div className="border-t border-white/10" /><span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#111f1b] px-3 text-xs font-bold text-white/40">OR</span></div>
+            <div className="space-y-3">{platform === "ios" ? <button type="button" onClick={()=>signInWithProvider("apple")} className="w-full rounded-2xl border border-white/10 bg-black px-4 py-4 font-black text-white">Continue with Apple</button> : platform === "android" ? <button type="button" onClick={()=>signInWithProvider("google")} className="w-full rounded-2xl border border-white/10 bg-white px-4 py-4 font-black text-[#111]">Continue with Google</button> : <div className="grid gap-3 sm:grid-cols-2"><button type="button" onClick={()=>signInWithProvider("google")} className="rounded-2xl border border-white/10 bg-white px-4 py-3 font-black text-[#111]">Continue with Google</button><button type="button" onClick={()=>signInWithProvider("apple")} className="rounded-2xl border border-white/10 bg-black px-4 py-3 font-black text-white">Continue with Apple</button></div>}</div>
           </form>
           <p className="mt-6 text-center text-sm text-white/55">New here? <Link to="/register" className="font-black text-emerald-300">Create your Panda</Link></p>
         </div>
