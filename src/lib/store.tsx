@@ -457,7 +457,7 @@ type StoreValue = State & {
   markAdShown: () => void;
   grantSkipPass: () => void;
   grantFreeSpin: () => void;
-  spinWheel: () => SpinPrize | null;
+  spinWheel: () => Promise<SpinPrize | null>;
   canSpin: boolean;
   nextSpinAt: number | null;
   activateVip: (days: number) => void;
@@ -1091,33 +1091,58 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     return true;
   }, [dbUserId]);
 
-  const spinWheel = useCallback(() => {
+  const spinWheel = useCallback(async (): Promise<SpinPrize | null> => {
     if (!dbUserId) { toast.error("Sign in to spin"); return null; }
-    void (async () => {
-      const { data, error } = await (supabase as any).rpc("claim_spin_secure");
-      if (error) {
-        toast.error(error.message ?? "Spin could not be completed");
-        return;
-      }
-      const slice = SPIN_SLICES.find((item) => item.id === data.prize_id) ?? SPIN_SLICES[0];
-      setState((s) => ({
-        ...s,
-        coins: typeof data.balance === "number" ? data.balance : s.coins,
-        sweepTickets: data.kind === "ticket"
-          ? [...s.sweepTickets, { id: data.id, draw: "weekly" as DrawKind, at: Date.now() }]
-          : s.sweepTickets,
-        lastSpinAt: Date.now(),
-        isVip: data.kind === "vip" ? true : s.isVip,
-        vipExpiresAt: data.kind === "vip" ? Math.max(s.vipExpiresAt ?? 0, Date.now()) + data.value * DAY_MS : s.vipExpiresAt,
-      }));
-      toast.success(`You won ${data.title}! ${data.emoji}`, {
-        description: data.kind === "physical" || data.kind === "data"
-          ? "Your reward has been recorded and is pending fulfillment."
-          : slice?.blurb ?? "Reward added to your account.",
+    const { data: campaign, error: campaignError } = await (supabase as any)
+      .from("cp_reward_campaigns")
+      .select("id")
+      .eq("enabled", true)
+      .order("created_at", { ascending: true })
+      .limit(1)
+      .maybeSingle();
+    if (campaignError || !campaign?.id) {
+      toast.error(campaignError?.message ?? "Reward wheel is not available yet.");
+      return null;
+    }
+    const { data: status, error: statusError } = await (supabase as any)
+      .rpc("cp_get_reward_status", { p_campaign_id: campaign.id });
+    if (statusError) { toast.error(statusError.message ?? "Could not check the wheel."); return null; }
+    if (!status?.can_spin) {
+      toast.error("Your free spin is not ready yet.");
+      return null;
+    }
+    const { data, error } = await (supabase as any).rpc("cp_spin_reward", { p_campaign_id: campaign.id });
+    if (error || !data) {
+      toast.error(error?.message ?? "Spin could not be completed");
+      return null;
+    }
+    const slice = SPIN_SLICES.find((item) => item.id === data.prize_id) ?? null;
+    if (typeof data.value === "number" && data.prize_type === "bc") {
+      await syncCoins();
+    }
+    if (data.prize_type === "vip") await syncAccountEntitlements();
+    setState((current) => ({ ...current, lastSpinAt: Date.now() }));
+    if (slice) {
+      toast.success(`You won ${data.title}! ${data.emoji ?? ""}`, {
+        description: data.fulfilment_type === "manual"
+          ? "Congratulations — your qualification form is ready."
+          : slice.blurb,
       });
-    })();
-    return null;
-  }, [dbUserId]);
+    }
+    return slice ?? {
+      id: String(data.prize_id ?? "reward"),
+      title: String(data.title ?? "Reward"),
+      label: String(data.title ?? "Reward"),
+      type: "physical",
+      kind: data.prize_type === "vip" ? "vip" : data.prize_type === "bc" ? "coins" : "physical",
+      value: Number(data.value ?? 0),
+      amount: Number(data.value ?? 0),
+      emoji: String(data.emoji ?? "🎁"),
+      rarity: "common",
+      blurb: String(data.description ?? ""),
+      weight: 1,
+    };
+  }, [dbUserId, syncCoins, syncAccountEntitlements]);
 
   const canSpin = state.lastSpinAt === null || Date.now() - state.lastSpinAt >= SPIN_COOLDOWN_MS;
   const nextSpinAt = state.lastSpinAt === null ? null : state.lastSpinAt + SPIN_COOLDOWN_MS;
