@@ -195,6 +195,33 @@ function HotSeatPage() {
 
   // Double tap detection
   const lastTapRef = useRef<number>(0);
+  const awsVideoRef = useRef<HTMLVideoElement | null>(null);
+
+  useEffect(() => {
+    if (sessionPhase !== "live" || activeHost?.stream_provider !== "aws" || !activeHost?.media_url || !awsVideoRef.current) return;
+    let disposed = false;
+    let player: any = null;
+    const start = () => {
+      const IVS = (window as any).IVSPlayer;
+      if (!IVS || !IVS.isPlayerSupported || disposed || !awsVideoRef.current) return;
+      player = IVS.create();
+      player.attachHTMLVideoElement(awsVideoRef.current);
+      player.load(String(activeHost.media_url));
+      void player.play().catch(() => {});
+    };
+    if ((window as any).IVSPlayer) start();
+    else {
+      const script = document.createElement("script");
+      script.src = "https://player.live-video.net/1.56.1/amazon-ivs-player.min.js";
+      script.async = true;
+      script.onload = start;
+      document.head.appendChild(script);
+    }
+    return () => {
+      disposed = true;
+      try { player?.delete?.(); } catch {}
+    };
+  }, [sessionPhase, activeHost?.stream_provider, activeHost?.media_url]);
 
   useEffect(() => {
     let mounted = true;
@@ -544,7 +571,15 @@ function HotSeatPage() {
           allowFullScreen
           className={`absolute inset-0 size-full border-0 select-none pointer-events-none ${sessionPhase === "live" ? "" : "opacity-0"}`}
         />
-      ) : (
+      ) : sessionPhase === "live" && activeHost?.stream_provider === "aws" ? (
+        <video
+          ref={awsVideoRef}
+          autoPlay
+          muted={muted}
+          playsInline
+          className="absolute inset-0 size-full object-cover select-none pointer-events-none"
+        />
+      ) : sessionPhase === "live" ? (
         <video
           autoPlay
           loop
