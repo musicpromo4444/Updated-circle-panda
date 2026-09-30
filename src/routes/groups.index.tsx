@@ -152,6 +152,11 @@ function GroupsPage() {
 
   return (
     <AppShell title="The Circle" subtitle="Welcome to the circle 🐼 Come in, have a seat, and talk.">
+      <div className="mb-5 rounded-2xl border border-primary/20 bg-primary/5 px-4 py-3 text-center">
+        <p className="font-display text-base font-semibold">Welcome to the circle 🐼</p>
+        <p className="mt-1 text-xs text-muted-foreground">Find a conversation, join a group, or create your own circle.</p>
+      </div>
+
       {/* Primary CTA button immediately below subtitle description and above main content cards */}
       <div className="mb-5">
         <Button
