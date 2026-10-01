@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Trophy, X, Sparkles } from "lucide-react";
+import { Trophy, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 type WinnerAnnouncement = {
@@ -57,11 +57,14 @@ export function UniversalWinnerFlow() {
         .gt("visible_until",new Date().toISOString()).order("created_at",{ascending:false}).limit(10),
       (supabase as any).from("cp_activity_winner_cycles")
         .select("id,activity_key,title,prize,previous_winner_name,previous_winner_avatar,previous_winner_prize,previous_winner_score,starts_at,ends_at")
-        .in("status",["scheduled","open"]).lte("starts_at",new Date().toISOString()).gt("ends_at",new Date().toISOString())
-        .order("starts_at",{ascending:false}).limit(10),
+        .in("status",["scheduled","open"]).gt("ends_at",new Date().toISOString())
+        .order("starts_at",{ascending:true}).limit(20),
     ]);
     if (!c.error) {
-      const next=(c.data ?? []).find((x:OpenCycle)=>matchesPath(x.activity_key,pathname)) as OpenCycle|undefined;
+      const matching=(c.data ?? []).filter((x:OpenCycle)=>matchesPath(x.activity_key,pathname)) as OpenCycle[];
+      const now=Date.now();
+      const next = matching.find((x) => new Date(x.starts_at).getTime() <= now)
+        ?? matching.find((x) => new Date(x.starts_at).getTime() > now);
       setCycle(next ?? null);
       setShowPrevious(Boolean(next?.previous_winner_name));
 
@@ -98,7 +101,7 @@ export function UniversalWinnerFlow() {
               <p className="truncate font-display font-bold">{cycle.previous_winner_name}</p>
               <p className="truncate text-[11px] text-muted-foreground">{cycle.previous_winner_prize ?? cycle.prize}{cycle.previous_winner_score != null ? ` · Score ${cycle.previous_winner_score}` : ""}</p>
             </div>
-            <button onClick={()=>setShowPrevious(false)} className="text-muted-foreground" aria-label="Close"><X className="size-4"/></button>
+            <span className="text-[10px] font-bold uppercase tracking-wider text-amber-400/80">Next</span>
           </div>
           <p className="mt-2 text-[11px] text-muted-foreground">Complete this activity before the server deadline. You do not need to be online with other players.</p>
         </div>
