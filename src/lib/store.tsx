@@ -485,6 +485,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     datingProfile: null, datingMatches: [], spotlights: [], sweepTickets: [], hotSeats: [],
   });
   const [dbUserId, setDbUserId] = useState<string | null>(null);
+  const [dbIsAnonymous, setDbIsAnonymous] = useState(true);
   const [dbIsAdmin, setDbIsAdmin] = useState(false);
 
   const refreshCoins = useCallback(async () => {
@@ -517,13 +518,22 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, [state, dbUserId, persistUserState]);
 
   useEffect(() => {
+    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setDbUserId(session?.user?.id ?? null);
+      setDbIsAnonymous(session?.user?.is_anonymous ?? true);
+    });
+    return () => authListener.subscription.unsubscribe();
+  }, []);
+
+  useEffect(() => {
     let cancelled = false;
     void (async () => {
       let session = (await supabase.auth.getSession()).data.session;
       if (!session) session = (await supabase.auth.signInAnonymously()).data.session ?? null;
       if (!session?.user || cancelled) return;
       setDbUserId(session.user.id);
-      await (supabase as any).rpc("award_xp_secure", { p_action:"daily_login" });
+      setDbIsAnonymous(Boolean(session.user.is_anonymous));
+      await (supabase as any).rpc("award_daily_login_xp");
       if (!session.user.is_anonymous) {
         void (supabase as any).rpc("ensure_my_circle_panda_profile").catch(() => {});
       }
@@ -919,20 +929,26 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, [dbUserId]);
 
   const createGroup = useCallback(async (name: string, topic: string, country = "", stateProvince = "", city = "", area = ""): Promise<GroupChat | null> => {
-    if (!dbUserId) { requestLogin("create a group"); return null; }
-    const coords = await new Promise<{latitude:number;longitude:number}|null>((resolve) => { if (typeof navigator === "undefined" || !navigator.geolocation) return resolve(null); navigator.geolocation.getCurrentPosition((pos) => resolve({ latitude:pos.coords.latitude, longitude:pos.coords.longitude }), () => resolve(null), { enableHighAccuracy:false, maximumAge:300000, timeout:5000 }); });
-    const { data, error } = await (supabase as any).rpc("create_group_secure", { p_name:name, p_topic:topic, p_latitude:coords?.latitude ?? null, p_longitude:coords?.longitude ?? null });
+    if (!dbUserId || dbIsAnonymous) { requestLogin("create a group"); return null; }
+    const { data, error } = await (supabase as any).rpc("create_group_secure", {
+      p_name:name,
+      p_topic:topic,
+      p_country:country,
+      p_state_province:stateProvince,
+      p_city:city,
+      p_area:area,
+    });
     if (error) { toast.error(error.message ?? "Group could not be created"); return null; }
-    const group: GroupChat = { id:data.id, name:data.name ?? name, topic:data.topic ?? topic, members:Number(data.members ?? 1), ownerId:dbUserId, memberRole:"owner", editGroupInfo:"admins", sendMessages:true, approveNewMembers:false, joinPending:false, openedAt:null, latitude:coords?.latitude ?? null, longitude:coords?.longitude ?? null, messages:[], country:data.country ?? country, stateProvince:data.state_province ?? stateProvince, city:data.city ?? city, area:data.area ?? area };
+    const group: GroupChat = { id:data.id, name:data.name ?? name, topic:data.topic ?? topic, members:Number(data.members ?? 1), ownerId:dbUserId, memberRole:"owner", editGroupInfo:"admins", sendMessages:true, approveNewMembers:false, joinPending:false, openedAt:null, latitude:null, longitude:null, messages:[], country:data.country ?? country, stateProvince:data.state_province ?? stateProvince, city:data.city ?? city, area:data.area ?? area };
     setState((s) => ({ ...s, groups:[group, ...s.groups] }));
     toast.success("Group created 🐼", { description:"Invite members, then open it when 3+ members are ready." });
     return group;
-  }, [dbUserId]);
+  }, [dbUserId, dbIsAnonymous]);
 
   const createEvent = useCallback((eventData: Omit<PandaEvent, "id" | "rsvp">): PandaEvent => {
     const localId = crypto.randomUUID();
     const optimistic: PandaEvent = { ...eventData, id: localId, rsvp: false };
-    if (!dbUserId) { requestLogin("create an event"); return optimistic; }
+    if (!dbUserId || dbIsAnonymous) { requestLogin("create an event"); return optimistic; }
     void (async () => {
       const startsAt = eventData.date ? new Date(eventData.date).toISOString() : new Date(Date.now() + 60 * 60 * 1000).toISOString();
       const durationMinutes = Math.max(15, Math.min(10080, Number(eventData.durationMinutes) || 120));
@@ -951,7 +967,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       toast.success("Event published 🐼");
     })();
     return optimistic;
-  }, [dbUserId, refreshCoins]);
+  }, [dbUserId, dbIsAnonymous, refreshCoins]);
 
   const startEventBlast = useCallback(async (eventId: string, planId = "starter", paymentMethod: "bc" | "cash" = "bc", targetScope = "worldwide", targetCountry = "", targetState = "", targetCity = "", targetArea = "") => {
     if (!dbUserId) { requestLogin("promote an event"); return false; }
