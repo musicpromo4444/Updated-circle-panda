@@ -158,7 +158,7 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function ThemedToaster() {
   const { theme } = useTheme();
-  return <Toaster position="top-center" richColors closeButton theme={theme} />;
+  return <Toaster position="bottom-center" richColors closeButton theme={theme} />;
 }
 
 
