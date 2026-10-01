@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { MessagesSquare, Sparkles } from "lucide-react";
 import { toast } from "sonner";
@@ -14,6 +14,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useStore } from "@/lib/store";
+import { requestLogin } from "@/components/auth/LoginRequiredDialog";
+import { supabase } from "@/integrations/supabase/client";
 
 export function CreateGroupModal({
   open,
@@ -31,6 +33,19 @@ export function CreateGroupModal({
   const [city, setCity] = useState("");
   const [area, setArea] = useState("");
 
+  useEffect(() => {
+    if (!open) return;
+    let active = true;
+    void supabase.auth.getUser().then(({ data }) => {
+      if (!active) return;
+      if (!data.user || data.user.is_anonymous) {
+        onOpenChange(false);
+        requestLogin("create a group");
+      }
+    });
+    return () => { active = false; };
+  }, [open, onOpenChange]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) {
@@ -39,6 +54,13 @@ export function CreateGroupModal({
     }
     if (!topic.trim()) {
       toast.error("Please add a topic or purpose");
+      return;
+    }
+
+    const { data: authData } = await supabase.auth.getUser();
+    if (!authData.user || authData.user.is_anonymous) {
+      onOpenChange(false);
+      requestLogin("create a group");
       return;
     }
 
