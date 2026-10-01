@@ -194,18 +194,12 @@ function SweepstakesPage() {
 
     let activity: ContestActivity | null = null;
     if (activitySlug) {
-      const { data: catalogActivity } = await supabase
-        .from("seven_day_activity_configs")
-        .select("slug,title,description")
-        .eq("slug", activitySlug)
-        .eq("is_enabled", true)
-        .maybeSingle();
-
+      const configured = Array.isArray(activityResult.data) ? activityResult.data[0] : activityResult.data;
       const meta = GAME_META[activitySlug];
       activity = {
         id: activitySlug,
-        title: String(catalogActivity?.title ?? meta?.label ?? activitySlug),
-        description: String(catalogActivity?.description ?? "Complete the admin-selected contest activity."),
+        title: String(configured?.activity_title ?? meta?.label ?? activitySlug),
+        description: String(configured?.activity_description ?? "Complete the admin-selected contest activity."),
         activity_type: activitySlug,
         reward_bc: 0,
         requires_ad: true,
