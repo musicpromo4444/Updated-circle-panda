@@ -745,6 +745,7 @@ export type Database = {
       confessions: {
         Row: {
           author_id: string | null
+          author_vip_at: string | null
           content: string
           created_at: string
           id: string
@@ -754,6 +755,7 @@ export type Database = {
         }
         Insert: {
           author_id?: string | null
+          author_vip_at?: string | null
           content: string
           created_at?: string
           id?: string
@@ -763,6 +765,7 @@ export type Database = {
         }
         Update: {
           author_id?: string | null
+          author_vip_at?: string | null
           content?: string
           created_at?: string
           id?: string
@@ -1071,6 +1074,27 @@ export type Database = {
         }
         Relationships: []
       }
+      cp_engagement_config: {
+        Row: {
+          config: Json
+          id: number
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          config?: Json
+          id?: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          config?: Json
+          id?: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       cp_floating_campaign_events: {
         Row: {
           campaign_id: string
@@ -1215,22 +1239,34 @@ export type Database = {
         Row: {
           body: string
           created_at: string
+          duration_seconds: number | null
           group_id: string
           id: string
+          media_path: string | null
+          message_type: string
+          mime_type: string | null
           user_id: string
         }
         Insert: {
           body: string
           created_at?: string
+          duration_seconds?: number | null
           group_id: string
           id?: string
+          media_path?: string | null
+          message_type?: string
+          mime_type?: string | null
           user_id: string
         }
         Update: {
           body?: string
           created_at?: string
+          duration_seconds?: number | null
           group_id?: string
           id?: string
+          media_path?: string | null
+          message_type?: string
+          mime_type?: string | null
           user_id?: string
         }
         Relationships: [
@@ -1273,9 +1309,36 @@ export type Database = {
         }
         Relationships: []
       }
+      cp_post_reactions: {
+        Row: {
+          created_at: string
+          post_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          post_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          post_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cp_post_reactions_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "cp_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cp_post_replies: {
         Row: {
           author_id: string
+          author_vip_at: string | null
           body: string
           created_at: string
           id: string
@@ -1283,6 +1346,7 @@ export type Database = {
         }
         Insert: {
           author_id: string
+          author_vip_at?: string | null
           body: string
           created_at?: string
           id?: string
@@ -1290,6 +1354,7 @@ export type Database = {
         }
         Update: {
           author_id?: string
+          author_vip_at?: string | null
           body?: string
           created_at?: string
           id?: string
@@ -1308,18 +1373,21 @@ export type Database = {
       cp_posts: {
         Row: {
           author_id: string
+          author_vip_at: string | null
           body: string
           created_at: string
           id: string
         }
         Insert: {
           author_id: string
+          author_vip_at?: string | null
           body: string
           created_at?: string
           id?: string
         }
         Update: {
           author_id?: string
+          author_vip_at?: string | null
           body?: string
           created_at?: string
           id?: string
@@ -1857,6 +1925,172 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      cp_vip_call_candidates: {
+        Row: {
+          call_id: string
+          candidate: Json
+          created_at: string
+          id: number
+          sender_id: string
+        }
+        Insert: {
+          call_id: string
+          candidate: Json
+          created_at?: string
+          id?: never
+          sender_id: string
+        }
+        Update: {
+          call_id?: string
+          candidate?: Json
+          created_at?: string
+          id?: never
+          sender_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cp_vip_call_candidates_call_id_fkey"
+            columns: ["call_id"]
+            isOneToOne: false
+            referencedRelation: "cp_vip_call_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cp_vip_call_sessions: {
+        Row: {
+          answer: Json | null
+          call_type: string
+          callee_id: string
+          caller_id: string
+          created_at: string
+          ended_at: string | null
+          id: string
+          offer: Json | null
+          started_at: string | null
+          status: string
+          thread_id: string
+        }
+        Insert: {
+          answer?: Json | null
+          call_type: string
+          callee_id: string
+          caller_id: string
+          created_at?: string
+          ended_at?: string | null
+          id?: string
+          offer?: Json | null
+          started_at?: string | null
+          status?: string
+          thread_id: string
+        }
+        Update: {
+          answer?: Json | null
+          call_type?: string
+          callee_id?: string
+          caller_id?: string
+          created_at?: string
+          ended_at?: string | null
+          id?: string
+          offer?: Json | null
+          started_at?: string | null
+          status?: string
+          thread_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cp_vip_call_sessions_thread_id_fkey"
+            columns: ["thread_id"]
+            isOneToOne: false
+            referencedRelation: "cp_threads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cp_vip_group_call_usage: {
+        Row: {
+          usage_day: string
+          user_id: string
+          video_seconds: number
+          voice_seconds: number
+        }
+        Insert: {
+          usage_day?: string
+          user_id: string
+          video_seconds?: number
+          voice_seconds?: number
+        }
+        Update: {
+          usage_day?: string
+          user_id?: string
+          video_seconds?: number
+          voice_seconds?: number
+        }
+        Relationships: []
+      }
+      cp_vip_group_messages: {
+        Row: {
+          body: string
+          created_at: string
+          duration_seconds: number | null
+          id: string
+          media_path: string | null
+          message_type: string
+          mime_type: string | null
+          user_id: string
+        }
+        Insert: {
+          body?: string
+          created_at?: string
+          duration_seconds?: number | null
+          id?: string
+          media_path?: string | null
+          message_type?: string
+          mime_type?: string | null
+          user_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          duration_seconds?: number | null
+          id?: string
+          media_path?: string | null
+          message_type?: string
+          mime_type?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      cp_xp_awards: {
+        Row: {
+          action: string
+          award_key: string
+          created_at: string
+          id: string
+          reference_id: string | null
+          user_id: string
+          xp: number
+        }
+        Insert: {
+          action: string
+          award_key: string
+          created_at?: string
+          id?: string
+          reference_id?: string | null
+          user_id: string
+          xp: number
+        }
+        Update: {
+          action?: string
+          award_key?: string
+          created_at?: string
+          id?: string
+          reference_id?: string | null
+          user_id?: string
+          xp?: number
+        }
+        Relationships: []
       }
       crush_admin_config: {
         Row: {
@@ -4087,6 +4321,41 @@ export type Database = {
         }
         Relationships: []
       }
+      profile_secrets: {
+        Row: {
+          author_user_id: string
+          content: string
+          created_at: string
+          id: string
+          is_published: boolean
+          target_user_id: string
+        }
+        Insert: {
+          author_user_id: string
+          content: string
+          created_at?: string
+          id?: string
+          is_published?: boolean
+          target_user_id: string
+        }
+        Update: {
+          author_user_id?: string
+          content?: string
+          created_at?: string
+          id?: string
+          is_published?: boolean
+          target_user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profile_secrets_target_user_id_fkey"
+            columns: ["target_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           area: string | null
@@ -4813,6 +5082,36 @@ export type Database = {
         }
         Relationships: []
       }
+      user_xp_awards: {
+        Row: {
+          action: string
+          created_at: string
+          id: string
+          reference_id: string | null
+          reference_key: string | null
+          user_id: string
+          xp: number
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          id?: string
+          reference_id?: string | null
+          reference_key?: string | null
+          user_id: string
+          xp: number
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          id?: string
+          reference_id?: string | null
+          reference_key?: string | null
+          user_id?: string
+          xp?: number
+        }
+        Relationships: []
+      }
       winner_campaigns: {
         Row: {
           activity_id: string | null
@@ -4928,6 +5227,10 @@ export type Database = {
         }
         Returns: Json
       }
+      add_vip_call_candidate: {
+        Args: { p_call_id: string; p_candidate: Json }
+        Returns: undefined
+      }
       admin_adjust_user_bc: {
         Args: { p_amount: number; p_reason: string; p_user_id: string }
         Returns: Json
@@ -4973,6 +5276,7 @@ export type Database = {
       admin_get_campaign_reporting: { Args: never; Returns: Json }
       admin_get_daily_games: { Args: never; Returns: Json }
       admin_get_dashboard_overview: { Args: never; Returns: Json }
+      admin_get_engagement_config: { Args: never; Returns: Json }
       admin_get_floating_campaign_config: { Args: never; Returns: Json }
       admin_get_hot_seat_provider_settings: { Args: never; Returns: Json }
       admin_get_hot_seat_session_hosts: {
@@ -5229,6 +5533,10 @@ export type Database = {
         }
         Returns: Json
       }
+      admin_record_audit: {
+        Args: { p_action: string; p_details: string; p_target_user?: string }
+        Returns: undefined
+      }
       admin_remove_admin: { Args: { p_user_id: string }; Returns: boolean }
       admin_reset_user_streak: { Args: { p_user_id: string }; Returns: Json }
       admin_save_ad_campaign: {
@@ -5302,6 +5610,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      admin_save_engagement_config: { Args: { p_config: Json }; Returns: Json }
       admin_save_hot_seat_provider_settings: {
         Args: {
           p_aws_access_key_id?: string
@@ -5736,6 +6045,10 @@ export type Database = {
         }
         Returns: Json
       }
+      complete_quick_profile: {
+        Args: { p_city?: string; p_country: string; p_state_province?: string }
+        Returns: undefined
+      }
       complete_rewarded_ad_session: {
         Args: { p_session_id: string }
         Returns: Json
@@ -5743,6 +6056,13 @@ export type Database = {
       confirm_dating_match_secure: {
         Args: { p_connection_id: string }
         Returns: Json
+      }
+      consume_vip_group_call_time: {
+        Args: { p_call_type: string; p_seconds: number }
+        Returns: {
+          allowed: boolean
+          remaining_seconds: number
+        }[]
       }
       cp_admin_is_admin: { Args: never; Returns: boolean }
       cp_admin_list_reward_qualifications: {
@@ -5945,6 +6265,52 @@ export type Database = {
         Args: { p_blast_id: string }
         Returns: Json
       }
+      end_vip_private_call: {
+        Args: { p_call_id: string; p_status?: string }
+        Returns: {
+          answer: Json | null
+          call_type: string
+          callee_id: string
+          caller_id: string
+          created_at: string
+          ended_at: string | null
+          id: string
+          offer: Json | null
+          started_at: string | null
+          status: string
+          thread_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "cp_vip_call_sessions"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      ensure_my_circle_panda_profile: {
+        Args: never
+        Returns: {
+          area: string | null
+          avatar_url: string | null
+          bio: string | null
+          city: string | null
+          country: string | null
+          created_at: string
+          display_name: string
+          gender: string | null
+          id: string
+          is_vip: boolean
+          state_province: string | null
+          updated_at: string
+          vip_expires_at: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "profiles"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       fulfill_native_store_purchase_verified: {
         Args: {
           p_environment?: string
@@ -6110,6 +6476,28 @@ export type Database = {
           role: string
         }[]
       }
+      get_my_incoming_vip_calls: {
+        Args: never
+        Returns: {
+          answer: Json | null
+          call_type: string
+          callee_id: string
+          caller_id: string
+          created_at: string
+          ended_at: string | null
+          id: string
+          offer: Json | null
+          started_at: string | null
+          status: string
+          thread_id: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "cp_vip_call_sessions"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       get_my_investment_notifications: { Args: never; Returns: Json }
       get_my_notification_count: { Args: never; Returns: number }
       get_my_notifications: {
@@ -6126,11 +6514,60 @@ export type Database = {
       get_my_profile_gender: { Args: never; Returns: string }
       get_paystack_public_config: { Args: never; Returns: Json }
       get_pending_dating_decisions_secure: { Args: never; Returns: Json }
+      get_post_like_summaries: {
+        Args: { p_post_ids: string[] }
+        Returns: {
+          like_count: number
+          liked: boolean
+          post_id: string
+        }[]
+      }
       get_seven_day_activities: { Args: never; Returns: Json[] }
+      get_shared_profile_public: {
+        Args: { p_user_id: string }
+        Returns: {
+          avatar_url: string
+          bio: string
+          country: string
+          display_name: string
+          id: string
+          is_vip: boolean
+        }[]
+      }
       get_today_puzzle: { Args: never; Returns: Json }
       get_today_seven_day_activity: { Args: never; Returns: Json }
       get_universal_ad_runtime_config: { Args: never; Returns: Json }
       get_unread_notifications: { Args: never; Returns: Json }
+      get_vip_call: {
+        Args: { p_call_id: string }
+        Returns: {
+          answer: Json | null
+          call_type: string
+          callee_id: string
+          caller_id: string
+          created_at: string
+          ended_at: string | null
+          id: string
+          offer: Json | null
+          started_at: string | null
+          status: string
+          thread_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "cp_vip_call_sessions"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      get_vip_call_candidates: {
+        Args: { p_call_id: string }
+        Returns: {
+          candidate: Json
+          created_at: string
+          sender_id: string
+        }[]
+      }
       get_water_break_admin_config: { Args: never; Returns: Json }
       get_wcw_mcm_current_week: {
         Args: never
@@ -6339,6 +6776,17 @@ export type Database = {
         Returns: Json
       }
       send_event_one_day_reminders: { Args: never; Returns: number }
+      send_group_media_secure: {
+        Args: {
+          p_body?: string
+          p_duration_seconds?: number
+          p_group_id: string
+          p_media_path: string
+          p_message_type: string
+          p_mime_type?: string
+        }
+        Returns: Json
+      }
       send_group_message_secure: {
         Args: { p_body: string; p_group_id: string }
         Returns: Json
@@ -6361,9 +6809,64 @@ export type Database = {
         Args: { p_gift_id: string; p_host_id: string }
         Returns: Json
       }
+      send_vip_group_media_secure: {
+        Args: {
+          p_body?: string
+          p_duration_seconds?: number
+          p_media_path: string
+          p_message_type: string
+          p_mime_type?: string
+        }
+        Returns: Json
+      }
+      send_vip_group_message_secure: { Args: { p_body: string }; Returns: Json }
       service_get_payment_secret: { Args: { p_name: string }; Returns: string }
       set_panda_avatar_secure: { Args: { p_avatar: string }; Returns: string }
       set_profile_gender_secure: { Args: { p_gender: string }; Returns: string }
+      set_vip_call_answer: {
+        Args: { p_answer: Json; p_call_id: string }
+        Returns: {
+          answer: Json | null
+          call_type: string
+          callee_id: string
+          caller_id: string
+          created_at: string
+          ended_at: string | null
+          id: string
+          offer: Json | null
+          started_at: string | null
+          status: string
+          thread_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "cp_vip_call_sessions"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      set_vip_call_offer: {
+        Args: { p_call_id: string; p_offer: Json }
+        Returns: {
+          answer: Json | null
+          call_type: string
+          callee_id: string
+          caller_id: string
+          created_at: string
+          ended_at: string | null
+          id: string
+          offer: Json | null
+          started_at: string | null
+          status: string
+          thread_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "cp_vip_call_sessions"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       start_break_investment:
         | {
             Args: { p_content_id: string; p_risk: string; p_stake_bc: number }
@@ -6391,6 +6894,7 @@ export type Database = {
         }
         Returns: Json
       }
+      start_free_coins_rewarded_ad: { Args: never; Returns: Json }
       start_giveaway_challenge: {
         Args: { p_challenge_id: string; p_entry_id: string; p_slot: number }
         Returns: Json
@@ -6422,6 +6926,28 @@ export type Database = {
         Args: { p_ad_id: string; p_surface: string }
         Returns: Json
       }
+      start_vip_private_call: {
+        Args: { p_call_type: string; p_thread_id: string }
+        Returns: {
+          answer: Json | null
+          call_type: string
+          callee_id: string
+          caller_id: string
+          created_at: string
+          ended_at: string | null
+          id: string
+          offer: Json | null
+          started_at: string | null
+          status: string
+          thread_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "cp_vip_call_sessions"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       stop_music_session_secure: { Args: never; Returns: Json }
       submit_confession_secure: {
         Args: { p_anonymous?: boolean; p_content: string }
@@ -6436,6 +6962,10 @@ export type Database = {
         }
         Returns: Json
       }
+      submit_profile_secret: {
+        Args: { p_content: string; p_target_user_id: string }
+        Returns: string
+      }
       sync_hot_seat_cycle: { Args: never; Returns: undefined }
       sync_native_subscription_expiry: {
         Args: { p_expires_at: string; p_user_id: string }
@@ -6447,6 +6977,7 @@ export type Database = {
         Returns: Json
       }
       toggle_hot_seat_like: { Args: { p_host_id: string }; Returns: Json }
+      toggle_post_like_secure: { Args: { p_post_id: string }; Returns: Json }
       unlock_hot_seat_media_secure: {
         Args: { p_answer_id: string }
         Returns: Json
