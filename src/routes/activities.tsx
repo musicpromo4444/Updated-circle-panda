@@ -40,7 +40,7 @@ const actionMap: Record<string, { to: string; label: string }> = {
   music_time: { to: "/music-time", label: "Open Music Time" },
 };
 
-const GAME_META: Record<string, { icon: string; label: string }> = {
+export const GAME_META: Record<string, { icon: string; label: string }> = {
   wheel_spin: { icon: "🎡", label: "Lucky Wheel" },
   mystery_box: { icon: "🎁", label: "Mystery Box" },
   target: { icon: "🎯", label: "Panda Target" },
