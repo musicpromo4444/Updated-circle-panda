@@ -69,7 +69,8 @@ export function useAdminStore() {
     setUsers(mapped);
   };
 
-  useEffect(() => { void loadRealUsers(); }, []);\n  useEffect(() => {
+  useEffect(() => { void loadRealUsers(); }, []);
+  useEffect(() => {
     void (async () => {
       const { data, error } = await (supabase as any).rpc("admin_get_recent_audit", { p_limit: 100 });
       if (error || !Array.isArray(data)) return;
@@ -385,7 +386,8 @@ export function useAdminStore() {
       u.joinedDate,
       u.email || "",
     ]);
-    const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows.map((e) => e.join(","))].join("\n");
+    const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows.map((e) => e.join(","))].join("
+");
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
