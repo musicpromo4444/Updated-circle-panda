@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ExternalLink, Sparkles, Gamepad2, Music2, Radio, Heart, CalendarDays, Users, MessageCircle, Trophy, ShoppingBag, UserCircle, Bell, Settings, Crown, PlayCircle } from "lucide-react";
+import { ExternalLink, Sparkles, Gamepad2, Music2, Radio, Heart, CalendarDays, Users, MessageCircle, Trophy, ShoppingBag, UserCircle, Bell, PlayCircle } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -20,17 +20,15 @@ const FUN_TIME_CATALOG = [
   {key:"events",title:"Events",description:"Browse and join Circle Panda events.",icon:CalendarDays,route:"/events"},
   {key:"groups",title:"Groups",description:"Open groups and group activities.",icon:Users,route:"/groups"},
   {key:"confessions",title:"Secret Confessions",description:"Read and post Secret Confessions.",icon:MessageCircle,route:"/confessions"},
-  {key:"wcw-mcm",title:"WCW & MCM",description:"Open the weekly WCW & MCM experience.",icon:Trophy,route:"/wcw-mcm"},
+  {key:"wcw-mcm",title:"WCW & MCM",description:"Open the weekly WCW & MCM experience.",icon:Trophy,route:"/crush"},
   {key:"live",title:"Live",description:"Open the Circle Panda live area.",icon:PlayCircle,route:"/live"},
   {key:"sweepstakes",title:"Sweepstakes",description:"Open current Circle Panda sweepstakes.",icon:Trophy,route:"/sweepstakes"},
-  {key:"vip",title:"VIP Lounge",description:"Open the VIP Lounge.",icon:Crown,route:"/vip"},
-  {key:"messages",title:"Messages",description:"Open your Circle Panda messages.",icon:MessageCircle,route:"/messages"},
+    {key:"messages",title:"Messages",description:"Open your Circle Panda messages.",icon:MessageCircle,route:"/messages"},
   {key:"store",title:"Store",description:"Open the Circle Panda store.",icon:ShoppingBag,route:"/store"},
   {key:"profile",title:"Profile",description:"Open your Panda profile.",icon:UserCircle,route:"/profile"},
   {key:"notifications",title:"Notifications",description:"Open your Circle Panda notifications.",icon:Bell,route:"/notifications"},
   {key:"leaders",title:"Leaders",description:"Open the Circle Panda leaderboards.",icon:Trophy,route:"/leaders"},
-  {key:"settings",title:"Settings",description:"Open Circle Panda settings.",icon:Settings,route:"/settings"},
-];
+  ];
 
 function FunTimeCatalog({campaign,onClose}:{campaign:Campaign;onClose:()=>void}) {
   const keys = Array.isArray(campaign.targeting?.fun_time_catalog) ? campaign.targeting?.fun_time_catalog.map(String) : [];
