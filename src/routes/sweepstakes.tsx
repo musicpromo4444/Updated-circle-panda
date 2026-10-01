@@ -12,7 +12,7 @@ import {
 import { AppShell } from "@/components/AppShell";
 import { StandardBannerAd } from "@/components/ads/StandardBannerAd";
 import { Button } from "@/components/ui/button";
-import { SpinWheel } from "@/components/SpinWheel";
+import { GameModal } from "@/routes/activities";
 import { useStore } from "@/lib/store";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -150,7 +150,9 @@ function DailyItemCard({
 
 function SweepstakesPage() {
   const { coins, syncCoins, sweepWinners, weeklyDrawEndsAt } = useStore();
-  const [spinOpen, setSpinOpen] = useState(false);
+  const [selectedActivity, setSelectedActivity] = useState<any | null>(null);
+  const [sweepActivitySlug, setSweepActivitySlug] = useState("wheel_spin");
+  const [sweepActivity, setSweepActivity] = useState<any | null>(null);
   const [items, setItems] = useState(DEFAULT_DAILY_ITEMS);
   const [tickets, setTickets] = useState<Record<string, number>>({});
   const [ticketHistory, setTicketHistory] = useState<Array<{id:string;draw:string;created_at:string}>>([]);
@@ -196,12 +198,20 @@ function SweepstakesPage() {
       title="Panda Sweepstakes"
       subtitle="Buy tickets with BC, win prizes, and spin the Wheel daily for free BC."
     >
-      <Button
-        className="mb-5 w-full gap-2 bg-[var(--coin)] text-[var(--coin-foreground)] hover:bg-[var(--coin)]/90"
-        onClick={() => setSpinOpen(true)}
-      >
-        <Sparkles className="size-4" /> Spin the Wheel · 1 free spin / 24h
-      </Button>
+      <section className="cp-sweep-activity mb-5">
+        <div className="cp-sweep-activity-glow" />
+        <div className="relative z-10">
+          <p className="cp-eyebrow">SWEEPSTAKES FEATURE GAME</p>
+          <h2 className="mt-1 text-2xl font-black text-white">{sweepActivity?.title ?? "Lucky Wheel"}</h2>
+          <p className="mt-1 text-xs text-white/65">{sweepActivity?.description ?? "Your admin-selected activity appears here."}</p>
+          <Button
+            className="cp-neon-button mt-4 w-full"
+            onClick={() => sweepActivity && setSelectedActivity(sweepActivity)}
+          >
+            <Sparkles className="mr-2 size-4" /> Play Activity
+          </Button>
+        </div>
+      </section>
 
       <section className="mb-4 rounded-2xl border border-[var(--coin)]/25 bg-[var(--coin)]/5 p-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
@@ -276,7 +286,7 @@ function SweepstakesPage() {
         </p>
       </section>
 
-      <SpinWheel open={spinOpen} onOpenChange={setSpinOpen} />
+      {selectedActivity ? <GameModal activity={selectedActivity} onClose={() => setSelectedActivity(null)} onDone={() => undefined} /> : null}
     </AppShell>
   );
 }
