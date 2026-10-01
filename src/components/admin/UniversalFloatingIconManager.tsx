@@ -46,14 +46,12 @@ const FUN_TIME_ITEMS: {key:string;title:string;description:string}[] = [
   {key:"wcw-mcm",title:"WCW & MCM",description:"Weekly WCW & MCM"},
   {key:"live",title:"Live",description:"Live area"},
   {key:"sweepstakes",title:"Sweepstakes",description:"Current sweepstakes"},
-  {key:"vip",title:"VIP Lounge",description:"VIP Lounge"},
-  {key:"messages",title:"Messages",description:"Messages"},
+    {key:"messages",title:"Messages",description:"Messages"},
   {key:"store",title:"Store",description:"Store"},
   {key:"profile",title:"Profile",description:"Panda profile"},
   {key:"notifications",title:"Notifications",description:"Notifications"},
   {key:"leaders",title:"Leaders",description:"Leaderboards"},
-  {key:"settings",title:"Settings",description:"Settings"},
-];
+  ];
 const EMPTY = {
   name:"", sponsor_name:"", enabled:false, page_keys:[] as string[], creative_type:"lottie" as CreativeType, creative_url:"",
   fallback_icon:"🎮", label:"FUN TIME", action_type:"fun_time" as ActionType, action_target:"", action_title:"Fun Time", action_body:"Choose something fun.",
