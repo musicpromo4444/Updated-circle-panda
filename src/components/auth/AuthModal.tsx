@@ -1,28 +1,10 @@
-import { useState } from "react";
-import {
-  AtSign,
-  Check,
-  Eye,
-  EyeOff,
-  KeyRound,
-  Lock,
-  LogIn,
-  Mail,
-  Shield,
-  Sparkles,
-  UserPlus,
-} from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { useEffect, useState } from "react";
+import { Eye, EyeOff, LogIn, UserPlus } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useCurrentUser, MASTER_ADMIN_EMAIL } from "@/lib/auth";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 
 interface AuthModalProps {
@@ -32,294 +14,146 @@ interface AuthModalProps {
   onOpenBackendGuide?: () => void;
 }
 
-export function AuthModal({
-  open,
-  onOpenChange,
-  defaultTab = "signin",
-  onOpenBackendGuide,
-}: AuthModalProps) {
-  const { isSupabaseReady, signUpWithPassword, signInWithPassword, loginAsMasterAdmin } =
-    useCurrentUser();
-
+export function AuthModal({ open, onOpenChange, defaultTab = "signin", onOpenBackendGuide }: AuthModalProps) {
   const [tab, setTab] = useState<"signin" | "signup">(defaultTab);
-  const [email, setEmail] = useState("");
+  const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
-  const [handle, setHandle] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [name, setName] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [platform, setPlatform] = useState<"ios" | "android" | "other">("other");
 
-  const resetForm = () => {
-    setEmail("");
+  useEffect(() => {
+    if (!open) return;
+    setTab(defaultTab);
+    const ua = navigator.userAgent || "";
+    const ios = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+    const android = /Android/i.test(ua);
+    setPlatform(ios ? "ios" : android ? "android" : "other");
+  }, [open, defaultTab]);
+
+  const reset = () => {
+    setIdentifier("");
     setPassword("");
-    setHandle("");
-    setSubmitting(false);
+    setConfirmPassword("");
+    setName("");
+    setBusy(false);
   };
 
-  const handleSignIn = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const cleanEmail = email.trim();
-    const cleanPass = password.trim();
+  const providerLogin = async (provider: "google" | "apple") => {
+    setBusy(true);
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider,
+      options: { redirectTo: window.location.origin + "/" },
+    });
+    if (error) toast.error(error.message);
+    setBusy(false);
+  };
 
-    if (!cleanEmail || !cleanPass) {
-      toast.error("Please enter your email and password");
+  const submit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    const value = identifier.trim();
+    if (!value || !password) {
+      toast.error("Enter your phone/email and password.");
       return;
     }
 
-    setSubmitting(true);
-    try {
-      const { error } = await signInWithPassword(cleanEmail, cleanPass);
-      if (error) {
-        toast.error("Sign in failed", { description: error.message });
-      } else {
-        toast.success(`Welcome back, ${cleanEmail}!`, {
-          description:
-            cleanEmail.toLowerCase() === MASTER_ADMIN_EMAIL.toLowerCase()
-              ? "Master Admin privileges activated."
-              : "Direct messages and coins synced.",
-        });
-        resetForm();
-        onOpenChange(false);
+    if (tab === "signup") {
+      if (!name.trim()) {
+        toast.error("Enter your Panda name.");
+        return;
       }
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Authentication error";
-      toast.error(message);
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  const handleSignUp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const cleanEmail = email.trim();
-    const cleanPass = password.trim();
-    const cleanHandle = handle.trim() || `Panda #${Math.floor(1000 + Math.random() * 9000)}`;
-
-    if (!cleanEmail || !cleanPass) {
-      toast.error("Please enter an email and password");
-      return;
-    }
-
-    if (cleanPass.length < 6) {
-      toast.error("Password too short", {
-        description: "Password must be at least 6 characters long.",
-      });
-      return;
-    }
-
-    setSubmitting(true);
-    try {
-      const { error } = await signUpWithPassword(cleanEmail, cleanPass, cleanHandle);
-      if (error) {
-        toast.error("Sign up failed", { description: error.message });
-      } else {
-        toast.success("Account created successfully! 🐼", {
-          description: "100 Panda Coins (BC) bonus credited to your balance.",
-        });
-        resetForm();
-        onOpenChange(false);
+      if (password.length < 8) {
+        toast.error("Password must be at least 8 characters.");
+        return;
       }
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Sign up error";
-      toast.error(message);
+      if (password !== confirmPassword) {
+        toast.error("Passwords do not match.");
+        return;
+      }
+    }
+
+    setBusy(true);
+    try {
+      if (tab === "signup") {
+        const metadata = { name: name.trim(), avatar_style: "0" };
+        const result = value.includes("@")
+          ? await supabase.auth.signUp({ email: value, password, options: { data: metadata } })
+          : await supabase.auth.signUp({ phone: value, password, options: { data: metadata } });
+        if (result.error) throw result.error;
+        toast.success(result.data.session ? "Account created. Welcome to Circle Panda 🐼" : "Account created. Complete verification, then sign in.");
+      } else {
+        const result = value.includes("@")
+          ? await supabase.auth.signInWithPassword({ email: value, password })
+          : await supabase.auth.signInWithPassword({ phone: value, password });
+        if (result.error) throw result.error;
+        toast.success("Welcome back to the Circle 🐼");
+      }
+      reset();
+      onOpenChange(false);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Authentication failed.");
     } finally {
-      setSubmitting(false);
+      setBusy(false);
     }
   };
+
+  const social = platform === "ios"
+    ? <Button type="button" variant="outline" className="w-full bg-black text-white" disabled={busy} onClick={() => void providerLogin("apple")}>Continue with Apple</Button>
+    : platform === "android"
+      ? <Button type="button" variant="outline" className="w-full bg-white text-black" disabled={busy} onClick={() => void providerLogin("google")}>Continue with Google</Button>
+      : <div className="grid gap-2 sm:grid-cols-2">
+          <Button type="button" variant="outline" disabled={busy} onClick={() => void providerLogin("google")}>Continue with Google</Button>
+          <Button type="button" variant="outline" className="bg-black text-white" disabled={busy} onClick={() => void providerLogin("apple")}>Continue with Apple</Button>
+        </div>;
 
   return (
-    <Dialog
-      open={open}
-      onOpenChange={(o) => {
-        if (!o) resetForm();
-        onOpenChange(o);
-      }}
-    >
-      <DialogContent className="sm:max-w-md rounded-3xl border border-border bg-card p-6 shadow-2xl">
+    <Dialog open={open} onOpenChange={(value) => { if (!value) reset(); onOpenChange(value); }}>
+      <DialogContent className="rounded-3xl border border-border bg-card p-6 shadow-2xl sm:max-w-md">
         <DialogHeader>
-          <div className="flex items-center gap-2.5">
-            <span className="grid size-11 place-items-center rounded-2xl bg-primary/15 text-2xl border border-primary/25">
-              🐼
-            </span>
+          <div className="flex items-center gap-3">
+            <span className="grid size-11 place-items-center rounded-2xl border border-primary/25 bg-primary/15 text-2xl">🐼</span>
             <div>
-              <DialogTitle className="font-display text-xl font-bold">
-                Circle Panda Account
-              </DialogTitle>
-              <DialogDescription className="text-xs text-muted-foreground mt-0.5">
-                Anonymous identity. Synced coins, chats, and reputations.
-              </DialogDescription>
+              <DialogTitle className="font-display text-xl font-bold">Circle Panda Account</DialogTitle>
+              <DialogDescription className="text-xs">Your real Supabase account keeps chats, BC and profile data synced.</DialogDescription>
             </div>
           </div>
         </DialogHeader>
 
-        {/* Status Indicator */}
-        <div className="mt-2 flex items-center justify-between rounded-xl bg-secondary/50 px-3 py-2 text-xs">
-          <span className="flex items-center gap-2 text-muted-foreground">
-            <span
-              className={`size-2 rounded-full ${isSupabaseReady ? "bg-emerald-500" : "bg-amber-500"}`}
-            />
-            {isSupabaseReady ? "Supabase Auth Connected" : "Local Storage Mode"}
-          </span>
-          {onOpenBackendGuide ? (
-            <button
-              type="button"
-              onClick={() => {
-                onOpenChange(false);
-                onOpenBackendGuide();
-              }}
-              className="text-[11px] font-semibold text-primary hover:underline"
-            >
-              Setup Guide →
-            </button>
-          ) : null}
-        </div>
-
-        <Tabs value={tab} onValueChange={(v) => setTab(v as "signin" | "signup")} className="mt-3">
+        <Tabs value={tab} onValueChange={(value) => setTab(value as "signin" | "signup")} className="mt-3">
           <TabsList className="grid w-full grid-cols-2 rounded-xl">
-            <TabsTrigger value="signin" className="rounded-lg text-xs font-semibold gap-1.5">
-              <LogIn className="size-3.5" /> Sign In
-            </TabsTrigger>
-            <TabsTrigger value="signup" className="rounded-lg text-xs font-semibold gap-1.5">
-              <UserPlus className="size-3.5" /> Create Account
-            </TabsTrigger>
+            <TabsTrigger value="signin" className="gap-1.5 text-xs font-semibold"><LogIn className="size-3.5" /> Sign In</TabsTrigger>
+            <TabsTrigger value="signup" className="gap-1.5 text-xs font-semibold"><UserPlus className="size-3.5" /> Sign Up</TabsTrigger>
           </TabsList>
 
-          {/* SIGN IN TAB */}
-          <TabsContent value="signin" className="mt-4 space-y-4">
-            <form onSubmit={handleSignIn} className="space-y-3.5">
-              <div className="space-y-1.5">
-                <label className="text-xs font-medium text-foreground">Email Address</label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-2.5 size-4 text-muted-foreground" />
-                  <Input
-                    type="email"
-                    placeholder="you@example.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="pl-9 rounded-xl"
-                    required
-                  />
-                </div>
+          <TabsContent value="signin">
+            <form onSubmit={submit} className="mt-4 space-y-3">
+              <Input value={identifier} onChange={(e) => setIdentifier(e.target.value)} placeholder="Phone number or email" autoComplete="username" />
+              <div className="relative">
+                <Input value={password} onChange={(e) => setPassword(e.target.value)} type={showPassword ? "text" : "password"} placeholder="Password" autoComplete="current-password" className="pr-11" />
+                <button type="button" className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground" onClick={() => setShowPassword((v) => !v)} aria-label="Toggle password visibility">{showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}</button>
               </div>
-
-              <div className="space-y-1.5">
-                <div className="flex items-center justify-between">
-                  <label className="text-xs font-medium text-foreground">Password</label>
-                </div>
-                <div className="relative">
-                  <KeyRound className="absolute left-3 top-2.5 size-4 text-muted-foreground" />
-                  <Input
-                    type={showPassword ? "text" : "password"}
-                    placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="pl-9 pr-9 rounded-xl"
-                    required
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-2.5 text-muted-foreground hover:text-foreground"
-                  >
-                    {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
-                  </button>
-                </div>
-              </div>
-
-              <Button type="submit" disabled={submitting} className="w-full rounded-xl font-bold">
-                {submitting ? "Signing in…" : "Sign In to Circle Panda"}
-              </Button>
+              <Button type="submit" disabled={busy} className="w-full">{busy ? "Signing in…" : "Enter the Circle"}</Button>
+              <div className="relative py-1"><div className="border-t border-border" /><span className="absolute left-1/2 top-1/2 -translate-x-1/2 bg-card px-2 text-[10px] text-muted-foreground">OR</span></div>
+              {social}
             </form>
-
-            <div className="relative border-t border-border/60 pt-3">
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  loginAsMasterAdmin();
-                  onOpenChange(false);
-                  toast.success("Authenticated as Master Admin", {
-                    description: `Logged in as ${MASTER_ADMIN_EMAIL}`,
-                  });
-                }}
-                className="w-full text-xs text-muted-foreground hover:text-foreground"
-              >
-                <Shield className="size-3.5 mr-1 text-emerald-500" /> Sign in as Master Admin
-              </Button>
-            </div>
           </TabsContent>
 
-          {/* SIGN UP TAB */}
-          <TabsContent value="signup" className="mt-4 space-y-4">
-            <form onSubmit={handleSignUp} className="space-y-3.5">
-              <div className="space-y-1.5">
-                <label className="text-xs font-medium text-foreground">Email Address</label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-2.5 size-4 text-muted-foreground" />
-                  <Input
-                    type="email"
-                    placeholder="you@example.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="pl-9 rounded-xl"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-xs font-medium text-foreground">
-                  Anonymous Panda Handle
-                </label>
-                <div className="relative">
-                  <AtSign className="absolute left-3 top-2.5 size-4 text-muted-foreground" />
-                  <Input
-                    type="text"
-                    placeholder="e.g. Midnight Bamboo, Silent Cub"
-                    value={handle}
-                    onChange={(e) => setHandle(e.target.value)}
-                    className="pl-9 rounded-xl"
-                  />
-                </div>
-                <p className="text-[11px] text-muted-foreground">
-                  Leave blank to get a randomly generated Panda alias.
-                </p>
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-xs font-medium text-foreground">Choose Password</label>
-                <div className="relative">
-                  <KeyRound className="absolute left-3 top-2.5 size-4 text-muted-foreground" />
-                  <Input
-                    type={showPassword ? "text" : "password"}
-                    placeholder="At least 6 characters"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="pl-9 pr-9 rounded-xl"
-                    minLength={6}
-                    required
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-2.5 text-muted-foreground hover:text-foreground"
-                  >
-                    {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
-                  </button>
-                </div>
-              </div>
-
-              <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-2.5 text-xs text-emerald-500 flex items-center gap-2">
-                <Sparkles className="size-4 shrink-0" />
-                <span>Includes 100 Panda Coins (BC) signup welcome drop!</span>
-              </div>
-
-              <Button type="submit" disabled={submitting} className="w-full rounded-xl font-bold">
-                {submitting ? "Creating account…" : "Create Anonymous Account"}
-              </Button>
+          <TabsContent value="signup">
+            <form onSubmit={submit} className="mt-4 space-y-3">
+              <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Panda name" autoComplete="name" />
+              <Input value={identifier} onChange={(e) => setIdentifier(e.target.value)} placeholder="Phone number or email" autoComplete="username" />
+              <Input value={password} onChange={(e) => setPassword(e.target.value)} type={showPassword ? "text" : "password"} placeholder="Password (8+ characters)" autoComplete="new-password" />
+              <Input value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} type={showPassword ? "text" : "password"} placeholder="Re-enter password" autoComplete="new-password" />
+              <Button type="submit" disabled={busy} className="w-full">{busy ? "Creating account…" : "Create your Panda"}</Button>
+              <div className="relative py-1"><div className="border-t border-border" /><span className="absolute left-1/2 top-1/2 -translate-x-1/2 bg-card px-2 text-[10px] text-muted-foreground">OR</span></div>
+              {social}
             </form>
           </TabsContent>
         </Tabs>
+
+        {onOpenBackendGuide ? <button type="button" onClick={() => { onOpenChange(false); onOpenBackendGuide(); }} className="mt-3 text-center text-[11px] text-muted-foreground hover:underline">Backend setup guide</button> : null}
       </DialogContent>
     </Dialog>
   );
