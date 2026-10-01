@@ -19,6 +19,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { HotSeatFloatingPresence } from "@/components/hotseat/HotSeatFloatingPresence";
 import { AppDownloadPromotion } from "@/components/AppDownloadPromotion";
 import { UniversalWinnerFlow } from "@/components/UniversalWinnerFlow";
+import { LoginRequiredDialog } from "@/components/auth/LoginRequiredDialog";
 
 function NotFoundComponent() {
   return (
@@ -192,6 +193,7 @@ function RootComponent() {
           {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
           <Outlet />
           <UniversalWinnerFlow />
+          <LoginRequiredDialog />
           <AppDownloadPromotion />
           {!hideHotSeatPresence ? <HotSeatFloatingPresence /> : null}
           <ThemedToaster />
