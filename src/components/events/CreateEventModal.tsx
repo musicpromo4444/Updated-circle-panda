@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { CalendarPlus, ImagePlus, MapPin, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useStore } from "@/lib/store";
 import { supabase } from "@/integrations/supabase/client";
+import { requestLogin } from "@/components/auth/LoginRequiredDialog";
 
 const EVENT_TAGS=["Meetup","Nightlife","Gaming","Music & Vinyl","Study & Chill","Foodie","Arts","Sports","Business","Party","Other"];
 
@@ -20,14 +21,31 @@ export function CreateEventModal({open,onOpenChange}:{open:boolean;onOpenChange:
  const [reachScope,setReachScope]=useState<"worldwide"|"country"|"state"|"city"|"area">("worldwide");
  const [reachCountry,setReachCountry]=useState(""); const [reachState,setReachState]=useState(""); const [reachCity,setReachCity]=useState(""); const [reachArea,setReachArea]=useState("");
 
+ useEffect(() => {
+  if (!open) return;
+  let active = true;
+  void supabase.auth.getUser().then(({ data }) => {
+   if (!active) return;
+   if (!data.user || data.user.is_anonymous) {
+    onOpenChange(false);
+    requestLogin("create an event");
+   }
+  });
+  return () => { active = false; };
+ }, [open, onOpenChange]);
+
  const uploadImage=async(file:File)=>{ if(!file.type.startsWith("image/")) return toast.error("Choose an image file."); if(file.size>8*1024*1024) return toast.error("Image must be 8MB or smaller."); setUploading(true);
   try{const {data:{user}}=await supabase.auth.getUser(); if(!user) throw new Error("Sign in first."); const path=`${user.id}/${crypto.randomUUID()}-${file.name.replace(/[^a-zA-Z0-9._-]/g,"_")}`; const {error}=await supabase.storage.from("event-media").upload(path,file,{upsert:false,contentType:file.type}); if(error) throw error; const {data}=supabase.storage.from("event-media").getPublicUrl(path); setImageUrl(data.publicUrl); toast.success("Event picture added.");}catch(e){toast.error(e instanceof Error?e.message:"Image upload failed.");}finally{setUploading(false);}
  };
  const submit=(e:React.FormEvent)=>{e.preventDefault();
-  if(!title.trim()||!date||!venue.trim()||!address.trim()||!country.trim()||!city.trim()||!blurb.trim()) return toast.error("Complete the title, date, venue, address, country, city and summary.");
+  void supabase.auth.getUser().then(({ data }) => {
+   if(!data.user || data.user.is_anonymous){ onOpenChange(false); requestLogin("create an event"); return; }
+   if(!title.trim()||!date||!venue.trim()||!address.trim()||!country.trim()||!city.trim()||!blurb.trim()) return toast.error("Complete the title, date, venue, address, country, city and summary.");
   if(price>0 && currency!=="NGN") return toast.error("Paid event entry currently uses NGN.");
-  createEvent({title:title.trim(),tag,date,time:`${duration} minutes`,place:venue.trim(),cost:Math.max(0,Number(price)||0),currency,blurb:blurb.trim(),details:details.trim()||blurb.trim(),coverUrl:imageUrl,venueName:venue.trim(),addressLine:address.trim(),country:country.trim(),stateProvince:state.trim(),city:city.trim(),area:area.trim(),reachScope,reachCountry:reachCountry.trim(),reachState:reachState.trim(),reachCity:reachCity.trim(),reachArea:reachArea.trim(),durationMinutes:duration});
-  setTitle("");setBlurb("");setDetails("");setVenue("");setAddress("");setCountry("");setState("");setCity("");setArea("");setPrice(0);setImageUrl("");setDuration(120);onOpenChange(false);
+   createEvent({title:title.trim(),tag,date,time:`${duration} minutes`,place:venue.trim(),cost:Math.max(0,Number(price)||0),currency,blurb:blurb.trim(),details:details.trim()||blurb.trim(),coverUrl:imageUrl,venueName:venue.trim(),addressLine:address.trim(),country:country.trim(),stateProvince:state.trim(),city:city.trim(),area:area.trim(),reachScope,reachCountry:reachCountry.trim(),reachState:reachState.trim(),reachCity:reachCity.trim(),reachArea:reachArea.trim(),durationMinutes:duration});
+   setTitle("");setBlurb("");setDetails("");setVenue("");setAddress("");setCountry("");setState("");setCity("");setArea("");setPrice(0);setImageUrl("");setDuration(120);onOpenChange(false);
+  }
+  });
  };
  return <Dialog open={open} onOpenChange={onOpenChange}><DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-2xl rounded-2xl p-6">
   <DialogHeader><div className="flex items-center gap-2"><span className="grid size-9 place-items-center rounded-xl bg-primary/15 text-primary"><CalendarPlus className="size-5"/></span><div><DialogTitle className="font-display text-xl font-bold">Create an Event</DialogTitle><DialogDescription className="text-xs">Give people everything they need to find and attend your event.</DialogDescription></div></div></DialogHeader>
