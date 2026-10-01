@@ -52,22 +52,29 @@ function AdminDashboardPage() {
   const [savingActivity, setSavingActivity] = useState<string | null>(null);
   const [globalDraft, setGlobalDraft] = useState<GlobalAction | null>(null);
   const [savedActivities, setSavedActivities] = useState<Record<string, Activity>>({});
+  const [sweepActivitySlug, setSweepActivitySlug] = useState("wheel_spin");
+  const [savedSweepActivitySlug, setSavedSweepActivitySlug] = useState("wheel_spin");
+  const [savingSweepActivity, setSavingSweepActivity] = useState(false);
 
   const load = async () => {
     setLoading(true);
-    const [catalog, schedule, global] = await Promise.all([
+    const [catalog, schedule, global, sweep] = await Promise.all([
       (supabase as any).rpc("admin_get_seven_day_activity_catalog"),
       (supabase as any).rpc("admin_get_seven_day_activity_schedule"),
       (supabase as any).rpc("get_global_action_slot"),
+      (supabase as any).rpc("get_sweepstakes_activity_config"),
     ]);
     setLoading(false);
-    if (catalog.error || schedule.error || global.error) return toast.error((catalog.error ?? schedule.error ?? global.error)?.message ?? "Admin data could not load");
+    if (catalog.error || schedule.error || global.error || sweep.error) return toast.error((catalog.error ?? schedule.error ?? global.error ?? sweep.error)?.message ?? "Admin data could not load");
     const loadedActivities = (catalog.data ?? []) as Activity[];
     setActivities(loadedActivities);
     setSavedActivities(Object.fromEntries(loadedActivities.map(activity => [activity.slug, structuredClone(activity)])));
     setDays(schedule.data ?? []);
     setGlobalAction(global.data ?? null);
     setGlobalDraft(global.data ?? null);
+    const selectedSweep = String(sweep.data?.[0]?.activity_slug ?? "wheel_spin");
+    setSweepActivitySlug(selectedSweep);
+    setSavedSweepActivitySlug(selectedSweep);
   };
   useEffect(() => { if (isAdmin) void load(); else setLoading(false); }, [isAdmin]);
 
@@ -151,6 +158,30 @@ function AdminDashboardPage() {
             <label className="text-xs font-semibold">Short label<InputLike value={globalDraft.label} onChange={v=>setGlobalDraft(x=>x?{...x,label:v}:x)} maxLength={24} placeholder="HOT SEAT" /></label>
             <div className="sm:col-span-2 flex flex-col gap-2 rounded-2xl border border-border/70 bg-secondary/30 p-3 sm:flex-row sm:items-center sm:justify-between"><div className="flex items-center gap-2 text-xs text-muted-foreground"><Eye className="size-4"/><span>Preview: <strong className="text-foreground">{globalDraft.icon} {globalDraft.label}</strong> → {globalDraft.destination}</span></div><span className="text-[10px] font-semibold">{draftChanged ? "Unsaved changes" : "Saved"}</span></div><Button disabled={savingGlobal || !draftChanged || !validDraft} onClick={async()=>{if(!globalDraft || !validDraft)return; setSavingGlobal(true); const {data,error}=await (supabase as any).rpc("admin_update_global_action_slot",{p_enabled:globalDraft.enabled,p_feature_key:globalDraft.feature_key,p_destination:globalDraft.destination,p_icon:globalDraft.icon.trim(),p_label:globalDraft.label.trim()}); setSavingGlobal(false); if(error){toast.error(error.message);return;} setGlobalAction(data); setGlobalDraft(data); toast.success("Global action updated across the app");}} className="sm:col-span-2">{savingGlobal?<Loader2 className="mr-2 size-4 animate-spin"/>:null}Save global action</Button>
           </div> : null}
+        </section>
+
+        <section className="panda-panel rounded-3xl p-4 sm:p-5">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <div className="flex items-center gap-2"><Shield className="size-4 text-primary"/><h2 className="font-display font-bold">Sweepstakes activity</h2></div>
+              <p className="mt-1 text-xs text-muted-foreground">Choose which game appears in the Sweepstakes feature. It is no longer permanently tied to Spin the Wheel.</p>
+            </div>
+            <span className="rounded-full bg-primary/10 px-2 py-1 text-[10px] font-bold text-primary">Admin controlled</span>
+          </div>
+          <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center">
+            <select value={sweepActivitySlug} onChange={e=>setSweepActivitySlug(e.target.value)} className="h-11 flex-1 rounded-xl border bg-background px-3 text-sm">
+              {activities.filter(a=>a.is_enabled).map(a=><option key={a.slug} value={a.slug}>{a.title}</option>)}
+            </select>
+            <Button disabled={savingSweepActivity || sweepActivitySlug===savedSweepActivitySlug} onClick={async()=>{
+              setSavingSweepActivity(true);
+              const { data,error } = await (supabase as any).rpc("admin_set_sweepstakes_activity",{p_activity_slug:sweepActivitySlug});
+              setSavingSweepActivity(false);
+              if(error){toast.error(error.message);return;}
+              const saved=String(data?.[0]?.activity_slug ?? sweepActivitySlug);
+              setSweepActivitySlug(saved); setSavedSweepActivitySlug(saved);
+              toast.success("Sweepstakes activity updated");
+            }}>{savingSweepActivity?<Loader2 className="mr-2 size-4 animate-spin"/>:null}Save Sweepstakes activity</Button>
+          </div>
         </section>
 
         <section className="panda-panel rounded-3xl p-4 sm:p-5"><div className="flex items-center justify-between gap-3"><div className="flex items-center gap-2"><Shield className="size-4 text-primary"/><h2 className="font-display font-bold">Daily assignment</h2></div><Button variant="ghost" size="sm" onClick={() => void load()} disabled={loading}><RefreshCw className="mr-2 size-3.5"/>Refresh</Button></div><p className="mt-1 text-xs text-muted-foreground">Users never see the full nine-activity list. After claiming Daily Login, they receive only the activity assigned to the current day.</p>
