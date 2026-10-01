@@ -22,7 +22,7 @@ function RegisterPage() {
 
   async function signInWithProvider(provider: "google" | "apple") {
     setError(""); setNotice("");
-    const { error } = await supabase.auth.signInWithOAuth({ provider, options: { redirectTo: `${window.location.origin}/` } });
+    const { error } = await supabase.auth.signInWithOAuth({ provider, options: { redirectTo: `${window.location.origin}/auth/callback` } });
     if (error) setError(error.message);
   }
 
