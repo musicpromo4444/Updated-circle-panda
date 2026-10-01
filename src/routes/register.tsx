@@ -36,7 +36,7 @@ function RegisterPage() {
       const metadata = { name: form.name.trim(), country: form.country.trim(), state_province: form.state.trim(), city: form.city.trim(), area: form.area.trim(), gender: form.gender, date_of_birth: form.dob, avatar_style: form.avatar, age };
       const value=form.identifier.trim();
       const result = value.includes("@")
-        ? await supabase.auth.signUp({ email:value, password:form.password, options:{data:metadata} })
+        ? await supabase.auth.signUp({ email:value, password:form.password, options:{data:metadata, emailRedirectTo: window.location.origin + "/auth/callback"} })
         : await supabase.auth.signUp({ phone:value, password:form.password, options:{data:metadata} });
       if (result.error) throw result.error;
       setNotice(result.data.session ? "Your Panda is ready. Welcome to the Circle 🐼" : "Account created. Complete the verification step, then log in.");
