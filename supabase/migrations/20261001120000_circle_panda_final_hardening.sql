@@ -119,3 +119,10 @@ $function$;
 
 revoke execute on function public.start_free_coins_rewarded_ad() from public, anon;
 grant execute on function public.start_free_coins_rewarded_ad() to authenticated;
+
+-- Keep blurred dating photos private; clients use short-lived signed URLs.
+update storage.buckets set public=false where id='dating-photo-blur';
+drop policy if exists "dating blur public read" on storage.objects;
+create policy "dating blur authenticated read" on storage.objects
+for select to authenticated
+using (bucket_id='dating-photo-blur');
