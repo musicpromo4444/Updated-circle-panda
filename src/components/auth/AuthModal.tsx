@@ -12,9 +12,10 @@ interface AuthModalProps {
   onOpenChange: (open: boolean) => void;
   defaultTab?: "signin" | "signup";
   onOpenBackendGuide?: () => void;
+  onAuthenticated?: () => void;
 }
 
-export function AuthModal({ open, onOpenChange, defaultTab = "signin", onOpenBackendGuide }: AuthModalProps) {
+export function AuthModal({ open, onOpenChange, defaultTab = "signin", onOpenBackendGuide, onAuthenticated }: AuthModalProps) {
   const [tab, setTab] = useState<"signin" | "signup">(defaultTab);
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
@@ -83,12 +84,14 @@ export function AuthModal({ open, onOpenChange, defaultTab = "signin", onOpenBac
           : await supabase.auth.signUp({ phone: value, password, options: { data: metadata } });
         if (result.error) throw result.error;
         toast.success(result.data.session ? "Account created. Welcome to Circle Panda 🐼" : "Account created. Complete verification, then sign in.");
+      if (result.data.session) onAuthenticated?.();
       } else {
         const result = value.includes("@")
           ? await supabase.auth.signInWithPassword({ email: value, password })
           : await supabase.auth.signInWithPassword({ phone: value, password });
         if (result.error) throw result.error;
         toast.success("Welcome back to the Circle 🐼");
+        onAuthenticated?.();
       }
       reset();
       onOpenChange(false);
