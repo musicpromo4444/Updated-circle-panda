@@ -79,7 +79,7 @@ export function AuthModal({ open, onOpenChange, defaultTab = "signin", onOpenBac
       if (tab === "signup") {
         const metadata = { name: name.trim(), avatar_style: "0" };
         const result = value.includes("@")
-          ? await supabase.auth.signUp({ email: value, password, options: { data: metadata } })
+          ? await supabase.auth.signUp({ email: value, password, options: { data: metadata, emailRedirectTo: window.location.origin + "/auth/callback" } })
           : await supabase.auth.signUp({ phone: value, password, options: { data: metadata } });
         if (result.error) throw result.error;
         toast.success(result.data.session ? "Account created. Welcome to Circle Panda 🐼" : "Account created. Complete verification, then sign in.");
