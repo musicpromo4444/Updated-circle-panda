@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Eye, Heart, Laugh, RefreshCw, Upload, Crown, SmilePlus, MessageCircle, Share2, Send } from "lucide-react";
+import { Eye, Upload, Crown, SmilePlus, MessageCircle, Share2, Send } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
 import { StandardBannerAd } from "@/components/ads/StandardBannerAd";
