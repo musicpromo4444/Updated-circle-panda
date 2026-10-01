@@ -92,7 +92,17 @@ export function AuthModal({ open, onOpenChange, defaultTab = "signin", onOpenBac
         const { data: created, error: createError } = await supabase.functions.invoke("create-panda-account", {
           body: { name: name.trim(), identifier: value, password },
         });
-        if (createError) throw createError;
+        if (createError) {
+          let message = createError.message || "Could not create your Panda account.";
+          try {
+            const context = (createError as { context?: Response }).context;
+            if (context) {
+              const body = await context.clone().json();
+              if (body?.error) message = String(body.error);
+            }
+          } catch {}
+          throw new Error(message);
+        }
         if (!created?.user_id) throw new Error("Account was not created.");
 
         const result = value.includes("@")
