@@ -58,7 +58,7 @@ const EMPTY = {
   name:"", sponsor_name:"", enabled:false, page_keys:[] as string[], creative_type:"lottie" as CreativeType, creative_url:"",
   fallback_icon:"🎮", label:"FUN TIME", action_type:"fun_time" as ActionType, action_target:"", action_title:"Fun Time", action_body:"Choose something fun.",
   priority:100, max_impressions:null as number|null, max_clicks:null as number|null, max_unique_users:null as number|null,
-  frequency_cap_seconds:0, starts_at:null as string|null, ends_at:null as string|null, targeting:{},
+  frequency_cap_seconds:0, starts_at:null as string|null, ends_at:null as string|null, targeting:{fun_time_catalog:FUN_TIME_ITEMS.map(item=>item.key)},
 };
 function toLocalInput(value:string|null) {
   if (!value) return "";
