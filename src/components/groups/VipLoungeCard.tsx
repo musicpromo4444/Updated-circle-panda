@@ -48,7 +48,7 @@ export function VipLoungeCard() {
                 VIP EXCLUSIVE
               </span>
               <span className="hidden sm:inline-flex items-center gap-1 text-[11px] font-semibold text-amber-500/90">
-                <Sparkles className="size-3" /> Campus Lounge
+                <Sparkles className="size-3" /> Private Group
               </span>
             </div>
 
@@ -76,7 +76,7 @@ export function VipLoungeCard() {
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
                 <h3 className="font-display text-lg font-black tracking-tight text-foreground sm:text-xl">
-                  VIP Lounge
+                  VIP Group
                 </h3>
               </div>
               <p className="mt-0.5 text-xs text-muted-foreground leading-relaxed">
@@ -105,8 +105,7 @@ export function VipLoungeCard() {
                 <div className="flex items-center gap-2 text-xs text-amber-400/90 font-medium">
                   <span className="text-base">🔐</span>
                   <span>
-                    Locked for normal members. <strong>Upgrade to VIP</strong> to host events & drop
-                    media.
+                    Locked for normal members. <strong>Upgrade to VIP</strong> to enter the private group chat.
                   </span>
                 </div>
 
