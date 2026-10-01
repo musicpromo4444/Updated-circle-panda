@@ -17,6 +17,7 @@ import { AdminOperationsCenter } from "@/components/admin/AdminOperationsCenter"
 import { AdminAppDownloadPromotion } from "@/components/admin/AdminAppDownloadPromotion";
 import { AdminCampaignReports } from "@/components/admin/AdminCampaignReports";
 import { AdminMonetizationControl } from "@/components/admin/AdminMonetizationControl";
+import { CirclePandaMediaManager } from "@/components/admin/CirclePandaMediaManager";
 import { useAdminStore } from "@/components/admin/adminStore";
 
 export const Route = createFileRoute("/admin-dashboard")({ component: AdminDashboardPage });
@@ -119,6 +120,7 @@ function AdminDashboardPage() {
       <AdminControlCenter />
       <AdminAppDownloadPromotion />
       <AdminCampaignReports />
+      <CirclePandaMediaManager />
       <AdminMonetizationControl
         adConfig={admin.adConfig}
         adMetrics={admin.adMetrics}
