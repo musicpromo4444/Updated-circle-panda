@@ -192,13 +192,73 @@ export function ConfessionsPage() {
     await submitNow(trimmed, anonymous);
   };
 
+  const reactionOptions = [
+    { key:"heart", emoji:"❤️", label:"Love" },
+    { key:"laugh", emoji:"😂", label:"Laugh" },
+    { key:"wow", emoji:"😮", label:"Wow" },
+    { key:"sad", emoji:"😢", label:"Sad" },
+    { key:"angry", emoji:"😡", label:"Angry" },
+  ];
+
   const react = async (id: string, reaction: string) => {
-    const { error } = await (supabase as any).rpc("react_to_confession_secure", {
-      p_confession_id: id,
-      p_reaction: reaction,
-    });
-    if (error) toast.error(error.message);
-    else toast.success("Reaction saved");
+    const { data: authData } = await supabase.auth.getUser();
+    if (!authData.user || authData.user.is_anonymous) {
+      requestLogin("react to a confession");
+      setReactionMenuId(null);
+      return;
+    }
+    const { data, error } = await (supabase as any).rpc("react_to_confession_secure", { p_confession_id:id, p_reaction:reaction });
+    if (error) return toast.error(error.message);
+    await load(true);
+    setReactionMenuId(null);
+  };
+
+  const openComments = async (item: Confession) => {
+    const { data: authData } = await supabase.auth.getUser();
+    if (!authData.user || authData.user.is_anonymous) return requestLogin("comment on a confession");
+    setCommentPost(item);
+    setCommentText("");
+    const { data } = await (supabase as any).rpc("get_confession_comments", { p_confession_id:item.id });
+    setCommentsByPost((current) => ({ ...current, [item.id]: data ?? [] }));
+  };
+
+  const submitComment = async () => {
+    if (!commentPost || !commentText.trim()) return;
+    const { error } = await (supabase as any).rpc("add_confession_comment_secure", { p_confession_id:commentPost.id, p_body:commentText.trim() });
+    if (error) return toast.error(error.message);
+    const { data } = await (supabase as any).rpc("get_confession_comments", { p_confession_id:commentPost.id });
+    setCommentsByPost((current) => ({ ...current, [commentPost.id]: data ?? [] }));
+    setCommentText("");
+    toast.success("Comment posted");
+  };
+
+  const shareConfession = async (item: Confession) => {
+    const url = window.location.origin + "/confessions#" + item.id;
+    try {
+      if (navigator.share) await navigator.share({ title:"Circle Panda Anonymous Feed", text:item.content, url });
+      else { await navigator.clipboard.writeText(url); toast.success("Share link copied"); }
+    } catch (e:any) {
+      if (e?.name !== "AbortError") toast.error("Could not share this confession.");
+    }
+  };
+
+  const openMessage = async (item: Confession) => {
+    const { data: authData } = await supabase.auth.getUser();
+    if (!authData.user || authData.user.is_anonymous) return requestLogin("message a Panda");
+    if (!item.author_id || item.author_id === authData.user.id) return toast.error("You can't message yourself.");
+    setMessagePost(item);
+    setMessageText("");
+  };
+
+  const sendMessage = async () => {
+    if (!messagePost?.author_id || !messageText.trim()) return;
+    setSendingMessage(true);
+    const { error } = await (supabase as any).rpc("request_direct_message_secure", { p_recipient_id:messagePost.author_id, p_message:messageText.trim() });
+    setSendingMessage(false);
+    if (error) return toast.error(error.message);
+    setMessageText("");
+    setMessagePost(null);
+    toast.success("Message request sent");
   };
 
   const mcmCount = weekly.mcm.length;
@@ -307,10 +367,38 @@ export function ConfessionsPage() {
                 </span>
               </div>
               <p className="mt-4 whitespace-pre-wrap break-words text-[15px] leading-7">{item.content}</p>
-              <div className="mt-4 flex gap-2">
-                <Button variant="outline" size="sm" onClick={() => void react(item.id, "heart")}><Heart className="mr-1 size-4" /> Heart</Button>
-                <Button variant="outline" size="sm" onClick={() => void react(item.id, "laugh")}><Laugh className="mr-1 size-4" /> Laugh</Button>
-              </div>
+              {(() => {
+                const rs = reactionState[item.id] ?? { reaction:null,heart_count:0,laugh_count:0,wow_count:0,sad_count:0,angry_count:0 };
+                const selected = reactionOptions.find((r) => r.key === rs.reaction);
+                return (
+                  <div className="relative mt-4">
+                    <div className="flex items-center gap-2 overflow-x-auto">
+                      <Button variant={selected ? "default" : "outline"} size="sm" className="rounded-full" onClick={() => setReactionMenuId(reactionMenuId === item.id ? null : item.id)}>
+                        <SmilePlus className="mr-1 size-4" /> {selected ? selected.emoji : "React"}
+                        {selected ? <span className="ml-1 text-[10px]">{(rs as any)[selected.key + "_count"] ?? 0}</span> : null}
+                      </Button>
+                      <Button variant="ghost" size="sm" className="rounded-full" onClick={() => void openComments(item)}><MessageCircle className="mr-1 size-4" /> Comment</Button>
+                      <Button variant="ghost" size="sm" className="rounded-full" onClick={() => void shareConfession(item)}><Share2 className="mr-1 size-4" /> Share</Button>
+                      {item.author_id ? <Button variant="ghost" size="sm" className="rounded-full" onClick={() => void openMessage(item)}><Send className="mr-1 size-4" /> Message</Button> : null}
+                    </div>
+                    {reactionMenuId === item.id ? (
+                      <div className="absolute bottom-full left-0 z-30 mb-2 flex items-center gap-1 rounded-full border border-border bg-card p-2 shadow-xl">
+                        {reactionOptions.map((r) => (
+                          <button key={r.key} type="button" title={r.label} aria-label={r.label} onClick={() => void react(item.id,r.key)}
+                            className={`grid size-11 place-items-center rounded-full text-2xl transition-transform hover:scale-110 ${rs.reaction===r.key ? "bg-primary/15 ring-2 ring-primary" : "hover:bg-secondary"}`}>
+                            {r.emoji}
+                          </button>
+                        ))}
+                      </div>
+                    ) : null}
+                  </div>
+                );
+              })()}
+              {commentsByPost[item.id]?.length ? (
+                <div className="mt-3 space-y-2 rounded-2xl bg-secondary/30 p-3">
+                  {commentsByPost[item.id].slice(-3).map((comment) => <div key={comment.id} className="text-sm"><span className="font-semibold">Anonymous Panda</span><span className="text-muted-foreground"> · {comment.body}</span></div>)}
+                </div>
+              ) : null}
             </article>
             {((idx + 1) === 4 || (idx + 1) === 8 || ((idx + 1) >= 15 && (idx + 1 - 15) % 7 === 0)) ? (
               <StandardBannerAd index={idx} variant="feed-card" placement="confessions_inline" />
@@ -363,6 +451,24 @@ export function ConfessionsPage() {
           <Button onClick={() => void uploadCrush()} disabled={uploading || !uploadFile} className="w-full rounded-2xl">
             {uploading ? "Uploading…" : "Publish weekly entry"}
           </Button>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={Boolean(commentPost)} onOpenChange={(open) => { if (!open) setCommentPost(null); }}>
+        <DialogContent className="max-w-md rounded-3xl">
+          <DialogTitle>Comment on this confession</DialogTitle>
+          <DialogDescription>Your comment is public and shown as Anonymous Panda.</DialogDescription>
+          <Textarea value={commentText} onChange={(e) => setCommentText(e.target.value)} maxLength={1000} placeholder="Write a comment..." className="min-h-28 rounded-2xl" />
+          <Button onClick={() => void submitComment()} disabled={!commentText.trim()} className="w-full rounded-2xl">Post comment</Button>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={Boolean(messagePost)} onOpenChange={(open) => { if (!open) setMessagePost(null); }}>
+        <DialogContent className="max-w-md rounded-3xl">
+          <DialogTitle>Message Panda</DialogTitle>
+          <DialogDescription>Send a direct message request to this confession's author.</DialogDescription>
+          <Textarea value={messageText} onChange={(e) => setMessageText(e.target.value)} maxLength={2000} placeholder="Write your message..." className="min-h-28 rounded-2xl" />
+          <Button onClick={() => void sendMessage()} disabled={sendingMessage || !messageText.trim()} className="w-full rounded-2xl">{sendingMessage ? "Sending…" : "Send message"}</Button>
         </DialogContent>
       </Dialog>
 
