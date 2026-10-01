@@ -36,16 +36,6 @@ export function QuickVoteSignup({
     setBusy(false);
   };
 
-  const ensureImmediateSession = async () => {
-    const { data } = await supabase.auth.getUser();
-    if (data.user) return true;
-    const { data: anonData, error } = await supabase.auth.signInAnonymously();
-    if (error || !anonData.user) {
-      throw error ?? new Error("Could not create an immediate Circle Panda session.");
-    }
-    return true;
-  };
-
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!v) reset(); onOpenChange(v); }}>
       <DialogContent className="max-w-sm rounded-3xl">
@@ -85,12 +75,20 @@ export function QuickVoteSignup({
 
               if (result.error) throw result.error;
 
-              // Hosted Supabase can return no session when email/phone confirmation is enabled.
-              // Quick actions must never be blocked by that setting, so keep an immediate
-              // authenticated anonymous session for the action while the credential can be
-              // verified later.
-              await ensureImmediateSession();
-              setStep("location");
+              // If Supabase returned a real session, the new account can continue immediately.
+              // If confirmation is required, do not replace the new account with an anonymous
+              // session. That would make the action appear to continue while the real account
+              // is still unverified and can also leave the browser signed into the wrong user.
+              if (result.data.session) {
+                setStep("location");
+                return;
+              }
+
+              toast.success("Check your email to confirm your Panda", {
+                description: "After confirmation, sign in and then submit your confession.",
+              });
+              reset();
+              onOpenChange(false);
             } catch (error: any) {
               toast.error("Signup could not continue", { description: error?.message ?? "Please try again." });
             } finally {
