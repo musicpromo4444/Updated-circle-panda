@@ -21,7 +21,6 @@ import { SweepstakeNavIcon } from "@/components/ads/SweepstakeNavIcon";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
-import { UniversalWinnerFlow } from "@/components/UniversalWinnerFlow";
 import { UniversalFloatingCampaign } from "@/components/UniversalFloatingCampaign";
 
 const TABS = [
@@ -415,7 +414,6 @@ export function AppShell({
 
       <BottomNav />
       <DailyRewardPopup />
-      <UniversalWinnerFlow />
     </div>
   );
 }
