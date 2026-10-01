@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useStore, type DatingProfile } from "@/lib/store";
+import { requestLogin } from "@/components/auth/LoginRequiredDialog";
 
 const PANDA_AVATARS = ["🐼", "🎋🐼", "🌙🐼", "✨🐼", "🎧🐼", "🕶️🐼", "❤️🐼", "🔥🐼", "🌸🐼", "🎨🐼", "🍫🐼", "☀️🐼"];
 const INTERESTS = ["Books", "Late walks", "Vinyl", "Matcha", "Gaming", "Memes", "Baking", "Photography", "Live music", "Coffee", "Night drives", "Art galleries", "Football", "Travel", "Food", "Fitness"];
@@ -78,7 +79,7 @@ export function RegisterDatingModal({ open, onOpenChange }: { open: boolean; onO
     try {
       const { data: userRes } = await (supabase as any).auth.getUser();
       const uid = userRes?.user?.id;
-      if (!uid) throw new Error("Sign in to upload your Dating photo");
+      if (!uid || userRes?.user?.is_anonymous) { requestLogin("register for Dating"); return; }
       let photoPath = p.photoPath || "";
       let blurredPhotoPath = p.blurredPhotoPath || "";
       if (photoFile) {
