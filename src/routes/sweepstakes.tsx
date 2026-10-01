@@ -12,7 +12,7 @@ import {
 import { AppShell } from "@/components/AppShell";
 import { StandardBannerAd } from "@/components/ads/StandardBannerAd";
 import { Button } from "@/components/ui/button";
-import { GameModal } from "@/routes/activities";
+import { GAME_META, GameModal } from "@/routes/activities";
 import { useStore } from "@/lib/store";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -23,13 +23,13 @@ export const Route = createFileRoute("/sweepstakes")({
       {
         name: "description",
         content:
-          "Buy Panda Sweepstakes tickets with Panda Coins, win VIP passes, BC packages and event tickets in the Weekly Draw, or the Monthly Mega Jackpot. Spin the Wheel daily for free BC.",
+          "Buy Panda Sweepstakes tickets with Panda Coins, win prizes, and enter the current admin-selected contest.",
       },
       { property: "og:title", content: "Panda Sweepstakes — Circle Panda" },
       {
         property: "og:description",
         content:
-          "Weekly prize draws and a Monthly Mega Jackpot, plus a free daily Spin the Wheel for instant BC.",
+          "Weekly prize draws and a Monthly Mega Jackpot, plus an admin-selected contest activity.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -152,6 +152,7 @@ function SweepstakesPage() {
   const { coins, syncCoins, sweepWinners, weeklyDrawEndsAt } = useStore();
   const [selectedActivity, setSelectedActivity] = useState<any | null>(null);
   const [sweepActivity, setSweepActivity] = useState<any | null>(null);
+  const [sweepActivityLoading, setSweepActivityLoading] = useState(true);
   const [items, setItems] = useState(DEFAULT_DAILY_ITEMS);
   const [tickets, setTickets] = useState<Record<string, number>>({});
   const [ticketHistory, setTicketHistory] = useState<Array<{id:string;draw:string;created_at:string}>>([]);
@@ -162,16 +163,36 @@ function SweepstakesPage() {
       const { data: authData } = await supabase.auth.getUser();
       const uid = authData.user?.id;
       if (!uid) return;
-      const [configResult, ticketResult, prizeResult] = await Promise.all([
+      const [configResult, ticketResult, prizeResult, activityResult] = await Promise.all([
         supabase.from("sweepstakes_config").select("draw,ticket_price_bc,prize_name,closes_at").eq("is_active", true),
         supabase.from("sweep_tickets").select("id,draw,created_at").eq("user_id", uid).order("created_at", { ascending: false }).limit(50),
         supabase.from("sweepstake_prizes").select("id,name,label,ticket_price_bc,consolation_price,image_url,emoji,jackpot").eq("enabled", true).order("id"),
+        (supabase as any).rpc("get_sweepstakes_activity_config"),
       ]);
-      if (configResult.error || ticketResult.error || prizeResult.error) {
-        toast.error((configResult.error ?? ticketResult.error ?? prizeResult.error)?.message ?? "Could not load sweepstakes");
+      if (configResult.error || ticketResult.error || prizeResult.error || activityResult.error) {
+        toast.error((configResult.error ?? ticketResult.error ?? prizeResult.error ?? activityResult.error)?.message ?? "Could not load sweepstakes");
         setItems([]);
+        setSweepActivityLoading(false);
         return;
       }
+      const activityConfig = Array.isArray(activityResult.data) ? activityResult.data[0] : activityResult.data;
+      const activitySlug = String(activityConfig?.activity_slug ?? activityConfig?.slug ?? "").trim();
+      if (activitySlug) {
+        const meta = GAME_META[activitySlug];
+        setSweepActivity({
+          id: activitySlug,
+          title: String(activityConfig?.activity_title ?? activityConfig?.title ?? meta?.label ?? activitySlug),
+          description: String(activityConfig?.activity_description ?? activityConfig?.description ?? "Your admin-selected contest activity is ready."),
+          activity_type: activitySlug,
+          reward_bc: Number(activityConfig?.reward_bc ?? 0),
+          requires_ad: Boolean(activityConfig?.requires_ad ?? true),
+          completed: false,
+          last_completed_at: null,
+        });
+      } else {
+        setSweepActivity(null);
+      }
+      setSweepActivityLoading(false);
       const history=(ticketResult.data ?? []) as Array<{id:string;draw:string;created_at:string}>;
       setTicketHistory(history);
       setTickets(history.reduce((acc:any,t:any)=>{acc[t.draw]=(acc[t.draw]??0)+1;return acc;},{}));
@@ -195,20 +216,36 @@ function SweepstakesPage() {
   return (
     <AppShell
       title="Panda Sweepstakes"
-      subtitle="Buy tickets with BC, win prizes, and spin the Wheel daily for free BC."
+      subtitle="Buy tickets with BC, win prizes, and enter the admin-selected contest."
     >
       <section className="cp-sweep-activity mb-5">
         <div className="cp-sweep-activity-glow" />
         <div className="relative z-10">
           <p className="cp-eyebrow">CONTEST ENTRY</p>
-          <h2 className="mt-1 text-2xl font-black text-white">{sweepActivity?.title ?? "Enter to Win"}</h2>
-          <p className="mt-1 text-xs text-white/65">{sweepActivity?.description ?? "Ready to win? Enter the contest for a chance to win one of the prizes below. New prizes and contests may appear here whenever they are available."}</p>
+          <h2 className="mt-1 text-2xl font-black text-white">Ready to Win?</h2>
+          <p className="mt-1 text-xs text-white/65">
+            Enter the contest for a chance to win one of the prizes below. Click the button to play the contest selected by the admin.
+          </p>
+          {sweepActivity ? (
+            <p className="mt-2 text-[11px] font-bold uppercase tracking-[0.14em] text-primary">
+              Current contest: {sweepActivity.title}
+            </p>
+          ) : null}
           <Button
             className="cp-neon-button mt-4 w-full"
-            onClick={() => sweepActivity && setSelectedActivity(sweepActivity)}
+            disabled={sweepActivityLoading || !sweepActivity}
+            onClick={() => {
+              if (sweepActivity) setSelectedActivity(sweepActivity);
+            }}
           >
-            <Sparkles className="mr-2 size-4" /> Click to Contest
+            <Sparkles className="mr-2 size-4" />
+            {sweepActivityLoading ? "Loading Contest…" : "Click to Contest"}
           </Button>
+          {!sweepActivityLoading && !sweepActivity ? (
+            <p className="mt-2 text-center text-[11px] text-muted-foreground">
+              No contest activity is currently available.
+            </p>
+          ) : null}
         </div>
       </section>
 
