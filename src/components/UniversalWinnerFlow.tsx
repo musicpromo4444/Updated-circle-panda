@@ -48,7 +48,7 @@ export function UniversalWinnerFlow() {
   const [announcement,setAnnouncement] = useState<WinnerAnnouncement|null>(null);
   const [cycle,setCycle] = useState<OpenCycle|null>(null);
   const [showPrevious,setShowPrevious] = useState(false);
-  const pathname = window.location.pathname;
+  const pathname = typeof window !== "undefined" ? window.location.pathname : "/";
 
   const load = async () => {
     const [a,c] = await Promise.all([
