@@ -214,3 +214,52 @@ with check (bucket_id='circle-panda-sweepstakes' and public.cp_is_admin());
 drop policy if exists "sweepstakes admin delete" on storage.objects;
 create policy "sweepstakes admin delete" on storage.objects for delete to authenticated
 using (bucket_id='circle-panda-sweepstakes' and public.cp_is_admin());
+
+
+-- Harden public RPC exposure after creation.
+create or replace function public.get_sweepstakes_page_config()
+returns public.sweepstakes_page_config
+language sql security invoker stable set search_path=''
+as $$ select * from public.sweepstakes_page_config where id=1; $$;
+revoke execute on function public.get_sweepstakes_page_config() from public;
+grant execute on function public.get_sweepstakes_page_config() to authenticated;
+
+create or replace function public.get_sweepstakes_prize_cards()
+returns jsonb
+language sql security invoker stable set search_path=''
+as $$
+  select jsonb_build_object(
+    'card_limit', coalesce((select card_limit from public.sweepstakes_page_config where id=1),5),
+    'prizes', coalesce((
+      select jsonb_agg(to_jsonb(p) order by p.display_order,p.id)
+      from (
+        select * from public.sweepstake_prizes
+        where enabled=true
+          and (starts_at is null or starts_at <= now())
+          and (closes_at is null or closes_at > now())
+        order by display_order,id
+        limit 5
+      ) p
+    ),'[]'::jsonb)
+  );
+$$;
+revoke execute on function public.get_sweepstakes_prize_cards() from public;
+grant execute on function public.get_sweepstakes_prize_cards() to authenticated;
+
+create or replace function public.get_sweepstakes_activity_config()
+returns table(activity_slug text, updated_at timestamptz)
+language sql security invoker stable set search_path=''
+as $$ select activity_slug, updated_at from public.sweepstakes_activity_config where id=1; $$;
+revoke execute on function public.get_sweepstakes_activity_config() from public;
+grant execute on function public.get_sweepstakes_activity_config() to authenticated;
+
+revoke execute on function public.admin_set_sweepstakes_activity(text) from public;
+grant execute on function public.admin_set_sweepstakes_activity(text) to authenticated;
+revoke execute on function public.admin_update_sweepstakes_page_config(integer) from public;
+grant execute on function public.admin_update_sweepstakes_page_config(integer) to authenticated;
+revoke execute on function public.admin_upsert_sweepstake_prize(text,text,text,text,text,text,text,text,text,bigint,numeric,text,text,boolean,boolean,timestamptz,timestamptz,integer) from public;
+grant execute on function public.admin_upsert_sweepstake_prize(text,text,text,text,text,text,text,text,text,bigint,numeric,text,text,boolean,boolean,timestamptz,timestamptz,integer) to authenticated;
+revoke execute on function public.admin_delete_sweepstake_prize(text) from public;
+grant execute on function public.admin_delete_sweepstake_prize(text) to authenticated;
+revoke execute on function public.admin_get_sweepstakes_controls() from public;
+grant execute on function public.admin_get_sweepstakes_controls() to authenticated;
