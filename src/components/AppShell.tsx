@@ -166,39 +166,56 @@ export function FreeCoinsButton() {
   const [watching, setWatching] = useState(false);
   const [countdown, setCountdown] = useState(5);
   const [progress, setProgress] = useState(0);
+  const [adVideoUrl, setAdVideoUrl] = useState<string | null>(null);
+  const [adPosterUrl, setAdPosterUrl] = useState<string | null>(null);
+  const [adSponsor, setAdSponsor] = useState<string | null>(null);
 
-  const startAd = () => {
-    setWatching(true);
-    setCountdown(5);
-    setProgress(0);
+  const startAd = async () => {
+    try {
+      const { supabase } = await import("@/integrations/supabase/client");
+      const { data, error } = await (supabase as any).rpc("start_free_coins_rewarded_ad");
+      if (error) throw error;
 
-    const totalSeconds = 5;
-    const intervalMs = 100;
-    let elapsedMs = 0;
+      const totalSeconds = Math.max(1, Number(data?.duration_seconds ?? 5));
+      setAdVideoUrl(data?.video_url ? String(data.video_url) : null);
+      setAdPosterUrl(data?.poster_url ? String(data.poster_url) : null);
+      setAdSponsor(data?.sponsor ? String(data.sponsor) : null);
+      setWatching(true);
+      setCountdown(totalSeconds);
+      setProgress(0);
 
-    const timer = setInterval(() => {
-      elapsedMs += intervalMs;
-      const currentProgress = Math.min(100, Math.round((elapsedMs / (totalSeconds * 1000)) * 100));
-      const remainingSec = Math.max(0, Math.ceil(totalSeconds - elapsedMs / 1000));
+      const intervalMs = 100;
+      let elapsedMs = 0;
+      const timer = setInterval(() => {
+        elapsedMs += intervalMs;
+        const currentProgress = Math.min(100, Math.round((elapsedMs / (totalSeconds * 1000)) * 100));
+        const remainingSec = Math.max(0, Math.ceil(totalSeconds - elapsedMs / 1000));
+        setProgress(currentProgress);
+        setCountdown(remainingSec);
 
-      setProgress(currentProgress);
-      setCountdown(remainingSec);
-
-      if (elapsedMs >= totalSeconds * 1000) {
-        clearInterval(timer);
-        setWatching(false);
-        setOpen(false);
-        void (async () => {
-          const { supabase } = await import("@/integrations/supabase/client");
-          const { data, error } = await (supabase as any).rpc("claim_rewarded_ad_secure", { p_surface: "free_coins" });
-          if (error) { toast.error(error.message ?? "Reward could not be claimed"); return; }
-          await syncCoins();
-          toast.success(`🎉 +${Number(data?.reward ?? 30)} BC Added!`, {
-            description: "Free Panda Coins credited to your account wallet.",
-          });
-        })();
-      }
-    }, intervalMs);
+        if (elapsedMs >= totalSeconds * 1000) {
+          clearInterval(timer);
+          void (async () => {
+            const { data: completed, error: completionError } = await (supabase as any).rpc("complete_rewarded_ad_session", {
+              p_session_id: data.session_id,
+            });
+            setWatching(false);
+            if (completionError) {
+              toast.error(completionError.message ?? "Reward could not be claimed");
+              return;
+            }
+            setOpen(false);
+            await syncCoins();
+            toast.success(`🎉 +${Number(completed?.reward_bc ?? 30)} BC Added!`, {
+              description: "Sponsored video completed and your Panda Coins were credited.",
+            });
+          })();
+        }
+      }, intervalMs);
+    } catch (error: any) {
+      setWatching(false);
+      toast.error(error?.message ?? "Sponsored video unavailable");
+    }
   };
 
   return (
@@ -224,13 +241,25 @@ export function FreeCoinsButton() {
           {/* Ad Video Player Stage */}
           <div className="relative overflow-hidden rounded-xl border border-border/80 bg-neutral-950 p-4 text-center aspect-video flex flex-col items-center justify-center">
             {watching ? (
-              <div className="flex flex-col items-center gap-2">
-                <div className="relative flex size-12 items-center justify-center rounded-full bg-emerald-500/20 text-emerald-400">
-                  <Play className="size-6 fill-current animate-pulse" />
-                </div>
+              <div className="flex w-full flex-col items-center gap-2">
+                {adVideoUrl ? (
+                  <video
+                    className="h-full w-full rounded-lg object-cover"
+                    src={adVideoUrl}
+                    poster={adPosterUrl ?? undefined}
+                    autoPlay
+                    playsInline
+                    controls={false}
+                    onContextMenu={(event) => event.preventDefault()}
+                  />
+                ) : (
+                  <div className="relative flex size-12 items-center justify-center rounded-full bg-emerald-500/20 text-emerald-400">
+                    <Play className="size-6 fill-current animate-pulse" />
+                  </div>
+                )}
                 <div className="space-y-1">
                   <p className="text-xs font-semibold text-neutral-200">
-                    Sponsored Ad Playing… {countdown}s
+                    {adSponsor ? `${adSponsor} · ` : ""}Sponsored Ad Playing… {countdown}s
                   </p>
                   <div className="mx-auto h-1.5 w-44 rounded-full bg-neutral-800 overflow-hidden">
                     <div
