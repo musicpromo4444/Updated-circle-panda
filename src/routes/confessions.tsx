@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Eye, Heart, Laugh, Plus, RefreshCw, Send, ShieldCheck, Upload, Crown } from "lucide-react";
+import { Eye, Heart, Laugh, RefreshCw, Upload, Crown } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
 import { StandardBannerAd } from "@/components/ads/StandardBannerAd";
@@ -45,7 +45,6 @@ export function ConfessionsPage() {
   const [items, setItems] = useState<Confession[]>([]);
   const [content, setContent] = useState("");
   const [anonymous, setAnonymous] = useState(true);
-  const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [showSignup, setShowSignup] = useState(false);
@@ -279,49 +278,6 @@ export function ConfessionsPage() {
           </div>
         </section>
 
-        <section className="rounded-[1.65rem] border border-border/70 bg-card p-4 sm:p-5">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <p className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.16em] text-primary">
-                <span>✨</span> Secret Confessions
-              </p>
-              <p className="mt-1 text-xs text-muted-foreground">Submissions are reviewed before publication.</p>
-            </div>
-            <div className="flex shrink-0 items-center gap-2">
-              <Button variant="outline" size="icon" onClick={() => void load(true)} disabled={loading || refreshing} className="size-9 rounded-full" aria-label="Refresh confessions">
-                <RefreshCw className={refreshing ? "size-4 animate-spin" : "size-4"} />
-              </Button>
-              <Button onClick={() => setOpen((v) => !v)} className="rounded-full px-4 text-xs font-bold">
-                <Plus className="mr-1 size-4" /> Confess
-              </Button>
-            </div>
-          </div>
-
-          {open ? (
-            <div className="mt-4 space-y-3 rounded-2xl bg-secondary/40 p-4">
-              <Textarea
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
-                maxLength={2000}
-                placeholder="Your confession..."
-                className="min-h-32 rounded-2xl"
-                disabled={submitting}
-              />
-              <div className="flex items-center justify-between gap-3 text-xs text-muted-foreground">
-                <span>Anonymous is on</span>
-                <span>{remaining} characters left</span>
-              </div>
-              <div className="flex items-start gap-2 rounded-2xl border border-border/60 bg-background/60 p-3 text-xs text-muted-foreground">
-                <ShieldCheck className="mt-0.5 size-4 shrink-0 text-primary" />
-                <span>Submissions are reviewed before publication. Your identity is not displayed on anonymous confessions.</span>
-              </div>
-              <Button onClick={() => void submit()} className="w-full rounded-2xl" disabled={submitting || content.trim().length < 3}>
-                {submitting ? <><RefreshCw className="mr-2 size-4 animate-spin" /> Submitting…</> : <><Send className="mr-2 size-4" /> Submit confession</>}
-              </Button>
-            </div>
-          ) : null}
-        </section>
-
         {loading ? <div className="rounded-3xl border border-border/70 bg-card p-8 text-center text-sm text-muted-foreground">Loading confessions…</div> : null}
         {!loading && items.length === 0 ? (
           <div className="rounded-3xl border border-dashed border-border p-10 text-center text-sm text-muted-foreground">No published confessions yet. Be the first.</div>
@@ -348,38 +304,6 @@ export function ConfessionsPage() {
           </div>
         ))}
       </div>
-
-      <Dialog open={uploadOpen} onOpenChange={(v) => { if (!v && !uploading) { setUploadOpen(false); setUploadFile(null); if (fileInputRef.current) fileInputRef.current.value = ""; } }}>
-        <DialogContent className="max-w-sm rounded-3xl">
-          <DialogTitle>Upload to MCM / WCW</DialogTitle>
-          <DialogDescription>Your gender decides the weekly category automatically. One entry per week, maximum 6MB.</DialogDescription>
-
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*,video/*"
-            className="sr-only"
-            onChange={(e) => handleFile(e.target.files?.[0] ?? null)}
-            disabled={uploading}
-          />
-
-          <button
-            type="button"
-            onClick={chooseFile}
-            disabled={uploading}
-            className="flex min-h-28 w-full flex-col items-center justify-center rounded-2xl border border-dashed border-primary/60 bg-secondary/30 px-4 text-center transition-colors hover:bg-secondary/50 active:scale-[.99]"
-          >
-            <Upload className="size-7 text-primary" />
-            <span className="mt-2 text-sm font-bold">{uploadFile ? "Change photo or video" : "Choose photo or video"}</span>
-            <span className="mt-1 max-w-full truncate text-xs text-muted-foreground">{uploadFile ? uploadFile.name : "Tap here to open your phone gallery/files"}</span>
-          </button>
-
-          <Textarea value={uploadCaption} onChange={(e) => setUploadCaption(e.target.value)} maxLength={300} placeholder="Optional caption..." className="rounded-2xl" disabled={uploading} />
-          <Button onClick={() => void uploadCrush()} disabled={uploading || !uploadFile} className="w-full rounded-2xl">
-            {uploading ? "Uploading…" : "Publish weekly entry"}
-          </Button>
-        </DialogContent>
-      </Dialog>
 
       <QuickVoteSignup
         open={showSignup}
