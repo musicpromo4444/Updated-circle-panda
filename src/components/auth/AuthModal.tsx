@@ -42,6 +42,14 @@ export function AuthModal({ open, onOpenChange, defaultTab = "signin", onOpenBac
     setBusy(false);
   };
 
+  const normalizePhone = (value: string) => {
+    const raw = value.replace(/[\\s().-]/g, "");
+    if (raw.startsWith("+")) return raw;
+    if (raw.startsWith("00")) return "+" + raw.slice(2);
+    if (/^0\\d{10}$/.test(raw)) return "+234" + raw.slice(1);
+    return raw;
+  };
+
   const providerLogin = async (provider: "google" | "apple") => {
     setBusy(true);
     const { error } = await supabase.auth.signInWithOAuth({
@@ -89,7 +97,7 @@ export function AuthModal({ open, onOpenChange, defaultTab = "signin", onOpenBac
 
         const result = value.includes("@")
           ? await supabase.auth.signInWithPassword({ email: value, password })
-          : await supabase.auth.signInWithPassword({ phone: value, password });
+          : await supabase.auth.signInWithPassword({ phone: normalizePhone(value), password });
         if (result.error) throw result.error;
 
         toast.success("Account created. Welcome to Circle Panda 🐼");
