@@ -794,6 +794,9 @@ function HotSeatPage() {
       )}
 
       {/* Modals & Drawers */}
+      {/* Break activities stay as overlays. When the shared host resumes, the effect above closes them. */}
+      {breakGame && <GameModal activity={breakGame} onClose={() => setBreakGame(null)} onDone={() => setBreakGame(null)} />}
+
 
 
       {sessionPhase === "live" && (
