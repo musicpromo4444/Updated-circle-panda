@@ -8,6 +8,7 @@ import {
   type ReactNode,
 } from "react";
 import { toast } from "sonner";
+import { requestLogin } from "@/components/auth/LoginRequiredDialog";
 import { supabase } from "@/integrations/supabase/client";
 
 export type Reply = { id: string; author: string; body: string; at: number };
@@ -642,7 +643,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, [dbUserId]);
 
   const addPost = useCallback((body: string) => {
-    if (!dbUserId) { toast.error("Sign in to post"); return; }
+    if (!dbUserId) { requestLogin("post"); return; }
     void (async () => {
       const { data, error } = await (supabase as any).rpc("create_post_secure", { p_body: body });
       if (error) { toast.error(error.message ?? "Post could not be created"); return; }
@@ -656,7 +657,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, [dbUserId]);
 
   const addReply = useCallback((postId: string, body: string) => {
-    if (!dbUserId) { toast.error("Sign in to reply"); return; }
+    if (!dbUserId) { requestLogin("reply"); return; }
     void (async () => {
       const { data, error } = await (supabase as any).rpc("create_post_reply_secure", { p_post_id: postId, p_body: body });
       if (error) { toast.error(error.message ?? "Reply could not be created"); return; }
@@ -669,7 +670,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, [dbUserId]);
 
   const openGroup = useCallback((id: string) => {
-    if (!dbUserId) { toast.error("Sign in to open this group"); return; }
+    if (!dbUserId) { requestLogin("open this group"); return; }
     void (async () => {
       const { data, error } = await (supabase as any).rpc("open_group_secure", { p_group_id: id });
       if (error) { toast.error(error.message ?? "Group could not be opened"); return; }
@@ -688,7 +689,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   );
 
   const sendGroupMessage = useCallback((id: string, body: string) => {
-    if (!dbUserId) { toast.error("Sign in to message this group"); return; }
+    if (!dbUserId) { requestLogin("message this group"); return; }
     void (async () => {
       const { data, error } = await (supabase as any).rpc("send_group_message_secure", { p_group_id: id, p_body: body });
       if (error) { toast.error(error.message ?? "Message could not be sent"); return; }
@@ -698,7 +699,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, [dbUserId, refreshCoins]);
 
   const joinGroup = useCallback((id: string) => {
-    if (!dbUserId) { toast.error("Sign in to join this group"); return; }
+    if (!dbUserId) { requestLogin("join this group"); return; }
     void (async () => {
       const { data, error } = await (supabase as any).rpc("join_group_secure", { p_group_id: id });
       if (error) { toast.error(error.message ?? "Could not join group"); return; }
@@ -719,7 +720,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, [dbUserId]);
 
   const updateGroupInfo = useCallback((id: string, name: string, topic: string) => {
-    if (!dbUserId) { toast.error("Sign in to edit group information"); return; }
+    if (!dbUserId) { requestLogin("edit group information"); return; }
     void (async () => {
       const { error } = await (supabase as any).rpc("update_group_info_secure", { p_group_id: id, p_name: name, p_topic: topic });
       if (error) { toast.error(error.message ?? "Could not update group information"); return; }
@@ -729,7 +730,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, [dbUserId]);
 
   const updateGroupSettings = useCallback((id: string, editGroupInfo: "admins" | "admins_members", sendMessages: boolean, approveNewMembers: boolean) => {
-    if (!dbUserId) { toast.error("Sign in to change group settings"); return; }
+    if (!dbUserId) { requestLogin("change group settings"); return; }
     void (async () => {
       const { error } = await (supabase as any).rpc("update_group_settings_secure", { p_group_id:id, p_edit_group_info:editGroupInfo, p_send_messages:sendMessages, p_approve_new_members:approveNewMembers });
       if (error) { toast.error(error.message ?? "Could not update group settings"); return; }
@@ -745,7 +746,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   // Hot Seat is server-owned. The client never fabricates hosts, queues, timers, or balances.
   const startHotSeat = useCallback((groupId: string) => {
-    if (!dbUserId) { toast.error("Sign in to use Hot Seat"); return; }
+    if (!dbUserId) { requestLogin("use Hot Seat"); return; }
     if (!dbIsAdmin) { toast.error("Hot Seat sessions are started by the host/admin"); return; }
     toast.error("Use the Hot Seat Admin controls to start a live session");
   }, [dbUserId, dbIsAdmin]);
@@ -759,7 +760,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const joinHotSeatQueue = useCallback(async (_groupId: string) => {
-    if (!dbUserId) { toast.error("Sign in to join the Hot Seat queue"); return; }
+    if (!dbUserId) { requestLogin("join the Hot Seat queue"); return; }
     const { data, error } = await (supabase as any).rpc("join_hot_seat_queue_secure", { p_bid_bc: 5 });
     if (error) { toast.error(error.message ?? "Could not join the Hot Seat queue"); return; }
     await refreshCoins();
@@ -798,7 +799,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const sendMessage = useCallback((threadId: string, body: string) => {
-    if (!dbUserId) { toast.error("Sign in to send messages"); return; }
+    if (!dbUserId) { requestLogin("send messages"); return; }
     void (async () => {
       const { data, error } = await (supabase as any).rpc("send_direct_message", { p_thread_id: threadId, p_body: body });
       if (error) { toast.error(error.message ?? "Message could not be sent"); return; }
@@ -813,7 +814,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, [dbUserId, refreshCoins]);
 
   const startDatingChat = useCallback((userId: string, name: string) => {
-    if (!dbUserId || !userId) { toast.error("Dating profile unavailable"); return Promise.resolve(null); }
+    if (!dbUserId) { requestLogin("use Dating"); return Promise.resolve(null); }
+    if (!userId) return Promise.resolve(null);
     return (async () => {
       const { data, error } = await (supabase as any).rpc("create_direct_thread", { p_other_user_id:userId, p_kind:"dating", p_blurb:"Matched from Dating" });
       if (error) { toast.error(error.message ?? "Dating chat is still locked"); return null; }
@@ -826,7 +828,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, [dbUserId, refreshCoins]);
 
   const startDmWithAuthor = useCallback((userId: string, _author: string, _blurb: string) => {
-    if (!dbUserId || !userId) { toast.error("This anonymous author cannot be contacted"); return Promise.resolve(null); }
+    if (!dbUserId) { requestLogin("contact this Panda"); return Promise.resolve(null); }
+    if (!userId) return Promise.resolve(null);
     return (async () => {
       const { error } = await (supabase as any).rpc("request_direct_message_secure", { p_recipient_id:userId, p_message:"" });
       if (error) { toast.error(error.message ?? "Could not send message request"); return null; }
@@ -836,7 +839,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, [dbUserId]);
 
   const openPaidDm = useCallback((userId: string, _author: string, blurb: string) => {
-    if (!dbUserId || !userId) { toast.error("This anonymous author cannot be contacted"); return Promise.resolve(null); }
+    if (!dbUserId) { requestLogin("contact this Panda"); return Promise.resolve(null); }
+    if (!userId) return Promise.resolve(null);
     return (async () => {
       const { error } = await (supabase as any).rpc("request_direct_message_secure", { p_recipient_id:userId, p_message:blurb ?? "" });
       if (error) { toast.error(error.message ?? "Could not send message request"); return null; }
@@ -846,7 +850,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, [dbUserId]);
 
   const nominate = useCallback((name: string, kind: CrushKind, blurb: string, emoji: string) => {
-    if (!dbUserId) { toast.error("Sign in to nominate"); return false; }
+    if (!dbUserId) { requestLogin("nominate"); return false; }
     void (async () => {
       const { data, error } = await (supabase as any).rpc("nominate_crush_secure", {
         p_name: name, p_kind: kind, p_blurb: blurb, p_emoji: emoji, p_cost_bc: NOMINATION_COST,
@@ -865,7 +869,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const voteFor = useCallback((id: string) => {
     void (async()=>{
       const { data: authData } = await supabase.auth.getUser();
-      if (!authData.user || authData.user.is_anonymous) { toast.error("Sign in to vote"); return; }
+      if (!authData.user || authData.user.is_anonymous) { requestLogin("vote"); return; }
       const { data: voteData, error } = await (supabase as any).rpc("cast_crush_vote_secure", { p_nominee_id: id });
       if (error) { toast.error(error.message ?? "Vote could not be counted"); return; }
       const { data: results } = await (supabase as any).rpc("get_crush_results", { p_week_start: new Date(Date.now() - ((new Date().getDay() + 6) % 7) * 86400000).toISOString().slice(0,10) });
@@ -915,7 +919,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, [dbUserId]);
 
   const createGroup = useCallback(async (name: string, topic: string, country = "", stateProvince = "", city = "", area = ""): Promise<GroupChat | null> => {
-    if (!dbUserId) { toast.error("Sign in to create a group"); return null; }
+    if (!dbUserId) { requestLogin("create a group"); return null; }
     const coords = await new Promise<{latitude:number;longitude:number}|null>((resolve) => { if (typeof navigator === "undefined" || !navigator.geolocation) return resolve(null); navigator.geolocation.getCurrentPosition((pos) => resolve({ latitude:pos.coords.latitude, longitude:pos.coords.longitude }), () => resolve(null), { enableHighAccuracy:false, maximumAge:300000, timeout:5000 }); });
     const { data, error } = await (supabase as any).rpc("create_group_secure", { p_name:name, p_topic:topic, p_latitude:coords?.latitude ?? null, p_longitude:coords?.longitude ?? null });
     if (error) { toast.error(error.message ?? "Group could not be created"); return null; }
@@ -928,7 +932,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const createEvent = useCallback((eventData: Omit<PandaEvent, "id" | "rsvp">): PandaEvent => {
     const localId = crypto.randomUUID();
     const optimistic: PandaEvent = { ...eventData, id: localId, rsvp: false };
-    if (!dbUserId) { toast.error("Sign in to create an event"); return optimistic; }
+    if (!dbUserId) { requestLogin("create an event"); return optimistic; }
     void (async () => {
       const startsAt = eventData.date ? new Date(eventData.date).toISOString() : new Date(Date.now() + 60 * 60 * 1000).toISOString();
       const durationMinutes = Math.max(15, Math.min(10080, Number(eventData.durationMinutes) || 120));
@@ -950,7 +954,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, [dbUserId, refreshCoins]);
 
   const startEventBlast = useCallback(async (eventId: string, planId = "starter", paymentMethod: "bc" | "cash" = "bc", targetScope = "worldwide", targetCountry = "", targetState = "", targetCity = "", targetArea = "") => {
-    if (!dbUserId) { toast.error("Sign in to promote an event"); return false; }
+    if (!dbUserId) { requestLogin("promote an event"); return false; }
     const { data, error } = await (supabase as any).rpc("start_event_blast_secure", { p_event_id:eventId,p_plan_id:planId,p_payment_method:paymentMethod,p_target_scope:targetScope,p_target_country:targetCountry || null,p_target_state:targetState || null,p_target_city:targetCity || null,p_target_area:targetArea || null });
     if (error) { toast.error(error.message ?? "Could not start Event Blast"); return false; }
     const charged = Number(data?.bc_cost ?? 0);
@@ -995,7 +999,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, [dbUserId]);
 
   const registerDatingProfile = useCallback((p: Omit<DatingProfile, "registeredAt" | "userId">) => {
-    if (!dbUserId) { toast.error("Sign in to register for Dating"); return; }
+    if (!dbUserId) { requestLogin("register for Dating"); return; }
     void (async () => {
       const { data, error } = await (supabase as any).rpc("register_dating_profile_secure", {
         p_age:p.age,p_gender:p.gender,p_country:p.country,p_vibe:p.vibe,p_bio:p.bio,p_interests:p.interests,
@@ -1011,7 +1015,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, [dbUserId]);
 
   const requestDatingMatch = useCallback((userId:string) => {
-    if (!dbUserId || !userId) { toast.error("Dating profile unavailable"); return Promise.resolve(null); }
+    if (!dbUserId) { requestLogin("use Dating"); return Promise.resolve(null); }
+    if (!userId) return Promise.resolve(null);
     return (async () => {
       const {data,error}=await (supabase as any).rpc("request_dating_match_secure",{p_recipient_id:userId});
       if(error){toast.error(error.message??"Could not send dating request");return null;}
@@ -1021,7 +1026,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   },[dbUserId]);
 
   const buyTicket = useCallback((draw: DrawKind) => {
-    if (!dbUserId) { toast.error("Sign in to buy a ticket"); return false; }
+    if (!dbUserId) { requestLogin("buy a ticket"); return false; }
     void (async()=>{
       const { data, error } = await (supabase as any).rpc("buy_sweepstake_ticket_secure", { p_draw: draw });
       if (error) { toast.error(error.message ?? "Could not secure ticket"); return; }
@@ -1032,7 +1037,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, [dbUserId]);
 
   const spinWheel = useCallback(async (): Promise<SpinPrize | null> => {
-    if (!dbUserId) { toast.error("Sign in to spin"); return null; }
+    if (!dbUserId) { requestLogin("spin"); return null; }
     const { data: campaign, error: campaignError } = await (supabase as any)
       .from("cp_reward_campaigns")
       .select("id")
