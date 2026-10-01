@@ -50,7 +50,7 @@ const GAME_META: Record<string, { icon: string; label: string }> = {
   slots: { icon: "🎰", label: "Panda Slots" },
   lucky_card: { icon: "🃏", label: "Lucky Card" },
   secret_reveal: { icon: "🕵️", label: "Secret Reveal" },
-  playable_ad: { icon: "▶️", label: "Just Playbo Ads" },
+  playable_ad: { icon: "▶️", label: "Just Ads" },
   cup_shuffle: { icon: "🥤", label: "Panda Cup Shuffle" },
 };
 
