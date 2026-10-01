@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 
 type Page = { page_key:string; label:string; route_path:string; sort_order:number };
 type CreativeType = "icon"|"image"|"gif"|"lottie"|"video";
-type ActionType = "external_url"|"internal_route"|"sponsor_modal"|"ad_placement"|"rewarded_ad"|"playable"|"offerwall";
+type ActionType = "external_url"|"internal_route"|"sponsor_modal"|"ad_placement"|"rewarded_ad"|"playable"|"offerwall"|"fun_time";
 type Campaign = {
   id:string; name:string; sponsor_name:string|null; enabled:boolean; page_keys:string[];
   creative_type:CreativeType; creative_url:string|null; fallback_icon:string; label:string;
@@ -32,10 +32,31 @@ const ACTION_TYPES: {value:ActionType;label:string;help:string}[] = [
   {value:"rewarded_ad",label:"Open rewarded experience",help:"Pass the rewarded placement/experience key as the target."},
   {value:"playable",label:"Open playable experience",help:"Pass the playable URL or experience target."},
   {value:"offerwall",label:"Open offerwall",help:"Pass the offerwall URL or experience target."},
+  {value:"fun_time",label:"Fun Time catalog",help:"Open the admin-selected Circle Panda games, music, video and activities catalog."},
+];
+
+const FUN_TIME_ITEMS: {key:string;title:string;description:string}[] = [
+  {key:"activities",title:"Games & Activities",description:"Full games and activities list"},
+  {key:"music-time",title:"Music, Audio & Video",description:"Music Time catalog"},
+  {key:"hot-seat",title:"Hot Seat Live",description:"Current live host"},
+  {key:"dating",title:"Dating",description:"Dating experience"},
+  {key:"events",title:"Events",description:"Circle Panda events"},
+  {key:"groups",title:"Groups",description:"Groups and group activities"},
+  {key:"confessions",title:"Secret Confessions",description:"Secret Confessions"},
+  {key:"wcw-mcm",title:"WCW & MCM",description:"Weekly WCW & MCM"},
+  {key:"live",title:"Live",description:"Live area"},
+  {key:"sweepstakes",title:"Sweepstakes",description:"Current sweepstakes"},
+  {key:"vip",title:"VIP Lounge",description:"VIP Lounge"},
+  {key:"messages",title:"Messages",description:"Messages"},
+  {key:"store",title:"Store",description:"Store"},
+  {key:"profile",title:"Profile",description:"Panda profile"},
+  {key:"notifications",title:"Notifications",description:"Notifications"},
+  {key:"leaders",title:"Leaders",description:"Leaderboards"},
+  {key:"settings",title:"Settings",description:"Settings"},
 ];
 const EMPTY = {
   name:"", sponsor_name:"", enabled:false, page_keys:[] as string[], creative_type:"lottie" as CreativeType, creative_url:"",
-  fallback_icon:"🔥", label:"SPONSORED", action_type:"external_url" as ActionType, action_target:"", action_title:"", action_body:"",
+  fallback_icon:"🎮", label:"FUN TIME", action_type:"fun_time" as ActionType, action_target:"", action_title:"Fun Time", action_body:"Choose something fun.",
   priority:100, max_impressions:null as number|null, max_clicks:null as number|null, max_unique_users:null as number|null,
   frequency_cap_seconds:0, starts_at:null as string|null, ends_at:null as string|null, targeting:{},
 };
@@ -71,6 +92,7 @@ export function UniversalFloatingIconManager() {
     if(!draft.name.trim()) return toast.error("Campaign name is required");
     if(!draft.page_keys.length) return toast.error("Choose at least one page");
     if(draft.action_type==="external_url" && !/^https?:\/\//i.test(draft.action_target.trim())) return toast.error("External action needs an http/https link");
+    if(draft.action_type==="fun_time" && !(draft.targeting?.fun_time_catalog?.length)) return toast.error("Choose at least one Fun Time item");
     if(draft.creative_type!=="icon" && !/^https?:\/\//i.test(draft.creative_url.trim())) return toast.error("Animated/media creative needs an http/https URL");
     setSaving(true);
     const {data,error}=await (supabase as any).rpc("admin_upsert_floating_campaign",{
@@ -92,7 +114,7 @@ export function UniversalFloatingIconManager() {
     if(error){toast.error(error.message);return;}
     setCampaigns(prev=>prev.filter(x=>x.id!==id)); toast.success("Campaign deleted");
   };
-  const edit=(c:Campaign)=>setDraft({...c,starts_at:toLocalInput(c.starts_at),ends_at:toLocalInput(c.ends_at)});
+  const edit=(c:Campaign)=>setDraft({...c,targeting:c.targeting??{},starts_at:toLocalInput(c.starts_at),ends_at:toLocalInput(c.ends_at)});
   const add=()=>setDraft({...EMPTY,page_keys:pages.length?[pages[0].page_key]:[]});
 
   return <section className="panda-panel rounded-3xl p-4 sm:p-5">
@@ -137,8 +159,16 @@ export function UniversalFloatingIconManager() {
       <div className="mt-4 rounded-2xl border p-3">
         <p className="text-xs font-bold">Click action</p><div className="mt-3 grid gap-3 sm:grid-cols-2">
           <label className="text-xs font-semibold">When clicked<select value={draft.action_type} onChange={e=>setField("action_type",e.target.value)} className="mt-1 h-10 w-full rounded-xl border bg-background px-3 text-sm">{ACTION_TYPES.map(x=><option key={x.value} value={x.value}>{x.label}</option>)}</select></label>
-          <label className="text-xs font-semibold">Destination / target<Input value={draft.action_target??""} onChange={e=>setField("action_target",e.target.value)} className="mt-1" placeholder={draft.action_type==="internal_route"?"/dating":"https://sponsor.com"}/></label>
+          <label className={"text-xs font-semibold "+(draft.action_type==="fun_time"?"opacity-50":"")}>Destination / target<Input disabled={draft.action_type==="fun_time"} value={draft.action_target??""} onChange={e=>setField("action_target",e.target.value)} className="mt-1" placeholder={draft.action_type==="internal_route"?"/dating":"https://sponsor.com"}/></label>
           <p className="sm:col-span-2 text-[11px] text-muted-foreground">{ACTION_TYPES.find(x=>x.value===draft.action_type)?.help}</p>
+          {draft.action_type==="fun_time" ? <div className="sm:col-span-2 rounded-2xl border border-primary/20 bg-primary/5 p-3">
+            <p className="text-xs font-black">Fun Time catalog</p><p className="mt-1 text-[11px] text-muted-foreground">Choose exactly what users can open from this lower-left Fun Time icon. The catalog can contain games, music/video and any selected Circle Panda activity/page.</p>
+            <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
+              {FUN_TIME_ITEMS.map(item=>{const selected=Array.isArray(draft.targeting?.fun_time_catalog)&&draft.targeting.fun_time_catalog.includes(item.key);return <label key={item.key} className={"rounded-xl border p-2 text-xs "+(selected?"border-primary bg-primary/10":"border-border bg-background")}>
+                <span className="flex items-start gap-2"><input type="checkbox" checked={selected} onChange={e=>setField("targeting",{...(draft.targeting??{}),fun_time_catalog:selected?(draft.targeting.fun_time_catalog||[]).filter((x:string)=>x!==item.key):[...(draft.targeting?.fun_time_catalog||[]),item.key]})}/><span><strong>{item.title}</strong><span className="mt-0.5 block text-[10px] text-muted-foreground">{item.description}</span></span></span>
+              </label>})}
+            </div>
+          </div> : null}
           {draft.action_type==="sponsor_modal"?<><label className="text-xs font-semibold">Popup title<Input value={draft.action_title??""} onChange={e=>setField("action_title",e.target.value)} className="mt-1"/></label><label className="text-xs font-semibold">Popup message<Textarea value={draft.action_body??""} onChange={e=>setField("action_body",e.target.value)} className="mt-1"/></label></>:null}
         </div>
       </div>
