@@ -126,3 +126,23 @@ drop policy if exists "dating blur public read" on storage.objects;
 create policy "dating blur authenticated read" on storage.objects
 for select to authenticated
 using (bucket_id='dating-photo-blur');
+
+-- Finalize winner cycles only from the server/cron; never expose this reward-awarding RPC to users.
+revoke execute on function public.cp_finalize_winner_cycle(uuid) from authenticated, anon;
+grant execute on function public.cp_finalize_winner_cycle(uuid) to service_role;
+
+-- Hot Seat stats are scoped to the requested host and do not need elevated definer privileges.
+create or replace function public.get_hot_seat_stats(p_host_id uuid)
+returns jsonb
+language sql
+stable
+security invoker
+set search_path = public, pg_temp
+as $$
+  select jsonb_build_object(
+    'likes',(select count(*) from public.hot_seat_likes where host_id=p_host_id),
+    'questions',(select count(*) from public.hot_seat_questions where host_id=p_host_id),
+    'gifts',(select count(*) from public.hot_seat_gifts where host_id=p_host_id),
+    'gift_bc',(select coalesce(sum(cost_bc),0) from public.hot_seat_gifts where host_id=p_host_id)
+  )
+$$;
