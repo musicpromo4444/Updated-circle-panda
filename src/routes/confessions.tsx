@@ -26,7 +26,7 @@ type Confession = {
   author_vip_at?: string | null;
 };
 
-type ReactionState = { reaction:string|null; heart_count:number; laugh_count:number; wow_count:number; sad_count:number; angry_count:number; };
+type ReactionState = { reaction:string|null; heart_count:number; laugh_count:number; wow_count:number; sad_count:number; angry_count:number; panda_count:number; };
 type ConfessionComment = { id:string; author_id:string; body:string; created_at:string; };
 
 type WeeklyEntry = {
@@ -79,7 +79,7 @@ export function ConfessionsPage() {
       if (nextItems.length) {
         const { data: reactions } = await (supabase as any).rpc("get_confession_reaction_state", { p_confession_ids: nextItems.map((x) => x.id) });
         const next: Record<string, ReactionState> = {};
-        for (const row of reactions ?? []) next[row.confession_id] = { reaction:row.reaction ?? null, heart_count:Number(row.heart_count ?? 0), laugh_count:Number(row.laugh_count ?? 0), wow_count:Number(row.wow_count ?? 0), sad_count:Number(row.sad_count ?? 0), angry_count:Number(row.angry_count ?? 0) };
+        for (const row of reactions ?? []) next[row.confession_id] = { reaction:row.reaction ?? null, heart_count:Number(row.heart_count ?? 0), laugh_count:Number(row.laugh_count ?? 0), wow_count:Number(row.wow_count ?? 0), sad_count:Number(row.sad_count ?? 0), angry_count:Number(row.angry_count ?? 0), panda_count:Number(row.panda_count ?? 0) };
         setReactionState(next);
       } else setReactionState({});
     }
@@ -196,8 +196,8 @@ export function ConfessionsPage() {
     { key:"heart", emoji:"❤️", label:"Love" },
     { key:"laugh", emoji:"😂", label:"Laugh" },
     { key:"wow", emoji:"😮", label:"Wow" },
-    { key:"sad", emoji:"😢", label:"Sad" },
     { key:"angry", emoji:"😡", label:"Angry" },
+    { key:"panda", emoji:"🐼", label:"Panda" },
   ];
 
   const react = async (id: string, reaction: string) => {
@@ -368,7 +368,7 @@ export function ConfessionsPage() {
               </div>
               <p className="mt-4 whitespace-pre-wrap break-words text-[15px] leading-7">{item.content}</p>
               {(() => {
-                const rs = reactionState[item.id] ?? { reaction:null,heart_count:0,laugh_count:0,wow_count:0,sad_count:0,angry_count:0 };
+                const rs = reactionState[item.id] ?? { reaction:null,heart_count:0,laugh_count:0,wow_count:0,sad_count:0,angry_count:0, panda_count:0 };
                 const selected = reactionOptions.find((r) => r.key === rs.reaction);
                 return (
                   <div className="relative mt-4">
