@@ -16,7 +16,32 @@ type OpenCycle = {
 
 function matchesPath(activityKey:string|null, pathname:string) {
   if (!activityKey || activityKey === "global") return true;
-  return pathname.toLowerCase().includes(activityKey.toLowerCase());
+
+  const path = pathname.toLowerCase();
+  const key = activityKey.toLowerCase().trim();
+
+  // Some activities live inside shared pages, so their activity key is not
+  // present in the browser URL. Keep explicit aliases for the universal flow.
+  const routeAliases: Record<string, string[]> = {
+    wheel_spin: ["/activities", "/spin", "/wheel"],
+    water_break: ["/hot-seat", "/water-break", "/water_break"],
+    coin_drop: ["/games/coin-drop", "/coin-drop"],
+    hot_seat: ["/hot-seat"],
+    sweepstakes: ["/sweepstakes"],
+    dating: ["/dating"],
+    events: ["/events"],
+    confessions: ["/confessions"],
+    groups: ["/groups"],
+    live: ["/live"],
+    music_time: ["/music-time"],
+  };
+
+  const aliases = routeAliases[key];
+  if (aliases?.some(alias => path === alias || path.startsWith(alias + "/"))) {
+    return true;
+  }
+
+  return path.includes(key);
 }
 
 export function UniversalWinnerFlow() {
