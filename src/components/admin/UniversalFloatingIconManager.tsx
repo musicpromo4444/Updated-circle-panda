@@ -36,7 +36,7 @@ const ACTION_TYPES: {value:ActionType;label:string;help:string}[] = [
 ];
 
 const FUN_TIME_ITEMS: {key:string;title:string;description:string}[] = [
-  {key:"activities",title:"Games & Activities",description:"Full games and activities list"},
+  {key:"activities",title:"Games & Activities",description:"Full games catalog"},
   {key:"music-time",title:"Music, Audio & Video",description:"Music Time catalog"},
   {key:"hot-seat",title:"Hot Seat Live",description:"Current live host"},
   {key:"dating",title:"Dating",description:"Dating experience"},
