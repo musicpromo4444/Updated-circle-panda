@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Eye, Heart, Laugh, RefreshCw, Upload, Crown } from "lucide-react";
+import { Eye, Heart, Laugh, RefreshCw, Upload, Crown, SmilePlus, MessageCircle, Share2, Send } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
 import { StandardBannerAd } from "@/components/ads/StandardBannerAd";
@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { AuthModal } from "@/components/auth/AuthModal";
+import { requestLogin } from "@/components/auth/LoginRequiredDialog";
 import { VipIdentity } from "@/components/VipIdentity";
 
 export const Route = createFileRoute("/confessions")({
@@ -24,6 +25,9 @@ type Confession = {
   author_id?: string | null;
   author_vip_at?: string | null;
 };
+
+type ReactionState = { reaction:string|null; heart_count:number; laugh_count:number; wow_count:number; sad_count:number; angry_count:number; };
+type ConfessionComment = { id:string; author_id:string; body:string; created_at:string; };
 
 type WeeklyEntry = {
   id: string;
@@ -49,6 +53,14 @@ export function ConfessionsPage() {
   const [submitting, setSubmitting] = useState(false);
   const [showSignup, setShowSignup] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [reactionMenuId, setReactionMenuId] = useState<string | null>(null);
+  const [reactionState, setReactionState] = useState<Record<string, ReactionState>>({});
+  const [commentPost, setCommentPost] = useState<Confession | null>(null);
+  const [commentText, setCommentText] = useState("");
+  const [commentsByPost, setCommentsByPost] = useState<Record<string, ConfessionComment[]>>({});
+  const [messagePost, setMessagePost] = useState<Confession | null>(null);
+  const [messageText, setMessageText] = useState("");
+  const [sendingMessage, setSendingMessage] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const remaining = useMemo(() => 2000 - content.length, [content.length]);
 
@@ -61,7 +73,16 @@ export function ConfessionsPage() {
       .order("created_at", { ascending: false })
       .limit(50);
     if (error) toast.error(error.message);
-    else setItems((data ?? []) as Confession[]);
+    else {
+      const nextItems = (data ?? []) as Confession[];
+      setItems(nextItems);
+      if (nextItems.length) {
+        const { data: reactions } = await (supabase as any).rpc("get_confession_reaction_state", { p_confession_ids: nextItems.map((x) => x.id) });
+        const next: Record<string, ReactionState> = {};
+        for (const row of reactions ?? []) next[row.confession_id] = { reaction:row.reaction ?? null, heart_count:Number(row.heart_count ?? 0), laugh_count:Number(row.laugh_count ?? 0), wow_count:Number(row.wow_count ?? 0), sad_count:Number(row.sad_count ?? 0), angry_count:Number(row.angry_count ?? 0) };
+        setReactionState(next);
+      } else setReactionState({});
+    }
     setLoading(false);
     setRefreshing(false);
   };
