@@ -60,7 +60,7 @@ export function AdminSweepstakesManager() {
     setLoading(true);
     const [{ data: controls, error: controlError }, { data: activityRows, error: activityError }, { data: activityConfig, error: activityConfigError }] = await Promise.all([
       (supabase as any).rpc("admin_get_sweepstakes_controls"),
-      supabase.from("seven_day_activity_configs").select("slug,title,description").eq("is_enabled", true).order("sort_order", { ascending: true }),
+      (supabase as any).rpc("admin_get_sweepstakes_activity_options"),
       (supabase as any).rpc("get_sweepstakes_activity_config"),
     ]);
     const error = controlError ?? activityError ?? activityConfigError;
@@ -71,7 +71,7 @@ export function AdminSweepstakesManager() {
     }
     setCardLimit(Math.min(5, Math.max(3, Number(controls?.config?.card_limit ?? 5))));
     setPrizes((controls?.prizes ?? []) as Prize[]);
-    setActivities((activityRows ?? []) as Array<{ slug: string; title: string; description: string }>);
+    setActivities((activityRows?.data ?? []) as Array<{ slug: string; title: string; description: string }>);
     setSelectedActivity(String(Array.isArray(activityConfig?.data) ? activityConfig.data[0]?.activity_slug : activityConfig?.data?.activity_slug ?? ""));
     setLoading(false);
   };
