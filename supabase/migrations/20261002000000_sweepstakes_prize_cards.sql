@@ -263,3 +263,35 @@ revoke execute on function public.admin_delete_sweepstake_prize(text) from publi
 grant execute on function public.admin_delete_sweepstake_prize(text) to authenticated;
 revoke execute on function public.admin_get_sweepstakes_controls() from public;
 grant execute on function public.admin_get_sweepstakes_controls() to authenticated;
+
+
+-- Activity catalog is RLS-protected; expose only the selected activity to authenticated users
+-- and enabled activity options to admins through narrowly scoped RPCs.
+drop function if exists public.get_sweepstakes_activity_config();
+create or replace function public.get_sweepstakes_activity_config()
+returns table(activity_slug text, activity_title text, activity_description text, updated_at timestamptz)
+language sql security definer stable set search_path=''
+as $$
+  select c.activity_slug,
+         coalesce(a.title, c.activity_slug),
+         coalesce(a.description, ''),
+         c.updated_at
+  from public.sweepstakes_activity_config c
+  left join public.seven_day_activity_configs a
+    on a.slug=c.activity_slug and a.is_enabled=true
+  where c.id=1 and (select auth.uid()) is not null;
+$$;
+revoke execute on function public.get_sweepstakes_activity_config() from public;
+grant execute on function public.get_sweepstakes_activity_config() to authenticated;
+
+create or replace function public.admin_get_sweepstakes_activity_options()
+returns table(slug text,title text,description text)
+language sql security definer stable set search_path=''
+as $$
+  select a.slug,a.title,a.description
+  from public.seven_day_activity_configs a
+  where a.is_enabled=true and public.cp_is_admin()
+  order by a.sort_order,a.slug;
+$$;
+revoke execute on function public.admin_get_sweepstakes_activity_options() from public;
+grant execute on function public.admin_get_sweepstakes_activity_options() to authenticated;
