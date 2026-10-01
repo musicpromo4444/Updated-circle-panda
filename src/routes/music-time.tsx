@@ -50,13 +50,19 @@ function MusicTimePage(){
   const load=async(type:MediaType)=>{const {data,error}=await (supabase as any).rpc("get_circle_panda_media_catalog",{p_media_type:type});if(error){toast.error(error.message);return}setItems((data??[]) as MediaItem[]);setSelected(null);setPlaying(false);};
   useEffect(()=>{void load(tab)},[tab]);
 
+  const goToCurrentHotSeat=async()=>{
+    const {data}=await supabase.from("hot_seat_hosts").select("id").eq("is_active",true).order("started_at",{ascending:false}).limit(1).maybeSingle();
+    if(data?.id){ window.location.assign("/hot-seat"); return true; }
+    return false;
+  };
   const startSession=async(item:MediaItem, timed=true)=>{
     const {data,error}=await (supabase as any).rpc("start_circle_panda_media_session",{p_media_type:tab,p_media_item_id:item.id});
     if(error){toast.error(error.message);return null} setSessionId(data as string);setRemaining(1800);setPlaying(timed);return data as string;
   };
-  const stopSession=async()=>{
+  const stopSession=async(continueToHotSeat=false)=>{
     if(sessionId) await (supabase as any).rpc("stop_circle_panda_media_session",{p_session_id:sessionId});
     setSessionId(null);setPlaying(false);setRemaining(1800);
+    if(continueToHotSeat) await goToCurrentHotSeat();
   };
   const playItem=async(item:MediaItem)=>{
     setSelected(item);
@@ -66,7 +72,7 @@ function MusicTimePage(){
   };
   const beginVideo=async()=>{if(!pendingVideo)return;setShowAd(null);await startSession(pendingVideo,false);window.setTimeout(()=>{const v=videoRef.current;void v?.play().catch(()=>{});if(v?.requestFullscreen)void v.requestFullscreen().catch(()=>{})},50)};
   const onVideoEnded=async()=>{await stopSession();setShowAd("video_postroll")};
-  useEffect(()=>{if(!playing)return;const t=window.setInterval(()=>setRemaining(s=>{if(s<=1){void stopSession();return 1800}return s-1}),1000);return()=>window.clearInterval(t)},[playing,sessionId]);
+  useEffect(()=>{if(!playing)return;const t=window.setInterval(()=>setRemaining(s=>{if(s<=1){void stopSession(true);return 1800}return s-1}),1000);return()=>window.clearInterval(t)},[playing,sessionId]);
   const switchTab=async(next:MediaType)=>{if(sessionId) await stopSession();setShowAd(null);setPendingVideo(null);setSelected(null);setPlaying(false);setTab(next)};
   useEffect(()=>{ return ()=>{ if(sessionId) void (supabase as any).rpc("stop_circle_panda_media_session",{p_session_id:sessionId}); }; },[sessionId]);
   const sourceUrl=selected?.media_url??"";
@@ -78,7 +84,7 @@ function MusicTimePage(){
       {tab!=="video"?<><StandardBannerAd variant="inline" placement={tab==="audio"?"audio_time_top":"music_time_top"}/><section className="panda-panel rounded-3xl p-4 sm:p-6">
         <div className="flex items-center justify-between"><div><p className="text-[10px] font-bold uppercase tracking-wider text-primary">{tab==="audio"?"Audio Time":"Music Time"}</p><h2 className="font-display text-xl font-black">30-minute listening session</h2></div><span className="text-xs font-bold text-muted-foreground">{Math.floor(remaining/60)}:{String(remaining%60).padStart(2,"0")}</span></div>
         <div className="mt-5 min-h-56 rounded-3xl border border-border/70 bg-secondary/20 p-5">{selected?<><div className="flex items-center gap-4">{selected.thumbnail_url?<img src={selected.thumbnail_url} alt="" className="size-20 rounded-2xl object-cover"/>:<div className="grid size-20 place-items-center rounded-2xl bg-primary/10"><Volume2 className="size-8 text-primary"/></div>}<div><p className="font-display text-lg font-black">{selected.title}</p><p className="text-sm text-muted-foreground">{selected.artist??SOURCE_LABELS[selected.source]}</p></div></div><div className="mt-6">{audioContent}</div></>:<div className="grid min-h-44 place-items-center text-center text-sm text-muted-foreground">Choose an item below. Music and audio play in the middle of the screen.</div>}</div>
-        {playing?<Button variant="outline" className="mt-4 w-full gap-2" onClick={()=>{audioRef.current?.pause();void stopSession()}}><Square className="size-4"/>Stop session</Button>:null}
+        {playing?<Button variant="outline" className="mt-4 w-full gap-2" onClick={()=>{audioRef.current?.pause();void stopSession(true)}}><Square className="size-4"/>Stop session</Button>:null}
       </section><StandardBannerAd variant="inline" placement={tab==="audio"?"audio_time_bottom":"music_time_bottom"}/></>:<section className="relative min-h-[calc(100vh-190px)] overflow-hidden rounded-none bg-black sm:rounded-3xl">{selected?.media_url?<video ref={videoRef} src={selected.media_url} poster={selected.thumbnail_url??undefined} controls playsInline className="h-[calc(100vh-190px)] w-full bg-black object-contain" onEnded={onVideoEnded}/>:<div className="grid min-h-[calc(100vh-190px)] place-items-center p-6 text-center text-white/70">Choose a video below. Circle Panda videos play full-screen with no banner ads.</div>}</section>}
       <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{items.map(item=><button key={item.id} onClick={()=>void playItem(item)} className="overflow-hidden rounded-2xl border border-border/70 bg-card text-left transition hover:border-primary/50">{item.thumbnail_url?<img src={item.thumbnail_url} alt="" className="aspect-video w-full object-cover"/>:<div className="grid aspect-video place-items-center bg-secondary"><Play className="size-8 text-primary"/></div>}<div className="p-3"><p className="truncate text-sm font-bold">{item.title}</p><p className="text-xs text-muted-foreground">{item.artist??SOURCE_LABELS[item.source]}</p></div></button>)}</section>
     </main>
