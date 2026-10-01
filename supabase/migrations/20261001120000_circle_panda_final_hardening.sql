@@ -79,3 +79,43 @@ begin
   return v_id;
 end
 $function$;
+
+
+create or replace function public.start_free_coins_rewarded_ad()
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $function$
+declare
+  uid uuid := auth.uid();
+  sid uuid;
+  ad record;
+begin
+  if uid is null then raise exception 'Authentication required'; end if;
+  select * into ad
+  from public.ad_creatives
+  where status='active' and format='video'
+  order by case when placement='free_coins' then 0 else 1 end, created_at desc
+  limit 1;
+  if ad.id is null then raise exception 'Sponsored video unavailable'; end if;
+  if exists (
+    select 1 from public.rewarded_ad_sessions
+    where user_id=uid and surface='free_coins'
+      and created_at > now()-interval '5 minutes'
+  ) then raise exception 'Rewarded ad cooldown active'; end if;
+  insert into public.rewarded_ad_sessions(user_id,ad_id,surface,reward_bc)
+  values(uid,ad.id,'free_coins',30)
+  returning id into sid;
+  return jsonb_build_object(
+    'session_id',sid,'ad_id',ad.id,
+    'duration_seconds',greatest(1,coalesce(ad.duration_seconds,5)),
+    'reward_bc',30,'sponsor',ad.sponsor,'headline',ad.headline,
+    'description',ad.description,'video_url',ad.video_url,
+    'poster_url',ad.poster_url,'destination_url',ad.destination_url
+  );
+end
+$function$;
+
+revoke execute on function public.start_free_coins_rewarded_ad() from public, anon;
+grant execute on function public.start_free_coins_rewarded_ad() to authenticated;
