@@ -151,7 +151,6 @@ function DailyItemCard({
 function SweepstakesPage() {
   const { coins, syncCoins, sweepWinners, weeklyDrawEndsAt } = useStore();
   const [selectedActivity, setSelectedActivity] = useState<any | null>(null);
-  const [sweepActivitySlug, setSweepActivitySlug] = useState("wheel_spin");
   const [sweepActivity, setSweepActivity] = useState<any | null>(null);
   const [items, setItems] = useState(DEFAULT_DAILY_ITEMS);
   const [tickets, setTickets] = useState<Record<string, number>>({});
