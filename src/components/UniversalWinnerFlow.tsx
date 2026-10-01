@@ -54,20 +54,26 @@ export function UniversalWinnerFlow() {
     const [a,c] = await Promise.all([
       (supabase as any).from("cp_activity_winner_announcements")
         .select("id,cycle_id,activity_title,winner_name,winner_avatar,prize,score,message,visible_until,created_at")
-        .gt("visible_until",new Date().toISOString()).order("created_at",{ascending:false}).limit(1),
+        .gt("visible_until",new Date().toISOString()).order("created_at",{ascending:false}).limit(10),
       (supabase as any).from("cp_activity_winner_cycles")
         .select("id,activity_key,title,prize,previous_winner_name,previous_winner_avatar,previous_winner_prize,previous_winner_score,starts_at,ends_at")
         .in("status",["scheduled","open"]).lte("starts_at",new Date().toISOString()).gt("ends_at",new Date().toISOString())
         .order("starts_at",{ascending:false}).limit(10),
     ]);
-    if (!a.error && a.data?.[0]) {
-      const next=a.data[0] as WinnerAnnouncement;
-      setAnnouncement(next);
-    }
     if (!c.error) {
       const next=(c.data ?? []).find((x:OpenCycle)=>matchesPath(x.activity_key,pathname)) as OpenCycle|undefined;
       setCycle(next ?? null);
       setShowPrevious(Boolean(next?.previous_winner_name));
+
+      // Never show another activity's winner announcement on this activity.
+      const matchingAnnouncement = next
+        ? ((a.data ?? []).find((item:WinnerAnnouncement) => item.cycle_id === next.id) as WinnerAnnouncement|undefined)
+        : undefined;
+      setAnnouncement(matchingAnnouncement ?? null);
+    } else {
+      setCycle(null);
+      setShowPrevious(false);
+      setAnnouncement(null);
     }
   };
 
