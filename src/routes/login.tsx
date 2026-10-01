@@ -1,71 +1,31 @@
-import { FormEvent, useEffect, useState } from "react";
-import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
-import { Loader2, ArrowRight } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { MovingPandaLogo } from "@/components/auth/MovingPandaLogo";
+import { useState } from "react";
+import { useNavigate } from "@tanstack/react-router";
+import { AuthModal } from "@/components/auth/AuthModal";
 
-export const Route = createFileRoute("/login")({
-  head: () => ({ meta: [{ title: "Circle Panda — Log in" }] }),
-  component: LoginPage,
-});
-
-function LoginPage() {
+export default function LoginPage() {
   const navigate = useNavigate();
-  const [identifier, setIdentifier] = useState("");
-  const [password, setPassword] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState("");
-  const [notice, setNotice] = useState("");
-  const [platform, setPlatform] = useState<"ios" | "android" | "other">("other");
-
-  useEffect(() => {
-    const ua = navigator.userAgent || "";
-    const ios = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
-    const android = /Android/i.test(ua);
-    setPlatform(ios ? "ios" : android ? "android" : "other");
-  }, []);
-
-  async function signInWithProvider(provider: "google" | "apple") {
-    setError(""); setNotice("");
-    const { error } = await supabase.auth.signInWithOAuth({ provider, options: { redirectTo: `${window.location.origin}/` } });
-    if (error) setError(error.message);
-  }
-
-  async function submit(e: FormEvent) {
-    e.preventDefault();
-    setBusy(true); setError(""); setNotice("");
-    try {
-      const value = identifier.trim();
-      const result = value.includes("@")
-        ? await supabase.auth.signInWithPassword({ email: value, password })
-        : await supabase.auth.signInWithPassword({ phone: value, password });
-      if (result.error) throw result.error;
-      setNotice("Welcome back to the Circle 🐼");
-      setTimeout(() => navigate({ to: "/" }), 350);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Login failed. Check your details and try again.");
-    } finally { setBusy(false); }
-  }
+  const [open, setOpen] = useState(true);
 
   return (
-    <main className="min-h-screen bg-[#071714] px-5 py-8 text-white">
-      <div className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-md flex-col justify-center">
-        <MovingPandaLogo />
-        <div className="mt-8 rounded-[2rem] border border-white/10 bg-white/[0.055] p-6 shadow-2xl backdrop-blur-xl sm:p-8">
-          <p className="text-xs font-black uppercase tracking-[0.2em] text-emerald-300">Welcome back</p>
-          <h1 className="mt-2 text-3xl font-black">Log in to your Circle</h1>
-          <form onSubmit={submit} className="mt-6 space-y-4">
-            <label className="block text-sm font-bold">Phone number or email<input required value={identifier} onChange={e=>setIdentifier(e.target.value)} className="cp-input" placeholder="+234… or panda@email.com" /></label>
-            <label className="block text-sm font-bold">Password<input required type="password" value={password} onChange={e=>setPassword(e.target.value)} className="cp-input" placeholder="Your password" /></label>
-            {error && <div className="rounded-xl border border-red-400/20 bg-red-400/10 p-3 text-sm text-red-200">{error}</div>}
-            {notice && <div className="rounded-xl border border-emerald-400/20 bg-emerald-400/10 p-3 text-sm text-emerald-200">{notice}</div>}
-            <button disabled={busy} className="flex w-full items-center justify-center gap-2 rounded-2xl bg-emerald-400 px-5 py-4 font-black text-[#06120f] disabled:opacity-60">{busy ? <Loader2 className="h-5 w-5 animate-spin" /> : <ArrowRight className="h-5 w-5" />} Enter the Circle</button>
-            <div className="relative my-2"><div className="border-t border-white/10" /><span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#111f1b] px-3 text-xs font-bold text-white/40">OR</span></div>
-            <div className="space-y-3">{platform === "ios" ? <button type="button" onClick={()=>signInWithProvider("apple")} className="w-full rounded-2xl border border-white/10 bg-black px-4 py-4 font-black text-white">Continue with Apple</button> : platform === "android" ? <button type="button" onClick={()=>signInWithProvider("google")} className="w-full rounded-2xl border border-white/10 bg-white px-4 py-4 font-black text-[#111]">Continue with Google</button> : <div className="grid gap-3 sm:grid-cols-2"><button type="button" onClick={()=>signInWithProvider("google")} className="rounded-2xl border border-white/10 bg-white px-4 py-3 font-black text-[#111]">Continue with Google</button><button type="button" onClick={()=>signInWithProvider("apple")} className="rounded-2xl border border-white/10 bg-black px-4 py-3 font-black text-white">Continue with Apple</button></div>}</div>
-          </form>
-          <p className="mt-6 text-center text-sm text-white/55">New here? <Link to="/register" className="font-black text-emerald-300">Create your Panda</Link></p>
+    <main className="min-h-screen bg-background px-4 py-10">
+      <div className="mx-auto flex min-h-[80vh] max-w-md items-center justify-center">
+        <div className="w-full rounded-3xl border border-border bg-card p-6 text-center shadow-2xl">
+          <div className="mx-auto mb-4 grid size-16 place-items-center rounded-3xl border border-primary/25 bg-primary/15 text-4xl">🐼</div>
+          <h1 className="font-display text-2xl font-bold">Welcome to Circle Panda</h1>
+          <p className="mt-2 text-sm text-muted-foreground">Sign in or create your Panda account.</p>
+          <button type="button" onClick={() => setOpen(true)} className="mt-6 w-full rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground">
+            Sign in / Sign up
+          </button>
         </div>
       </div>
+      <AuthModal
+        open={open}
+        onOpenChange={(value) => {
+          setOpen(value);
+          if (!value) void navigate({ to: "/" });
+        }}
+        onAuthenticated={() => void navigate({ to: "/" })}
+      />
     </main>
   );
 }
