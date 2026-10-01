@@ -148,7 +148,6 @@ export function ConfessionsPage() {
     setSubmitting(false);
     if (error) return toast.error(error.message ?? "Your confession could not be submitted.");
     setContent("");
-    setOpen(false);
     setShowSignup(false);
     toast.success("Confession submitted for review.", {
       description: "It will appear here after moderation approves it.",
