@@ -147,14 +147,6 @@ export function ConfessionsPage() {
     });
     setSubmitting(false);
     if (error) return toast.error(error.message ?? "Your confession could not be submitted.");
-    if (data?.id) {
-      void (supabase as any).rpc("record_activity_participation", {
-        p_activity_id: null,
-        p_activity_type: "post_confession",
-        p_reference_id: data.id,
-        p_points: 0,
-      });
-    }
     setContent("");
     setOpen(false);
     setShowSignup(false);
