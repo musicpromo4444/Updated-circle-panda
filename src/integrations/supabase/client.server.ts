@@ -1,1 +1,66 @@
-Ly8gVGhpcyBmaWxlIGlzIGF1dG9tYXRpY2FsbHkgZ2VuZXJhdGVkLiBEbyBub3QgZWRpdCBpdCBkaXJlY3RseS4KLy8gU2VydmVyLXNpZGUgU3VwYWJhc2UgY2xpZW50IHdpdGggc2VydmljZSByb2xlIGtleSAtIGJ5cGFzc2VzIFJMUy4KLy8gVXNlIHRoaXMgZm9yIGFkbWluIG9wZXJhdGlvbnMgaW4gc2VydmVyIGZ1bmN0aW9ucyBhbmQgc2VydmVyIHJvdXRlcyBvbmx5LgovLyBGb3IgdXNlci1hdXRoZW50aWNhdGVkIHF1ZXJpZXMgKHdpdGggUkxTKSwgdXNlIHRoZSBhdXRoIG1pZGRsZXdhcmUgaW5zdGVhZC4KaW1wb3J0IHsgY3JlYXRlQ2xpZW50IH0gZnJvbSAiQHN1cGFiYXNlL3N1cGFiYXNlLWpzIjsKaW1wb3J0IHR5cGUgeyBEYXRhYmFzZSB9IGZyb20gIi4vdHlwZXMiOwoKZnVuY3Rpb24gaXNOZXdTdXBhYmFzZUFwaUtleSh2YWx1ZTogc3RyaW5nKTogYm9vbGVhbiB7CiAgcmV0dXJuIHZhbHVlLnN0YXJ0c1dpdGgoInNiX3B1Ymxpc2hhYmxlXyIpIHx8IHZhbHVlLnN0YXJ0c1dpdGgoInNiX3NlY3JldF8iKTsKfQoKZnVuY3Rpb24gY3JlYXRlU3VwYWJhc2VGZXRjaChzdXBhYmFzZUtleTogc3RyaW5nKTogdHlwZW9mIGZldGNoIHsKICByZXR1cm4gKGlucHV0LCBpbml0KSA9PiB7CiAgICBjb25zdCBoZWFkZXJzID0gbmV3IEhlYWRlcnMoCiAgICAgIHR5cGVvZiBSZXF1ZXN0ICE9PSAidW5kZWZpbmVkIiAmJiBpbnB1dCBpbnN0YW5jZW9mIFJlcXVlc3QgPyBpbnB1dC5oZWFkZXJzIDogdW5kZWZpbmVkLAogICAgKTsKCiAgICBpZiAoaW5pdD8uaGVhZGVycykgewogICAgICBuZXcgSGVhZGVycyhpbml0LmhlYWRlcnMpLmZvckVhY2goKHZhbHVlLCBrZXkpID0+IGhlYWRlcnMuc2V0KGtleSwgdmFsdWUpKTsKICAgIH0KCiAgICAvLyBOZXcgU3VwYWJhc2UgQVBJIGtleXMgYXJlIG9wYXF1ZSBzdHJpbmdzLCBub3QgYmVhcmVyIEpXVHMuCiAgICBpZiAoCiAgICAgIGlzTmV3U3VwYWJhc2VBcGlLZXkoc3VwYWJhc2VLZXkpICYmCiAgICAgIGhlYWRlcnMuZ2V0KCJBdXRob3JpemF0aW9uIikgPT09IGBCZWFyZXIgJHtzdXBhYmFzZUtleX1gCiAgICApIHsKICAgICAgaGVhZGVycy5kZWxldGUoIkF1dGhvcml6YXRpb24iKTsKICAgIH0KCiAgICBoZWFkZXJzLnNldCgiYXBpa2V5Iiwgc3VwYWJhc2VLZXkpOwogICAgcmV0dXJuIGZldGNoKGlucHV0LCB7IC4uLmluaXQsIGhlYWRlcnMgfSk7CiAgfTsKfQoKZnVuY3Rpb24gY3JlYXRlU3VwYWJhc2VBZG1pbkNsaWVudCgpIHsKICBjb25zdCBTVVBBQkFTRV9VUkwgPSBwcm9jZXNzLmVudlsiU1VQQUJBU0VfVVJMIl07CiAgY29uc3QgU1VQQUJBU0VfU0VSVklDRV9ST0xFX0tFWSA9IHByb2Nlc3MuZW52WyJTVVBBQkFTRV9TRVJWSUNFX1JPTEVfS0VZIl07CgogIGlmICghU1VQQUJBU0VfVVJMIHx8ICFTVVBBQkFTRV9TRVJWSUNFX1JPTEVfS0VZKSB7CiAgICBjb25zdCBtaXNzaW5nID0gWwogICAgICAuLi4oIVNVUEFCQVNFX1VSTCA/IFsiU1VQQUJBU0VfVVJMIl0gOiBbXSksCiAgICAgIC4uLighU1VQQUJBU0VfU0VSVklDRV9ST0xFX0tFWSA/IFsiU1VQQUJBU0VfU0VSVklDRV9ST0xFX0tFWSJdIDogW10pLAogICAgXTsKICAgIHRocm93IG5ldyBFcnJvcihgW1N1cGFiYXNlIEFkbWluXSBNaXNzaW5nIHJlcXVpcmVkIGVudmlyb25tZW50IHZhcmlhYmxlKHMpOiAke21pc3Npbmcuam9pbigiLCAiKX0uYCk7CiAgfQoKICByZXR1cm4gY3JlYXRlQ2xpZW50PERhdGFiYXNlPihTVVBBQkFTRV9VUkwsIFNVUEFCQVNFX1NFUlZJQ0VfUk9MRV9LRVksIHsKICAgIGdsb2JhbDogewogICAgICBmZXRjaDogY3JlYXRlU3VwYWJhc2VGZXRjaChTVVBBQkFTRV9TRVJWSUNFX1JPTEVfS0VZKSwKICAgIH0sCiAgICBhdXRoOiB7CiAgICAgIHN0b3JhZ2U6IHVuZGVmaW5lZCwKICAgICAgcGVyc2lzdFNlc3Npb246IGZhbHNlLAogICAgICBhdXRvUmVmcmVzaFRva2VuOiBmYWxzZSwKICAgIH0sCiAgfSk7Cn0KCmxldCBfc3VwYWJhc2VBZG1pbjogUmV0dXJuVHlwZTx0eXBlb2YgY3JlYXRlU3VwYWJhc2VBZG1pbkNsaWVudD4gfCB1bmRlZmluZWQ7CgovLyBTZXJ2ZXItc2lkZSBTdXBhYmFzZSBjbGllbnQgd2l0aCBzZXJ2aWNlIHJvbGUgLSBieXBhc3NlcyBSTFMKLy8gU0VDVVJJVFk6IE9ubHkgdXNlIHRoaXMgZm9yIHRydXN0ZWQgc2VydmVyLXNpZGUgb3BlcmF0aW9ucywgbmV2ZXIgZXhwb3NlIHRvIGNsaWVudCBjb2RlCi8vIExvYWQgaW5zaWRlIHNlcnZlciBoYW5kbGVyczogY29uc3QgeyBzdXBhYmFzZUFkbWluIH0gPSBhd2FpdCBpbXBvcnQoIkAvaW50ZWdyYXRpb25zL3N1cGFiYXNlL2NsaWVudC5zZXJ2ZXIiKTsKLy8gVG9wLWxldmVsIGltcG9ydCBpcyBzYWZlIG9ubHkgaW4gb3RoZXIgLnNlcnZlci50cyBtb2R1bGVzIC0gcm91dGUgZmlsZXMgYW5kICouZnVuY3Rpb25zLnRzIHNoaXAgdG8gdGhlIGNsaWVudCBidW5kbGUuCmV4cG9ydCBjb25zdCBzdXBhYmFzZUFkbWluID0gbmV3IFByb3h5KHt9IGFzIFJldHVyblR5cGU8dHlwZW9mIGNyZWF0ZVN1cGFiYXNlQWRtaW5DbGllbnQ+LCB7CiAgZ2V0KF8sIHByb3AsIHJlY2VpdmVyKSB7CiAgICBpZiAoIV9zdXBhYmFzZUFkbWluKSBfc3VwYWJhc2VBZG1pbiA9IGNyZWF0ZVN1cGFiYXNlQWRtaW5DbGllbnQoKTsKICAgIHJldHVybiBSZWZsZWN0LmdldChfc3VwYWJhc2VBZG1pbiwgcHJvcCwgcmVjZWl2ZXIpOwogIH0sCn0pOwo=
+// Server-only Supabase admin client. Never import this module from client components.
+import { createClient } from "@supabase/supabase-js";
+import type { Database } from "./types";
+
+function isNewSupabaseApiKey(value: string): boolean {
+  return value.startsWith("sb_publishable_") || value.startsWith("sb_secret_");
+}
+
+function createSupabaseFetch(supabaseKey: string): typeof fetch {
+  return (input, init) => {
+    const headers = new Headers(
+      typeof Request !== "undefined" && input instanceof Request ? input.headers : undefined,
+    );
+
+    if (init?.headers) {
+      new Headers(init.headers).forEach((value, key) => headers.set(key, value));
+    }
+
+    if (
+      isNewSupabaseApiKey(supabaseKey) &&
+      headers.get("Authorization") === `Bearer ${supabaseKey}`
+    ) {
+      headers.delete("Authorization");
+    }
+
+    headers.set("apikey", supabaseKey);
+    return fetch(input, { ...init, headers });
+  };
+}
+
+function createSupabaseAdminClient() {
+  const SUPABASE_URL = process.env["SUPABASE_URL"];
+  const SUPABASE_SERVICE_ROLE_KEY = process.env["SUPABASE_SERVICE_ROLE_KEY"];
+
+  if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+    const missing = [
+      ...(!SUPABASE_URL ? ["SUPABASE_URL"] : []),
+      ...(!SUPABASE_SERVICE_ROLE_KEY ? ["SUPABASE_SERVICE_ROLE_KEY"] : []),
+    ];
+    throw new Error(
+      `[Supabase Admin] Missing required environment variable(s): ${missing.join(", ")}.`,
+    );
+  }
+
+  return createClient<Database>(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+    global: {
+      fetch: createSupabaseFetch(SUPABASE_SERVICE_ROLE_KEY),
+    },
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+    },
+  });
+}
+
+let _supabaseAdmin: ReturnType<typeof createSupabaseAdminClient> | undefined;
+
+export const supabaseAdmin = new Proxy(
+  {} as ReturnType<typeof createSupabaseAdminClient>,
+  {
+    get(_, prop, receiver) {
+      if (!_supabaseAdmin) _supabaseAdmin = createSupabaseAdminClient();
+      return Reflect.get(_supabaseAdmin, prop, receiver);
+    },
+  },
+);
