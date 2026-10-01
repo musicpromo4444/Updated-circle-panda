@@ -5,9 +5,10 @@ do $$
 declare r record;
 begin
   for r in
-    select format('revoke insert, update, delete, truncate, references, trigger on table %I.%I from anon;', schemaname, tablename) as stmt
-    from pg_tables
-    where schemaname='public'
+    select format('revoke insert, update, delete, truncate, references, trigger on table %I.%I from anon;', n.nspname, c.relname) as stmt
+    from pg_class c
+      join pg_namespace n on n.oid=c.relnamespace
+    where n.nspname='public' and c.relkind in ('r','v','m','f','p')
   loop
     execute r.stmt;
   end loop;
