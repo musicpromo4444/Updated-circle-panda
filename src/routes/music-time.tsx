@@ -1,113 +1,85 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { Music, Play, Square } from "lucide-react";
+import { Headphones, Music2, Play, Square, Video, Volume2 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { StandardBannerAd } from "@/components/ads/StandardBannerAd";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
+import { useActiveAdCreative } from "@/components/ads/adInventoryStorage";
 import { toast } from "sonner";
-import { useStore } from "@/lib/store";
 
 export const Route = createFileRoute("/music-time")({ component: MusicTimePage });
-function MusicTimePage() {
-  const { syncCoins } = useStore();
-  const [ready, setReady] = useState(false); const [playing, setPlaying] = useState(false); const [connected, setConnected] = useState(false); const [track, setTrack] = useState<{title?:string;artist?:string;externalId?:string;artworkUrl?:string}|null>(null);
-  const tokenRef = useRef<string | null>(null);
-  useEffect(() => {
-    const id = import.meta.env.VITE_SPOTIFY_CLIENT_ID ?? ""; setReady(Boolean(id));
-    const storedToken = sessionStorage.getItem("cp_spotify_token");
-    if (storedToken) { tokenRef.current = storedToken; setConnected(true); }
-    const params = new URLSearchParams(window.location.search);
-    const code = params.get("code");
-    const oauthError = params.get("error");
-    const returnedState = params.get("state");
-    const expectedState = sessionStorage.getItem("cp_spotify_state");
-    if (oauthError) { toast.error(`Spotify authorization was not completed: ${oauthError}`); window.history.replaceState({}, "", "/music-time"); return; }
-    if (code && (!returnedState || !expectedState || returnedState !== expectedState)) { toast.error("Spotify authorization could not be verified. Please reconnect."); window.history.replaceState({}, "", "/music-time"); return; }
-    const verifier = sessionStorage.getItem("cp_spotify_verifier");
-    if (!code || !verifier || !id) return;
-    void (async () => {
-      const body = new URLSearchParams({ client_id: id, grant_type: "authorization_code", code, redirect_uri: `${window.location.origin}/music-time`, code_verifier: verifier });
-      const tokenRes = await fetch("https://accounts.spotify.com/api/token", { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body });
-      if (!tokenRes.ok) return;
-      const token = await tokenRes.json(); sessionStorage.setItem("cp_spotify_token", token.access_token); if (token.refresh_token) sessionStorage.setItem("cp_spotify_refresh_token", token.refresh_token); if (token.expires_in) sessionStorage.setItem("cp_spotify_expires_at", String(Date.now() + Number(token.expires_in) * 1000)); tokenRef.current = token.access_token; setConnected(true); sessionStorage.removeItem("cp_spotify_verifier"); sessionStorage.removeItem("cp_spotify_state");
-      window.history.replaceState({}, "", "/music-time");
-      const now = await fetch("https://api.spotify.com/v1/me/player", { headers: { Authorization: `Bearer ${token.access_token}` } });
-      if (now.ok) { const data = await now.json(); const item = data?.item; if (item) { setTrack({ title: item.name, artist: item.artists?.map((a:any)=>a.name).join(", "), externalId:item.id, artworkUrl:item.album?.images?.[0]?.url }); setPlaying(Boolean(data?.is_playing)); } }
-    })().catch(() => {});
-  }, []);
-  const refreshSpotifyToken = async () => {
-    const id = import.meta.env.VITE_SPOTIFY_CLIENT_ID ?? "";
-    const refreshToken = sessionStorage.getItem("cp_spotify_refresh_token");
-    if (!id || !refreshToken) return null;
-    const body = new URLSearchParams({ client_id: id, grant_type: "refresh_token", refresh_token: refreshToken });
-    const res = await fetch("https://accounts.spotify.com/api/token", { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body });
-    if (!res.ok) return null;
-    const token = await res.json();
-    if (!token.access_token) return null;
-    sessionStorage.setItem("cp_spotify_token", token.access_token);
-    if (token.refresh_token) sessionStorage.setItem("cp_spotify_refresh_token", token.refresh_token);
-    if (token.expires_in) sessionStorage.setItem("cp_spotify_expires_at", String(Date.now() + Number(token.expires_in) * 1000));
-    tokenRef.current = token.access_token;
-    return token.access_token;
+
+type MediaType = "music" | "audio" | "video";
+type Source = "spotify" | "audiomack" | "circle_panda_upload" | "direct_sponsor";
+type MediaItem = {
+  id:string; media_type:MediaType; source:Source; provider_item_type:string; title:string; artist:string|null;
+  description:string|null; external_id:string|null; media_url:string|null; thumbnail_url:string|null;
+  duration_seconds:number; sort_order:number; is_published:boolean;
+};
+
+const SOURCE_LABELS:Record<Source,string>={spotify:"Spotify",audiomack:"Audiomack",circle_panda_upload:"Circle Panda",direct_sponsor:"Direct Sponsor"};
+const TABS:{id:MediaType;label:string;icon:any}[]=[{id:"music",label:"Music",icon:Music2},{id:"audio",label:"Audio",icon:Headphones},{id:"video",label:"Video",icon:Video}];
+
+function MediaAdGate({placement,onDone}:{placement:"video_preroll"|"video_postroll";onDone:()=>void}){
+  const ad=useActiveAdCreative(placement); const [seconds,setSeconds]=useState(5); const [done,setDone]=useState(false);
+  const finished=()=>{if(done)return;setDone(true);onDone()};
+  useEffect(()=>{if(ad?.format==="playable"&&ad.videoUrl)return;const t=window.setInterval(()=>setSeconds(s=>{if(s<=1){window.clearInterval(t);return 0}return s-1}),1000);return()=>window.clearInterval(t)},[ad]);
+  useEffect(()=>{if(ad?.format==="playable"&&ad.videoUrl){setSeconds(0)}},[ad]);
+  if(!ad)return <div className="fixed inset-0 z-50 grid place-items-center bg-black text-white"><div className="text-center"><p className="font-display text-xl font-bold">Preparing video…</p><p className="mt-2 text-sm text-white/70">The video will start automatically.</p></div></div>;
+  const playable=ad.format==="playable"&&Boolean(ad.videoUrl);
+  return <div className="fixed inset-0 z-50 grid place-items-center bg-black/95 p-4 text-white">
+    <div className="w-full max-w-2xl overflow-hidden rounded-3xl border border-white/10 bg-zinc-950">
+      <div className="flex items-center justify-between px-4 py-3 text-xs"><span className="rounded-full bg-white/10 px-2 py-1 font-bold uppercase">Advertisement</span><span>{placement==="video_preroll"?"Before video":"After video"}</span></div>
+      {playable?<video autoPlay playsInline controls={false} className="max-h-[70vh] w-full bg-black object-contain" src={ad.videoUrl} poster={ad.posterUrl||ad.imageUrl} onEnded={finished}/>:<div className="p-5">
+        {ad.imageUrl?<img src={ad.imageUrl} alt={ad.headline} className="mb-4 max-h-[45vh] w-full rounded-2xl object-cover"/>:null}
+        <p className="text-lg font-bold">{ad.headline}</p><p className="mt-1 text-sm text-white/70">{ad.description}</p>
+        <div className="mt-5 rounded-2xl border border-white/10 bg-white/5 p-4 text-center"><p className="text-xs text-white/60">Please wait</p><p className="mt-1 text-2xl font-black">{seconds>0?seconds:"Ready"}</p></div>
+      </div>}
+      {!playable&&seconds===0?<Button className="m-4 w-[calc(100%-2rem)]" onClick={finished}>Continue to video</Button>:null}
+    </div>
+  </div>;
+}
+
+function MusicTimePage(){
+  const [tab,setTab]=useState<MediaType>("music"); const [items,setItems]=useState<MediaItem[]>([]); const [selected,setSelected]=useState<MediaItem|null>(null);
+  const [playing,setPlaying]=useState(false); const [sessionId,setSessionId]=useState<string|null>(null); const [remaining,setRemaining]=useState(1800);
+  const [showAd,setShowAd]=useState<"video_preroll"|"video_postroll"|null>(null); const [pendingVideo,setPendingVideo]=useState<MediaItem|null>(null);
+  const audioRef=useRef<HTMLAudioElement|null>(null); const videoRef=useRef<HTMLVideoElement|null>(null);
+  const load=async(type:MediaType)=>{const {data,error}=await (supabase as any).rpc("get_circle_panda_media_catalog",{p_media_type:type});if(error){toast.error(error.message);return}setItems((data??[]) as MediaItem[]);setSelected(null);setPlaying(false);};
+  useEffect(()=>{void load(tab)},[tab]);
+
+  const startSession=async(item:MediaItem)=>{
+    const {data,error}=await (supabase as any).rpc("start_circle_panda_media_session",{p_media_type:tab,p_media_item_id:item.id});
+    if(error){toast.error(error.message);return null} setSessionId(data as string);setRemaining(1800);setPlaying(true);return data as string;
   };
-  const getValidToken = async () => {
-    const token = tokenRef.current ?? sessionStorage.getItem("cp_spotify_token");
-    const expiresAt = Number(sessionStorage.getItem("cp_spotify_expires_at") ?? 0);
-    if (token && (!expiresAt || Date.now() < expiresAt - 60000)) return token;
-    return await refreshSpotifyToken();
+  const stopSession=async()=>{
+    if(sessionId) await (supabase as any).rpc("stop_circle_panda_media_session",{p_session_id:sessionId});
+    setSessionId(null);setPlaying(false);setRemaining(1800);
   };
-  const connect = async () => {
-    const clientId = import.meta.env.VITE_SPOTIFY_CLIENT_ID ?? "";
-    if (!clientId) return;
-    const verifierBytes = new Uint8Array(32); crypto.getRandomValues(verifierBytes); const verifier = btoa(String.fromCharCode(...verifierBytes)).replaceAll("+", "-").replaceAll("/", "_").replaceAll("=", "");
-    sessionStorage.setItem("cp_spotify_verifier", verifier);
-    const stateBytes = new Uint8Array(24); crypto.getRandomValues(stateBytes);
-    const state = btoa(String.fromCharCode(...stateBytes)).replaceAll("+", "-").replaceAll("/", "_").replaceAll("=", "");
-    sessionStorage.setItem("cp_spotify_state", state);
-    const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(verifier));
-    const challenge = btoa(String.fromCharCode(...new Uint8Array(digest))).replaceAll("+", "-").replaceAll("/", "_").replaceAll("=", "");
-    const params = new URLSearchParams({ client_id: clientId, response_type: "code", state, redirect_uri: `${window.location.origin}/music-time`, code_challenge_method: "S256", code_challenge: challenge, scope: "user-read-playback-state user-read-currently-playing user-modify-playback-state" });
-    window.location.href = `https://accounts.spotify.com/authorize?${params.toString()}`;
+  const playItem=async(item:MediaItem)=>{
+    setSelected(item);
+    if(tab==="video"){setPendingVideo(item);setShowAd("video_preroll");return}
+    await startSession(item);
+    window.setTimeout(()=>{if(tab==="audio"||tab==="music")void audioRef.current?.play().catch(()=>{})},50);
   };
-  const disconnect = () => {
-    tokenRef.current = null;
-    ["cp_spotify_token", "cp_spotify_refresh_token", "cp_spotify_expires_at", "cp_spotify_verifier", "cp_spotify_state"].forEach((key) => sessionStorage.removeItem(key));
-    setConnected(false); setPlaying(false); setTrack(null);
-    toast.success("Spotify disconnected from this Circle Panda session.");
-  };
-  const play = async () => {
-    let token = await getValidToken();
-    if (!token) { if (!import.meta.env.VITE_SPOTIFY_CLIENT_ID) return; await connect(); return; }
-    let resume = await fetch("https://api.spotify.com/v1/me/player/play", { method: "PUT", headers: { Authorization: `Bearer ${token}` } });
-    if (resume.status === 401) { token = await refreshSpotifyToken(); if (token) resume = await fetch("https://api.spotify.com/v1/me/player/play", { method: "PUT", headers: { Authorization: `Bearer ${token}` } }); }
-    if (!resume.ok && resume.status !== 204) { toast.error("Spotify could not start playback. Open Spotify on an active device and try again."); return; }
-    const { data, error } = await (supabase as any).rpc("start_music_session_secure", { p_provider:"spotify", p_external_id:track?.externalId ?? null, p_title:track?.title ?? null, p_artist:track?.artist ?? null, p_artwork_url:track?.artworkUrl ?? null });
-    if (error) { toast.error(error.message ?? "Music session could not start"); return; }
-    setPlaying(true);
-    toast.success("Music Time started 🎵", { description: "Your Spotify session is being tracked securely." });
-    void data;
-  };
-  const stop = async () => {
-    const token = await getValidToken();
-    if (token) await fetch("https://api.spotify.com/v1/me/player/pause", { method:"PUT", headers:{Authorization:`Bearer ${token}`} }).catch(()=>{});
-    const { data, error } = await (supabase as any).rpc("stop_music_session_secure");
-    if (error) { toast.error(error.message ?? "Music session could not stop"); return; }
-    setPlaying(false);
-    await syncCoins();
-    if (Number(data?.duration_seconds ?? 0) >= 60) toast.success("Music Time complete 🎵", { description:`+${Number(data?.reward_xp ?? 0)} XP · +${Number(data?.reward_bc ?? 0)} BC` });
-  };
-  useEffect(() => {
-    if (!playing) return;
-    const timer = window.setInterval(async () => {
-      const token = await getValidToken();
-      if (!token) return;
-      const res = await fetch("https://api.spotify.com/v1/me/player", { headers:{Authorization:`Bearer ${token}`} }).catch(()=>null);
-      if (!res || !res.ok) return;
-      const data = await res.json(); const item=data?.item;
-      if (item) setTrack({title:item.name,artist:item.artists?.map((a:any)=>a.name).join(", "),externalId:item.id,artworkUrl:item.album?.images?.[0]?.url});
-    }, 5000);
-    return () => window.clearInterval(timer);
-  }, [playing]);
-  return <AppShell title="Music Time" subtitle="Connect Spotify and keep your music session synced with Circle Panda."><div className="mx-auto max-w-xl panda-panel rounded-3xl p-6"><div className="flex items-center gap-3"><span className="grid size-12 place-items-center rounded-2xl bg-primary/10"><Music className="size-6 text-primary"/></span><div><h2 className="font-display text-xl font-semibold">Spotify Music Time</h2><p className="text-sm text-muted-foreground">Playback, session timing and rewards are recorded through the production backend.</p></div></div>{!ready ? <div className="mt-5 rounded-xl border border-border p-4"><p className="text-sm font-medium">Spotify is not configured yet.</p><p className="mt-1 text-xs text-muted-foreground">Circle Panda needs its production Spotify client ID configured by deployment before Music Time can connect.</p></div> : <Button className="mt-6 w-full" onClick={connect}>{connected ? "Reconnect Spotify" : "Connect Spotify"}</Button>}<div className="mt-4 rounded-2xl border border-border/70 bg-secondary/30 p-4"><p className="text-xs uppercase tracking-wide text-muted-foreground">Current Spotify track</p><p className="mt-1 font-semibold">{track?.title ?? "Nothing playing"}</p><p className="text-sm text-muted-foreground">{track?.artist ?? "Start playback in Spotify, then start Music Time."}</p></div><Button variant="outline" className="mt-4 w-full gap-2" onClick={play} disabled={playing || !ready}><Play className="size-4"/>{playing ? "Music Time active" : "Start Music Time"}</Button>{playing ? <Button variant="ghost" className="mt-2 w-full gap-2" onClick={stop}><Square className="size-4"/> Stop session & collect rewards</Button> : null}<Button variant="ghost" className="mt-2 w-full" onClick={disconnect} disabled={!connected}>Disconnect Spotify</Button></div><div className="mt-5"><StandardBannerAd variant="feed-card" placement="music_time_inline" /></div></AppShell>;
+  const beginVideo=async()=>{if(!pendingVideo)return;setShowAd(null);await startSession(pendingVideo);setTimeout(()=>{const v=videoRef.current;void v?.play().catch(()=>{});if(v?.requestFullscreen)void v.requestFullscreen().catch(()=>{})},50)};
+  const onVideoEnded=async()=>{await stopSession();setShowAd("video_postroll")};
+  useEffect(()=>{if(!playing)return;const t=window.setInterval(()=>setRemaining(s=>{if(s<=1){void stopSession();return 1800}return s-1}),1000);return()=>window.clearInterval(t)},[playing,sessionId]);
+  useEffect(()=>()=>{if(sessionId)void (supabase as any).rpc("stop_circle_panda_media_session",{p_session_id:sessionId})},[sessionId]);
+  const sourceUrl=selected?.media_url??"";
+  const external=selected?.source==="spotify"||selected?.source==="audiomack";
+  const audioContent=selected&&external&&sourceUrl?<iframe title={selected.title} src={sourceUrl} className="h-72 w-full rounded-2xl border-0 bg-black"/>:selected?.media_url?<audio ref={audioRef} src={selected.media_url} controls className="w-full"/>:null;
+  return <AppShell title="Music Time" subtitle="Music, audio and video — no viewing or listening rewards.">
+    <main className="mx-auto max-w-5xl space-y-4 p-4 pb-24 sm:p-6">
+      <div className="flex gap-2 overflow-x-auto rounded-2xl border border-border/70 bg-card p-2">{TABS.map(({id,label,icon:Icon})=><button key={id} onClick={()=>setTab(id)} className={`flex min-w-28 flex-1 items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-bold ${tab===id?"bg-primary text-primary-foreground":"text-muted-foreground"}`}><Icon className="size-4"/>{label}</button>)}</div>
+      {tab!=="video"?<><StandardBannerAd variant="inline" placement={tab==="audio"?"audio_time_top":"music_time_top"}/><section className="panda-panel rounded-3xl p-4 sm:p-6">
+        <div className="flex items-center justify-between"><div><p className="text-[10px] font-bold uppercase tracking-wider text-primary">{tab==="audio"?"Audio Time":"Music Time"}</p><h2 className="font-display text-xl font-black">30-minute listening session</h2></div><span className="text-xs font-bold text-muted-foreground">{Math.floor(remaining/60)}:{String(remaining%60).padStart(2,"0")}</span></div>
+        <div className="mt-5 min-h-56 rounded-3xl border border-border/70 bg-secondary/20 p-5">{selected?<><div className="flex items-center gap-4">{selected.thumbnail_url?<img src={selected.thumbnail_url} alt="" className="size-20 rounded-2xl object-cover"/>:<div className="grid size-20 place-items-center rounded-2xl bg-primary/10"><Volume2 className="size-8 text-primary"/></div>}<div><p className="font-display text-lg font-black">{selected.title}</p><p className="text-sm text-muted-foreground">{selected.artist??SOURCE_LABELS[selected.source]}</p></div></div><div className="mt-6">{audioContent}</div></>:<div className="grid min-h-44 place-items-center text-center text-sm text-muted-foreground">Choose an item below. Music and audio play in the middle of the screen.</div>}</div>
+        {playing?<Button variant="outline" className="mt-4 w-full gap-2" onClick={()=>{audioRef.current?.pause();void stopSession()}}><Square className="size-4"/>Stop session</Button>:null}
+      </section><StandardBannerAd variant="inline" placement={tab==="audio"?"audio_time_bottom":"music_time_bottom"}/></>:<section className="relative min-h-[calc(100vh-190px)] overflow-hidden rounded-none bg-black sm:rounded-3xl">{selected?.media_url?<video ref={videoRef} src={selected.media_url} poster={selected.thumbnail_url??undefined} controls playsInline className="h-[calc(100vh-190px)] w-full bg-black object-contain" onEnded={onVideoEnded}/>:<div className="grid min-h-[calc(100vh-190px)] place-items-center p-6 text-center text-white/70">Choose a video below. Circle Panda videos play full-screen with no banner ads.</div>}</section>}
+      <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{items.map(item=><button key={item.id} onClick={()=>void playItem(item)} className="overflow-hidden rounded-2xl border border-border/70 bg-card text-left transition hover:border-primary/50">{item.thumbnail_url?<img src={item.thumbnail_url} alt="" className="aspect-video w-full object-cover"/>:<div className="grid aspect-video place-items-center bg-secondary"><Play className="size-8 text-primary"/></div>}<div className="p-3"><p className="truncate text-sm font-bold">{item.title}</p><p className="text-xs text-muted-foreground">{item.artist??SOURCE_LABELS[item.source]}</p></div></button>)}</section>
+    </main>
+    {showAd?<MediaAdGate placement={showAd} onDone={()=>showAd==="video_preroll"?void beginVideo():setShowAd(null)}/>:null}
+  </AppShell>;
 }
