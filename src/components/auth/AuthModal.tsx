@@ -45,7 +45,7 @@ export function AuthModal({ open, onOpenChange, defaultTab = "signin", onOpenBac
     setBusy(true);
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
-      options: { redirectTo: window.location.origin + "/" },
+      options: { redirectTo: window.location.origin + "/auth/callback" },
     });
     if (error) toast.error(error.message);
     setBusy(false);
