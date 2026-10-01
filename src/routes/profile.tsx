@@ -19,7 +19,7 @@ import { StandardBannerAd } from "@/components/ads/StandardBannerAd";
 import { ProfileProgressCard } from "@/components/ProfileProgressCard";
 import { VipIdentity } from "@/components/VipIdentity";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { useStore, pandaProgress, starRating } from "@/lib/store";
+import { useStore, pandaProgress, starRating, pandaTier, TIERS } from "@/lib/store";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useEffect, useState } from "react";
@@ -85,6 +85,7 @@ function ProfilePage() {
   const { coins, reputation, level, xp, posts, threads, groups, mySpotlight, isVip, vipExpiresAt } =
     useStore();
   const pandaRank = pandaProgress(xp);
+  const tier = pandaTier(reputation);
   const myPosts = posts.filter((p) => p.author === "You (anonymous)").length;
 
   const stats = [
