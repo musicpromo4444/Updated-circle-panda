@@ -34,14 +34,13 @@ export function VipUpgradeModal({ open, onOpenChange }: VipUpgradeModalProps) {
           </div>
           <div className="inline-flex items-center justify-center gap-1.5 self-center rounded-full border border-amber-400/50 bg-amber-500/15 px-3 py-1 text-xs font-bold tracking-wide text-amber-500">
             <Crown className="size-3.5 text-amber-500" />
-            VIP LOUNGE RESTRICTED
+            VIP GROUP RESTRICTED
           </div>
           <DialogTitle className="mt-2 text-2xl font-bold tracking-tight text-foreground font-display">
-            VIP Members Only
+            VIP Group Members Only
           </DialogTitle>
           <DialogDescription className="text-sm text-muted-foreground">
-            The VIP Lounge is a private haven for elite campus members. Upgrade your membership to
-            unlock full access.
+            The VIP Group is a private full-screen group chat for verified VIP members. Upgrade your membership to unlock access.
           </DialogDescription>
         </DialogHeader>
 
@@ -52,8 +51,7 @@ export function VipUpgradeModal({ open, onOpenChange }: VipUpgradeModalProps) {
               <Calendar className="size-4" />
             </span>
             <span className="text-foreground">
-              <strong className="font-semibold text-foreground">Host VIP Events</strong> — Schedule
-              mixers, AMA sessions & private meetups
+              <strong className="font-semibold text-foreground">Private VIP Group Chat</strong> — Join the private group chat and talk with other VIP members
             </span>
           </div>
 
@@ -62,8 +60,7 @@ export function VipUpgradeModal({ open, onOpenChange }: VipUpgradeModalProps) {
               <Gift className="size-4" />
             </span>
             <span className="text-foreground">
-              <strong className="font-semibold text-foreground">Run & Win Giveaways</strong> — Drops
-              of Black Coins, gift passes & merch
+              <strong className="font-semibold text-foreground">Photos, Videos & Voice Notes</strong> — Share photos, videos and voice notes inside the VIP group
             </span>
           </div>
 
@@ -72,8 +69,8 @@ export function VipUpgradeModal({ open, onOpenChange }: VipUpgradeModalProps) {
               <BarChart3 className="size-4" />
             </span>
             <span className="text-foreground">
-              <strong className="font-semibold text-foreground">Post Exclusive Polls</strong> —
-              Gauge campus opinion with verified voters
+              <strong className="font-semibold text-foreground">VIP-only Community</strong> —
+              Private access reserved for active VIP members
             </span>
           </div>
 
@@ -82,8 +79,7 @@ export function VipUpgradeModal({ open, onOpenChange }: VipUpgradeModalProps) {
               <Mic className="size-4" />
             </span>
             <span className="text-foreground">
-              <strong className="font-semibold text-foreground">Voice & Video Notes</strong> — Drop
-              authentic media directly into the lounge
+              <strong className="font-semibold text-foreground">Full-screen WhatsApp-style Chat</strong> — Text, photos, videos and voice notes in one private chat
             </span>
           </div>
         </div>
@@ -105,7 +101,7 @@ export function VipUpgradeModal({ open, onOpenChange }: VipUpgradeModalProps) {
             className="w-full gap-2 border-dashed border-amber-400/40 text-amber-600 dark:text-amber-400 hover:bg-amber-500/10"
           >
             <Crown className="size-4 text-amber-500" />
-            View 7-Day VIP Pass
+            View VIP Pass Options
           </Button>
         </div>
       </DialogContent>
