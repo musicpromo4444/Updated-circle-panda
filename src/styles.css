@@ -466,3 +466,14 @@ html.light .coin-chip {
 @keyframes cp-vip-spin-reverse { to { transform:rotate(-360deg); } }
 @keyframes cp-vip-spark { 0%,100% { transform:scale(.75) rotate(0deg); opacity:.55; } 50% { transform:scale(1.25) rotate(18deg); opacity:1; } }
 @keyframes cp-vip-shine { 0%,65%,100% { transform:translateX(-110%); } 78% { transform:translateX(110%); } }
+
+
+/* Sweepstakes / game neon presentation */
+.cp-game-dialog{border-radius:28px!important;background:linear-gradient(180deg,#17164b 0%,#090b28 72%,#07091e 100%)!important;box-shadow:0 0 0 1px rgba(164,103,255,.55),0 0 55px rgba(107,52,255,.42),inset 0 1px rgba(255,255,255,.08)!important}
+.cp-game-header{padding:18px 18px 5px;color:#fff!important;text-shadow:0 0 16px rgba(177,111,255,.5)}
+.cp-game-description{padding:0 18px 10px;color:#9ca8d8!important;font-size:11px!important}
+.cp-neon-wheel-stage{width:260px!important;height:260px!important;border-radius:999px;background:radial-gradient(circle,#24155e 0 55%,#0b0e32 70%);box-shadow:0 0 0 2px #2b2269,0 0 25px rgba(155,85,255,.45),0 0 60px rgba(38,200,255,.16)}
+.cp-neon-wheel{box-shadow:inset 0 0 25px rgba(255,255,255,.13),0 0 0 4px #11143e,0 0 30px rgba(173,84,255,.58),0 0 65px rgba(33,211,238,.22)!important}
+.cp-neon-wheel-stage:after{content:"🐼";position:absolute;display:grid;place-items:center;width:58px;height:58px;border-radius:50%;background:radial-gradient(circle,#7d3cff,#26105f);border:2px solid #d6a5ff;box-shadow:0 0 20px #9d5cff;color:#fff;font-size:28px;z-index:8}
+.cp-sweep-activity{position:relative;overflow:hidden;border:1px solid #8055ff;border-radius:24px;padding:18px;background:linear-gradient(135deg,#16184e,#0b0e31);box-shadow:0 0 30px rgba(115,61,255,.24),inset 0 1px rgba(255,255,255,.07)}
+.cp-sweep-activity-glow{position:absolute;width:190px;height:190px;right:-70px;top:-90px;border-radius:50%;background:#28d9ff;filter:blur(70px);opacity:.16}
