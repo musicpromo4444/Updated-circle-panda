@@ -13,7 +13,7 @@ type Campaign = {
 function isExternal(value:string) { return /^https?:\/\//i.test(value); }
 
 const FUN_TIME_CATALOG = [
-  {key:"activities",title:"Games & Activities",description:"Choose from the full Circle Panda games catalog.",icon:Gamepad2,route:"/fun-time-games"},
+  {key:"activities",title:"Games & Activities",description:"Choose from the full Circle Panda games catalog.",icon:Gamepad2,route:"/activities"},
   {key:"music-time",title:"Music, Audio & Video",description:"Choose music, audio or video from Music Time.",icon:Music2,route:"/music-time"},
   {key:"hot-seat",title:"Hot Seat Live",description:"Join the host who is live right now.",icon:Radio,route:"/hot-seat"},
   {key:"dating",title:"Dating",description:"Open the Circle Panda dating experience.",icon:Heart,route:"/dating"},
