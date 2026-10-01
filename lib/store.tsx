@@ -560,8 +560,13 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       const rawThreads = threadsRes.data ?? [];
       const rawThreadMessages = threadMessagesRes.data ?? [];
       const otherIds = Array.from(new Set(rawThreads.map((t:any)=>t.owner_id===uid?t.participant_id:t.owner_id).filter(Boolean)));
-      const otherProfilesRes = otherIds.length ? await (supabase as any).from("profiles").select("id,display_name").in("id",otherIds) : {data:[]};
-      const profileNames = new Map((otherProfilesRes.data ?? []).map((p:any)=>[p.id,p.display_name || "Anonymous Panda"]));
+      const otherProfileRows = otherIds.length
+        ? (await Promise.all(otherIds.map(async (id:string) => {
+            const { data } = await (supabase as any).rpc("get_shared_profile_public", { p_user_id: id });
+            return Array.isArray(data) ? data[0] : data;
+          }))).filter(Boolean)
+        : [];
+      const profileNames = new Map(otherProfileRows.map((p:any)=>[p.id,p.display_name || "Anonymous Panda"]));
       const threads = rawThreads.filter((t:any)=>t.participant_id).map((t:any)=>({
         id:t.id, name:profileNames.get(t.owner_id===uid?t.participant_id:t.owner_id) ?? "Anonymous Panda", kind:t.kind === "dating" ? "dating" : "dm", blurb:t.blurb ?? "",
         messages:rawThreadMessages.filter((m:any)=>m.thread_id===t.id && !(m.message_type==="dating_photo" && m.user_id===uid)).map((m:any)=>({id:m.id,body:m.body,at:new Date(m.created_at).getTime(),mine:m.user_id===uid,messageType:m.message_type==="dating_photo"?"dating_photo":"text",mediaPath:m.media_path ?? undefined})), startedAt:t.kind === "dating" ? new Date(t.created_at).getTime() : undefined
