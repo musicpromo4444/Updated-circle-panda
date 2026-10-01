@@ -200,14 +200,14 @@ function SweepstakesPage() {
       <section className="cp-sweep-activity mb-5">
         <div className="cp-sweep-activity-glow" />
         <div className="relative z-10">
-          <p className="cp-eyebrow">SWEEPSTAKES FEATURE GAME</p>
-          <h2 className="mt-1 text-2xl font-black text-white">{sweepActivity?.title ?? "Lucky Wheel"}</h2>
-          <p className="mt-1 text-xs text-white/65">{sweepActivity?.description ?? "Your admin-selected activity appears here."}</p>
+          <p className="cp-eyebrow">CONTEST ENTRY</p>
+          <h2 className="mt-1 text-2xl font-black text-white">{sweepActivity?.title ?? "Enter to Win"}</h2>
+          <p className="mt-1 text-xs text-white/65">{sweepActivity?.description ?? "Ready to win? Enter the contest for a chance to win one of the prizes below. New prizes and contests may appear here whenever they are available."}</p>
           <Button
             className="cp-neon-button mt-4 w-full"
             onClick={() => sweepActivity && setSelectedActivity(sweepActivity)}
           >
-            <Sparkles className="mr-2 size-4" /> Play Activity
+            <Sparkles className="mr-2 size-4" /> Click to Contest
           </Button>
         </div>
       </section>
