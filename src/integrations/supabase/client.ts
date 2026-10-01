@@ -33,9 +33,17 @@ function createSupabaseFetch(supabaseKey: string): typeof fetch {
 function createSupabaseClient() {
   // Use import.meta.env for client-side (Vite build-time replacement)
   // Fall back to process.env for SSR (server-side rendering)
-  const SUPABASE_URL = import.meta.env["VITE_SUPABASE_URL"] || process.env["SUPABASE_URL"];
+  // Production fallback keeps the public Supabase client usable even when Vercel
+  // has not yet received project environment variables. These are public client
+  // values; privileged service-role secrets must never be placed here.
+  const SUPABASE_URL =
+    import.meta.env["VITE_SUPABASE_URL"] ||
+    process.env["SUPABASE_URL"] ||
+    "https://ddwtarfqzdhqdjsuzaft.supabase.co";
   const SUPABASE_PUBLISHABLE_KEY =
-    import.meta.env["VITE_SUPABASE_PUBLISHABLE_KEY"] || process.env["SUPABASE_PUBLISHABLE_KEY"];
+    import.meta.env["VITE_SUPABASE_PUBLISHABLE_KEY"] ||
+    process.env["SUPABASE_PUBLISHABLE_KEY"] ||
+    "sb_publishable_nTQolNRIM4F3SLU36uyhbg_bjLndmu9";
 
   if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
     const missing = [
