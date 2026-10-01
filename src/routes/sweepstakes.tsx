@@ -1,19 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Fragment, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
+import { Gift, Sparkles, Timer, Trophy, ExternalLink, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
-import {
-  Crown,
-  Gift,
-  Sparkles,
-  Ticket,
-  Timer,
-  Trophy,
-} from "lucide-react";
 import { AppShell } from "@/components/AppShell";
-import { StandardBannerAd } from "@/components/ads/StandardBannerAd";
 import { Button } from "@/components/ui/button";
 import { GAME_META, GameModal } from "@/routes/activities";
-import { useStore } from "@/lib/store";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/sweepstakes")({
@@ -22,307 +13,298 @@ export const Route = createFileRoute("/sweepstakes")({
       { title: "Panda Sweepstakes — Circle Panda" },
       {
         name: "description",
-        content:
-          "Buy Panda Sweepstakes tickets with Panda Coins, win prizes, and enter the current admin-selected contest.",
+        content: "Enter the current Circle Panda contest and view the prizes configured by Admin.",
       },
       { property: "og:title", content: "Panda Sweepstakes — Circle Panda" },
       {
         property: "og:description",
-        content:
-          "Weekly prize draws and a Monthly Mega Jackpot, plus an admin-selected contest activity.",
+        content: "Click to contest, then explore the current prizes and entry instructions.",
       },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: SweepstakesPage,
 });
 
-function countdown(until: number) {
-  const left = Math.max(0, until - Date.now());
-  const d = Math.floor(left / 86400000);
-  const h = Math.floor((left % 86400000) / 3600000);
-  const m = Math.floor((left % 3600000) / 60000);
-  const s = Math.floor((left % 60000) / 1000);
-  return `${d}d ${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
-}
-
-type DailyDrawItem = {
+type PrizeCard = {
   id: string;
   name: string;
   label: string;
-  ticketPrice: number;
-  consolationPrice: number;
-  imageUrl: string;
+  description: string;
+  entry_instructions: string;
+  button_label: string;
+  action_type: "activity" | "link" | "instructions" | "none";
+  action_url: string;
+  entry_requirement: string;
+  image_url: string;
   emoji: string;
-  jackpot?: boolean;
+  jackpot: boolean;
+  starts_at: string | null;
+  closes_at: string | null;
+  display_order: number;
 };
 
-const DEFAULT_DAILY_ITEMS: DailyDrawItem[] = [];
+type ContestActivity = {
+  id: string;
+  title: string;
+  description: string;
+  activity_type: string;
+  reward_bc: number;
+  requires_ad: boolean;
+  completed: boolean;
+  last_completed_at: string | null;
+};
 
+function formatClose(value: string | null) {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return date.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
+}
 
-function DailyItemCard({
-  item,
-  coins,
-  tickets,
-  onBuy,
+function PrizeCardView({
+  prize,
+  activity,
+  onOpenActivity,
 }: {
-  item: DailyDrawItem;
-  coins: number;
-  tickets: number;
-  onBuy: () => void;
+  prize: PrizeCard;
+  activity: ContestActivity | null;
+  onOpenActivity: () => void;
 }) {
-  const [, setTick] = useState(0);
+  const [expanded, setExpanded] = useState(false);
   const [imageFailed, setImageFailed] = useState(false);
 
-  useEffect(() => {
-    const i = setInterval(() => setTick((v) => v + 1), 1000);
-    return () => clearInterval(i);
-  }, []);
+  const runAction = () => {
+    if (prize.action_type === "activity") {
+      if (!activity) return toast.error("The contest activity is not currently available.");
+      onOpenActivity();
+      return;
+    }
+    if (prize.action_type === "link") {
+      try {
+        const url = new URL(prize.action_url);
+        if (!["https:", "http:"].includes(url.protocol)) throw new Error("Invalid link");
+        window.open(url.toString(), "_blank", "noopener,noreferrer");
+      } catch {
+        toast.error("This prize link is not configured correctly.");
+      }
+      return;
+    }
+    if (prize.action_type === "instructions") {
+      setExpanded((v) => !v);
+    }
+  };
 
   return (
-    <article
-      className={`panda-panel overflow-hidden rounded-3xl ${
-        item.jackpot ? "ring-1 ring-[var(--coin)]/50" : ""
-      }`}
-    >
-      <div className="flex min-h-[236px]">
-        <div className="flex min-w-0 flex-1 flex-col p-5">
+    <article className="overflow-hidden rounded-3xl border border-border/80 bg-card shadow-sm">
+      <div className="relative aspect-[16/10] overflow-hidden bg-gradient-to-br from-primary/10 via-secondary/30 to-[var(--coin)]/10">
+        {imageFailed || !prize.image_url ? (
+          <div className="grid h-full place-items-center text-7xl">{prize.emoji || "🎁"}</div>
+        ) : (
+          <img
+            src={prize.image_url}
+            alt={prize.name}
+            className="h-full w-full object-cover"
+            onError={() => setImageFailed(true)}
+          />
+        )}
+        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/75 to-transparent p-4 pt-12">
           <div className="flex items-center gap-2">
-            {item.jackpot ? (
-              <Crown className="size-4 text-[var(--coin)]" />
-            ) : (
-              <Gift className="size-4 text-primary" />
-            )}
-            <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
-              {item.label}
+            <Gift className="size-4 text-[var(--coin)]" />
+            <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-white/75">
+              {prize.label || "Prize"}
             </span>
-            {item.jackpot ? (
-              <span className="ml-auto rounded-full bg-[var(--coin)]/15 px-2 py-0.5 text-[10px] font-bold text-[var(--coin)]">
-                JACKPOT
+            {prize.jackpot ? (
+              <span className="ml-auto rounded-full bg-[var(--coin)]/20 px-2 py-1 text-[10px] font-black text-[var(--coin)]">
+                FEATURED
               </span>
             ) : null}
           </div>
-          <h2 className="mt-3 font-display text-xl font-semibold leading-tight">{item.name}</h2>
-          <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-            One item. One winner. Five daily drops.
-          </p>
-          <div className="mt-auto pt-4">
-            <div className="mb-2 flex items-center gap-1.5 text-xs text-muted-foreground">
-              <Ticket className="size-3.5" /> {tickets} {tickets === 1 ? "ticket" : "tickets"}{" "}
-              purchased
-            </div>
-            <Button className="w-full gap-2" onClick={onBuy} disabled={coins < item.ticketPrice}>
-              <Ticket className="size-4" /> Buy ticket · {item.ticketPrice} BC
-            </Button>
-            <p className="mt-2 text-center text-[11px] font-medium text-[var(--coin)]">
-              +${item.consolationPrice} consolation prize if you miss out
-            </p>
-            {coins < item.ticketPrice ? (
-              <p className="mt-1 text-center text-xs text-destructive">
-                Not enough BC for this item.
-              </p>
-            ) : null}
+        </div>
+      </div>
+
+      <div className="p-4">
+        <h2 className="font-display text-xl font-bold">{prize.name}</h2>
+        {prize.description ? <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{prize.description}</p> : null}
+
+        {prize.entry_requirement ? (
+          <div className="mt-3 rounded-xl border border-primary/20 bg-primary/5 p-3">
+            <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-primary">Entry requirement</p>
+            <p className="mt-1 text-xs leading-relaxed text-foreground/85">{prize.entry_requirement}</p>
           </div>
-        </div>
-        <div className="relative flex w-[38%] min-w-[120px] items-center justify-center overflow-hidden bg-gradient-to-br from-primary/10 via-secondary/50 to-[var(--coin)]/10 p-4">
-          <div className="absolute inset-0 opacity-50 [background-image:radial-gradient(circle_at_50%_45%,color-mix(in_oklab,var(--primary)_22%,transparent),transparent_60%)]" />
-          {imageFailed ? (
-            <span className="relative text-7xl drop-shadow-2xl" aria-hidden>
-              {item.emoji}
-            </span>
-          ) : (
-            <img
-              src={item.imageUrl}
-              alt=""
-              className="relative max-h-40 w-full object-contain drop-shadow-[0_18px_18px_rgba(0,0,0,.45)]"
-              onError={() => setImageFailed(true)}
-            />
-          )}
-          <span className="absolute bottom-3 right-3 rounded-full border border-border/70 bg-background/70 px-2 py-1 text-[10px] font-semibold text-muted-foreground backdrop-blur">
-            1 item
-          </span>
-        </div>
+        ) : null}
+
+        {prize.entry_instructions ? (
+          <div className="mt-3 rounded-xl border border-border/70 bg-secondary/20">
+            <button
+              type="button"
+              className="flex w-full items-center justify-between gap-3 p-3 text-left text-xs font-semibold"
+              onClick={() => setExpanded((v) => !v)}
+            >
+              <span>Ways to contest</span>
+              <ChevronDown className={`size-4 transition-transform ${expanded ? "rotate-180" : ""}`} />
+            </button>
+            {expanded ? <p className="border-t border-border/60 p-3 text-xs leading-relaxed text-muted-foreground">{prize.entry_instructions}</p> : null}
+          </div>
+        ) : null}
+
+        {prize.closes_at ? (
+          <p className="mt-3 flex items-center gap-1.5 text-[11px] text-muted-foreground">
+            <Timer className="size-3.5" /> Closes {formatClose(prize.closes_at)}
+          </p>
+        ) : null}
+
+        {prize.action_type !== "none" ? (
+          <Button className="cp-neon-button mt-4 w-full" onClick={runAction}>
+            {prize.button_label || "Enter Contest"}
+            {prize.action_type === "link" ? <ExternalLink className="ml-2 size-3.5" /> : null}
+            {prize.action_type === "instructions" ? <ChevronDown className={`ml-2 size-3.5 ${expanded ? "rotate-180" : ""}`} /> : null}
+          </Button>
+        ) : null}
       </div>
     </article>
   );
 }
 
 function SweepstakesPage() {
-  const { coins, syncCoins, sweepWinners, weeklyDrawEndsAt } = useStore();
-  const [selectedActivity, setSelectedActivity] = useState<any | null>(null);
-  const [sweepActivity, setSweepActivity] = useState<any | null>(null);
-  const [sweepActivityLoading, setSweepActivityLoading] = useState(true);
-  const [items, setItems] = useState(DEFAULT_DAILY_ITEMS);
-  const [tickets, setTickets] = useState<Record<string, number>>({});
-  const [ticketHistory, setTicketHistory] = useState<Array<{id:string;draw:string;created_at:string}>>([]);
-  const [activeConfigs, setActiveConfigs] = useState<Record<string,{ticket_price_bc:number;prize_name:string;closes_at:string|null}>>({});
+  const [selectedActivity, setSelectedActivity] = useState<ContestActivity | null>(null);
+  const [contestActivity, setContestActivity] = useState<ContestActivity | null>(null);
+  const [prizes, setPrizes] = useState<PrizeCard[]>([]);
+  const [cardLimit, setCardLimit] = useState(5);
+  const [loading, setLoading] = useState(true);
+  const [winners, setWinners] = useState<Array<{ id: string; name: string; prize: string; won_at: string }>>([]);
 
-  useEffect(() => {
-    void (async () => {
-      const { data: authData } = await supabase.auth.getUser();
-      const uid = authData.user?.id;
-      if (!uid) return;
-      const [configResult, ticketResult, prizeResult, activityResult] = await Promise.all([
-        supabase.from("sweepstakes_config").select("draw,ticket_price_bc,prize_name,closes_at").eq("is_active", true),
-        supabase.from("sweep_tickets").select("id,draw,created_at").eq("user_id", uid).order("created_at", { ascending: false }).limit(50),
-        supabase.from("sweepstake_prizes").select("id,name,label,ticket_price_bc,consolation_price,image_url,emoji,jackpot").eq("enabled", true).order("id"),
-        (supabase as any).rpc("get_sweepstakes_activity_config"),
-      ]);
-      if (configResult.error || ticketResult.error || prizeResult.error || activityResult.error) {
-        toast.error((configResult.error ?? ticketResult.error ?? prizeResult.error ?? activityResult.error)?.message ?? "Could not load sweepstakes");
-        setItems([]);
-        setSweepActivityLoading(false);
-        return;
-      }
-      const activityConfig = Array.isArray(activityResult.data) ? activityResult.data[0] : activityResult.data;
-      const activitySlug = String(activityConfig?.activity_slug ?? activityConfig?.slug ?? "").trim();
-      if (activitySlug) {
-        const meta = GAME_META[activitySlug];
-        setSweepActivity({
-          id: activitySlug,
-          title: String(activityConfig?.activity_title ?? activityConfig?.title ?? meta?.label ?? activitySlug),
-          description: String(activityConfig?.activity_description ?? activityConfig?.description ?? "Your admin-selected contest activity is ready."),
-          activity_type: activitySlug,
-          reward_bc: Number(activityConfig?.reward_bc ?? 0),
-          requires_ad: Boolean(activityConfig?.requires_ad ?? true),
-          completed: false,
-          last_completed_at: null,
-        });
-      } else {
-        setSweepActivity(null);
-      }
-      setSweepActivityLoading(false);
-      const history=(ticketResult.data ?? []) as Array<{id:string;draw:string;created_at:string}>;
-      setTicketHistory(history);
-      setTickets(history.reduce((acc:any,t:any)=>{acc[t.draw]=(acc[t.draw]??0)+1;return acc;},{}));
-      setActiveConfigs(Object.fromEntries((configResult.data ?? []).map((c:any) => [c.draw, c])));
-      setItems((prizeResult.data ?? []).map((p:any)=>({id:p.id,name:p.name,label:p.label,ticketPrice:Number(p.ticket_price_bc),consolationPrice:Number(p.consolation_price),imageUrl:p.image_url,emoji:p.emoji,jackpot:Boolean(p.jackpot)})));
-    })();
-  }, []);
+  const load = async () => {
+    setLoading(true);
+    const [activityResult, catalogResult, winnerResult] = await Promise.all([
+      (supabase as any).rpc("get_sweepstakes_activity_config"),
+      (supabase as any).rpc("get_sweepstakes_prize_cards"),
+      supabase.from("sweep_winners").select("id,name,prize,won_at").order("won_at", { ascending: false }).limit(8),
+    ]);
 
-  const buyDailyTicket = (item: DailyDrawItem) => {
-    void (supabase as any).rpc("buy_sweepstake_ticket_secure", { p_draw: item.id }).then(async ({ data, error }: any) => {
-      if (error) throw error;
-      await syncCoins();
-      setTickets((current) => ({ ...current, [item.id]: (current[item.id] ?? 0) + 1 }));
-      setTicketHistory((current) => [{ id: data?.id ?? crypto.randomUUID(), draw: item.id, created_at: new Date().toISOString() }, ...current]);
-      toast.success(`Ticket purchased for ${item.name} 🎟️`);
-    }).catch((error: any) => toast.error(error?.message ?? "Could not purchase ticket."));
+    const error = activityResult.error ?? catalogResult.error ?? winnerResult.error;
+    if (error) {
+      toast.error(error.message ?? "Could not load Sweepstakes");
+      setLoading(false);
+      return;
+    }
+
+    const activitySlug = String(
+      Array.isArray(activityResult.data) ? activityResult.data[0]?.activity_slug : activityResult.data?.activity_slug ?? "",
+    ).trim();
+
+    let activity: ContestActivity | null = null;
+    if (activitySlug) {
+      const { data: catalogActivity } = await supabase
+        .from("seven_day_activity_configs")
+        .select("slug,title,description")
+        .eq("slug", activitySlug)
+        .eq("is_enabled", true)
+        .maybeSingle();
+
+      const meta = GAME_META[activitySlug];
+      activity = {
+        id: activitySlug,
+        title: String(catalogActivity?.title ?? meta?.label ?? activitySlug),
+        description: String(catalogActivity?.description ?? "Complete the admin-selected contest activity."),
+        activity_type: activitySlug,
+        reward_bc: 0,
+        requires_ad: true,
+        completed: false,
+        last_completed_at: null,
+      };
+    }
+
+    const payload = catalogResult.data ?? {};
+    setContestActivity(activity);
+    setCardLimit(Math.min(5, Math.max(3, Number(payload.card_limit ?? 5))));
+    setPrizes(((payload.prizes ?? []) as PrizeCard[]).slice(0, Math.min(5, Math.max(3, Number(payload.card_limit ?? 5)))));
+    setWinners((winnerResult.data ?? []) as Array<{ id: string; name: string; prize: string; won_at: string }>);
+    setLoading(false);
   };
 
-
+  useEffect(() => { void load(); }, []);
 
   return (
-    <AppShell
-      title="Panda Sweepstakes"
-      subtitle="Buy tickets with BC, win prizes, and enter the admin-selected contest."
-    >
-      <section className="cp-sweep-activity mb-5">
+    <AppShell title="Panda Sweepstakes" subtitle="Click to contest, then explore the prizes configured by Circle Panda Admin.">
+      <section className="cp-sweep-activity mb-6">
         <div className="cp-sweep-activity-glow" />
         <div className="relative z-10">
           <p className="cp-eyebrow">CONTEST ENTRY</p>
-          <h2 className="mt-1 text-2xl font-black text-white">Ready to Win?</h2>
-          <p className="mt-1 text-xs text-white/65">
-            Enter the contest for a chance to win one of the prizes below. Click the button to play the contest selected by the admin.
+          <h1 className="mt-1 text-2xl font-black text-white">CLICK TO CONTEST</h1>
+          <p className="mt-2 max-w-xl text-sm leading-relaxed text-white/70">
+            Click to enter the current contest for a chance to win one of the prizes below — such as a PS5 or another prize selected by Admin.
           </p>
-          {sweepActivity ? (
-            <p className="mt-2 text-[11px] font-bold uppercase tracking-[0.14em] text-primary">
-              Current contest: {sweepActivity.title}
-            </p>
+          {contestActivity ? (
+            <div className="mt-3 rounded-xl border border-primary/20 bg-primary/5 px-3 py-2">
+              <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-primary">Current contest</p>
+              <p className="mt-0.5 text-sm font-bold text-white">{contestActivity.title}</p>
+              {contestActivity.description ? <p className="mt-0.5 text-xs text-white/60">{contestActivity.description}</p> : null}
+            </div>
           ) : null}
           <Button
             className="cp-neon-button mt-4 w-full"
-            disabled={sweepActivityLoading || !sweepActivity}
-            onClick={() => {
-              if (sweepActivity) setSelectedActivity(sweepActivity);
-            }}
+            disabled={loading || !contestActivity}
+            onClick={() => contestActivity && setSelectedActivity(contestActivity)}
           >
             <Sparkles className="mr-2 size-4" />
-            {sweepActivityLoading ? "Loading Contest…" : "Click to Contest"}
+            {loading ? "Loading Contest…" : "CLICK TO CONTEST"}
           </Button>
-          {!sweepActivityLoading && !sweepActivity ? (
-            <p className="mt-2 text-center text-[11px] text-muted-foreground">
-              No contest activity is currently available.
-            </p>
+          {!loading && !contestActivity ? (
+            <p className="mt-2 text-center text-[11px] text-muted-foreground">No contest activity is currently available.</p>
           ) : null}
         </div>
       </section>
 
-      <section className="mb-4 rounded-2xl border border-[var(--coin)]/25 bg-[var(--coin)]/5 p-4">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <p className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.17em] text-[var(--coin)]">
-              <Crown className="size-3.5" /> Daily draw & jackpot
-            </p>
-            <h2 className="mt-1 font-display text-xl font-semibold">
-              Five items. Five chances to win.
-            </h2>
-            <p className="mt-1 text-xs text-muted-foreground">
-              Every card is a single prize with its own ticket price and consolation value.
-            </p>
-          </div>
-          <span className="flex items-center gap-1.5 rounded-full border border-border/70 bg-background/50 px-3 py-1.5 text-xs font-semibold tabular-nums">
-            <Timer className="size-3.5 text-primary" /> {countdown(weeklyDrawEndsAt)} left
-          </span>
-        </div>
+      <section className="mb-4">
+        <p className="cp-eyebrow">PRIZES</p>
+        <h2 className="mt-1 font-display text-xl font-bold">Win something you actually want</h2>
+        <p className="mt-1 text-xs text-muted-foreground">Admin controls the number of cards shown, their order, images, descriptions and entry instructions.</p>
       </section>
 
-      <div className="grid gap-4 md:grid-cols-2">
-        {items.map((item, idx) => (
-          <Fragment key={item.id}>
-            <DailyItemCard
-              item={item}
-              coins={coins}
-              tickets={tickets[item.id] ?? 0}
-              onBuy={() => buyDailyTicket(item)}
+      {loading ? (
+        <div className="rounded-2xl border border-border/70 bg-card p-8 text-center text-sm text-muted-foreground">Loading live prizes…</div>
+      ) : prizes.length === 0 ? (
+        <div className="rounded-2xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground">No prizes are currently configured.</div>
+      ) : (
+        <div className="grid gap-4 md:grid-cols-2">
+          {prizes.map((prize) => (
+            <PrizeCardView
+              key={prize.id}
+              prize={prize}
+              activity={contestActivity}
+              onOpenActivity={() => contestActivity && setSelectedActivity(contestActivity)}
             />
-            {(idx + 1) % 4 === 0 ? <StandardBannerAd index={Math.floor(idx / 4)} variant="feed-card" placement="sweepstakes_inline" /> : null}
-          </Fragment>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
 
-      <section className="panda-panel mt-5 rounded-2xl p-4">
-        <h2 className="flex items-center gap-2 font-display text-lg font-semibold"><Ticket className="size-4 text-primary" /> Your ticket history</h2>
-        {ticketHistory.length === 0 ? <p className="mt-3 text-sm text-muted-foreground">No tickets purchased yet.</p> : <div className="mt-3 space-y-2">{ticketHistory.slice(0,10).map(t => <div key={t.id} className="flex items-center justify-between rounded-xl bg-secondary/40 px-3 py-2 text-xs"><span className="font-medium">{t.draw}</span><span className="text-muted-foreground">{new Date(t.created_at).toLocaleString()}</span></div>)}</div>}
-      </section>
-
-      <section className="panda-panel mt-5 rounded-2xl p-4">
-        <h2 className="flex items-center gap-2 font-display text-lg font-semibold">
-          <Trophy className="size-4 text-primary" /> Recent winners
-        </h2>
-        {sweepWinners.length === 0 ? (
-          <p className="mt-3 text-sm text-muted-foreground">
-            No draws closed yet. Be the first winner.
-          </p>
+      <section className="panda-panel mt-6 rounded-2xl p-4">
+        <h2 className="flex items-center gap-2 font-display text-lg font-semibold"><Trophy className="size-4 text-primary" /> Recent winners</h2>
+        {winners.length === 0 ? (
+          <p className="mt-3 text-sm text-muted-foreground">No completed contest draws yet.</p>
         ) : (
           <div className="mt-3 space-y-2">
-            {sweepWinners.map((w, i) => (
-              <div
-                key={`${w.name}-${w.wonAt}-${i}`}
-                className="flex items-center gap-3 rounded-xl bg-secondary/40 px-3 py-2"
-              >
-                <span className="grid size-8 shrink-0 place-items-center rounded-full bg-background text-sm">
-                  {w.draw === "monthly" ? "👑" : "🎁"}
-                </span>
+            {winners.map((winner) => (
+              <div key={winner.id} className="flex items-center gap-3 rounded-xl bg-secondary/40 px-3 py-2">
+                <span className="grid size-8 shrink-0 place-items-center rounded-full bg-background">🏆</span>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium">{w.name}</p>
-                  <p className="truncate text-xs text-muted-foreground">{w.prize}</p>
+                  <p className="truncate text-sm font-medium">{winner.name}</p>
+                  <p className="truncate text-xs text-muted-foreground">{winner.prize}</p>
                 </div>
-                <span className="shrink-0 text-[11px] uppercase tracking-wide text-muted-foreground">
-                  {w.draw}
-                </span>
+                <span className="shrink-0 text-[11px] text-muted-foreground">{new Date(winner.won_at).toLocaleDateString()}</span>
               </div>
             ))}
           </div>
         )}
-        <p className="mt-3 flex items-center gap-1.5 text-xs text-muted-foreground">
-          <Timer className="size-3.5" /> Daily items reset when the draw timer reaches zero.
-          Consolation prizes are issued to non-winning ticket holders.
-        </p>
       </section>
 
-      {selectedActivity ? <GameModal activity={selectedActivity} onClose={() => setSelectedActivity(null)} onDone={() => undefined} /> : null}
+      {selectedActivity ? (
+        <GameModal
+          activity={selectedActivity}
+          onClose={() => setSelectedActivity(null)}
+          onDone={() => undefined}
+        />
+      ) : null}
     </AppShell>
   );
 }
