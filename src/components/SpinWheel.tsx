@@ -37,6 +37,7 @@ export function SpinWheel({
   const [result, setResult] = useState<SpinPrize | null>(null);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [submittingQualification, setSubmittingQualification] = useState(false);
+  const [qualificationComplete, setQualificationComplete] = useState<{ nextStageReleased: boolean } | null>(null);
   const [, setTick] = useState(0);
   const wheelRef = useRef<HTMLDivElement>(null);
 
@@ -53,6 +54,7 @@ export function SpinWheel({
     if (spinning || !canSpin) return;
     setSpinning(true);
     setResult(null);
+    setQualificationComplete(null);
     try {
       // Resolve the prize on the server first. The animation must never
       // display a different slice from the authoritative result.
@@ -121,6 +123,17 @@ export function SpinWheel({
           </div>
         </div>
 
+        {qualificationComplete ? (
+          <div className="rounded-2xl border border-emerald-400/30 bg-emerald-400/10 p-4 text-center">
+            <p className="text-lg font-black text-emerald-300">✅ Qualification stage completed</p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Your submission has been saved securely.
+              {qualificationComplete.nextStageReleased ? " The next qualification stage is now available." : " We will notify you when the next stage is released."}
+            </p>
+            <Button className="mt-4 w-full" onClick={() => setQualificationComplete(null)}>Continue</Button>
+          </div>
+        ) : null}
+
         {result ? (
           result.requiresQualification && result.qualificationId && result.qualificationStageId ? (
             <div className="space-y-3">
@@ -159,9 +172,10 @@ export function SpinWheel({
                       p_answers: answers,
                     });
                     if (error) throw error;
-                    toast.success(data?.next_stage ? "Qualification submitted successfully." : "Qualification completed.");
+                    setQualificationComplete({ nextStageReleased: Boolean(data?.next_stage_released) });
                     setResult(null);
                     setAnswers({});
+
                   } catch (error: any) {
                     toast.error(error?.message ?? "Could not submit your qualification.");
                   } finally {
