@@ -193,13 +193,12 @@ export function ConfessionsPage() {
   };
 
   const reactionOptions = [
-    { key:"heart", emoji:"❤️", label:"Love" },
+    { key:"heart", emoji:"❤️", label:"Heart" },
     { key:"laugh", emoji:"😂", label:"Laugh" },
-    { key:"wow", emoji:"😮", label:"Wow" },
+    { key:"wow", emoji:"😮", label:"Surprised" },
     { key:"angry", emoji:"😡", label:"Angry" },
     { key:"panda", emoji:"🐼", label:"Panda" },
   ];
-
   const react = async (id: string, reaction: string) => {
     const { data: authData } = await supabase.auth.getUser();
     if (!authData.user || authData.user.is_anonymous) {
