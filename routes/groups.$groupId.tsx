@@ -2,6 +2,7 @@ import { createFileRoute, Link, useParams } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ChevronLeft, Lock, LogOut, Pencil, Settings, Timer, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { useStore, DAY_MS, type GroupChatMessage } from "@/lib/store";
 import { GroupComposer, type OutgoingGroupMedia } from "@/components/groups/GroupComposer";
 import { GroupMediaMessage, type GroupMediaItem } from "@/components/groups/GroupMediaMessage";
