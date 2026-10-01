@@ -78,13 +78,22 @@ export function AuthModal({ open, onOpenChange, defaultTab = "signin", onOpenBac
     setBusy(true);
     try {
       if (tab === "signup") {
-        const metadata = { name: name.trim(), avatar_style: "0" };
+        // Create the account server-side with confirmation already completed.
+        // This intentionally bypasses Supabase's email/phone confirmation gate so
+        // a new Panda can enter the Circle immediately after signing up.
+        const { data: created, error: createError } = await supabase.functions.invoke("create-panda-account", {
+          body: { name: name.trim(), identifier: value, password },
+        });
+        if (createError) throw createError;
+        if (!created?.user_id) throw new Error("Account was not created.");
+
         const result = value.includes("@")
-          ? await supabase.auth.signUp({ email: value, password, options: { data: metadata, emailRedirectTo: window.location.origin + "/auth/callback" } })
-          : await supabase.auth.signUp({ phone: value, password, options: { data: metadata } });
+          ? await supabase.auth.signInWithPassword({ email: value, password })
+          : await supabase.auth.signInWithPassword({ phone: value, password });
         if (result.error) throw result.error;
-        toast.success(result.data.session ? "Account created. Welcome to Circle Panda 🐼" : "Account created. Complete verification, then sign in.");
-      if (result.data.session) onAuthenticated?.();
+
+        toast.success("Account created. Welcome to Circle Panda 🐼");
+        onAuthenticated?.();
       } else {
         const result = value.includes("@")
           ? await supabase.auth.signInWithPassword({ email: value, password })
