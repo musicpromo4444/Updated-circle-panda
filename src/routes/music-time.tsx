@@ -25,6 +25,7 @@ function MediaAdGate({placement,onDone}:{placement:"video_preroll"|"video_postro
   const ad=useActiveAdCreative(placement); const [seconds,setSeconds]=useState(5); const [done,setDone]=useState(false);
   const finished=()=>{if(done)return;setDone(true);onDone()};
   useEffect(()=>{if(ad?.format==="playable"&&ad.videoUrl)return;const t=window.setInterval(()=>setSeconds(s=>{if(s<=1){window.clearInterval(t);return 0}return s-1}),1000);return()=>window.clearInterval(t)},[ad]);
+  useEffect(()=>{if(ad && !(ad.format==="playable"&&ad.videoUrl) && seconds===0) finished()},[ad,seconds]);
   useEffect(()=>{if(ad?.format==="playable"&&ad.videoUrl){setSeconds(0)}},[ad]);
   if(!ad)return <div className="fixed inset-0 z-50 grid place-items-center bg-black text-white"><div className="text-center"><p className="font-display text-xl font-bold">Preparing video…</p><p className="mt-2 text-sm text-white/70">The video will start automatically.</p></div></div>;
   const playable=ad.format==="playable"&&Boolean(ad.videoUrl);
@@ -36,7 +37,7 @@ function MediaAdGate({placement,onDone}:{placement:"video_preroll"|"video_postro
         <p className="text-lg font-bold">{ad.headline}</p><p className="mt-1 text-sm text-white/70">{ad.description}</p>
         <div className="mt-5 rounded-2xl border border-white/10 bg-white/5 p-4 text-center"><p className="text-xs text-white/60">Please wait</p><p className="mt-1 text-2xl font-black">{seconds>0?seconds:"Ready"}</p></div>
       </div>}
-      {!playable&&seconds===0?<Button className="m-4 w-[calc(100%-2rem)]" onClick={finished}>Continue to video</Button>:null}
+      {!playable&&seconds>0?<div className="px-4 pb-4 text-center text-xs text-white/60">This ad is required and will continue automatically.</div>:null}
     </div>
   </div>;
 }
@@ -49,9 +50,9 @@ function MusicTimePage(){
   const load=async(type:MediaType)=>{const {data,error}=await (supabase as any).rpc("get_circle_panda_media_catalog",{p_media_type:type});if(error){toast.error(error.message);return}setItems((data??[]) as MediaItem[]);setSelected(null);setPlaying(false);};
   useEffect(()=>{void load(tab)},[tab]);
 
-  const startSession=async(item:MediaItem)=>{
+  const startSession=async(item:MediaItem, timed=true)=>{
     const {data,error}=await (supabase as any).rpc("start_circle_panda_media_session",{p_media_type:tab,p_media_item_id:item.id});
-    if(error){toast.error(error.message);return null} setSessionId(data as string);setRemaining(1800);setPlaying(true);return data as string;
+    if(error){toast.error(error.message);return null} setSessionId(data as string);setRemaining(1800);setPlaying(timed);return data as string;
   };
   const stopSession=async()=>{
     if(sessionId) await (supabase as any).rpc("stop_circle_panda_media_session",{p_session_id:sessionId});
@@ -63,9 +64,10 @@ function MusicTimePage(){
     await startSession(item);
     window.setTimeout(()=>{if(tab==="audio"||tab==="music")void audioRef.current?.play().catch(()=>{})},50);
   };
-  const beginVideo=async()=>{if(!pendingVideo)return;setShowAd(null);await startSession(pendingVideo);setTimeout(()=>{const v=videoRef.current;void v?.play().catch(()=>{});if(v?.requestFullscreen)void v.requestFullscreen().catch(()=>{})},50)};
+  const beginVideo=async()=>{if(!pendingVideo)return;setShowAd(null);await startSession(pendingVideo,false);window.setTimeout(()=>{const v=videoRef.current;void v?.play().catch(()=>{});if(v?.requestFullscreen)void v.requestFullscreen().catch(()=>{})},50)};
   const onVideoEnded=async()=>{await stopSession();setShowAd("video_postroll")};
   useEffect(()=>{if(!playing)return;const t=window.setInterval(()=>setRemaining(s=>{if(s<=1){void stopSession();return 1800}return s-1}),1000);return()=>window.clearInterval(t)},[playing,sessionId]);
+  const switchTab=async(next:MediaType)=>{if(sessionId) await stopSession();setShowAd(null);setPendingVideo(null);setSelected(null);setPlaying(false);setTab(next)};
   useEffect(()=>{ return ()=>{ if(sessionId) void (supabase as any).rpc("stop_circle_panda_media_session",{p_session_id:sessionId}); }; },[sessionId]);
   const sourceUrl=selected?.media_url??"";
   const external=selected?.source==="spotify"||selected?.source==="audiomack";
@@ -80,6 +82,6 @@ function MusicTimePage(){
       </section><StandardBannerAd variant="inline" placement={tab==="audio"?"audio_time_bottom":"music_time_bottom"}/></>:<section className="relative min-h-[calc(100vh-190px)] overflow-hidden rounded-none bg-black sm:rounded-3xl">{selected?.media_url?<video ref={videoRef} src={selected.media_url} poster={selected.thumbnail_url??undefined} controls playsInline className="h-[calc(100vh-190px)] w-full bg-black object-contain" onEnded={onVideoEnded}/>:<div className="grid min-h-[calc(100vh-190px)] place-items-center p-6 text-center text-white/70">Choose a video below. Circle Panda videos play full-screen with no banner ads.</div>}</section>}
       <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{items.map(item=><button key={item.id} onClick={()=>void playItem(item)} className="overflow-hidden rounded-2xl border border-border/70 bg-card text-left transition hover:border-primary/50">{item.thumbnail_url?<img src={item.thumbnail_url} alt="" className="aspect-video w-full object-cover"/>:<div className="grid aspect-video place-items-center bg-secondary"><Play className="size-8 text-primary"/></div>}<div className="p-3"><p className="truncate text-sm font-bold">{item.title}</p><p className="text-xs text-muted-foreground">{item.artist??SOURCE_LABELS[item.source]}</p></div></button>)}</section>
     </main>
-    {showAd?<MediaAdGate placement={showAd} onDone={()=>showAd==="video_preroll"?void beginVideo():setShowAd(null)}/>:null}
+    {showAd?<MediaAdGate placement={showAd} onDone={()=>{if(showAd==="video_preroll"){void beginVideo()}else{setShowAd(null);setSelected(null);setPendingVideo(null);setPlaying(false)}}}/>:null}
   </AppShell>;
 }
