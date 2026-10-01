@@ -4,25 +4,21 @@ import {
   Lock,
   Sparkles,
   ChevronRight,
-  Calendar,
-  Gift,
-  BarChart3,
-  Mic,
   ArrowRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useStore } from "@/lib/store";
-import { VipLoungeSpace } from "./VipLoungeSpace";
+import { VipGroupChat } from "./VipGroupChat";
 import { VipUpgradeModal } from "./VipUpgradeModal";
 
 export function VipLoungeCard() {
   const { isVip, vipExpiresAt } = useStore();
-  const [loungeOpen, setLoungeOpen] = useState(false);
+  const [groupOpen, setGroupOpen] = useState(false);
   const [upgradeOpen, setUpgradeOpen] = useState(false);
 
   const handleClick = () => {
     if (isVip) {
-      setLoungeOpen(true);
+      setGroupOpen(true);
     } else {
       setUpgradeOpen(true);
     }
@@ -84,23 +80,19 @@ export function VipLoungeCard() {
                 </h3>
               </div>
               <p className="mt-0.5 text-xs text-muted-foreground leading-relaxed">
-                Elite space to host events, run giveaways, post poll questions, and drop voice/video
-                notes.
+                Private full-screen WhatsApp-style group for VIP members — text, photos, videos and voice notes.
               </p>
 
               {/* Feature Pills */}
               <div className="mt-3 flex flex-wrap gap-1.5 text-[11px]">
                 <span className="inline-flex items-center gap-1 rounded-lg border border-amber-400/30 bg-amber-500/10 px-2 py-0.5 font-medium text-amber-600 dark:text-amber-300">
-                  <Calendar className="size-3" /> Events
+                  Text
                 </span>
                 <span className="inline-flex items-center gap-1 rounded-lg border border-amber-400/30 bg-amber-500/10 px-2 py-0.5 font-medium text-amber-600 dark:text-amber-300">
-                  <Gift className="size-3" /> Giveaways
+                  Photos & Videos
                 </span>
                 <span className="inline-flex items-center gap-1 rounded-lg border border-amber-400/30 bg-amber-500/10 px-2 py-0.5 font-medium text-amber-600 dark:text-amber-300">
-                  <BarChart3 className="size-3" /> Polls
-                </span>
-                <span className="inline-flex items-center gap-1 rounded-lg border border-amber-400/30 bg-amber-500/10 px-2 py-0.5 font-medium text-amber-600 dark:text-amber-300">
-                  <Mic className="size-3" /> Voice & Video Notes
+                  Voice Notes
                 </span>
               </div>
             </div>
@@ -138,10 +130,10 @@ export function VipLoungeCard() {
           {isVip && (
             <div className="mt-3.5 flex items-center justify-between rounded-xl border border-amber-400/40 bg-amber-500/10 px-3 py-2 text-xs">
               <span className="font-semibold text-amber-500 flex items-center gap-1.5">
-                <Sparkles className="size-3.5" /> Tap to open the VIP Lounge
+                <Sparkles className="size-3.5" /> Tap to open the VIP Group
               </span>
               <span className="flex items-center gap-1 font-bold text-amber-500">
-                Enter Space <ChevronRight className="size-4" />
+                Enter Group <ChevronRight className="size-4" />
               </span>
             </div>
           )}
@@ -149,7 +141,7 @@ export function VipLoungeCard() {
       </section>
 
       {/* VIP Space Dialog for VIP Members */}
-      <VipLoungeSpace open={loungeOpen} onOpenChange={setLoungeOpen} />
+      <VipGroupChat open={groupOpen} onOpenChange={setGroupOpen} />
 
       {/* Upgrade Modal for Normal Members */}
       <VipUpgradeModal open={upgradeOpen} onOpenChange={setUpgradeOpen} />
