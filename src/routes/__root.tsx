@@ -18,6 +18,7 @@ import { ThemeProvider, useTheme } from "@/lib/theme";
 import { Toaster } from "@/components/ui/sonner";
 import { HotSeatFloatingPresence } from "@/components/hotseat/HotSeatFloatingPresence";
 import { AppDownloadPromotion } from "@/components/AppDownloadPromotion";
+import { UniversalWinnerFlow } from "@/components/UniversalWinnerFlow";
 
 function NotFoundComponent() {
   return (
@@ -190,6 +191,7 @@ function RootComponent() {
           <CircleWelcome />
           {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
           <Outlet />
+          <UniversalWinnerFlow />
           <AppDownloadPromotion />
           {!hideHotSeatPresence ? <HotSeatFloatingPresence /> : null}
           <ThemedToaster />
