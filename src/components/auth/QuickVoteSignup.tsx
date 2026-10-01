@@ -74,7 +74,7 @@ export function QuickVoteSignup({
                     password,
                     options: {
                       data: { name: `Panda #${Math.floor(1000 + Math.random() * 9000)}` },
-                      emailRedirectTo: window.location.origin + "/",
+                      emailRedirectTo: window.location.origin + "/auth/callback",
                     },
                   })
                 : await supabase.auth.signUp({
