@@ -305,6 +305,53 @@ export function ConfessionsPage() {
         ))}
       </div>
 
+      <Dialog open={uploadOpen} onOpenChange={(v) => {
+        if (!v && !uploading) {
+          setUploadOpen(false);
+          setUploadFile(null);
+          if (fileInputRef.current) fileInputRef.current.value = "";
+        }
+      }}>
+        <DialogContent className="max-w-sm rounded-3xl">
+          <DialogTitle>Upload to MCM / WCW</DialogTitle>
+          <DialogDescription>Your gender decides the weekly category automatically. One entry per week, maximum 6MB.</DialogDescription>
+
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*,video/*"
+            className="sr-only"
+            onChange={(e) => handleFile(e.target.files?.[0] ?? null)}
+            disabled={uploading}
+          />
+
+          <button
+            type="button"
+            onClick={chooseFile}
+            disabled={uploading}
+            className="flex min-h-28 w-full flex-col items-center justify-center rounded-2xl border border-dashed border-primary/60 bg-secondary/30 px-4 text-center transition-colors hover:bg-secondary/50 active:scale-[.99]"
+          >
+            <Upload className="size-7 text-primary" />
+            <span className="mt-2 text-sm font-bold">{uploadFile ? "Change photo or video" : "Choose photo or video"}</span>
+            <span className="mt-1 max-w-full truncate text-xs text-muted-foreground">
+              {uploadFile ? uploadFile.name : "Tap here to open your phone gallery/files"}
+            </span>
+          </button>
+
+          <Textarea
+            value={uploadCaption}
+            onChange={(e) => setUploadCaption(e.target.value)}
+            maxLength={300}
+            placeholder="Optional caption..."
+            className="rounded-2xl"
+            disabled={uploading}
+          />
+          <Button onClick={() => void uploadCrush()} disabled={uploading || !uploadFile} className="w-full rounded-2xl">
+            {uploading ? "Uploading…" : "Publish weekly entry"}
+          </Button>
+        </DialogContent>
+      </Dialog>
+
       <QuickVoteSignup
         open={showSignup}
         onOpenChange={setShowSignup}
