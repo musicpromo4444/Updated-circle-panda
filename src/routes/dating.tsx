@@ -29,19 +29,24 @@ function DatingPhoto({ match, connection }: { match: Match; connection?: any }) 
   const revealed = Boolean(connection?.status === "matched" && connection?.requester_confirmed && connection?.recipient_confirmed);
   useEffect(() => {
     let active = true;
+    if (!revealed && match.blurredPhotoPath) {
+      void supabase.storage.from("dating-photo-blur").createSignedUrl(match.blurredPhotoPath, 10 * 60).then(({ data, error }: any) => {
+        if (active && !error) setRevealedUrl(data?.signedUrl ?? null);
+      });
+      return () => { active = false; };
+    }
     if (!revealed || !match.photoPath) { setRevealedUrl(null); return; }
     void supabase.storage.from("dating-photos").createSignedUrl(match.photoPath, 60 * 60).then(({ data, error }: any) => {
       if (active && !error) setRevealedUrl(data?.signedUrl ?? null);
     });
     return () => { active = false; };
-  }, [revealed, match.photoPath]);
+  }, [revealed, match.photoPath, match.blurredPhotoPath]);
 
   if (revealed && revealedUrl) {
     return <img src={revealedUrl} alt="Dating profile" className="size-full object-cover" />;
   }
-  if (match.blurredPhotoPath) {
-    const url = supabase.storage.from("dating-photo-blur").getPublicUrl(match.blurredPhotoPath).data.publicUrl;
-    return <img src={url} alt="Blurred Dating profile" className="size-full object-cover" />;
+  if (match.blurredPhotoPath && revealedUrl) {
+    return <img src={revealedUrl} alt="Blurred Dating profile" className="size-full object-cover blur-sm" />;
   }
   return <span aria-hidden="true">{match.emoji}</span>;
 }
