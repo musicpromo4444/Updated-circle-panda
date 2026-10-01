@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
-import { QuickVoteSignup } from "@/components/auth/QuickVoteSignup";
+import { AuthModal } from "@/components/auth/AuthModal";
 import { VipIdentity } from "@/components/VipIdentity";
 
 export const Route = createFileRoute("/confessions")({
@@ -356,12 +356,11 @@ export function ConfessionsPage() {
         </DialogContent>
       </Dialog>
 
-      <QuickVoteSignup
+      <AuthModal
         open={showSignup}
         onOpenChange={setShowSignup}
-        actionLabel="post your confession"
-        successDescription="Your confession can continue immediately."
-        onComplete={() => {
+        defaultTab="signin"
+        onAuthenticated={() => {
           const trimmed = content.trim();
           if (trimmed.length >= 3) void submitNow(trimmed, anonymous);
         }}
