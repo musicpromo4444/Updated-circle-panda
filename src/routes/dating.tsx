@@ -10,6 +10,7 @@ import { PlayableVideoAd } from "@/components/ads/PlayableVideoAd";
 import { RegisterDatingModal } from "@/components/dating/RegisterDatingModal";
 import { useStore } from "@/lib/store";
 import { supabase } from "@/integrations/supabase/client";
+import { requestLogin } from "@/components/auth/LoginRequiredDialog";
 
 type Match = {
   userId?: string;
@@ -71,6 +72,14 @@ function DatingPage() {
   const navigate = useNavigate();
   const [openMatch, setOpenMatch] = useState<Match | null>(null);
   const [registerOpen, setRegisterOpen] = useState(false);
+  const openDatingRegistration = async () => {
+    const { data } = await supabase.auth.getUser();
+    if (!data.user || data.user.is_anonymous) {
+      requestLogin("register for Dating");
+      return;
+    }
+    setRegisterOpen(true);
+  };
   const [sent, setSent] = useState<Record<string,string>>({});
   const [incoming, setIncoming] = useState<any[]>([]);
   const [, setClock] = useState(Date.now());
@@ -175,7 +184,7 @@ function DatingPage() {
       <div className="mb-5">
         <Button
           size="lg"
-          onClick={() => setRegisterOpen(true)}
+          onClick={() => void openDatingRegistration()}
           className="w-full gap-2.5 rounded-2xl bg-[var(--dating)] py-6 text-sm sm:text-base font-bold text-[var(--dating-foreground)] shadow-lg shadow-[var(--dating)]/20 transition-all hover:bg-[var(--dating)]/90 active:scale-[0.99] cursor-pointer"
         >
           <Heart className="size-5 fill-current" />
@@ -264,7 +273,7 @@ function DatingPage() {
                   <Button
                     variant="outline"
                     className="w-full gap-2 border-[var(--dating)]/40 text-[var(--dating)] hover:bg-[var(--dating)]/10 font-semibold"
-                    onClick={() => setRegisterOpen(true)}
+                    onClick={() => void openDatingRegistration()}
                   >
                     <Sparkles className="size-4" /> Edit your profile
                   </Button>
