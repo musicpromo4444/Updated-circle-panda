@@ -64,6 +64,12 @@ const UNIVERSAL_PLACEMENT_MAP: Partial<Record<AdPlacementTarget, string>> = {
   events_inline: "events_inline",
   sweepstakes_inline: "sweepstakes_inline",
   live_inline: "live_inline",
+  music_time_top: "music_time_top",
+  music_time_bottom: "music_time_bottom",
+  audio_time_top: "audio_time_top",
+  audio_time_bottom: "audio_time_bottom",
+  video_preroll: "video_preroll",
+  video_postroll: "video_postroll",
   music_time_inline: "music_time_inline",
   profile_inline: "profile_inline",
   leaders_inline: "leaders_inline",
@@ -118,8 +124,13 @@ export function useActiveAdCreative(placement: AdPlacementTarget) {
       if (!legacyEnabled || !universalEnabled) { setCreative(null); return; }
 
       const rows = Array.isArray(data?.creatives) ? data.creatives : [];
-      const match = rows.find((row: any) => row.placement === placement && row.status === "active");
-      if (!match) { setCreative(null); return; }
+      const matches = rows.filter((row: any) => row.placement === placement && row.status === "active");
+      if (!matches.length) { setCreative(null); return; }
+      const previousKey = `cp_last_ad_${placement}`;
+      const previous = sessionStorage.getItem(previousKey);
+      const candidates = matches.length > 1 ? matches.filter((row: any) => row.id !== previous) : matches;
+      const match = candidates[Math.floor(Math.random() * candidates.length)] ?? matches[0];
+      sessionStorage.setItem(previousKey, match.id);
       setCreative({
         id: match.id, sponsor: match.sponsor, headline: match.headline,
         description: match.description || "", imageUrl: match.image_url || undefined,
