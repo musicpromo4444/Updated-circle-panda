@@ -77,8 +77,8 @@ export function SpinWheel({
 
   return (
     <Dialog open={open} onOpenChange={(o) => !spinning && onOpenChange(o)}>
-      <DialogContent className="sm:max-w-sm">
-        <DialogTitle className="flex items-center gap-2 font-display text-xl">
+      <DialogContent className="cp-game-dialog sm:max-w-md overflow-hidden border-0 bg-transparent p-0 shadow-none">
+        <DialogTitle className="cp-game-header flex items-center gap-2 font-display text-xl">
           <Sparkles className="size-5 text-[var(--coin)]" /> Spin the Wheel
         </DialogTitle>
         <DialogDescription>
@@ -96,7 +96,7 @@ export function SpinWheel({
           />
           <div
             ref={wheelRef}
-            className="size-full rounded-full border-4 border-[var(--coin)] shadow-[0_0_0_4px_var(--background)]"
+            className="cp-neon-wheel size-full rounded-full border-4 border-[#a96cff]"
             style={{
               transform: `rotate(${angle}deg)`,
               transition: spinning ? "transform 4.2s cubic-bezier(0.16,1,0.3,1)" : undefined,
