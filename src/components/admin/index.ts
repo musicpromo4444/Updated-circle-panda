@@ -12,3 +12,5 @@ export * from "./AdminDailyGamesManager";
 export * from "./AdminHotSeatManager";
 
 export * from "./UniversalAdManager";
+
+export * from "./AdminSweepstakesManager";
