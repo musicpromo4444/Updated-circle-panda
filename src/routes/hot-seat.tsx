@@ -340,6 +340,12 @@ function HotSeatPage() {
     });
   }, [sessionPhase, activeHost?.id]);
 
+  // If a user is inside a break activity when the host resumes, the shared live room wins immediately.
+  // Their private break activity is closed so they rejoin the host at the current live position.
+  useEffect(() => {
+    if (sessionPhase === "live" && breakGame) setBreakGame(null);
+  }, [sessionPhase, breakGame]);
+
   // Hot Seat session clock: 3 hours live + mandatory 1 hour water break.
   // The phase is derived from the scheduled start time so the UI stays correct even if the
   // browser is refreshed. Admin-created sessions can still override the provider/slot metadata.
@@ -520,14 +526,8 @@ function HotSeatPage() {
     }).catch((error:any) => toast.error(error?.message ?? "Could not boost queue."));
   };
 
-  if (breakGame) {
-    return (
-      <>
-        <GameModal activity={breakGame} onClose={() => setBreakGame(null)} onDone={() => setBreakGame(null)} />
-      </>
-    );
-  }
-
+  // Break activities are modal overlays only. The Hot Seat page remains mounted so the
+  // shared session clock can move everyone back to the current host automatically.
   return (
     <div
       id="hot-seat-immersive-viewport"
