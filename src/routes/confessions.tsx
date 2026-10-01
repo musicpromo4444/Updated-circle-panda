@@ -149,10 +149,8 @@ export function ConfessionsPage() {
     if (error) return toast.error(error.message ?? "Your confession could not be submitted.");
     setContent("");
     setShowSignup(false);
-    toast.success("Confession submitted for review.", {
-      description: "It will appear here after moderation approves it.",
-    });
-    void load(true);
+    toast.success("Confession posted 🐼");
+    await load(true);
   };
 
   const submit = async () => {
