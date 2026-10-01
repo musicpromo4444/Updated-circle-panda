@@ -169,7 +169,7 @@ function SweepstakesPage() {
   const [selectedActivity, setSelectedActivity] = useState<ContestActivity | null>(null);
   const [contestActivity, setContestActivity] = useState<ContestActivity | null>(null);
   const [prizes, setPrizes] = useState<PrizeCard[]>([]);
-  const [cardLimit, setCardLimit] = useState(5);
+  const [, setCardLimit] = useState(5);
   const [loading, setLoading] = useState(true);
   const [winners, setWinners] = useState<Array<{ id: string; name: string; prize: string; won_at: string }>>([]);
 
