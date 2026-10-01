@@ -1,11 +1,12 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
-import { Heart, Laugh, Plus, Send, Sparkles, Eye, RefreshCw, ShieldCheck, Crown, Trophy, Upload, Share2 } from "lucide-react";
+import { createFileRoute } from "@tanstack/react-router";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Eye, Heart, Laugh, Plus, RefreshCw, Send, ShieldCheck, Upload, Crown } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
 import { StandardBannerAd } from "@/components/ads/StandardBannerAd";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { QuickVoteSignup } from "@/components/auth/QuickVoteSignup";
 import { VipIdentity } from "@/components/VipIdentity";
@@ -15,17 +16,32 @@ export const Route = createFileRoute("/confessions")({
   component: ConfessionsPage,
 });
 
-type Confession = { id: string; content: string; is_anonymous: boolean; created_at: string; author_id?: string | null; author_vip_at?: string | null };
-type WeeklyEntry = { id: string; user_id?: string; display_name?: string; panda_name?: string; kind?: string; blurb?: string; emoji?: string; media_url?: string; media_type?: string; week_start?: string; vote_count?: number; reaction_count?: number; my_vote?: boolean; my_reaction?: string | null };
+type Confession = {
+  id: string;
+  content: string;
+  is_anonymous: boolean;
+  created_at: string;
+  author_id?: string | null;
+  author_vip_at?: string | null;
+};
+
+type WeeklyEntry = {
+  id: string;
+  display_name?: string;
+  kind?: string;
+  emoji?: string;
+  media_url?: string;
+  media_type?: string;
+  vote_count?: number;
+  reaction_count?: number;
+};
 
 export function ConfessionsPage() {
   const [weekly, setWeekly] = useState<{ wcw: WeeklyEntry[]; mcm: WeeklyEntry[] }>({ wcw: [], mcm: [] });
-  const [weeklyWinner, setWeeklyWinner] = useState<{ wcw: any | null; mcm: any | null }>({ wcw: null, mcm: null });
   const [uploadOpen, setUploadOpen] = useState(false);
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [uploadCaption, setUploadCaption] = useState("");
   const [uploading, setUploading] = useState(false);
-  const [claimingVip, setClaimingVip] = useState<string | null>(null);
   const [items, setItems] = useState<Confession[]>([]);
   const [content, setContent] = useState("");
   const [anonymous, setAnonymous] = useState(true);
@@ -34,55 +50,74 @@ export function ConfessionsPage() {
   const [submitting, setSubmitting] = useState(false);
   const [showSignup, setShowSignup] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const remaining = useMemo(() => 2000 - content.length, [content.length]);
 
   const load = async (background = false) => {
     if (background) setRefreshing(true); else setLoading(true);
-    const { data, error } = await supabase.from("confessions").select("id,content,is_anonymous,created_at,author_id,author_vip_at").eq("is_published", true).order("created_at", { ascending: false }).limit(50);
-    if (error) toast.error(error.message); else setItems((data ?? []) as Confession[]);
+    const { data, error } = await supabase
+      .from("confessions")
+      .select("id,content,is_anonymous,created_at,author_id,author_vip_at")
+      .eq("is_published", true)
+      .order("created_at", { ascending: false })
+      .limit(50);
+    if (error) toast.error(error.message);
+    else setItems((data ?? []) as Confession[]);
     setLoading(false);
     setRefreshing(false);
+  };
+
+  const loadWeekly = async () => {
+    const { data, error } = await (supabase as any).rpc("get_wcw_mcm_current_week");
+    if (error) return;
+    if (Array.isArray(data)) {
+      setWeekly({
+        wcw: data.filter((x: any) => String(x.kind ?? "").toLowerCase() === "wcw"),
+        mcm: data.filter((x: any) => String(x.kind ?? "").toLowerCase() === "mcm"),
+      });
+    }
   };
 
   useEffect(() => {
     if (window.location.hash === "#upload") setUploadOpen(true);
     void load();
-    const loadWeekly = async () => {
-      const [{ data }, { data: winners }] = await Promise.all([
-        (supabase as any).rpc("get_wcw_mcm_current_week"),
-        supabase.from("crush_winners").select("kind,display_name,vote_count,week_start,created_at").order("created_at", { ascending: false }).limit(10),
-      ]);
-      if (Array.isArray(data)) {
-        setWeekly({
-          wcw: data.filter((x: any) => String(x.kind ?? "").toLowerCase() === "wcw"),
-          mcm: data.filter((x: any) => String(x.kind ?? "").toLowerCase() === "mcm"),
-        });
-      }
-      const currentWeek = new Date();
-      const sunday = new Date(currentWeek);
-      sunday.setDate(currentWeek.getDate() - currentWeek.getDay());
-      const week = sunday.toISOString().slice(0,10);
-      setWeeklyWinner({
-        wcw: (winners ?? []).find((x: any) => x.kind === "wcw" && x.week_start === week) ?? null,
-        mcm: (winners ?? []).find((x: any) => x.kind === "mcm" && x.week_start === week) ?? null,
-      });
-    };
     void loadWeekly();
   }, []);
 
+  const chooseFile = () => fileInputRef.current?.click();
+
+  const handleFile = (file: File | null) => {
+    if (!file) return;
+    if (!file.type.startsWith("image/") && !file.type.startsWith("video/")) {
+      toast.error("Only photos and videos are allowed.");
+      return;
+    }
+    if (file.size > 6 * 1024 * 1024) {
+      toast.error("Please keep the upload under 6MB.");
+      return;
+    }
+    setUploadFile(file);
+  };
+
   const uploadCrush = async () => {
-    if (!uploadFile) return toast.error("Choose a photo or video first.");
-    if (uploadFile.size > 6 * 1024 * 1024) return toast.error("Please keep the upload under 6MB.");
-    if (!uploadFile.type.startsWith("image/") && !uploadFile.type.startsWith("video/")) return toast.error("Only photos and videos are allowed.");
+    if (!uploadFile) return toast.error("Tap Choose photo or video first.");
     setUploading(true);
     try {
       const { data: authData } = await supabase.auth.getUser();
       const uid = authData.user?.id;
-      if (!uid) throw new Error("Please sign in first.");
+      if (!uid || authData.user?.is_anonymous) throw new Error("Please sign in before uploading your WCW/MCM entry.");
+
       const safeName = uploadFile.name.replace(/[^a-zA-Z0-9._-]/g, "-");
       const path = `${uid}/${crypto.randomUUID()}-${safeName}`;
-      const { error: uploadError } = await supabase.storage.from("circle-panda-crush").upload(path, uploadFile, { upsert: false, contentType: uploadFile.type, cacheControl: "3600" });
+      const { error: uploadError } = await supabase.storage
+        .from("circle-panda-crush")
+        .upload(path, uploadFile, {
+          upsert: false,
+          contentType: uploadFile.type,
+          cacheControl: "3600",
+        });
       if (uploadError) throw uploadError;
+
       const publicUrl = supabase.storage.from("circle-panda-crush").getPublicUrl(path).data.publicUrl;
       const { error } = await (supabase as any).rpc("submit_crush_media_secure", {
         p_media_url: publicUrl,
@@ -91,58 +126,43 @@ export function ConfessionsPage() {
         p_emoji: "🐼",
       });
       if (error) throw error;
+
       toast.success("Your WCW/MCM entry is uploaded.");
-      setUploadFile(null); setUploadCaption(""); setUploadOpen(false);
-      const { data } = await (supabase as any).rpc("get_wcw_mcm_current_week");
-      if (Array.isArray(data)) setWeekly({ wcw: data.filter((x:any)=>x.kind==="wcw"), mcm: data.filter((x:any)=>x.kind==="mcm") });
+      setUploadFile(null);
+      setUploadCaption("");
+      setUploadOpen(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      await loadWeekly();
     } catch (e: any) {
       toast.error(e?.message ?? "Upload failed.");
-    } finally { setUploading(false); }
-  };
-
-  const voteWeekly = async (id: string) => {
-    const { error } = await (supabase as any).rpc("cast_crush_vote_secure", { p_nominee_id: id });
-    if (error) return toast.error(error.message ?? "Vote could not be saved.");
-    toast.success("Vote counted.");
-    const { data } = await (supabase as any).rpc("get_wcw_mcm_current_week");
-    if (Array.isArray(data)) setWeekly({ wcw: data.filter((x:any)=>x.kind==="wcw"), mcm: data.filter((x:any)=>x.kind==="mcm") });
-  };
-
-  const reactWeekly = async (id: string, reaction: string) => {
-    const { error } = await (supabase as any).rpc("react_to_crush_secure", { p_nominee_id: id, p_reaction: reaction });
-    if (error) return toast.error(error.message ?? "Reaction could not be saved.");
-    const { data } = await (supabase as any).rpc("get_wcw_mcm_current_week");
-    if (Array.isArray(data)) setWeekly({ wcw: data.filter((x:any)=>x.kind==="wcw"), mcm: data.filter((x:any)=>x.kind==="mcm") });
-  };
-
-  const claimVip = async (kind: string) => {
-    setClaimingVip(kind);
-    const { error } = await (supabase as any).rpc("claim_crush_vip_secure", { p_kind: kind });
-    setClaimingVip(null);
-    if (error) return toast.error(error.message ?? "VIP could not be claimed.");
-    toast.success("Your free 7-day VIP is now active 👑");
-    const { data: winners } = await supabase.from("crush_winners").select("kind,display_name,vote_count,week_start,vip_claimed_at,created_at").order("created_at",{ascending:false}).limit(10);
-    const currentWeek = new Date();
-    const sunday = new Date(currentWeek); sunday.setDate(currentWeek.getDate()-currentWeek.getDay());
-    const week = sunday.toISOString().slice(0,10);
-    setWeeklyWinner({
-      wcw: (winners ?? []).find((x:any)=>x.kind==="wcw"&&x.week_start===week) ?? null,
-      mcm: (winners ?? []).find((x:any)=>x.kind==="mcm"&&x.week_start===week) ?? null,
-    });
+    } finally {
+      setUploading(false);
+    }
   };
 
   const submitNow = async (trimmed: string, postAnonymous: boolean) => {
     setSubmitting(true);
-    const { data, error } = await (supabase as any).rpc("submit_confession_secure", { p_content: trimmed, p_anonymous: postAnonymous });
+    const { data, error } = await (supabase as any).rpc("submit_confession_secure", {
+      p_content: trimmed,
+      p_anonymous: postAnonymous,
+    });
     setSubmitting(false);
     if (error) return toast.error(error.message ?? "Your confession could not be submitted.");
     if (data?.id) {
-      void (supabase as any).rpc("record_activity_participation", { p_activity_id: null, p_activity_type: "post_confession", p_reference_id: data.id, p_points: 0 });
+      void (supabase as any).rpc("record_activity_participation", {
+        p_activity_id: null,
+        p_activity_type: "post_confession",
+        p_reference_id: data.id,
+        p_points: 0,
+      });
     }
     setContent("");
     setOpen(false);
     setShowSignup(false);
-    toast.success("Confession submitted for review.", { description: "It will appear here after moderation approves it." });
+    toast.success("Confession submitted for review.", {
+      description: "It will appear here after moderation approves it.",
+    });
+    void load(true);
   };
 
   const submit = async () => {
@@ -152,62 +172,220 @@ export function ConfessionsPage() {
 
     const { data: authData } = await supabase.auth.getUser();
     if (!authData.user || authData.user.is_anonymous) {
-      setOpen(true);
+      setOpen(false);
       setShowSignup(true);
-      toast("Create a free Circle Panda account before posting.", { description: "Your confession will be posted automatically after signup." });
       return;
     }
     await submitNow(trimmed, anonymous);
   };
 
   const react = async (id: string, reaction: string) => {
-    const { error } = await (supabase as any).rpc("react_to_confession_secure", { p_confession_id: id, p_reaction: reaction });
-    if (error) toast.error(error.message); else toast.success("Reaction saved");
+    const { error } = await (supabase as any).rpc("react_to_confession_secure", {
+      p_confession_id: id,
+      p_reaction: reaction,
+    });
+    if (error) toast.error(error.message);
+    else toast.success("Reaction saved");
   };
 
+  const mcmCount = weekly.mcm.length;
+  const wcwCount = weekly.wcw.length;
+
   return (
-    <AppShell title="Confessions" hidePageHeader>
+    <AppShell title="Anonymous Feed" hidePageHeader>
       <div className="mx-auto w-full max-w-2xl space-y-4">
-        <section className="rounded-3xl border border-border/70 bg-card p-4 shadow-sm">
-          <div className="mb-3 flex items-center justify-between">
-            <div><p className="text-xs font-bold uppercase tracking-widest text-primary">This week</p><h2 className="font-display text-xl font-bold">WCW & MCM</h2><p className="text-xs text-muted-foreground">Tap a section below</p></div>
-            <Button size="sm" onClick={() => { setUploadOpen(true); window.setTimeout(() => document.getElementById("wcw-mcm-upload")?.scrollIntoView({ behavior: "smooth", block: "center" }), 50); }} className="rounded-2xl"><Upload className="mr-1 size-4" /> Upload</Button>
-          </div>
-          {uploadOpen ? <div id="wcw-mcm-upload" className="mb-4 space-y-3 rounded-2xl bg-secondary/40 p-4">
-            <input type="file" accept="image/*,video/*" onChange={e => setUploadFile(e.target.files?.[0] ?? null)} className="w-full text-xs" disabled={uploading} />
-            <Textarea value={uploadCaption} onChange={e => setUploadCaption(e.target.value)} maxLength={300} placeholder="Optional caption..." className="rounded-2xl" disabled={uploading} />
-            <p className="text-[10px] text-muted-foreground">Your gender decides WCW or MCM automatically. One entry per week. Maximum 6MB.</p>
-            <Button onClick={() => void uploadCrush()} disabled={uploading || !uploadFile} className="w-full rounded-2xl">{uploading ? "Uploading…" : "Publish weekly entry"}</Button>
-          </div> : null}
-          <div className="rounded-2xl bg-secondary/30 p-3">
-            <p className="mb-3 text-center text-sm text-muted-foreground">Upload • Vote • React • Win weekly VIP</p>
-            <div className="grid grid-cols-3 gap-2">
-              <button type="button" onClick={() => { setUploadOpen(true); window.setTimeout(() => document.getElementById("wcw-mcm-upload")?.scrollIntoView({ behavior: "smooth", block: "center" }), 50); }} className="group flex flex-col items-center gap-2 rounded-2xl p-2 transition-colors hover:bg-background/70"><span className="grid size-16 place-items-center rounded-full border-2 border-primary/70 bg-background text-2xl shadow-sm transition-transform group-active:scale-95">＋</span><span className="text-xs font-bold">Upload</span></button>
-              <Link to="/crush" hash="wcw" className="group flex flex-col items-center gap-2 rounded-2xl p-2 transition-colors hover:bg-background/70"><span className="grid size-16 place-items-center rounded-full border-2 border-pink-400/80 bg-background text-2xl shadow-sm transition-transform group-active:scale-95">❤️</span><span className="text-xs font-bold">WCW ❤️</span></Link>
-              <Link to="/crush" hash="mcm" className="group flex flex-col items-center gap-2 rounded-2xl p-2 transition-colors hover:bg-background/70"><span className="grid size-16 place-items-center rounded-full border-2 border-sky-400/80 bg-background text-2xl shadow-sm transition-transform group-active:scale-95">💙</span><span className="text-xs font-bold">MCM 💙</span></Link>
+        <section className="space-y-1 px-1">
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <h1 className="font-display text-2xl font-black leading-tight sm:text-3xl">Anonymous Feed</h1>
+              <p className="mt-1 text-sm leading-5 text-muted-foreground">Nobody knows it's you. Replies are public.</p>
             </div>
+            <Button variant="outline" size="sm" className="shrink-0 rounded-full text-xs">
+              <Crown className="mr-1 size-3.5" /> Leaders
+            </Button>
           </div>
-          <p className="mt-3 text-center text-[10px] text-muted-foreground">Upload to enter • WCW Wednesday • MCM Monday</p>
         </section>
 
-        <section className="rounded-3xl border border-border/70 bg-card p-5 shadow-sm">
-          <div className="flex items-start justify-between gap-4">
-            <div><p className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-primary"><Sparkles className="size-4" /> Anonymous corner</p><h1 className="mt-1 font-display text-2xl font-bold">Say what you really think.</h1><p className="mt-1 text-sm text-muted-foreground">Confessions stay anonymous when you choose. New submissions are reviewed before publication.</p></div>
-            <div className="flex shrink-0 items-center gap-2"><Button variant="outline" size="sm" onClick={() => void load(true)} disabled={loading || refreshing} className="rounded-2xl" aria-label="Refresh confessions">{refreshing ? <RefreshCw className="size-4 animate-spin" /> : <RefreshCw className="size-4" />}</Button><Button onClick={() => setOpen(v => !v)} className="rounded-2xl"><Plus className="mr-1 size-4" /> Confess</Button></div>
+        <section className="rounded-[1.65rem] border border-border/70 bg-card p-4 shadow-sm">
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="font-display text-base font-black">👑 WCW &amp; MCM this week</h2>
+            <span className="shrink-0 text-xs font-semibold text-primary">Vote now</span>
           </div>
-          {open ? <div className="mt-4 space-y-3 rounded-2xl bg-secondary/40 p-4"><Textarea value={content} onChange={e => setContent(e.target.value)} maxLength={2000} placeholder="Your confession..." className="min-h-32 rounded-2xl" disabled={submitting} aria-label="Confession text" /><div className="flex items-center justify-between gap-3"><label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={anonymous} onChange={e => setAnonymous(e.target.checked)} disabled={submitting} /> Post anonymously</label><span className={`text-xs ${remaining < 100 ? "text-destructive" : "text-muted-foreground"}`}>{remaining} characters left</span></div><div className="flex items-start gap-2 rounded-2xl border border-border/60 bg-background/60 p-3 text-xs text-muted-foreground"><ShieldCheck className="mt-0.5 size-4 shrink-0 text-primary" /><span>Submissions are reviewed before publication. Your identity is not displayed on anonymous confessions.</span></div><Button onClick={() => void submit()} className="w-full rounded-2xl" disabled={submitting || content.trim().length < 3}>{submitting ? <><RefreshCw className="mr-2 size-4 animate-spin" /> Submitting…</> : <><Send className="mr-2 size-4" /> Submit confession</>}</Button></div> : null}
+
+          <div className="mt-4 grid grid-cols-3 gap-2">
+            <button
+              type="button"
+              onClick={() => setUploadOpen(true)}
+              className="flex min-w-0 flex-col items-center gap-1.5 rounded-2xl p-1.5 text-center transition-transform active:scale-95"
+            >
+              <span className="grid size-[58px] place-items-center rounded-full border border-dashed border-primary/70 bg-background text-2xl text-primary shadow-inner sm:size-16">+</span>
+              <span className="w-full truncate text-[11px] font-semibold">Upload</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => window.location.assign("/crush#mcm")}
+              className="flex min-w-0 flex-col items-center gap-1.5 rounded-2xl p-1.5 text-center transition-transform active:scale-95"
+            >
+              <span className="grid size-[58px] place-items-center rounded-full border-2 border-sky-400 bg-background text-2xl shadow-[0_0_12px_rgba(56,189,248,.12)] sm:size-16">💙</span>
+              <span className="w-full truncate text-[11px] font-semibold">MCM</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => window.location.assign("/crush#wcw")}
+              className="flex min-w-0 flex-col items-center gap-1.5 rounded-2xl p-1.5 text-center transition-transform active:scale-95"
+            >
+              <span className="grid size-[58px] place-items-center rounded-full border-2 border-pink-400 bg-background text-2xl shadow-[0_0_12px_rgba(244,114,182,.12)] sm:size-16">❤️</span>
+              <span className="w-full truncate text-[11px] font-semibold">WCW</span>
+            </button>
+          </div>
+
+          <p className="mt-2 text-center text-[10px] leading-4 text-muted-foreground">
+            Upload to enter • MCM Monday • WCW Wednesday
+          </p>
+
+          {mcmCount + wcwCount > 0 ? (
+            <p className="mt-1 text-center text-[9px] text-muted-foreground">
+              {mcmCount} MCM entries · {wcwCount} WCW entries
+            </p>
+          ) : null}
+        </section>
+
+        <section className="rounded-[1.65rem] border border-border/70 bg-card p-4 shadow-sm sm:p-5">
+          <div className="min-w-0">
+            <textarea
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              maxLength={2000}
+              placeholder="Say the thing you'd never sign your name to..."
+              aria-label="Anonymous confession"
+              className="min-h-36 w-full resize-none rounded-2xl border-0 bg-transparent p-0 text-base leading-7 outline-none placeholder:text-muted-foreground focus:ring-0"
+              disabled={submitting}
+            />
+          </div>
+
+          <div className="mt-4 flex items-end justify-between gap-3 border-t border-border/50 pt-3">
+            <div className="min-w-0">
+              <p className="text-xs leading-4 text-muted-foreground">Posting is free · messages cost 1 BC</p>
+              <label className="mt-2 flex items-center gap-2 text-[11px] text-muted-foreground">
+                <input type="checkbox" checked={anonymous} onChange={(e) => setAnonymous(e.target.checked)} disabled={submitting} />
+                Post anonymously
+              </label>
+            </div>
+            <Button onClick={() => void submit()} disabled={submitting || content.trim().length < 3} className="shrink-0 rounded-full px-4 text-xs font-bold">
+              {submitting ? "Posting…" : "Post anonymously"}
+            </Button>
+          </div>
+        </section>
+
+        <section className="rounded-[1.65rem] border border-border/70 bg-card p-4 sm:p-5">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.16em] text-primary">
+                <span>✨</span> Secret Confessions
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground">Submissions are reviewed before publication.</p>
+            </div>
+            <div className="flex shrink-0 items-center gap-2">
+              <Button variant="outline" size="icon" onClick={() => void load(true)} disabled={loading || refreshing} className="size-9 rounded-full" aria-label="Refresh confessions">
+                <RefreshCw className={refreshing ? "size-4 animate-spin" : "size-4"} />
+              </Button>
+              <Button onClick={() => setOpen((v) => !v)} className="rounded-full px-4 text-xs font-bold">
+                <Plus className="mr-1 size-4" /> Confess
+              </Button>
+            </div>
+          </div>
+
+          {open ? (
+            <div className="mt-4 space-y-3 rounded-2xl bg-secondary/40 p-4">
+              <Textarea
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                maxLength={2000}
+                placeholder="Your confession..."
+                className="min-h-32 rounded-2xl"
+                disabled={submitting}
+              />
+              <div className="flex items-center justify-between gap-3 text-xs text-muted-foreground">
+                <span>Anonymous is on</span>
+                <span>{remaining} characters left</span>
+              </div>
+              <div className="flex items-start gap-2 rounded-2xl border border-border/60 bg-background/60 p-3 text-xs text-muted-foreground">
+                <ShieldCheck className="mt-0.5 size-4 shrink-0 text-primary" />
+                <span>Submissions are reviewed before publication. Your identity is not displayed on anonymous confessions.</span>
+              </div>
+              <Button onClick={() => void submit()} className="w-full rounded-2xl" disabled={submitting || content.trim().length < 3}>
+                {submitting ? <><RefreshCw className="mr-2 size-4 animate-spin" /> Submitting…</> : <><Send className="mr-2 size-4" /> Submit confession</>}
+              </Button>
+            </div>
+          ) : null}
         </section>
 
         {loading ? <div className="rounded-3xl border border-border/70 bg-card p-8 text-center text-sm text-muted-foreground">Loading confessions…</div> : null}
-        {!loading && items.length === 0 ? <div className="rounded-3xl border border-dashed border-border p-10 text-center text-sm text-muted-foreground">No published confessions yet. Be the first.</div> : null}
-        {items.map((item, idx) => <div key={item.id} className="space-y-4"><article className={`rounded-3xl border border-border/70 bg-card p-5 shadow-sm ${item.author_vip_at ? "vip-content-card" : ""}`}><div className="flex items-center gap-2 text-xs text-muted-foreground"><VipIdentity isVip={Boolean(item.author_vip_at)} seed={item.author_id ?? item.id} compact /> <span className="truncate"><Eye className="mr-1 inline size-3.5" /> {item.is_anonymous ? "Anonymous Panda" : "Panda"} · {new Date(item.created_at).toLocaleDateString()}</span></div><p className="mt-4 whitespace-pre-wrap break-words text-[15px] leading-7">{item.content}</p><div className="mt-4 flex gap-2"><Button variant="outline" size="sm" onClick={() => void react(item.id,"heart")}><Heart className="mr-1 size-4" /> Heart</Button><Button variant="outline" size="sm" onClick={() => void react(item.id,"laugh")}><Laugh className="mr-1 size-4" /> Laugh</Button></div></article>{((idx + 1) === 4 || (idx + 1) === 8 || ((idx + 1) >= 15 && (idx + 1 - 15) % 7 === 0)) ? <StandardBannerAd index={idx} variant="feed-card" placement="confessions_inline" /> : null}</div>)}
+        {!loading && items.length === 0 ? (
+          <div className="rounded-3xl border border-dashed border-border p-10 text-center text-sm text-muted-foreground">No published confessions yet. Be the first.</div>
+        ) : null}
+
+        {items.map((item, idx) => (
+          <div key={item.id} className="space-y-4">
+            <article className={`rounded-[1.65rem] border border-border/70 bg-card p-5 shadow-sm ${item.author_vip_at ? "vip-content-card" : ""}`}>
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <VipIdentity isVip={Boolean(item.author_vip_at)} seed={item.author_id ?? item.id} compact />
+                <span className="min-w-0 truncate">
+                  <Eye className="mr-1 inline size-3.5" /> {item.is_anonymous ? "Anonymous Panda" : "Panda"} · {new Date(item.created_at).toLocaleDateString()}
+                </span>
+              </div>
+              <p className="mt-4 whitespace-pre-wrap break-words text-[15px] leading-7">{item.content}</p>
+              <div className="mt-4 flex gap-2">
+                <Button variant="outline" size="sm" onClick={() => void react(item.id, "heart")}><Heart className="mr-1 size-4" /> Heart</Button>
+                <Button variant="outline" size="sm" onClick={() => void react(item.id, "laugh")}><Laugh className="mr-1 size-4" /> Laugh</Button>
+              </div>
+            </article>
+            {((idx + 1) === 4 || (idx + 1) === 8 || ((idx + 1) >= 15 && (idx + 1 - 15) % 7 === 0)) ? (
+              <StandardBannerAd index={idx} variant="feed-card" placement="confessions_inline" />
+            ) : null}
+          </div>
+        ))}
       </div>
+
+      <Dialog open={uploadOpen} onOpenChange={(v) => { if (!v && !uploading) { setUploadOpen(false); setUploadFile(null); if (fileInputRef.current) fileInputRef.current.value = ""; } }}>
+        <DialogContent className="max-w-sm rounded-3xl">
+          <DialogTitle>Upload to MCM / WCW</DialogTitle>
+          <DialogDescription>Your gender decides the weekly category automatically. One entry per week, maximum 6MB.</DialogDescription>
+
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*,video/*"
+            className="sr-only"
+            onChange={(e) => handleFile(e.target.files?.[0] ?? null)}
+            disabled={uploading}
+          />
+
+          <button
+            type="button"
+            onClick={chooseFile}
+            disabled={uploading}
+            className="flex min-h-28 w-full flex-col items-center justify-center rounded-2xl border border-dashed border-primary/60 bg-secondary/30 px-4 text-center transition-colors hover:bg-secondary/50 active:scale-[.99]"
+          >
+            <Upload className="size-7 text-primary" />
+            <span className="mt-2 text-sm font-bold">{uploadFile ? "Change photo or video" : "Choose photo or video"}</span>
+            <span className="mt-1 max-w-full truncate text-xs text-muted-foreground">{uploadFile ? uploadFile.name : "Tap here to open your phone gallery/files"}</span>
+          </button>
+
+          <Textarea value={uploadCaption} onChange={(e) => setUploadCaption(e.target.value)} maxLength={300} placeholder="Optional caption..." className="rounded-2xl" disabled={uploading} />
+          <Button onClick={() => void uploadCrush()} disabled={uploading || !uploadFile} className="w-full rounded-2xl">
+            {uploading ? "Uploading…" : "Publish weekly entry"}
+          </Button>
+        </DialogContent>
+      </Dialog>
 
       <QuickVoteSignup
         open={showSignup}
         onOpenChange={setShowSignup}
         actionLabel="post your confession"
-        successDescription="Your confession will now be posted automatically."
+        successDescription="Your confession can continue immediately."
         onComplete={() => {
           const trimmed = content.trim();
           if (trimmed.length >= 3) void submitNow(trimmed, anonymous);
