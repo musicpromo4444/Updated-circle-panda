@@ -113,7 +113,19 @@ export function AuthModal({ open, onOpenChange, defaultTab = "signin", onOpenBac
       reset();
       onOpenChange(false);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Authentication failed.");
+      let message = error instanceof Error ? error.message : "Authentication failed.";
+      // Supabase FunctionsHttpError normally exposes only "non-2xx" in message.
+      // Read the function's JSON body so users see the real signup problem.
+      try {
+        const context = (error as { context?: Response }).context;
+        if (context) {
+          const body = await context.clone().json();
+          if (body?.error) message = String(body.error);
+        }
+      } catch {
+        // Keep the normal error message when the response is not JSON.
+      }
+      toast.error(message);
     } finally {
       setBusy(false);
     }
