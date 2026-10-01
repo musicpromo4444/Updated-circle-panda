@@ -171,7 +171,11 @@ export function ConfessionsPage() {
 
     const { data: authData } = await supabase.auth.getUser();
     if (!authData.user || authData.user.is_anonymous) {
-      setOpen(false);
+      // The confession itself must stay in the composer while the visitor signs in.
+      // Do not silently submit as an anonymous Supabase auth session.
+      if (authData.user?.is_anonymous) {
+        await supabase.auth.signOut();
+      }
       setShowSignup(true);
       return;
     }
