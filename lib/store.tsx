@@ -486,6 +486,19 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [dbUserId, setDbUserId] = useState<string | null>(null);
   const [dbIsAdmin, setDbIsAdmin] = useState(false);
 
+  const syncCoins = useCallback(async () => {
+    if (!dbUserId) return;
+    const [bcRes, xpRes] = await Promise.all([
+      (supabase as any).from("bc_accounts").select("balance").eq("user_id", dbUserId).maybeSingle(),
+      (supabase as any).from("user_xp").select("xp").eq("user_id", dbUserId).maybeSingle(),
+    ]);
+    setState((s) => {
+      const totalXp = Number(xpRes.data?.xp ?? s.xp);
+      return { ...s, coins: Number(bcRes.data?.balance ?? s.coins), xp: totalXp, level: pandaProgress(totalXp).index + 1 };
+    });
+  }, [dbUserId]);
+
+
   const persistUserState = useCallback((next: State) => {
     if (!dbUserId) return;
     void (supabase as any).from("user_app_state").upsert({
@@ -774,18 +787,6 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const grantSkipPass = useCallback(() => {
     toast.error("Skip passes can only be granted by a verified reward/admin flow.");
   }, []);
-  const syncCoins = useCallback(async () => {
-    if (!dbUserId) return;
-    const [bcRes, xpRes] = await Promise.all([
-      (supabase as any).from("bc_accounts").select("balance").eq("user_id", dbUserId).maybeSingle(),
-      (supabase as any).from("user_xp").select("xp").eq("user_id", dbUserId).maybeSingle(),
-    ]);
-    setState((s) => {
-      const totalXp = Number(xpRes.data?.xp ?? s.xp);
-      return { ...s, coins: Number(bcRes.data?.balance ?? s.coins), xp: totalXp, level: pandaProgress(totalXp).index + 1 };
-    });
-  }, [dbUserId]);
-
   const syncAccountEntitlements = useCallback(async () => {
     if (!dbUserId) return;
     const { data, error } = await (supabase as any).from("profiles").select("is_vip,vip_expires_at").eq("id", dbUserId).maybeSingle();
