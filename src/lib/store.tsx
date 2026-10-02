@@ -1007,7 +1007,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     const mapped = rows.map((d:any) => ({
       userId:d.user_id,name:d.name,age:d.age,vibe:d.vibe,emoji:d.emoji,bio:d.bio,interests:d.interests??[],
       location:d.location??"",country:d.country??"",gender:d.gender??"",relationshipGoal:d.relationship_goal??"",
-      lookingFor:d.looking_for??[],lifestyle:d.lifestyle??[],personality:d.personality??[],loveLanguage:d.love_language??"",
+      lookingFor:d.looking_for??[],aboutTraits:d.about_traits??[],lifestyle:d.lifestyle??[],personality:d.personality??[],loveLanguage:d.love_language??"",
       smoking:d.smoking??"",drinking:d.drinking??"",children:d.children??"",education:d.education??"",occupation:d.occupation??"",
       sexualExperience:d.sexual_experience??"",intimacyPreference:d.intimacy_preference??"",relationshipStatus:d.relationship_status??"single",
       heightCm:d.height_cm??null,zodiac:d.zodiac??"",favoriteDate:d.favorite_date??"",photoPath:d.photo_path??"",
