@@ -468,7 +468,7 @@ type StoreValue = State & {
   nextSpinAt: number | null;
   activateVip: (days: number) => void;
   createGroup: (name: string, topic: string, country?: string, stateProvince?: string, city?: string, area?: string) => Promise<GroupChat | null>;
-  createEvent: (event: Omit<PandaEvent, "id" | "rsvp">) => PandaEvent;
+  createEvent: (event: Omit<PandaEvent, "id" | "rsvp">) => Promise<PandaEvent | null>;
   requestDatingMatch: (userId: string) => Promise<string | null>;
   searchDatingProfiles: (filters: { ageMin?: number; ageMax?: number; country?: string; location?: string; gender?: string; relationshipGoal?: string; lookingFor?: string; lifestyle?: string; smoking?: string; drinking?: string; children?: string; education?: string; heightMin?: number; heightMax?: number; zodiac?: string; sameCountryOnly?: boolean }) => Promise<boolean>;
   registerDatingProfile: (profile: Omit<DatingProfile, "registeredAt" | "userId">) => void;
