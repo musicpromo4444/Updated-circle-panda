@@ -33,21 +33,14 @@ const DRINKING = ["Never","Occasionally","Socially","Regularly","Prefer not to s
 const CHILDREN = ["No children","Have children","Want children","Don't want children","Prefer not to say"];
 const EDUCATION = ["Secondary school","College / Polytechnic","University","Postgraduate","Prefer not to say"];
 
-const MALE_TRAITS = [
-  "Very fair skin","Fair skin","Light brown skin","Brown skin","Dark brown skin","Deep dark skin",
-  "Short","Average height","Tall","Very tall","Slim","Average build","Athletic","Muscular","Broad shoulders","Broad chest","Chubby","Plus-size",
-  "Black hair","Brown hair","Blonde hair","Bald","Short hair","Long hair","Dreads","Braids","Curly hair",
-  "Brown eyes","Black eyes","Hazel eyes","Blue eyes","Green eyes","Bearded","Clean-shaven","Mustache","Goatee",
-  "Casual style","Smart style","Streetwear style","Sexy style","Masculine style"
-];
-
-const FEMALE_TRAITS = [
-  "Very fair skin","Fair skin","Light brown skin","Brown skin","Dark brown skin","Deep dark skin",
-  "Short","Average height","Tall","Slim","Petite","Average build","Athletic","Curvy","Chubby","Plus-size","Figure-eight",
-  "Small waist","Average waist","Wide waist","Small hips","Average hips","Wide hips","Small butt","Average butt","Big butt",
-  "Small chest","Average chest","Big chest","Black hair","Brown hair","Blonde hair","Short hair","Long hair","Dreads","Braids","Curly hair","Straight hair",
-  "Brown eyes","Black eyes","Hazel eyes","Blue eyes","Green eyes","Casual style","Glamorous style","Feminine style","Sexy style"
-];
+const SKIN_COLORS = ["Very fair","Fair","Light brown","Brown","Dark brown","Deep dark"];
+const BODY_TYPES = ["Slim","Petite","Average build","Athletic","Muscular","Chubby","Curvy","Plus-size","Broad shoulders","Figure-eight"];
+const HEIGHT_TYPES = ["Short","Average height","Tall","Very tall"];
+const HAIR_COLORS = ["Black hair","Brown hair","Blonde hair","Red hair","Grey hair","Other"];
+const HAIR_STYLES = ["Short hair","Long hair","Dreads","Braids","Curly hair","Straight hair","Bald"];
+const EYE_COLORS = ["Black eyes","Brown eyes","Hazel eyes","Blue eyes","Green eyes","Grey eyes"];
+const STYLE_TYPES = ["Casual","Smart","Streetwear","Glamorous","Feminine","Masculine","Sexy"];
+const TARGET_TRAITS = [...SKIN_COLORS,...BODY_TYPES,...HEIGHT_TYPES,...HAIR_COLORS,...HAIR_STYLES,...EYE_COLORS,...STYLE_TYPES];
 
 const emptyProfile: Omit<DatingProfile,"registeredAt"|"userId"> = {
   name:"Anonymous Panda",age:18,vibe:"",emoji:"🐼",bio:"",interests:[],location:"",country:"",gender:"",
@@ -123,7 +116,7 @@ export function RegisterDatingModal({open,onOpenChange}:{open:boolean;onOpenChan
   const submit=async(e:React.FormEvent)=>{
     e.preventDefault();
     if(!accountReady)return;
-    if(!p.relationshipGoal){toast.error("Choose what you're looking for");setStep(3);return;}
+    if(!p.relationshipGoal){toast.error("Choose the type of relationship you're looking for");setStep(1);return;}
     if(!photoFile && !p.photoPath){toast.error("Upload your Dating photo");return;}
     setUploadingPhoto(true);
     try{
@@ -148,7 +141,7 @@ export function RegisterDatingModal({open,onOpenChange}:{open:boolean;onOpenChan
 
   if(!accountReady && open)return null;
 
-  const progress=["Circle Panda","About You","Lifestyle","Dating","SEXUAL EXPERIENCE","Dating photo"];
+  const progress=["Circle Panda","Relationship","What are you looking for?","Your details","Dating photo"];
   return <Dialog open={open} onOpenChange={onOpenChange}>
     <DialogContent className="max-h-[92vh] overflow-y-auto rounded-2xl p-6 sm:max-w-2xl">
       <DialogHeader>
@@ -177,34 +170,40 @@ export function RegisterDatingModal({open,onOpenChange}:{open:boolean;onOpenChan
         </section>}
 
         {step===1&&<section className="space-y-5">
-          <div><label className="mb-1.5 block text-sm font-black">Occupation</label><Input value={p.occupation} onChange={e=>set("occupation",e.target.value)} placeholder="What you do"/></div>
-          <div><p className="mb-1 text-sm font-black">About You</p><p className="mb-3 text-xs text-muted-foreground">Pick more than one. Describe yourself using the traits that fit you.</p><Chips values={p.gender==="male"?MALE_TRAITS:FEMALE_TRAITS} selected={p.aboutTraits} onToggle={v=>toggle("aboutTraits",v)}/></div>
-          <div><p className="mb-1 text-sm font-black">Interests</p><p className="mb-3 text-xs text-muted-foreground">Pick the things you actually enjoy doing these days.</p><Chips values={INTERESTS} selected={p.interests} onToggle={v=>toggle("interests",v)}/></div>
-        </section>}
-
-        {step===2&&<section className="space-y-5">
-          <div><p className="mb-1 text-sm font-black">General lifestyle</p><p className="mb-3 text-xs text-muted-foreground">Pick more than one that describes your everyday lifestyle.</p><Chips values={LIFESTYLE} selected={p.lifestyle} onToggle={v=>toggle("lifestyle",v)}/></div>
-          <div><p className="mb-1.5 text-sm font-black">Personality</p><Chips values={PERSONALITY} selected={p.personality} onToggle={v=>toggle("personality",v)}/></div>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div><p className="mb-1.5 text-xs font-bold">Smoking</p><SingleChoice values={SMOKING} value={p.smoking} onChange={v=>set("smoking",v)}/></div>
-            <div><p className="mb-1.5 text-xs font-bold">Drinking</p><SingleChoice values={DRINKING} value={p.drinking} onChange={v=>set("drinking",v)}/></div>
-            <div><p className="mb-1.5 text-xs font-bold">Children</p><SingleChoice values={CHILDREN} value={p.children} onChange={v=>set("children",v)}/></div>
-            <div><p className="mb-1.5 text-xs font-bold">Education <span className="font-normal text-muted-foreground">· optional</span></p><SingleChoice values={EDUCATION} value={p.education} onChange={v=>set("education",v)}/></div>
+          <div>
+            <p className="mb-1 text-sm font-black">What type of relationship are you looking for?</p>
+            <p className="mb-3 text-xs text-muted-foreground">Choose the option that best describes what you want.</p>
+            <SingleChoice values={RELATIONSHIP_TYPES} value={p.relationshipGoal} onChange={v=>set("relationshipGoal",v)}/>
           </div>
         </section>}
 
+        {step===2&&<section className="space-y-5">
+          <div>
+            <p className="mb-1 text-sm font-black">What are you looking for?</p>
+            <p className="mb-3 text-xs text-muted-foreground">Choose the traits you would like in the person you want to date.</p>
+          </div>
+          <div><p className="mb-2 text-sm font-black">Skin color</p><Chips values={SKIN_COLORS} selected={p.lookingFor} onToggle={v=>toggle("lookingFor",v)}/></div>
+          <div><p className="mb-2 text-sm font-black">Size / body type</p><Chips values={BODY_TYPES} selected={p.lookingFor} onToggle={v=>toggle("lookingFor",v)}/></div>
+          <div><p className="mb-2 text-sm font-black">Height</p><Chips values={HEIGHT_TYPES} selected={p.lookingFor} onToggle={v=>toggle("lookingFor",v)}/></div>
+          <div><p className="mb-2 text-sm font-black">Hair color</p><Chips values={HAIR_COLORS} selected={p.lookingFor} onToggle={v=>toggle("lookingFor",v)}/></div>
+          <div><p className="mb-2 text-sm font-black">Hair style</p><Chips values={HAIR_STYLES} selected={p.lookingFor} onToggle={v=>toggle("lookingFor",v)}/></div>
+          <div><p className="mb-2 text-sm font-black">Eye color</p><Chips values={EYE_COLORS} selected={p.lookingFor} onToggle={v=>toggle("lookingFor",v)}/></div>
+          <div><p className="mb-2 text-sm font-black">Style</p><Chips values={STYLE_TYPES} selected={p.lookingFor} onToggle={v=>toggle("lookingFor",v)}/></div>
+        </section>}
+
         {step===3&&<section className="space-y-5">
-          <div><p className="mb-1 text-sm font-black">What are you looking for?</p><p className="mb-3 text-xs text-muted-foreground">Pick more than one. Describe the person you’re looking for — the type of person you want to date.</p><Chips values={targetTraits} selected={p.lookingFor} onToggle={v=>toggle("lookingFor",v)}/></div>
-          <div><p className="mb-1 text-sm font-black">Relationship type</p><p className="mb-3 text-xs text-muted-foreground">Choose one.</p><SingleChoice values={RELATIONSHIP_TYPES} value={p.relationshipGoal} onChange={v=>set("relationshipGoal",v)}/></div>
-          <div><p className="mb-1 text-sm font-black">Where can we meet first?</p><p className="mb-3 text-xs text-muted-foreground">Choose one.</p><SingleChoice values={MEET_PLACES} value={p.favoriteDate} onChange={v=>set("favoriteDate",v)}/></div>
+          <div>
+            <p className="mb-1 text-sm font-black">Your details</p>
+            <p className="mb-3 text-xs text-muted-foreground">Keep it simple. These help people understand you.</p>
+          </div>
+          <div><label className="mb-1.5 block text-sm font-black">Occupation</label><Input value={p.occupation} onChange={e=>set("occupation",e.target.value)} placeholder="What you do"/></div>
+          <div>
+            <p className="mb-2 text-sm font-black">Sexual Experience</p>
+            <SingleChoice values={SEXUAL_EXPERIENCE} value={p.sexualExperience} onChange={v=>set("sexualExperience",v)}/>
+          </div>
         </section>}
 
         {step===4&&<section className="space-y-5">
-          <div className="rounded-2xl border border-[var(--dating)]/20 bg-[var(--dating)]/5 p-4"><p className="font-black uppercase tracking-wide">SEXUAL EXPERIENCE</p><p className="mt-1 text-xs text-muted-foreground">Optional adult profile information.</p></div>
-          <SingleChoice values={SEXUAL_EXPERIENCE} value={p.sexualExperience} onChange={v=>set("sexualExperience",v)}/>
-        </section>}
-
-        {step===5&&<section className="space-y-5">
           <div className="rounded-2xl border border-[var(--dating)]/25 bg-[var(--dating)]/5 p-4">
             <p className="font-black uppercase tracking-wide text-[var(--dating)]">Dating photo · final step</p>
             <p className="mt-1 text-xs text-muted-foreground">This is separate from your Panda avatar. The Dating photo is stored with a blurred version and stays blurred until the normal mutual 72-hour confirmation/reveal rules are satisfied.</p>
@@ -218,7 +217,7 @@ export function RegisterDatingModal({open,onOpenChange}:{open:boolean;onOpenChan
 
         <DialogFooter className="flex-row justify-between gap-2 pt-2">
           <Button type="button" variant="outline" onClick={()=>step===0?onOpenChange(false):setStep(step-1)}>{step===0?"Cancel":"Back"}</Button>
-          {step<5?<Button type="button" onClick={()=>{if(step===3&&!p.relationshipGoal){toast.error("Choose what you're looking for");return;} setStep(step+1)}} className="bg-[var(--dating)] text-white">Next</Button>
+          {step<4?<Button type="button" onClick={()=>{if(step===1&&!p.relationshipGoal){toast.error("Choose the type of relationship you're looking for");return;} setStep(step+1)}} className="bg-[var(--dating)] text-white">Next</Button>
             :<Button type="submit" disabled={uploadingPhoto||!photoFile&&!p.photoPath} className="gap-1.5 bg-[var(--dating)] text-white">{uploadingPhoto?"Publishing…":datingProfile?"Save Dating Profile":"Publish Dating Profile"} <Sparkles className="size-4"/></Button>}
         </DialogFooter>
       </form>
