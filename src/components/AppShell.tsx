@@ -1,4 +1,4 @@
-import { Link, useLocation } from "@tanstack/react-router";
+import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import {
   Bell,
   Calendar,
@@ -341,6 +341,30 @@ function NotificationBell() {
       ) : null}
     </Link>
   );
+}
+
+function RequireSession({ children }: { children: ReactNode }) {
+  const navigate = useNavigate();
+  const [checking, setChecking] = useState(true);
+  useEffect(() => {
+    let active = true;
+    const check = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (!active) return;
+      if (!data.session?.user) {
+        await navigate({ to: "/", replace: true });
+        return;
+      }
+      setChecking(false);
+    };
+    void check();
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!session?.user) void navigate({ to: "/", replace: true });
+    });
+    return () => { active = false; listener.subscription.unsubscribe(); };
+  }, [navigate]);
+  if (checking) return <div className="min-h-screen bg-background" />;
+  return <>{children}</>;
 }
 
 export function AppShell({
