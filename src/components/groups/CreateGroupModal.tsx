@@ -76,7 +76,7 @@ export function CreateGroupModal({
     setArea("");
     onOpenChange(false);
 
-    void navigate({ to: "/groups/$groupId", params: { groupId: group.id } });
+    // Keep the new group on the Groups page as a compact card.\n    // The full WhatsApp-style room opens only when the user taps the card.\n    void group;
   };
 
   return (
