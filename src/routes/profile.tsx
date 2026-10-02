@@ -47,9 +47,8 @@ export const Route = createFileRoute("/profile")({
 });
 
 function ProfilePage() {
-  const HEADS = ["🐼", "🐼🎩", "🐼🧢", "🐼👑", "🐼🎧", "🐼🎀"];
+  const HEADS = ["🐼", "🐼🎩", "🐼🧢", "🐼🎧", "🐼🎀"];
   const GLASSES = ["", "🕶️", "👓", "🥽"];
-  const FACES = ["", "😊", "🙂", "😄", "😁", "😂", "🤣", "😉", "😎", "😴", "😏", "😠", "😡", "😢", "😭", "🙁", "🤪", "😜", "😮", "😲"];
   const COSMETICS = ["", "✨", "🔥", "🌸", "💎", "⚡", "🦋", "🌈", "❤️", "💫"];
   const [avatar, setAvatar] = useState("🐼");
   const [accountGender, setAccountGender] = useState<"male" | "female" | null>(null);
@@ -68,12 +67,12 @@ function ProfilePage() {
   const [addressLine, setAddressLine] = useState("");
   const [bio, setBio] = useState("");
   const [savingProfile, setSavingProfile] = useState(false);
+  const [profileSaved, setProfileSaved] = useState(false);
   const [loadingLocations, setLoadingLocations] = useState(false);
   const [avatarHead, setAvatarHead] = useState("🐼");
   const [avatarGlasses, setAvatarGlasses] = useState("");
-  const [avatarFace, setAvatarFace] = useState("");
   const [avatarCosmetic, setAvatarCosmetic] = useState("");
-  const composeAvatar = (head=avatarHead, glasses=avatarGlasses, face=avatarFace, cosmetic=avatarCosmetic) => `${head}${glasses}${face}${cosmetic}`;
+  const composeAvatar = (head=avatarHead, glasses=avatarGlasses, cosmetic=avatarCosmetic) => `${head}${glasses}${cosmetic}`;
   useEffect(() => {
     void supabase.auth.getUser().then(async ({ data }) => {
       if (!data.user) return;
@@ -86,14 +85,14 @@ function ProfilePage() {
       if (profile?.avatar_url) {
         const saved = String(profile.avatar_url);
         setAvatar(saved);
-        setAvatarHead(saved.includes("🎩") ? "🐼🎩" : saved.includes("🧢") ? "🐼🧢" : saved.includes("👑") ? "🐼👑" : saved.includes("🎧") ? "🐼🎧" : saved.includes("🎀") ? "🐼🎀" : "🐼");
+        setAvatarHead(saved.includes("🎩") ? "🐼🎩" : saved.includes("🧢") ? "🐼🧢" : saved.includes("🎧") ? "🐼🎧" : saved.includes("🎀") ? "🐼🎀" : "🐼");
         setAvatarGlasses(saved.includes("🕶️") ? "🕶️" : saved.includes("👓") ? "👓" : saved.includes("🥽") ? "🥽" : "");
-        setAvatarFace(FACES.find((face) => face && saved.includes(face)) ?? "");
         setAvatarCosmetic(saved.includes("✨") ? "✨" : saved.includes("🔥") ? "🔥" : saved.includes("🌸") ? "🌸" : saved.includes("💎") ? "💎" : saved.includes("⚡") ? "⚡" : saved.includes("🦋") ? "🦋" : saved.includes("🌈") ? "🌈" : "");
       }
       if (profile?.age) setAge(Number(profile.age));
       if (profile?.date_of_birth) setDateOfBirth(String(profile.date_of_birth));
       if (profile?.country) setCountry(profile.country);
+      if (profile?.date_of_birth && profile?.country) setProfileSaved(true);
       if (profile?.state_province) setStateProvince(profile.state_province);
       if (profile?.city) setCity(profile.city);
       if (profile?.area) setArea(profile.area);
@@ -243,6 +242,26 @@ function ProfilePage() {
       <ProfileProgressCard level={level} xp={xp} />
 
       <section className="panda-panel mt-4 rounded-2xl p-4">
+        {profileSaved ? (
+          <>
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <h2 className="font-display text-lg font-bold">Profile saved</h2>
+                <p className="mt-1 text-xs text-muted-foreground">Your profile details are saved to your Circle Panda account.</p>
+              </div>
+              <span className="grid size-10 place-items-center rounded-xl bg-primary/10 text-xl">✓</span>
+            </div>
+            <div className="mt-3 grid gap-2 sm:grid-cols-2">
+              <div className="rounded-xl border border-border bg-secondary/30 p-3"><p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Age</p><p className="mt-1 font-semibold">{age ?? "—"}</p></div>
+              <div className="rounded-xl border border-border bg-secondary/30 p-3"><p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Country</p><p className="mt-1 font-semibold">{country || "—"}</p></div>
+              <div className="rounded-xl border border-border bg-secondary/30 p-3"><p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">State / Province</p><p className="mt-1 font-semibold">{stateProvince || "—"}</p></div>
+              <div className="rounded-xl border border-border bg-secondary/30 p-3"><p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">City / Location</p><p className="mt-1 font-semibold">{city || "—"}</p></div>
+              <div className="rounded-xl border border-border bg-secondary/30 p-3"><p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Area / Neighbourhood</p><p className="mt-1 font-semibold">{area || "—"}</p></div>
+              <div className="rounded-xl border border-border bg-secondary/30 p-3"><p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Street / Address</p><p className="mt-1 font-semibold">{addressLine || "—"}</p></div>
+            </div>
+          </>
+        ) : (
+      <section className="panda-panel mt-4 rounded-2xl p-4">
         <div className="flex items-start justify-between gap-3">
           <div><h2 className="font-display text-lg font-bold">Complete your profile</h2>
             <p className="mt-1 text-xs text-muted-foreground">Country is recommended. State, city, area, and street/address can be left optional and completed later.</p></div>
@@ -309,11 +328,15 @@ function ProfilePage() {
           setSavingProfile(false);
           if (error) { toast.error(error.message ?? "Profile could not be saved"); return; }
           setAge(data?.age ? Number(data.age) : age); setDateOfBirth(data?.date_of_birth ?? dateOfBirth); setCountry(data?.country ?? country); setStateProvince(data?.state_province ?? stateProvince);
-          setCity(data?.city ?? city); setArea(data?.area ?? area); setAddressLine(data?.address_line ?? addressLine);
+          setCity(data?.city ?? city); setArea(data?.area ?? area); setAddressLine(data?.address_line ?? addressLine); setProfileSaved(Boolean((data?.date_of_birth ?? dateOfBirth) && (data?.country ?? country)));
           toast.success("Profile details saved 🐼");
         })()}>
           {savingProfile ? "Saving…" : "Save profile details"}
         </Button>
+
+        )}
+      </section>
+
       </section>
 
       <section className="panda-panel mt-4 rounded-2xl p-4">
@@ -340,20 +363,19 @@ function ProfilePage() {
       <section className="panda-panel mt-4 rounded-2xl p-4">
         <div className="flex items-center gap-3">
           <span className="grid size-10 place-items-center rounded-xl bg-primary/15 text-xl">🎨</span>
-          <div><h2 className="font-display text-lg font-semibold">Panda Avatar Studio</h2><p className="text-xs text-muted-foreground">Built-in Panda looks only — choose your head, glasses, face style and cosmetic. Personal photo uploads are not used.</p></div>
+          <div><h2 className="font-display text-lg font-semibold">Panda Avatar Studio</h2><p className="text-xs text-muted-foreground">Built-in Panda looks only — choose your head, glasses and cosmetic. Personal photo uploads are not used.</p></div>
         </div>
         <div className="mt-4 grid gap-4">
           {[
             ["Head / hat", HEADS, avatarHead, setAvatarHead],
             ["Eyeglasses", GLASSES, avatarGlasses, setAvatarGlasses],
-            ["Face style", FACES, avatarFace, setAvatarFace],
             ["Cosmetics", COSMETICS, avatarCosmetic, setAvatarCosmetic],
           ].map(([label, values, selected, setter]: any) => (
             <div key={label as string}>
               <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{label as string}</p>
               <div className="flex flex-wrap gap-2">
                 {(values as string[]).map((value) => (
-                  <button key={`${label}-${value}`} type="button" onClick={() => { setter(value); const next = composeAvatar(label === "Head / hat" ? value : avatarHead, label === "Eyeglasses" ? value : avatarGlasses, label === "Face style" ? value : avatarFace, label === "Cosmetics" ? value : avatarCosmetic); saveAvatar(next); }} className={`grid min-h-11 min-w-11 place-items-center rounded-xl border px-2 text-xl transition-transform hover:scale-105 ${selected===value?"border-primary bg-primary/10":"border-border bg-secondary/40"}`}>{value || "None"}</button>
+                  <button key={`${label}-${value}`} type="button" onClick={() => { setter(value); const next = composeAvatar(label === "Head / hat" ? value : avatarHead, label === "Eyeglasses" ? value : avatarGlasses, label === "Cosmetics" ? value : avatarCosmetic); saveAvatar(next); }} className={`grid min-h-11 min-w-11 place-items-center rounded-xl border px-2 text-xl transition-transform hover:scale-105 ${selected===value?"border-primary bg-primary/10":"border-border bg-secondary/40"}`}>{value || "None"}</button>
                 ))}
               </div>
             </div>
@@ -361,7 +383,7 @@ function ProfilePage() {
         </div>
         <div className="mt-4 flex items-center gap-3 rounded-2xl border border-primary/20 bg-primary/5 p-3">
           <div className="grid size-20 shrink-0 place-items-center rounded-2xl bg-secondary"><PandaAvatar avatar={avatar} size="lg" /></div>
-          <div><p className="font-semibold">Your current Panda</p><p className="text-xs text-muted-foreground">Your selected hat, glasses, face style and cosmetics are worn by your Panda and saved to your profile.</p></div>
+          <div><p className="font-semibold">Your current Panda</p><p className="text-xs text-muted-foreground">Your selected hat, glasses and cosmetics are worn by your Panda and saved to your profile.</p></div>
         </div>
 
         <div className="mt-4 rounded-2xl border border-destructive/25 bg-destructive/5 p-4">
