@@ -45,7 +45,6 @@ export function CreateEventModal({open,onOpenChange}:{open:boolean;onOpenChange:
    createEvent({title:title.trim(),tag,date,time:`${duration} minutes`,place:venue.trim(),cost:Math.max(0,Number(price)||0),currency,blurb:blurb.trim(),details:details.trim()||blurb.trim(),coverUrl:imageUrl,venueName:venue.trim(),addressLine:address.trim(),country:country.trim(),stateProvince:state.trim(),city:city.trim(),area:area.trim(),reachScope,reachCountry:reachCountry.trim(),reachState:reachState.trim(),reachCity:reachCity.trim(),reachArea:reachArea.trim(),durationMinutes:duration});
    setTitle("");setBlurb("");setDetails("");setVenue("");setAddress("");setCountry("");setState("");setCity("");setArea("");setPrice(0);setImageUrl("");setDuration(120);onOpenChange(false);
   });
-  });
  };
  return <Dialog open={open} onOpenChange={onOpenChange}><DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-2xl rounded-2xl p-6">
   <DialogHeader><div className="flex items-center gap-2"><span className="grid size-9 place-items-center rounded-xl bg-primary/15 text-primary"><CalendarPlus className="size-5"/></span><div><DialogTitle className="font-display text-xl font-bold">Create an Event</DialogTitle><DialogDescription className="text-xs">Give people everything they need to find and attend your event.</DialogDescription></div></div></DialogHeader>
