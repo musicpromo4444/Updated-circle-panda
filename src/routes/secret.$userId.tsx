@@ -99,6 +99,7 @@ function SecretProfilePage() {
     setCommentsBySecret((current) => ({ ...current, [commentPost.id]: data ?? [] }));
     setInteractions((current) => ({ ...current, [commentPost.id]: { ...(current[commentPost.id] ?? {reaction:null,reaction_count:0,heart_count:0,laugh_count:0,wow_count:0,sad_count:0,angry_count:0,panda_count:0}), comment_count:data?.length ?? 0 } }));
     setCommentText("");
+    setCommentPost(null);
     toast.success("Comment posted");
   };
 
@@ -158,12 +159,12 @@ function SecretProfilePage() {
                   </div>
                   <p className="mt-4 whitespace-pre-wrap break-words text-[15px] leading-7">{secret.content}</p>
                   <div className="relative mt-4 w-full border-t border-border/50 pt-3">
-                    <div className="flex w-full flex-wrap items-center gap-2">
+                    <div className="flex w-full flex-nowrap items-center gap-1 sm:gap-2">
                     <Button variant={selected ? "default" : "outline"} size="sm" className="h-8 min-w-8 rounded-full px-2" aria-label="React to secret" onClick={() => setReactionMenuId(reactionMenuId===secret.id?null:secret.id)}>
                       <SmilePlus className="size-4" /> {selected ? <span className="text-base leading-none">{selected.emoji}</span> : null} <span className="text-[10px]">{ix.reaction_count}</span>
                     </Button>
-                    <Button variant="ghost" size="sm" className="rounded-full" onClick={() => void openComments(secret)}><MessageCircle className="mr-1 size-4" /> Comment <span className="ml-1 text-[10px]">{ix.comment_count}</span></Button>
-                    <Button variant="ghost" size="sm" className="rounded-full" onClick={() => void shareSecret(secret)}><Share2 className="mr-1 size-4" /> Share</Button>
+                    <Button variant="ghost" size="sm" className="shrink-0 whitespace-nowrap rounded-full px-2 text-xs" onClick={() => void openComments(secret)}><MessageCircle className="mr-1 size-4" /> Comment <span className="ml-1 text-[10px]">{ix.comment_count}</span></Button>
+                    <Button variant="ghost" size="sm" className="shrink-0 whitespace-nowrap rounded-full px-2 text-xs" onClick={() => void shareSecret(secret)}><Share2 className="mr-1 size-4" /> Share</Button>
                     </div>
                     {reactionMenuId===secret.id ? <div className="absolute bottom-full left-0 z-50 mb-2 flex max-w-[calc(100vw-2rem)] flex-wrap gap-1 rounded-2xl border border-border bg-card p-2 shadow-xl">
                       {reactionOptions.map((r)=><button key={r.key} type="button" title={r.label} onClick={()=>void react(secret.id,r.key)} className="grid size-10 place-items-center rounded-full text-xl hover:bg-secondary">{r.emoji}</button>)}
