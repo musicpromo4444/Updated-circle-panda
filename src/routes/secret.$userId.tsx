@@ -131,20 +131,12 @@ function SecretProfilePage() {
           <Button variant="outline" size="sm" onClick={() => void navigator.share?.({title:"Secret Panda Profile",text:"Leave a secret about this Panda.",url:window.location.href})}><Share2 className="mr-1 size-4" /> Share</Button>
         </div>
 
-        <section className="panda-panel rounded-3xl p-6 text-center">
+        <section className="panda-panel rounded-3xl p-4 text-center">
           <VipIdentity isVip={Boolean(profile.is_vip)} seed={profile.id} avatar={profile.avatar_url || "🐼"} />
-          <h1 className="mt-3 font-display text-2xl font-bold">{profile.display_name}</h1>
-          {profile.country ? <p className="mt-1 text-sm text-muted-foreground">{profile.country}</p> : null}
-          {profile.bio ? <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-muted-foreground">{profile.bio}</p> : null}
-          <div className="mt-4 rounded-2xl border border-primary/20 bg-primary/5 p-3 text-xs text-muted-foreground">
-            <Eye className="mx-auto mb-1 size-4 text-primary" /> Browse the secrets. Authors remain anonymous.
-          </div>
-        </section>
-
-        <section className="sticky top-2 z-40 rounded-3xl border border-primary/30 bg-card/95 p-4 shadow-xl backdrop-blur">
-          <p className="text-sm font-black">Want to post your own secret?</p>
-          <p className="mt-1 text-xs text-muted-foreground">Click here to post a secret about this person. This button stays with you while you scroll.</p>
-          <Button className="mt-3 h-12 w-full rounded-2xl text-sm font-black" onClick={focusComposer}><Send className="mr-2 size-4" /> Post your own secret</Button>
+          <h1 className="mt-2 font-display text-xl font-bold">{profile.display_name}</h1>
+          {profile.country ? <p className="mt-0.5 text-xs font-semibold text-muted-foreground">{profile.country}</p> : null}
+          <p className="mx-auto mt-2 max-w-md text-xs leading-5 text-muted-foreground">Post on this secret page and they will not know it was you. Feel free.</p>
+          <Button className="mt-3 h-9 rounded-xl px-4 text-xs font-black" onClick={focusComposer}><Send className="mr-1.5 size-3.5" /> Post a Secret</Button>
         </section>
 
         <section className="panda-panel rounded-3xl p-5">
@@ -161,10 +153,9 @@ function SecretProfilePage() {
               return <div key={secret.id} className="space-y-3">
                 <article id={secret.id} className="rounded-[1.35rem] border border-border/70 bg-card p-4 shadow-sm">
                   <p className="whitespace-pre-wrap break-words text-[15px] leading-7">{secret.content}</p>
-                  <p className="mt-2 text-[10px] text-muted-foreground">{new Date(secret.created_at).toLocaleString()}</p>
-                  <div className="relative mt-3 flex items-center gap-1.5 overflow-x-auto border-t border-border/50 pt-3">
-                    <Button variant={selected ? "default" : "outline"} size="sm" className="rounded-full" onClick={() => setReactionMenuId(reactionMenuId===secret.id?null:secret.id)}>
-                      <SmilePlus className="mr-1 size-4" /> {selected ? selected.emoji : "React"} <span className="ml-1 text-[10px]">{ix.reaction_count}</span>
+                  <div className="relative mt-3 flex flex-wrap items-center gap-1.5 border-t border-border/50 pt-3">
+                    <Button variant={selected ? "default" : "outline"} size="sm" className="h-8 min-w-8 rounded-full px-2" aria-label="React to secret" onClick={() => setReactionMenuId(reactionMenuId===secret.id?null:secret.id)}>
+                      <SmilePlus className="size-4" /> {selected ? <span className="text-base leading-none">{selected.emoji}</span> : null} <span className="text-[10px]">{ix.reaction_count}</span>
                     </Button>
                     <Button variant="ghost" size="sm" className="rounded-full" onClick={() => void openComments(secret)}><MessageCircle className="mr-1 size-4" /> Comment <span className="ml-1 text-[10px]">{ix.comment_count}</span></Button>
                     <Button variant="ghost" size="sm" className="rounded-full" onClick={() => void shareSecret(secret)}><Share2 className="mr-1 size-4" /> Share</Button>
