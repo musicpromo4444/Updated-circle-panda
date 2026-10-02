@@ -469,7 +469,6 @@ function ProfilePage() {
         </div>
       </section>
 
-}
 
       <div className="mt-4 grid grid-cols-2 gap-3">
         <Link
