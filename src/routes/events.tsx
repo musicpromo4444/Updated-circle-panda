@@ -40,12 +40,17 @@ function EventsPage() {
   const [plans, setPlans] = useState<BlastPlan[]>([]);
   const [email, setEmail] = useState("");
   const [processing, setProcessing] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [boostPromptOpen, setBoostPromptOpen] = useState(false);
+  const [createdEvent, setCreatedEvent] = useState<PandaEvent | null>(null);
   const [bcProcessing, setBcProcessing] = useState<string | null>(null);
   const [targetScope, setTargetScope] = useState<"worldwide"|"country"|"state"|"city"|"area">("worldwide");
   const [targetCountry, setTargetCountry] = useState(""); const [targetState, setTargetState] = useState(""); const [targetCity, setTargetCity] = useState(""); const [targetArea, setTargetArea] = useState("");
   const [targetCountries, setTargetCountries] = useState<Array<{name:string;iso2:string}>>([]);
   const [targetStates, setTargetStates] = useState<string[]>([]); const [targetCities, setTargetCities] = useState<string[]>([]);
   const current = openEvent ? (events.find((e) => e.id === openEvent.id) ?? null) : null;
+
+  useEffect(() => { void supabase.auth.getUser().then(({ data }) => setCurrentUserId(data.user?.id ?? null)); }, []);
 
   useEffect(() => {
     void (async () => {
@@ -104,6 +109,7 @@ function EventsPage() {
 
   return (
     <AppShell title="Events" subtitle="Masks encouraged. Names optional.">
+      <div className="cp-events-page min-w-0 w-full overflow-x-hidden">
       <div className="mb-5">
         <Button size="lg" onClick={() => setCreateOpen(true)} className="w-full gap-2.5 rounded-2xl py-6 font-bold shadow-lg shadow-primary/20">
           <CalendarPlus className="size-5" /> Create an Event
@@ -129,6 +135,7 @@ function EventsPage() {
                 <p className="flex items-center gap-1.5"><Users className="size-3.5" /> {e.reachScope === "worldwide" ? "Worldwide" : `${e.reachScope}: ${e.reachCity || e.reachCountry || e.reachArea || ""}`}</p>
               </div>
               {e.rsvp ? <p className="mt-3 rounded-lg bg-primary/15 py-1.5 text-center text-xs font-semibold text-primary">You're going 🐼</p> : null}
+              {e.ownerId && e.ownerId === currentUserId ? <div className="mt-3 flex items-center justify-between border-t border-border/60 pt-3"><span className="text-[11px] text-muted-foreground">Your event</span><span role="button" tabIndex={0} onClick={(ev) => { ev.stopPropagation(); setOpenEvent(e); setBlastOpen(true); }} className="rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground">Boost Event</span></div> : null}
             </button>
             {(idx + 1) % 4 === 0 ? <StandardBannerAd index={Math.floor(idx / 4)} variant="feed-card" placement="events_inline" /> : null}
             </>
@@ -161,7 +168,7 @@ function EventsPage() {
               <Button variant={current.rsvp ? "secondary" : "default"} onClick={() => { void (async () => { const { data, error } = await (supabase as any).rpc("toggle_event_rsvp_secure", { p_event_id: current.id }); if (error) toast.error(error.message); else toast.success(data?.joined ? "You’re going 🐼" : "RSVP cancelled"); })(); }}>
                 {current.rsvp ? "You’re going 🐼" : "RSVP anonymously"}
               </Button>
-              <Button type="button" variant="outline" onClick={openBlast} className="gap-2"><Rocket className="size-4" /> Event Blast</Button>
+              {current.ownerId === currentUserId ? <Button type="button" variant="outline" onClick={openBlast} className="gap-2"><Rocket className="size-4" /> Event Blast</Button> : null}
             </div>
             </div>
           </> : null}
@@ -174,7 +181,7 @@ function EventsPage() {
             <DialogTitle className="font-display text-2xl">🚀 Event Blast</DialogTitle>
           </DialogHeader>
           <p className="text-sm text-muted-foreground">Promote <strong>{current?.title}</strong> for {plans[0]?.duration_minutes ?? 60} minutes. Your purchased reach is the base audience, plus up to <strong>20% extra notification reach</strong> at no additional cost.</p>
-          <div className="space-y-2 rounded-2xl border border-border p-4"><label className="text-xs font-semibold">Target audience</label><div className="grid grid-cols-2 gap-2 sm:grid-cols-5">{(["worldwide","country","state","city","area"] as const).map((scope) => <button key={scope} type="button" onClick={() => setTargetScope(scope)} className={`rounded-xl px-2 py-2 text-xs font-semibold capitalize ${targetScope === scope ? "bg-primary text-primary-foreground" : "border border-border bg-secondary/60"}`}>{scope}</button>)}</div>{targetScope !== "worldwide" ? <div className="grid gap-2 sm:grid-cols-2"><select value={targetCountry} onChange={e=>{setTargetCountry(e.target.value);setTargetState("");setTargetCity("");}} className="h-10 rounded-xl border border-border bg-secondary/60 px-3 text-sm"><option value="">Select country</option>{targetCountries.map(c=><option key={c.iso2} value={c.name}>{countryFlag(c.iso2)} {c.name}</option>)}</select>{(targetScope==="state"||targetScope==="city"||targetScope==="area")?<select value={targetState} disabled={!targetCountry} onChange={e=>{setTargetState(e.target.value);setTargetCity("");}} className="h-10 rounded-xl border border-border bg-secondary/60 px-3 text-sm"><option value="">Select state / province</option>{targetStates.map(s=><option key={s}>{s}</option>)}</select>:null}{(targetScope==="city"||targetScope==="area")?<select value={targetCity} disabled={!targetState} onChange={e=>setTargetCity(e.target.value)} className="h-10 rounded-xl border border-border bg-secondary/60 px-3 text-sm"><option value="">Select city</option>{targetCities.map(s=><option key={s}>{s}</option>)}</select>:null}{targetScope==="area"?<Input value={targetArea} onChange={e=>setTargetArea(e.target.value)} placeholder="Target area / neighborhood"/>:null}</div>:null}</div>
+          <div className="space-y-2 rounded-2xl border border-border p-4"><label className="text-xs font-semibold">Target audience</label><div className="grid grid-cols-2 gap-2 sm:grid-cols-5">{(["worldwide","country","state","city","area"] as const).map((scope) => <button key={scope} type="button" onClick={() => setTargetScope(scope)} className={`rounded-xl px-2 py-2 text-xs font-semibold capitalize ${targetScope === scope ? "bg-primary text-primary-foreground" : "border border-border bg-secondary/60"}`}>{scope}</button>)}</div>{targetScope !== "worldwide" ? <div className="grid gap-2 sm:grid-cols-2"><select value={targetCountry} style={{minWidth:0,maxWidth:"100%"}} onChange={e=>{setTargetCountry(e.target.value);setTargetState("");setTargetCity("");}} className="h-10 rounded-xl border border-border bg-secondary/60 px-3 text-sm"><option value="">Select country</option>{targetCountries.map(c=><option key={c.iso2} value={c.name}>{countryFlag(c.iso2)} {c.name}</option>)}</select>{(targetScope==="state"||targetScope==="city"||targetScope==="area")?<select value={targetState} style={{minWidth:0,maxWidth:"100%"}} disabled={!targetCountry} onChange={e=>{setTargetState(e.target.value);setTargetCity("");}} className="h-10 rounded-xl border border-border bg-secondary/60 px-3 text-sm"><option value="">Select state / province</option>{targetStates.map(s=><option key={s}>{s}</option>)}</select>:null}{(targetScope==="city"||targetScope==="area")?<select value={targetCity} style={{minWidth:0,maxWidth:"100%"}} disabled={!targetState} onChange={e=>setTargetCity(e.target.value)} className="h-10 rounded-xl border border-border bg-secondary/60 px-3 text-sm"><option value="">Select city</option>{targetCities.map(s=><option key={s}>{s}</option>)}</select>:null}{targetScope==="area"?<Input value={targetArea} onChange={e=>setTargetArea(e.target.value)} placeholder="Target area / neighborhood"/>:null}</div>:null}</div>
           <div className="space-y-3">
             {plans.map((plan) => (
               <div key={plan.id} className="rounded-2xl border border-border p-4">
@@ -205,7 +212,18 @@ function EventsPage() {
         </DialogContent>
       </Dialog>
 
-      <CreateEventModal open={createOpen} onOpenChange={setCreateOpen} />
+      <CreateEventModal open={createOpen} onOpenChange={setCreateOpen} onCreated={(event) => { setCreatedEvent(event); setOpenEvent(event); setBoostPromptOpen(true); }} />
+
+      <Dialog open={boostPromptOpen} onOpenChange={setBoostPromptOpen}>
+        <DialogContent className="w-[calc(100vw-2rem)] max-w-sm rounded-2xl">
+          <DialogHeader><DialogTitle className="font-display text-xl">Boost your event?</DialogTitle></DialogHeader>
+          <p className="text-sm text-muted-foreground">Would you like to boost your event to reach a lot of people?</p>
+          <div className="grid grid-cols-2 gap-2 pt-2">
+            <Button variant="outline" onClick={() => { setBoostPromptOpen(false); setCreatedEvent(null); setOpenEvent(null); }}>No</Button>
+            <Button onClick={() => { setBoostPromptOpen(false); if (createdEvent) { setOpenEvent(createdEvent); setBlastOpen(true); } }}>Yes</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </AppShell>
   );
 }
