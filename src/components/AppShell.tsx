@@ -73,6 +73,22 @@ export function GlobalActionWidget() {
   );
 }
 
+function ActionCelebration() {
+  const [action, setAction] = useState<{ title: string; emoji: string } | null>(null);
+  useEffect(() => {
+    const handler = (event: Event) => {
+      const detail = (event as CustomEvent).detail;
+      if (!detail?.title) return;
+      setAction({ title: String(detail.title), emoji: String(detail.emoji ?? "✨") });
+      window.setTimeout(() => setAction(null), 1700);
+    };
+    window.addEventListener("circle-panda-action", handler);
+    return () => window.removeEventListener("circle-panda-action", handler);
+  }, []);
+  if (!action) return null;
+  return <div className="pointer-events-none fixed inset-0 z-[100] flex items-center justify-center px-6"><div className="animate-in zoom-in-75 fade-in duration-300 rounded-3xl border border-primary/30 bg-background/90 px-8 py-6 text-center shadow-2xl backdrop-blur-xl"><div className="animate-bounce text-5xl">{action.emoji}</div><p className="mt-2 font-display text-xl font-black">{action.title}</p><div className="mx-auto mt-3 h-1 w-24 overflow-hidden rounded-full bg-primary/15"><div className="h-full w-full origin-left animate-[scale-x_1.4s_ease-out] bg-primary" /></div></div></div>;
+}
+
 export function BottomNav() {
   const { pathname } = useLocation();
   const pageKey = pathname === "/" ? "home" : pathname.replace(/^\/+/, "").split("/")[0] || "home";
@@ -437,6 +453,7 @@ export function AppShell({
       </main>
 
       <BottomNav />
+      <ActionCelebration />
       <DailyRewardPopup />
     </div>
   );
