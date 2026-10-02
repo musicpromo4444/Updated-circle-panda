@@ -13,6 +13,7 @@ import {
   Trophy,
   Users,
   Share2,
+  LogOut,
 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { StandardBannerAd } from "@/components/ads/StandardBannerAd";
@@ -84,6 +85,13 @@ function ProfilePage() {
       if (profile?.gender === "male" || profile?.gender === "female") setAccountGender(profile.gender);
     });
   }, []);
+  const logout = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) { toast.error(error.message); return; }
+    toast.success("You have been logged out.");
+    window.location.replace("/");
+  };
+
   const saveAvatar = (next:string) => {
     void (supabase as any).rpc("set_panda_avatar_secure", { p_avatar: next }).then(({ data, error }: any) => {
       if (error) { toast.error(error.message ?? "Avatar could not be updated"); return; }
@@ -231,8 +239,22 @@ function ProfilePage() {
           ))}
         </div>
         <div className="mt-4 flex items-center gap-3 rounded-2xl border border-primary/20 bg-primary/5 p-3">
-          <span className="grid size-16 shrink-0 place-items-center rounded-2xl bg-secondary text-3xl">{avatar}</span>
-          <div><p className="font-semibold">Your current Panda</p><p className="text-xs text-muted-foreground">Generated from built-in customization parts. You can change it anytime.</p></div>
+          <div className="relative grid size-20 shrink-0 place-items-center rounded-2xl bg-secondary">
+            <span className="text-5xl leading-none">🐼</span>
+            {avatarHead !== "🐼" ? <span className="absolute -top-1 text-3xl leading-none">{avatarHead.replace("🐼","")}</span> : null}
+            {avatarGlasses ? <span className="absolute top-7 text-2xl leading-none">{avatarGlasses}</span> : null}
+            {avatarFace ? <span className="absolute bottom-2 text-lg leading-none">{avatarFace}</span> : null}
+            {avatarCosmetic ? <span className="absolute -right-1 -top-1 text-lg leading-none">{avatarCosmetic}</span> : null}
+          </div>
+          <div><p className="font-semibold">Your current Panda</p><p className="text-xs text-muted-foreground">Your selected hat, glasses, face style and cosmetics are worn by your Panda and saved to your profile.</p></div>
+        </div>
+
+        <div className="mt-4 rounded-2xl border border-destructive/25 bg-destructive/5 p-4">
+          <div className="flex items-center gap-3">
+            <span className="grid size-10 place-items-center rounded-xl bg-destructive/10"><LogOut className="size-5 text-destructive" /></span>
+            <div className="min-w-0 flex-1"><p className="font-semibold">Log out</p><p className="text-xs text-muted-foreground">Sign out of this Panda account. You will need to log in again to enter Circle Panda.</p></div>
+            <Button variant="outline" className="shrink-0 rounded-xl" onClick={() => void logout()}>Log out</Button>
+          </div>
         </div>
       </section>
 
