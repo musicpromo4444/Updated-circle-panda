@@ -145,6 +145,28 @@ function ProfilePage() {
     } catch { setLocationAreas([]); }
   };
 
+  useEffect(() => {
+    if (!country) return;
+    void fetch("https://countriesnow.space/api/v0.1/countries/states", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({country}) })
+      .then(r=>r.json()).then(j=>setLocationStates(Array.isArray(j?.data?.states)?j.data.states.map((s:any)=>s.name).filter(Boolean):[])).catch(()=>setLocationStates([]));
+  }, [country]);
+
+  useEffect(() => {
+    if (!country || !stateProvince) return;
+    void fetch("https://countriesnow.space/api/v0.1/countries/state/cities", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({country,state:stateProvince}) })
+      .then(r=>r.json()).then(j=>setLocationCities(Array.isArray(j?.data)?j.data.filter(Boolean):[])).catch(()=>setLocationCities([]));
+  }, [country,stateProvince]);
+
+  useEffect(() => {
+    if (!country || !stateProvince || !city) return;
+    const q=encodeURIComponent(city+", "+stateProvince+", "+country);
+    void fetch("https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=12&q="+q)
+      .then(r=>r.json()).then(j=>{
+        const areas=Array.isArray(j)?j.map((x:any)=>x?.address?.suburb||x?.address?.neighbourhood||x?.address?.quarter||x?.address?.district).filter(Boolean):[];
+        setLocationAreas(Array.from(new Set(areas)));
+      }).catch(()=>setLocationAreas([]));
+  }, [country,stateProvince,city]);
+
   const logout = async () => {
     const { error } = await supabase.auth.signOut();
     if (error) { toast.error(error.message); return; }
