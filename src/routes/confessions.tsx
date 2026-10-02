@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Eye, Upload, Crown, SmilePlus, MessageCircle, Share2, Send } from "lucide-react";
+import { Eye, Upload, Crown, SmilePlus, MessageCircle, Share2, Send, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
 import { StandardBannerAd } from "@/components/ads/StandardBannerAd";
@@ -46,6 +46,9 @@ export function ConfessionsPage() {
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [uploadCaption, setUploadCaption] = useState("");
   const [uploading, setUploading] = useState(false);
+  const [accountGender, setAccountGender] = useState<"male" | "female" | null>(null);
+  const [genderPromptOpen, setGenderPromptOpen] = useState(false);
+  const [commentCounts, setCommentCounts] = useState<Record<string, number>>({});
   const [items, setItems] = useState<Confession[]>([]);
   const [content, setContent] = useState("");
   const [anonymous, setAnonymous] = useState(true);
@@ -77,11 +80,16 @@ export function ConfessionsPage() {
       const nextItems = (data ?? []) as Confession[];
       setItems(nextItems);
       if (nextItems.length) {
-        const { data: reactions } = await (supabase as any).rpc("get_confession_reaction_state", { p_confession_ids: nextItems.map((x) => x.id) });
+        const ids = nextItems.map((x) => x.id);
+        const { data: reactions } = await (supabase as any).rpc("get_confession_reaction_state", { p_confession_ids: ids });
         const next: Record<string, ReactionState> = {};
         for (const row of reactions ?? []) next[row.confession_id] = { reaction:row.reaction ?? null, heart_count:Number(row.heart_count ?? 0), laugh_count:Number(row.laugh_count ?? 0), wow_count:Number(row.wow_count ?? 0), sad_count:Number(row.sad_count ?? 0), angry_count:Number(row.angry_count ?? 0), panda_count:Number(row.panda_count ?? 0) };
         setReactionState(next);
-      } else setReactionState({});
+        const { data: commentRows } = await (supabase as any).from("confession_comments").select("confession_id").in("confession_id", ids);
+        const counts: Record<string, number> = {};
+        for (const row of commentRows ?? []) counts[row.confession_id] = (counts[row.confession_id] ?? 0) + 1;
+        setCommentCounts(counts);
+      } else { setReactionState({}); setCommentCounts({}); }
     }
     setLoading(false);
     setRefreshing(false);
@@ -102,9 +110,21 @@ export function ConfessionsPage() {
     if (window.location.hash === "#upload") setUploadOpen(true);
     void load();
     void loadWeekly();
+    void (async () => { const { data } = await (supabase as any).rpc("get_my_profile_gender"); if (data === "male" || data === "female") setAccountGender(data); })();
   }, []);
 
   const chooseFile = () => fileInputRef.current?.click();
+  const openCrushUpload = () => {
+    setUploadOpen(true);
+    if (!accountGender) setGenderPromptOpen(true);
+  };
+  const saveGender = async (gender: "male" | "female") => {
+    const { data, error } = await (supabase as any).rpc("set_profile_gender_secure", { p_gender: gender });
+    if (error) return toast.error(error.message ?? "Gender could not be saved");
+    setAccountGender(data === "male" || data === "female" ? data : gender);
+    setGenderPromptOpen(false);
+    toast.success("Profile gender saved. You can continue your WCW/MCM upload.");
+  };
 
   const handleFile = (file: File | null) => {
     if (!file) return;
@@ -120,6 +140,7 @@ export function ConfessionsPage() {
   };
 
   const uploadCrush = async () => {
+    if (!accountGender) { setGenderPromptOpen(true); return; }
     if (!uploadFile) return toast.error("Tap Choose photo or video first.");
     setUploading(true);
     try {
@@ -287,7 +308,7 @@ export function ConfessionsPage() {
           <div className="mt-4 grid grid-cols-3 gap-2">
             <button
               type="button"
-              onClick={() => setUploadOpen(true)}
+              onClick={openCrushUpload}
               className="flex min-w-0 flex-col items-center gap-1.5 rounded-2xl p-1.5 text-center transition-transform active:scale-95"
             >
               <span className="grid size-[58px] place-items-center rounded-full border border-dashed border-primary/70 bg-background text-2xl text-primary shadow-inner sm:size-16">+</span>
@@ -374,9 +395,11 @@ export function ConfessionsPage() {
                     <div className="flex items-center gap-2 overflow-x-auto">
                       <Button variant={selected ? "default" : "outline"} size="sm" className="rounded-full" onClick={() => setReactionMenuId(reactionMenuId === item.id ? null : item.id)}>
                         <SmilePlus className="mr-1 size-4" /> {selected ? selected.emoji : "React"}
-                        {selected ? <span className="ml-1 text-[10px]">{(rs as any)[selected.key + "_count"] ?? 0}</span> : null}
+                        <span className="ml-1 text-[10px]">{[
+                          rs.heart_count,rs.laugh_count,rs.wow_count,rs.sad_count,rs.angry_count,rs.panda_count
+                        ].reduce((a,b)=>a+Number(b||0),0)}</span>
                       </Button>
-                      <Button variant="ghost" size="sm" className="rounded-full" onClick={() => void openComments(item)}><MessageCircle className="mr-1 size-4" /> Comment</Button>
+                      <Button variant="ghost" size="sm" className="rounded-full" onClick={() => void openComments(item)}><MessageCircle className="mr-1 size-4" /> Comment <span className="ml-1 text-[10px]">{commentCounts[item.id] ?? 0}</span></Button>
                       <Button variant="ghost" size="sm" className="rounded-full" onClick={() => void shareConfession(item)}><Share2 className="mr-1 size-4" /> Share</Button>
                       {item.author_id ? <Button variant="ghost" size="sm" className="rounded-full" onClick={() => void openMessage(item)}><Send className="mr-1 size-4" /> Message</Button> : null}
                     </div>
@@ -405,6 +428,21 @@ export function ConfessionsPage() {
           </div>
         ))}
       </div>
+
+      <Dialog open={genderPromptOpen} onOpenChange={setGenderPromptOpen}>
+        <DialogContent className="max-w-sm rounded-3xl">
+          <DialogTitle>Complete your profile</DialogTitle>
+          <DialogDescription>Select your gender to continue with WCW/MCM. This choice is saved to your profile and cannot be changed later.</DialogDescription>
+          <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-500">
+            <AlertTriangle className="mr-1 inline size-4" />
+            Please pick the correct profile. Once saved, your gender is locked and cannot be changed back.
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <Button variant="outline" className="h-12 rounded-2xl" onClick={() => void saveGender("female")}>👩 Female · WCW</Button>
+            <Button variant="outline" className="h-12 rounded-2xl" onClick={() => void saveGender("male")}>🧑 Male · MCM</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={uploadOpen} onOpenChange={(v) => {
         if (!v && !uploading) {
