@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { ChevronLeft, Flame, Send, Users, Settings, Pencil, LogOut } from "lucide-react";
+import { ChevronLeft, Flame, Send, Users, Settings, Pencil, LogOut, Lock } from "lucide-react";
 import { BottomNav } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -56,6 +56,7 @@ function GroupRoom() {
   const [memberEditOpen, setMemberEditOpen] = useState(false);
 
   const group = groups.find((g) => g.id === groupId) ?? null;
+  const expired = !!group?.expiresAt && new Date(group.expiresAt).getTime() <= Date.now();
 
   useEffect(() => {
     bottom.current?.scrollIntoView({ behavior: "smooth" });
