@@ -253,10 +253,11 @@ function ProfilePage() {
           <Button type="button" variant="outline" onClick={() => { const url = window.location.origin + "/secret/" + profileId; void navigator.clipboard?.writeText(url); toast.success("Secret Profile link copied."); }}>Copy</Button>
           <Link to="/secret/$userId" params={{ userId: profileId }} className="inline-flex items-center justify-center rounded-xl bg-primary px-3 text-xs font-bold text-primary-foreground">Open</Link>
         </div>
-      </section> : null
+      </section> : null}
 
       <section className="panda-panel mt-4 rounded-2xl p-4">
         {profileSaved ? (
+          <>
           <div className="flex items-center justify-between gap-3">
             <div className="flex min-w-0 items-center gap-2.5">
               <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-primary/10 text-sm">✓</span>
@@ -278,7 +279,9 @@ function ProfilePage() {
               <div className="rounded-xl border border-border bg-secondary/30 p-2.5"><p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Area / Neighbourhood</p><p className="mt-1 text-sm font-semibold">{area || "—"}</p></div>
               <div className="rounded-xl border border-border bg-secondary/30 p-2.5"><p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Street / Address</p><p className="mt-1 text-sm font-semibold">{addressLine || "—"}</p></div>
             </div>
-          ) : null}        ) : (
+          ) : null}
+          </>
+        ) : (
           <div>
             <div className="flex items-start justify-between gap-3">
           <div><h2 className="font-display text-lg font-bold">Complete your profile</h2>
