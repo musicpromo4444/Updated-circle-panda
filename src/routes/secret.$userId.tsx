@@ -151,15 +151,21 @@ function SecretProfilePage() {
               const selected = reactionOptions.find((r) => r.key === ix.reaction);
               const showAd = adAfter(index + 1) === index + 1;
               return <div key={secret.id} className="space-y-3">
-                <article id={secret.id} className="rounded-[1.35rem] border border-border/70 bg-card p-4 shadow-sm">
-                  <p className="whitespace-pre-wrap break-words text-[15px] leading-7">{secret.content}</p>
-                  <div className="relative mt-3 flex flex-wrap items-center gap-1.5 border-t border-border/50 pt-3">
+                <article id={secret.id} className="min-w-0 rounded-[1.65rem] border border-border/70 bg-card p-5 shadow-sm">
+                  <div className="flex min-w-0 items-center gap-2 text-xs text-muted-foreground">
+                    <VipIdentity isVip={false} seed={secret.id} avatar="🐼" compact />
+                    <span className="min-w-0 truncate"><Eye className="mr-1 inline size-3.5" /> Anonymous Panda</span>
+                  </div>
+                  <p className="mt-4 whitespace-pre-wrap break-words text-[15px] leading-7">{secret.content}</p>
+                  <div className="relative mt-4 w-full border-t border-border/50 pt-3">
+                    <div className="flex w-full flex-wrap items-center gap-2">
                     <Button variant={selected ? "default" : "outline"} size="sm" className="h-8 min-w-8 rounded-full px-2" aria-label="React to secret" onClick={() => setReactionMenuId(reactionMenuId===secret.id?null:secret.id)}>
                       <SmilePlus className="size-4" /> {selected ? <span className="text-base leading-none">{selected.emoji}</span> : null} <span className="text-[10px]">{ix.reaction_count}</span>
                     </Button>
                     <Button variant="ghost" size="sm" className="rounded-full" onClick={() => void openComments(secret)}><MessageCircle className="mr-1 size-4" /> Comment <span className="ml-1 text-[10px]">{ix.comment_count}</span></Button>
                     <Button variant="ghost" size="sm" className="rounded-full" onClick={() => void shareSecret(secret)}><Share2 className="mr-1 size-4" /> Share</Button>
-                    {reactionMenuId===secret.id ? <div className="absolute bottom-full left-0 z-50 mb-2 flex gap-1 rounded-full border border-border bg-card p-2 shadow-xl">
+                    </div>
+                    {reactionMenuId===secret.id ? <div className="absolute bottom-full left-0 z-50 mb-2 flex max-w-[calc(100vw-2rem)] flex-wrap gap-1 rounded-2xl border border-border bg-card p-2 shadow-xl">
                       {reactionOptions.map((r)=><button key={r.key} type="button" title={r.label} onClick={()=>void react(secret.id,r.key)} className="grid size-10 place-items-center rounded-full text-xl hover:bg-secondary">{r.emoji}</button>)}
                     </div> : null}
                   </div>
