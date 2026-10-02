@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { AuthModal } from "@/components/auth/AuthModal";
 import { supabase } from "@/integrations/supabase/client";
 
-export default function LandingPage() {
+function LandingPage() {
   const navigate = useNavigate();
   const [authOpen, setAuthOpen] = useState(false);
   const [authTab, setAuthTab] = useState<"signin" | "signup">("signin");
@@ -83,3 +83,15 @@ export default function LandingPage() {
     </main>
   );
 }
+
+export const Route = createFileRoute("/")({
+  head: () => ({
+    meta: [
+      { title: "Circle Panda" },
+      { name: "description", content: "Enter Circle Panda." },
+    ],
+  }),
+  component: LandingPage,
+});
+
+export default LandingPage;
