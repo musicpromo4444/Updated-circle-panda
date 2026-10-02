@@ -123,11 +123,7 @@ export function RegisterDatingModal({open,onOpenChange}:{open:boolean;onOpenChan
   const submit=async(e:React.FormEvent)=>{
     e.preventDefault();
     if(!accountReady)return;
-    if(!p.occupation.trim()){toast.error("Add your occupation");return;}
-    if(!p.aboutTraits.length){toast.error("Pick at least one About You trait");setStep(1);return;}
-    if(!p.relationshipGoal){toast.error("Choose your relationship type");setStep(3);return;}
-    if(!p.favoriteDate){toast.error("Choose where you can meet first");setStep(3);return;}
-    if(!p.sexualExperience){toast.error("Choose your Sexual Experience option");setStep(4);return;}
+    if(!p.relationshipGoal){toast.error("Choose what you're looking for");setStep(3);return;}
     if(!photoFile && !p.photoPath){toast.error("Upload your Dating photo");return;}
     setUploadingPhoto(true);
     try{
@@ -222,7 +218,7 @@ export function RegisterDatingModal({open,onOpenChange}:{open:boolean;onOpenChan
 
         <DialogFooter className="flex-row justify-between gap-2 pt-2">
           <Button type="button" variant="outline" onClick={()=>step===0?onOpenChange(false):setStep(step-1)}>{step===0?"Cancel":"Back"}</Button>
-          {step<5?<Button type="button" onClick={()=>{if(step===1&&!p.aboutTraits.length){toast.error("Pick at least one About You trait");return;} if(step===1&&!p.occupation.trim()){toast.error("Add your occupation");return;} if(step===3&&!p.relationshipGoal){toast.error("Choose your relationship type");return;} if(step===3&&!p.favoriteDate){toast.error("Choose where you can meet first");return;} if(step===4&&!p.sexualExperience){toast.error("Choose your Sexual Experience option");return;} setStep(step+1)}} className="bg-[var(--dating)] text-white">Next</Button>
+          {step<5?<Button type="button" onClick={()=>{if(step===3&&!p.relationshipGoal){toast.error("Choose what you're looking for");return;} setStep(step+1)}} className="bg-[var(--dating)] text-white">Next</Button>
             :<Button type="submit" disabled={uploadingPhoto||!photoFile&&!p.photoPath} className="gap-1.5 bg-[var(--dating)] text-white">{uploadingPhoto?"Publishing…":datingProfile?"Save Dating Profile":"Publish Dating Profile"} <Sparkles className="size-4"/></Button>}
         </DialogFooter>
       </form>
