@@ -249,6 +249,7 @@ export function ConfessionsPage() {
     const { data } = await (supabase as any).rpc("get_confession_comments", { p_confession_id:commentPost.id });
     setCommentsByPost((current) => ({ ...current, [commentPost.id]: data ?? [] }));
     setCommentText("");
+    setCommentPost(null);
     toast.success("Comment posted");
   };
 
