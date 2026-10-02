@@ -986,7 +986,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     if (!dbUserId) return false;
     const { data, error } = await (supabase as any).rpc("get_dating_discovery_secure", {
       p_age_min: filters.ageMin ?? 18,
-      p_age_max: filters.ageMax ?? 99,
+      p_age_max: filters.ageMax ?? 120,
       p_country: filters.country ?? "",
       p_location: filters.location ?? "",
       p_gender: filters.gender ?? "",
