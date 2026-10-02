@@ -85,11 +85,8 @@ function DatingPage() {
   const [, setClock] = useState(Date.now());
   const [connections, setConnections] = useState<any[]>([]);
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const [ageMin, setAgeMin] = useState(18);
-  const [ageMax, setAgeMax] = useState(99);
   const [countryFilter, setCountryFilter] = useState("");
   const [locationFilter, setLocationFilter] = useState("");
-  const [genderFilter, setGenderFilter] = useState("");
   const [goalFilter, setGoalFilter] = useState("");
   const [lookingForFilter, setLookingForFilter] = useState("");
   const [lifestyleFilter, setLifestyleFilter] = useState("");
@@ -142,10 +139,8 @@ function DatingPage() {
   ];
   const filteredMatches = allMatches.filter((m:any, idx) => {
     if (idx === 0) return true;
-    if (m.age < ageMin || m.age > ageMax) return false;
     if (sameCountryOnly && datingProfile?.country && String(m.country).toLowerCase() !== String(datingProfile.country).toLowerCase()) return false;
     if (countryFilter && !String(m.country ?? "").toLowerCase().includes(countryFilter.toLowerCase())) return false;
-    if (genderFilter && String(m.gender ?? "").toLowerCase() !== genderFilter.toLowerCase()) return false;
     if (goalFilter && !String(m.relationshipGoal ?? "").toLowerCase().includes(goalFilter.toLowerCase())) return false;
     if (lookingForFilter && !(m.lookingFor ?? []).some((v:string)=>v.toLowerCase().includes(lookingForFilter.toLowerCase()))) return false;
     if (lifestyleFilter && !(m.lifestyle ?? []).some((v:string)=>v.toLowerCase().includes(lifestyleFilter.toLowerCase()))) return false;
@@ -158,10 +153,10 @@ function DatingPage() {
     if (zodiacFilter && String(m.zodiac ?? "").toLowerCase() !== zodiacFilter.toLowerCase()) return false;
     return true;
   });
-  const activeFilterCount = [ageMin > 18, ageMax < 99, countryFilter, locationFilter, genderFilter, goalFilter, lookingForFilter, lifestyleFilter, smokingFilter, drinkingFilter, childrenFilter, educationFilter, heightMin, heightMax, zodiacFilter, !sameCountryOnly].filter(Boolean).length;
+  const activeFilterCount = [countryFilter, locationFilter, goalFilter, lookingForFilter, lifestyleFilter, smokingFilter, drinkingFilter, childrenFilter, educationFilter, heightMin, heightMax, zodiacFilter, !sameCountryOnly].filter(Boolean).length;
   const applyFilters = async () => {
     await searchDatingProfiles({
-      ageMin, ageMax, country: countryFilter, location: locationFilter, gender: genderFilter,
+      ageMin:18, ageMax:120, country: countryFilter, location: locationFilter, gender:"",
       relationshipGoal: goalFilter, lookingFor: lookingForFilter, lifestyle: lifestyleFilter,
       smoking: smokingFilter, drinking: drinkingFilter, children: childrenFilter, education: educationFilter,
       heightMin, heightMax, zodiac: zodiacFilter, sameCountryOnly,
@@ -170,7 +165,7 @@ function DatingPage() {
   };
 
   const resetFilters = () => {
-    setAgeMin(18); setAgeMax(99); setCountryFilter(""); setLocationFilter(""); setGenderFilter(""); setGoalFilter("");
+    setCountryFilter(""); setLocationFilter(""); setGoalFilter("");
     setLookingForFilter(""); setLifestyleFilter(""); setSmokingFilter(""); setDrinkingFilter(""); setChildrenFilter("");
     setEducationFilter(""); setHeightMin(0); setHeightMax(0); setZodiacFilter(""); setSameCountryOnly(true);
   };
@@ -266,6 +261,7 @@ function DatingPage() {
                     <span className="text-sm font-normal text-muted-foreground">{m.age}</span>
                   </span>
                   <span className="mt-1 block text-sm text-muted-foreground">{m.vibe}</span>
+                {m.aboutTraits?.length ? <span className="mt-2 flex flex-wrap gap-1">{m.aboutTraits.slice(0,5).map((t:string)=><span key={t} className="rounded-full bg-secondary/60 px-2 py-1 text-[10px] text-muted-foreground">{t}</span>)}</span> : null}
                 </span>
               </button>
               <div className="p-4 pt-3">
@@ -307,12 +303,9 @@ function DatingPage() {
           <DialogTitle className="flex items-center gap-2"><SlidersHorizontal className="size-5" /> Dating Filters</DialogTitle>
           <DialogDescription>Choose who appears in your Dating cards. Your filters are private.</DialogDescription>
           <div className="grid gap-4 py-2 sm:grid-cols-2">
-            <label className="text-xs font-semibold">Minimum age<Input type="number" min={18} max={99} value={ageMin} onChange={e=>setAgeMin(Math.max(18,Number(e.target.value)||18))} className="mt-1" /></label>
-            <label className="text-xs font-semibold">Maximum age<Input type="number" min={18} max={99} value={ageMax} onChange={e=>setAgeMax(Math.min(99,Number(e.target.value)||99))} className="mt-1" /></label>
             <label className="flex items-center gap-2 rounded-xl border border-border p-3 text-sm sm:col-span-2"><input type="checkbox" checked={sameCountryOnly} onChange={e=>setSameCountryOnly(e.target.checked)} /> Only show people in my country</label>
             <label className="text-xs font-semibold">Country<Input value={countryFilter} onChange={e=>setCountryFilter(e.target.value)} placeholder="Any country" className="mt-1" /></label>
             <label className="text-xs font-semibold">City / area<Input value={locationFilter} onChange={e=>setLocationFilter(e.target.value)} placeholder="Optional" className="mt-1" /></label>
-            <label className="text-xs font-semibold">Gender<select value={genderFilter} onChange={e=>setGenderFilter(e.target.value)} className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm"><option value="">Any</option><option>Woman</option><option>Man</option><option>Non-binary</option><option>Prefer not to say</option></select></label>
             <label className="text-xs font-semibold">Relationship goal<Input value={goalFilter} onChange={e=>setGoalFilter(e.target.value)} placeholder="e.g. serious" className="mt-1" /></label>
             <label className="text-xs font-semibold">Looking for<Input value={lookingForFilter} onChange={e=>setLookingForFilter(e.target.value)} placeholder="e.g. Long-term relationship" className="mt-1" /></label>
             <label className="text-xs font-semibold">Lifestyle<Input value={lifestyleFilter} onChange={e=>setLifestyleFilter(e.target.value)} placeholder="e.g. Night owl" className="mt-1" /></label>
@@ -353,6 +346,8 @@ function DatingPage() {
 
                 <p className="mt-4 text-[15px] leading-relaxed">{openMatch.bio}</p>
 
+                {openMatch.aboutTraits?.length ? <div className="mt-4"><p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">About</p><div className="mt-2 flex flex-wrap gap-2">{openMatch.aboutTraits.map((i:string)=><span key={i} className="rounded-full border border-border bg-secondary/60 px-3 py-1 text-xs text-muted-foreground">{i}</span>)}</div></div> : null}
+
                 <div className="mt-4 flex flex-wrap gap-2">
                   {openMatch.interests.map((i) => (
                     <span
@@ -364,9 +359,8 @@ function DatingPage() {
                   ))}
                 </div>
 
-                <p className="mt-3 text-xs text-muted-foreground">
-                  📍 {openMatch.country || openMatch.location} · anonymous profile
-                </p>
+                {openMatch.lookingFor?.length ? <div className="mt-4"><p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Looking for</p><div className="mt-2 flex flex-wrap gap-2">{openMatch.lookingFor.map((i:string)=><span key={i} className="rounded-full border border-[var(--dating)]/25 bg-[var(--dating)]/5 px-3 py-1 text-xs text-muted-foreground">{i}</span>)}</div></div> : null}
+                <p className="mt-3 text-xs text-muted-foreground">📍 {openMatch.country || openMatch.location} · anonymous profile</p>
 
                 <Button
                   className="mt-5 w-full gap-2 bg-[var(--dating)] text-[var(--dating-foreground)] hover:bg-[var(--dating)]/90"
