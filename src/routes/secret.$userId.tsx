@@ -29,6 +29,7 @@ function SecretProfilePage() {
   const [interactions, setInteractions] = useState<Record<string, Interaction>>({});
   const [commentPost, setCommentPost] = useState<Secret | null>(null);
   const [commentText, setCommentText] = useState("");
+  const [composerOpen, setComposerOpen] = useState(false);
   const [commentsBySecret, setCommentsBySecret] = useState<Record<string, SecretComment[]>>({});
   const composerRef = useRef<HTMLTextAreaElement | null>(null);
 
@@ -112,8 +113,11 @@ function SecretProfilePage() {
   };
 
   const focusComposer = () => {
-    composerRef.current?.scrollIntoView({ behavior:"smooth", block:"center" });
-    composerRef.current?.focus();
+    setComposerOpen(true);
+    window.setTimeout(() => {
+      composerRef.current?.scrollIntoView({ behavior:"smooth", block:"center" });
+      composerRef.current?.focus();
+    }, 50);
   };
 
   if (loading) return <main className="min-h-screen bg-background p-5 text-center text-muted-foreground">Loading Secret Profile…</main>;
@@ -179,12 +183,16 @@ function SecretProfilePage() {
             }) : <p className="rounded-2xl border border-dashed border-border p-6 text-center text-sm text-muted-foreground">No secrets yet. Be the first.</p>}
           </div>
 
-          <div ref={undefined} className="mt-5 rounded-2xl border border-primary/25 bg-primary/5 p-4">
-            <p className="text-sm font-bold">Post your own secret about {profile.display_name}</p>
-            <p className="mt-1 text-xs text-muted-foreground">Your secret is published anonymously and appears at the top of this feed.</p>
-            <textarea ref={composerRef} value={content} onChange={(e)=>setContent(e.target.value)} maxLength={1000} placeholder="Write a secret about this Panda…" className="cp-input mt-3 min-h-28 w-full resize-y" />
-            <Button className="mt-3 w-full rounded-2xl" disabled={posting || content.trim().length<3} onClick={()=>void submit()}>{posting ? "Posting…" : <><Send className="mr-2 size-4" /> Post secret anonymously</>}</Button>
-          </div>
+          {composerOpen ? <div className="fixed inset-0 z-[100] grid place-items-center bg-black/60 p-4" role="dialog" aria-modal="true">
+            <div className="w-full max-w-md rounded-3xl border border-border bg-card p-5 shadow-2xl">
+              <div className="flex items-center justify-between gap-3">
+                <div><h2 className="font-display text-lg font-bold">Post your secret</h2><p className="mt-1 text-xs text-muted-foreground">Your secret about {profile.display_name} is posted anonymously.</p></div>
+                <Button variant="ghost" size="sm" className="rounded-full" onClick={()=>setComposerOpen(false)}>Close</Button>
+              </div>
+              <textarea ref={composerRef} value={content} onChange={(e)=>setContent(e.target.value)} maxLength={1000} placeholder="Write a secret about this Panda…" className="cp-input mt-4 min-h-28 w-full resize-y" />
+              <Button className="mt-3 w-full rounded-2xl" disabled={posting || content.trim().length<3} onClick={async()=>{ await submit(); setComposerOpen(false); }}>{posting ? "Posting…" : <><Send className="mr-2 size-4" /> Post secret anonymously</>}</Button>
+            </div>
+          </div> : null}
         </section>
 
         <div className="rounded-2xl border border-border/70 bg-card p-4 text-center text-xs text-muted-foreground">
