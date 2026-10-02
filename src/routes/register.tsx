@@ -16,9 +16,33 @@ function RegisterPage() {
   const [form, setForm] = useState({ name:"", identifier:"", password:"", confirmPassword:"", country:"", state:"", city:"", area:"", gender:"", dob:"", avatar:"0" });
   const [busy,setBusy]=useState(false); const [error,setError]=useState(""); const [notice,setNotice]=useState("");
   const [platform, setPlatform] = useState<"ios" | "android" | "other">("other");
+  const [countries, setCountries] = useState<any[]>([]);
+  const [states, setStates] = useState<string[]>([]);
+  const [cities, setCities] = useState<string[]>([]);
+  const [areas, setAreas] = useState<string[]>([]);
+  const [loadingLocations, setLoadingLocations] = useState(false);
+  useEffect(() => {
+    setLoadingLocations(true);
+    void fetch("https://countriesnow.space/api/v0.1/countries/positions").then(r=>r.json()).then(j=>setCountries(Array.isArray(j?.data)?j.data:[])).catch(()=>setCountries([])).finally(()=>setLoadingLocations(false));
+  }, []);
   useEffect(() => { const ua=navigator.userAgent||""; const ios=/iPad|iPhone|iPod/.test(ua)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1); const android=/Android/i.test(ua); setPlatform(ios?"ios":android?"android":"other"); }, []);
-  const age = useMemo(() => form.dob ? Math.floor((Date.now()-new Date(form.dob).getTime())/31557600000) : 0,[form.dob]);
+  const age = useMemo(() => form.dob ? Math.floor((Date.now()-new Date(form.dob+"T00:00:00").getTime())/31557600000) : 0,[form.dob]);
   const set=(key:string,value:string)=>setForm(f=>({...f,[key]:value}));
+  const loadStates = async (country:string) => {
+    set("state",""); set("city",""); set("area",""); setCities([]); setAreas([]);
+    if (!country) { setStates([]); return; }
+    try { const r=await fetch("https://countriesnow.space/api/v0.1/countries/states",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({country})}); const j=await r.json(); setStates(Array.isArray(j?.data?.states)?j.data.states.map((s:any)=>s.name).filter(Boolean):[]); } catch { setStates([]); }
+  };
+  const loadCities = async (country:string,state:string) => {
+    set("city",""); set("area",""); setAreas([]);
+    if (!country || !state) { setCities([]); return; }
+    try { const r=await fetch("https://countriesnow.space/api/v0.1/countries/state/cities",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({country,state})}); const j=await r.json(); setCities(Array.isArray(j?.data)?j.data.filter(Boolean):[]); } catch { setCities([]); }
+  };
+  const loadAreas = async (country:string,state:string,city:string) => {
+    set("area","");
+    if (!country || !state || !city) { setAreas([]); return; }
+    try { const q=encodeURIComponent(city+", "+state+", "+country); const r=await fetch("https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=12&q="+q); const j=await r.json(); const a=Array.isArray(j)?j.map((x:any)=>x?.address?.suburb||x?.address?.neighbourhood||x?.address?.quarter||x?.address?.district).filter(Boolean):[]; setAreas(Array.from(new Set(a))); } catch { setAreas([]); }
+  };
 
   async function signInWithProvider(provider: "google" | "apple") {
     setError(""); setNotice("");
@@ -59,12 +83,19 @@ function RegisterPage() {
               <label className="text-sm font-bold">Phone number or email<input required value={form.identifier} onChange={e=>set("identifier",e.target.value)} className="cp-input" placeholder="+234… or email" /></label>
               <label className="text-sm font-bold">Password<input required minLength={8} type="password" value={form.password} onChange={e=>set("password",e.target.value)} className="cp-input" placeholder="At least 8 characters" /></label>
               <label className="text-sm font-bold">Re-enter password<input required minLength={8} type="password" value={form.confirmPassword} onChange={e=>set("confirmPassword",e.target.value)} className="cp-input" placeholder="Enter your password again" /></label>
-              <label className="text-sm font-bold">Country<input required value={form.country} onChange={e=>set("country",e.target.value)} className="cp-input" placeholder="Nigeria" /></label>
-              <label className="text-sm font-bold">State / region<input required value={form.state} onChange={e=>set("state",e.target.value)} className="cp-input" placeholder="Rivers" /></label>
-              <label className="text-sm font-bold">City<input required value={form.city} onChange={e=>set("city",e.target.value)} className="cp-input" placeholder="Port Harcourt" /></label>
-              <label className="text-sm font-bold">Area / location<input required value={form.area} onChange={e=>set("area",e.target.value)} className="cp-input" placeholder="GRA, Rumuola…" /></label>
+              <label className="text-sm font-bold">Country<select required disabled={loadingLocations} value={form.country} onChange={e=>{set("country",e.target.value); void loadStates(e.target.value);}} className="cp-input"><option value="">Choose country</option>{countries.map((c:any)=><option key={c.name} value={c.name}>{c.emoji ? `${c.emoji} ` : ""}{c.name}</option>)}</select></label>
+              <label className="text-sm font-bold">State / region<select required disabled={!form.country || states.length===0} value={form.state} onChange={e=>{set("state",e.target.value); void loadCities(form.country,e.target.value);}} className="cp-input"><option value="">Choose state / region</option>{states.map(s=><option key={s} value={s}>{s}</option>)}</select></label>
+              <label className="text-sm font-bold">City / location<select required disabled={!form.state || cities.length===0} value={form.city} onChange={e=>{set("city",e.target.value); void loadAreas(form.country,form.state,e.target.value);}} className="cp-input"><option value="">Choose city / location</option>{cities.map(s=><option key={s} value={s}>{s}</option>)}</select></label>
+              <label className="text-sm font-bold">Area / neighbourhood<input required list="register-area-options" value={form.area} onChange={e=>set("area",e.target.value)} className="cp-input" placeholder="Type or choose an area" /><datalist id="register-area-options">{areas.map(s=><option key={s} value={s}/>)}</datalist></label>
               <label className="text-sm font-bold">Gender<select required value={form.gender} onChange={e=>set("gender",e.target.value)} className="cp-input"><option value="">Choose</option><option value="male">Male</option><option value="female">Female</option><option value="prefer_not_to_say">Prefer not to say</option></select></label>
-              <label className="text-sm font-bold">Date of birth<input required type="date" value={form.dob} onChange={e=>set("dob",e.target.value)} className="cp-input" /></label>
+              <label className="text-sm font-bold">Date of birth
+                <div className="grid grid-cols-3 gap-2">
+                  <select required aria-label="Birth year" value={form.dob.slice(0,4)} onChange={e=>{const y=e.target.value,m=form.dob.slice(5,7),d=form.dob.slice(8,10);set("dob",y&&m&&d?`${y}-${m}-${d}`:y?`${y}-01-01`:"");}} className="cp-input"><option value="">Year</option>{Array.from({length:123},(_,i)=>new Date().getFullYear()-18-i).map(y=><option key={y} value={y}>{y}</option>)}</select>
+                  <select required aria-label="Birth month" value={form.dob.slice(5,7)} onChange={e=>{const y=form.dob.slice(0,4),m=e.target.value,d=form.dob.slice(8,10);set("dob",y&&m&&d?`${y}-${m}-${d}`:y&&m?`${y}-${m}-01`:"");}} className="cp-input"><option value="">Month</option>{Array.from({length:12},(_,i)=>i+1).map(m=><option key={m} value={String(m).padStart(2,"0")}>{new Date(2000,m-1,1).toLocaleString(undefined,{month:"long"})}</option>)}</select>
+                  <select required aria-label="Birth day" value={form.dob.slice(8,10)} onChange={e=>{const y=form.dob.slice(0,4),m=form.dob.slice(5,7),d=e.target.value;set("dob",y&&m&&d?`${y}-${m}-${d}`:"");}} className="cp-input"><option value="">Day</option>{Array.from({length:31},(_,i)=>i+1).map(d=><option key={d} value={String(d).padStart(2,"0")}>{d}</option>)}</select>
+                </div>
+                {age>0 ? <span className="mt-1 block text-[10px] text-white/45">Age: {age}</span> : null}
+              </label>
             </div>
             <div>
               <div className="mb-2 text-sm font-bold">Choose your Panda look</div>
