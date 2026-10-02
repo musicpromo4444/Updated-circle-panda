@@ -75,7 +75,14 @@ function ProfilePage() {
       }
       const { data: profile } = await (supabase as any).from("profiles").select("display_name,avatar_url,gender,country,state_province,city,area,address_line,bio").eq("id", data.user.id).maybeSingle();
       if (profile?.display_name) setDisplayName(profile.display_name);
-      if (profile?.avatar_url) setAvatar(profile.avatar_url);
+      if (profile?.avatar_url) {
+        const saved = String(profile.avatar_url);
+        setAvatar(saved);
+        setAvatarHead(saved.includes("🎩") ? "🐼🎩" : saved.includes("🧢") ? "🐼🧢" : saved.includes("👑") ? "🐼👑" : saved.includes("🎧") ? "🐼🎧" : saved.includes("🎀") ? "🐼🎀" : "🐼");
+        setAvatarGlasses(saved.includes("🕶️") ? "🕶️" : saved.includes("👓") ? "👓" : saved.includes("🥽") ? "🥽" : "");
+        setAvatarFace(saved.includes("😊") ? "😊" : saved.includes("😎") ? "😎" : saved.includes("😴") ? "😴" : saved.includes("😏") ? "😏" : "");
+        setAvatarCosmetic(saved.includes("✨") ? "✨" : saved.includes("🔥") ? "🔥" : saved.includes("🌸") ? "🌸" : saved.includes("💎") ? "💎" : saved.includes("⚡") ? "⚡" : saved.includes("🦋") ? "🦋" : saved.includes("🌈") ? "🌈" : "");
+      }
       if (profile?.country) setCountry(profile.country);
       if (profile?.state_province) setStateProvince(profile.state_province);
       if (profile?.city) setCity(profile.city);
