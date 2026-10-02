@@ -964,8 +964,18 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         p_address_line:eventData.addressLine ?? null,p_country:eventData.country ?? null,p_state_province:eventData.stateProvince ?? null,p_city:eventData.city ?? null,p_area:eventData.area ?? null,
         p_latitude:eventData.latitude ?? null,p_longitude:eventData.longitude ?? null,p_cover_url:eventData.coverUrl ?? null,
       });
-      if (error) { toast.error(error.message ?? "Could not publish event"); return; }
-      setState(s=>({...s,events:[{...optimistic,id:data.id},...s.events]}));
+      if (error) { 
+        setState(s=>({...s,events:s.events.filter(e=>e.id!==localId)}));
+        toast.error(error.message ?? "Could not publish event"); 
+        return; 
+      }
+      const { data: savedEvent, error: verifyError } = await (supabase as any).from("events").select("id,is_published").eq("id",data.id).maybeSingle();
+      if (verifyError || !savedEvent) {
+        setState(s=>({...s,events:s.events.filter(e=>e.id!==localId)}));
+        toast.error("The event could not be confirmed in the database, so it was not marked as published.");
+        return;
+      }
+      setState(s=>({...s,events:s.events.map(e=>e.id===localId?{...optimistic,id:data.id}:e)}));
       void (supabase as any).rpc("record_activity_participation",{p_activity_id:null,p_activity_type:"event_created",p_reference_id:data.id,p_points:5});
       toast.success("Event published 🐼");
     })();
