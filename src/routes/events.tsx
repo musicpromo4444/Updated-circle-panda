@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { CalendarDays, CalendarPlus, Clock, MapPin, Rocket, Users } from "lucide-react";
+import { ArrowLeft, CalendarDays, CalendarPlus, Clock, MapPin, Rocket, Share2, Users } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
 import { StandardBannerAd } from "@/components/ads/StandardBannerAd";
@@ -171,8 +171,13 @@ function EventsPage() {
       )}
 
       <Dialog open={current !== null} onOpenChange={(o) => !o && setOpenEvent(null)}>
-        <DialogContent className="max-h-[88vh] overflow-y-auto sm:max-w-lg">
+        <DialogContent className="h-[100dvh] w-screen max-w-none overflow-y-auto rounded-none border-0 bg-background p-0">
           {current ? <>
+            <div className="sticky top-0 z-20 flex items-center gap-2 border-b border-border/70 bg-background/95 px-3 py-3 backdrop-blur-xl">
+              <Button variant="ghost" size="sm" className="gap-1 px-2" onClick={() => setOpenEvent(null)}><ArrowLeft className="size-4" /> Back</Button>
+              <span className="font-display font-semibold">Event Details</span>
+            </div>
+            <div className="space-y-4 p-5">
             <DialogHeader>
               <span className="w-fit rounded-full bg-primary/15 px-2.5 py-1 text-[11px] font-semibold text-primary">{current.tag}</span>
               <DialogTitle className="font-display text-2xl">{current.title}</DialogTitle>
@@ -191,6 +196,7 @@ function EventsPage() {
                 {current.rsvp ? "You’re going 🐼" : current.cost > 0 ? `Pay ${current.currency === "NGN" ? "₦" : current.currency + " "}${current.cost.toLocaleString()} & RSVP` : "RSVP anonymously"}
               </Button>
               <Button type="button" variant="outline" onClick={openBlast} className="gap-2"><Rocket className="size-4" /> Event Blast</Button>
+            </div>
             </div>
           </> : null}
         </DialogContent>
