@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { FeedPage } from "./index";
+import { ConfessionsPage as FeedPage } from "./confessions";
 
 export const Route = createFileRoute("/feed")({
   head: () => ({
