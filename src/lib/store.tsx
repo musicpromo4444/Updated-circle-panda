@@ -941,6 +941,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     if (error) { toast.error(error.message ?? "Group could not be created"); return null; }
     const group: GroupChat = { id:data.id, name:data.name ?? name, topic:data.topic ?? topic, members:Number(data.members ?? 1), ownerId:dbUserId, memberRole:"owner", editGroupInfo:"admins", sendMessages:true, approveNewMembers:false, joinPending:false, openedAt:null, latitude:null, longitude:null, messages:[], country:data.country ?? country, stateProvince:data.state_province ?? stateProvince, city:data.city ?? city, area:data.area ?? area };
     setState((s) => ({ ...s, groups:[group, ...s.groups] }));
+    window.dispatchEvent(new CustomEvent("circle-panda-action", { detail: { title: "Group created!", emoji: "👥" } }));
     toast.success("Group created 🐼", { description:"Invite members, then open it when 3+ members are ready." });
     return group;
   }, [dbUserId, dbIsAnonymous]);
@@ -949,6 +950,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     const localId = crypto.randomUUID();
     const optimistic: PandaEvent = { ...eventData, id: localId, rsvp: false };
     if (!dbUserId || dbIsAnonymous) { requestLogin("create an event"); return optimistic; }
+    setState((s) => ({ ...s, events: [optimistic, ...s.events] }));
     void (async () => {
       const startsAt = eventData.date ? new Date(eventData.date).toISOString() : new Date(Date.now() + 60 * 60 * 1000).toISOString();
       const durationMinutes = Math.max(15, Math.min(10080, Number(eventData.durationMinutes) || 120));
