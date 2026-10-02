@@ -261,8 +261,8 @@ function ProfilePage() {
             </div>
           </>
         ) : (
-      <section className="panda-panel mt-4 rounded-2xl p-4">
-        <div className="flex items-start justify-between gap-3">
+          <div>
+            <div className="flex items-start justify-between gap-3">
           <div><h2 className="font-display text-lg font-bold">Complete your profile</h2>
             <p className="mt-1 text-xs text-muted-foreground">Country is recommended. State, city, area, and street/address can be left optional and completed later.</p></div>
           <span className="text-xl">📍</span>
@@ -333,10 +333,8 @@ function ProfilePage() {
         })()}>
           {savingProfile ? "Saving…" : "Save profile details"}
         </Button>
-
+          </div>
         )}
-      </section>
-
       </section>
 
       <section className="panda-panel mt-4 rounded-2xl p-4">
