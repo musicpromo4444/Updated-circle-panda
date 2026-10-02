@@ -256,21 +256,29 @@ function DatingPage() {
                 onClick={() => setOpenMatch(m)}
                 aria-label={`Open ${m.name}'s profile`}
               >
-                <span className="relative grid h-32 place-items-center bg-[color-mix(in_oklab,var(--dating)_22%,transparent)] text-5xl">
-                  <DatingPhoto match={m} connection={idx === 0 ? undefined : connectionFor(m.userId)} />
-                  {datingProfile && idx === 0 ? (
-                    <span className="absolute top-2.5 right-2.5 rounded-full bg-[var(--dating)] px-2.5 py-0.5 text-[10px] font-bold text-white uppercase tracking-wide shadow">
-                      Your Profile
-                    </span>
-                  ) : null}
-                </span>
                 <span className="block p-4 pb-0">
                   <span className="flex items-center gap-2 font-display text-lg font-semibold">
                     {m.name}
                     <span className="text-sm font-normal text-muted-foreground">{m.age}</span>
                   </span>
-                  <span className="mt-1 block text-sm text-muted-foreground">{m.vibe}</span>
-                {m.aboutTraits?.length ? <span className="mt-2 flex flex-wrap gap-1">{m.aboutTraits.slice(0,5).map((t:string)=><span key={t} className="rounded-full bg-secondary/60 px-2 py-1 text-[10px] text-muted-foreground">{t}</span>)}</span> : null}
+                  {datingProfile && idx === 0 ? <span className="mt-1 inline-block rounded-full bg-[var(--dating)]/10 px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-[var(--dating)]">Your Dating Card</span> : null}
+                  <span className="mt-2 block text-sm text-muted-foreground">{m.location || "Location not listed"} · {m.country || "Country not listed"}</span>
+                  <span className="mt-3 grid grid-cols-2 gap-2 text-xs">
+                    {[
+                      ["Gender", m.gender],
+                      ["Looking for", (m.lookingFor ?? []).slice(0,2).join(", ")],
+                      ["Relationship", m.relationshipGoal],
+                      ["Lifestyle", (m.lifestyle ?? []).slice(0,2).join(", ")],
+                      ["Personality", (m.personality ?? []).slice(0,2).join(", ")],
+                      ["Interests", (m.interests ?? []).slice(0,2).join(", ")],
+                      ["Occupation", m.occupation],
+                      ["Education", m.education],
+                      ["Children", m.children],
+                      ["Smoking", m.smoking],
+                      ["Drinking", m.drinking],
+                      ["Height", m.heightCm ? `${m.heightCm} cm` : ""],
+                    ].filter((x:any)=>String(x[1] ?? "").trim()).map(([label,value]:any)=><span key={label} className="rounded-xl bg-secondary/50 px-2.5 py-2"><span className="block text-[9px] uppercase text-muted-foreground">{label}</span><span className="mt-0.5 block font-semibold">{value}</span></span>)}
+                  </span>
                 </span>
               </button>
               <div className="p-4 pt-3">
