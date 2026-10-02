@@ -94,7 +94,7 @@ export function RegisterDatingModal({open,onOpenChange}:{open:boolean;onOpenChan
         location:profile.city||profile.area||profile.country,emoji:String(profile.avatar_url||"🐼")};
       if(datingProfile){
         const {registeredAt:_r,userId:_u,...rest}=datingProfile;
-        setP({...base,...rest,name:profile.display_name||rest.name,age:Number(profile.age),gender:profile.gender,country:profile.country,location:profile.city||profile.area||profile.country});
+        setP({...base,...rest,name:profile.display_name||rest.name,age:Number(profile.age),gender:profile.gender,country:profile.country,location:profile.city||profile.area||profile.country,emoji:String(profile.avatar_url||"🐼")});
         setTraits(rest.aboutTraits??[]);
         setPhotoPreview(rest.blurredPhotoPath?supabase.storage.from("dating-photo-blur").getPublicUrl(rest.blurredPhotoPath).data.publicUrl:null);
       } else {
