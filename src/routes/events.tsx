@@ -150,12 +150,12 @@ function EventsPage() {
         <div className="grid gap-4 sm:grid-cols-2">
           {events.map((e, idx) => (
             <>
-            <button key={e.id} type="button" onClick={() => setOpenEvent(e)} className="panda-panel rounded-2xl p-4 text-left transition-transform hover:-translate-y-0.5">
+            <button key={e.id} type="button" onClick={() => setOpenEvent(e)} className="panda-panel rounded-2xl p-4 text-left transition-all duration-300 hover:-translate-y-0.5">
               <div className="flex items-center justify-between gap-2">
                 <span className="rounded-full bg-primary/15 px-2.5 py-1 text-[11px] font-semibold text-primary">{e.tag}</span>
                 <span className="coin-chip rounded-full px-2.5 py-1 text-[11px] font-semibold">{e.cost === 0 ? "Free" : `${e.currency === "NGN" ? "₦" : e.currency + " "}${e.cost.toLocaleString()} entry`}</span>
               </div>
-              <h2 className="mt-3 font-display text-lg font-semibold">{e.title}</h2>
+              {e.coverUrl ? <img src={e.coverUrl} alt="" className="mt-3 h-36 w-full rounded-xl object-cover" /> : null}<h2 className="mt-3 font-display text-lg font-semibold">{e.title}</h2>
               <p className="mt-1 text-sm text-muted-foreground line-clamp-2">{e.blurb}</p>
               <div className="mt-3 space-y-1 text-xs text-muted-foreground">
                 <p className="flex items-center gap-1.5"><CalendarDays className="size-3.5" /> {e.date} · {e.time}</p>
