@@ -68,6 +68,7 @@ function ProfilePage() {
   const [bio, setBio] = useState("");
   const [savingProfile, setSavingProfile] = useState(false);
   const [profileSaved, setProfileSaved] = useState(false);
+  const [cosmeticsOpen, setCosmeticsOpen] = useState(false);
   const [loadingLocations, setLoadingLocations] = useState(false);
   const [avatarHead, setAvatarHead] = useState("🐼");
   const [avatarGlasses, setAvatarGlasses] = useState("");
@@ -241,6 +242,18 @@ function ProfilePage() {
 
       <ProfileProgressCard level={level} xp={xp} />
 
+      {profileId ? <section className="panda-panel mt-4 rounded-2xl p-4">
+        <div className="flex items-center justify-between gap-3">
+          <div><h2 className="font-display text-base font-semibold">Your Secret Profile</h2><p className="mt-1 text-xs text-muted-foreground">Share this link so people can leave anonymous secrets about you.</p></div>
+          <Share2 className="size-5 text-primary" />
+        </div>
+        <div className="mt-3 flex gap-2">
+          <input readOnly value={window.location.origin + "/secret/" + profileId} className="cp-input min-w-0 flex-1 text-xs" aria-label="Secret profile link" />
+          <Button type="button" variant="outline" onClick={() => { const url = window.location.origin + "/secret/" + profileId; void navigator.clipboard?.writeText(url); toast.success("Secret Profile link copied."); }}>Copy</Button>
+          <Link to="/secret/$userId" params={{ userId: profileId }} className="inline-flex items-center justify-center rounded-xl bg-primary px-3 text-xs font-bold text-primary-foreground">Open</Link>
+        </div>
+      </section> : null
+
       <section className="panda-panel mt-4 rounded-2xl p-4">
         {profileSaved ? (
           <>
@@ -358,41 +371,44 @@ function ProfilePage() {
         ))}
       </div>
 
-      <section className="panda-panel mt-4 rounded-2xl p-4">
-        <div className="flex items-center gap-3">
-          <span className="grid size-10 place-items-center rounded-xl bg-primary/15 text-xl">🎨</span>
-          <div><h2 className="font-display text-lg font-semibold">Panda Avatar Studio</h2><p className="text-xs text-muted-foreground">Built-in Panda looks only — choose your head, glasses and cosmetic. Personal photo uploads are not used.</p></div>
-        </div>
-        <div className="mt-4 grid gap-4">
-          {[
-            ["Head / hat", HEADS, avatarHead, setAvatarHead],
-            ["Eyeglasses", GLASSES, avatarGlasses, setAvatarGlasses],
-            ["Cosmetics", COSMETICS, avatarCosmetic, setAvatarCosmetic],
-          ].map(([label, values, selected, setter]: any) => (
-            <div key={label as string}>
-              <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{label as string}</p>
-              <div className="flex flex-wrap gap-2">
-                {(values as string[]).map((value) => (
-                  <button key={`${label}-${value}`} type="button" onClick={() => { setter(value); const next = composeAvatar(label === "Head / hat" ? value : avatarHead, label === "Eyeglasses" ? value : avatarGlasses, label === "Cosmetics" ? value : avatarCosmetic); saveAvatar(next); }} className={`grid min-h-11 min-w-11 place-items-center rounded-xl border px-2 text-xl transition-transform hover:scale-105 ${selected===value?"border-primary bg-primary/10":"border-border bg-secondary/40"}`}>{value || "None"}</button>
-                ))}
-              </div>
+      <section className="panda-panel mt-4 rounded-2xl p-3">
+        {!cosmeticsOpen ? (
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex min-w-0 items-center gap-2">
+              <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-primary/15 text-base">🎨</span>
+              <div className="min-w-0"><h2 className="font-display text-sm font-semibold">Panda Cosmetics</h2><p className="text-[10px] text-muted-foreground">Customize your Panda look.</p></div>
             </div>
-          ))}
-        </div>
-        <div className="mt-4 flex items-center gap-3 rounded-2xl border border-primary/20 bg-primary/5 p-3">
-          <div className="grid size-20 shrink-0 place-items-center rounded-2xl bg-secondary"><PandaAvatar avatar={avatar} size="lg" /></div>
-          <div><p className="font-semibold">Your current Panda</p><p className="text-xs text-muted-foreground">Your selected hat, glasses and cosmetics are worn by your Panda and saved to your profile.</p></div>
-        </div>
-
-        <div className="mt-4 rounded-2xl border border-destructive/25 bg-destructive/5 p-4">
-          <div className="flex items-center gap-3">
-            <span className="grid size-10 place-items-center rounded-xl bg-destructive/10"><LogOut className="size-5 text-destructive" /></span>
-            <div className="min-w-0 flex-1"><p className="font-semibold">Log out</p><p className="text-xs text-muted-foreground">Sign out of this Panda account. You will need to log in again to enter Circle Panda.</p></div>
-            <Button variant="outline" className="shrink-0 rounded-xl" onClick={() => void logout()}>Log out</Button>
+            <Button variant="outline" size="sm" className="h-8 shrink-0 rounded-lg px-3 text-xs font-bold" onClick={() => setCosmeticsOpen(true)}>Edit</Button>
           </div>
-        </div>
+        ) : (
+          <>
+            <div className="flex items-center justify-between gap-3">
+              <div><h2 className="font-display text-lg font-semibold">Panda Avatar Studio</h2><p className="text-xs text-muted-foreground">Built-in Panda looks only — choose your head, glasses and cosmetic.</p></div>
+              <Button variant="outline" size="sm" className="h-8 rounded-lg px-3 text-xs font-bold" onClick={() => setCosmeticsOpen(false)}>Save</Button>
+            </div>
+            <div className="mt-4 grid gap-4">
+              {[
+                ["Head / hat", HEADS, avatarHead, setAvatarHead],
+                ["Eyeglasses", GLASSES, avatarGlasses, setAvatarGlasses],
+                ["Cosmetics", COSMETICS, avatarCosmetic, setAvatarCosmetic],
+              ].map(([label, values, selected, setter]: any) => (
+                <div key={label as string}>
+                  <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{label as string}</p>
+                  <div className="flex flex-wrap gap-2">
+                    {(values as string[]).map((value) => (
+                      <button key={`${label}-${value}`} type="button" onClick={() => { setter(value); const next = composeAvatar(label === "Head / hat" ? value : avatarHead, label === "Eyeglasses" ? value : avatarGlasses, label === "Cosmetics" ? value : avatarCosmetic); saveAvatar(next); }} className={`grid min-h-11 min-w-11 place-items-center rounded-xl border px-2 text-xl transition-transform hover:scale-105 ${selected===value?"border-primary bg-primary/10":"border-border bg-secondary/40"}`}>{value || "None"}</button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="mt-4 flex items-center gap-3 rounded-2xl border border-primary/20 bg-primary/5 p-3">
+              <div className="grid size-20 shrink-0 place-items-center rounded-2xl bg-secondary"><PandaAvatar avatar={avatar} size="lg" /></div>
+              <div><p className="font-semibold">Your current Panda</p><p className="text-xs text-muted-foreground">Your selected hat, glasses and cosmetics are worn by your Panda and saved to your profile.</p></div>
+            </div>
+          </>
+        )}
       </section>
-
       {/* Coin Store & VIP Banner */}
       <section className="panda-panel mt-4 rounded-2xl p-4 bg-gradient-to-r from-primary/10 via-card to-amber-500/10 border border-primary/25 shadow-xs">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -445,17 +461,7 @@ function ProfilePage() {
         </div>
       </section>
 
-      {profileId ? <section className="panda-panel mt-4 rounded-2xl p-4">
-        <div className="flex items-center justify-between gap-3">
-          <div><h2 className="font-display text-base font-semibold">Your Secret Profile</h2><p className="mt-1 text-xs text-muted-foreground">Share this link so people can leave anonymous secrets about you.</p></div>
-          <Share2 className="size-5 text-primary" />
-        </div>
-        <div className="mt-3 flex gap-2">
-          <input readOnly value={window.location.origin + "/secret/" + profileId} className="cp-input min-w-0 flex-1 text-xs" aria-label="Secret profile link" />
-          <Button type="button" variant="outline" onClick={() => { const url = window.location.origin + "/secret/" + profileId; void navigator.clipboard?.writeText(url); toast.success("Secret Profile link copied."); }}>Copy</Button>
-          <Link to="/secret/$userId" params={{ userId: profileId }} className="inline-flex items-center justify-center rounded-xl bg-primary px-3 text-xs font-bold text-primary-foreground">Open</Link>
-        </div>
-      </section> : null}
+}
 
       <div className="mt-4 grid grid-cols-2 gap-3">
         <Link
@@ -492,6 +498,14 @@ function ProfilePage() {
 
 
       <div className="mt-5"><StandardBannerAd variant="feed-card" placement="profile_inline" /></div>
+      <section className="panda-panel mt-4 rounded-2xl border border-destructive/25 bg-destructive/5 p-4">
+        <div className="flex items-center gap-3">
+          <span className="grid size-10 place-items-center rounded-xl bg-destructive/10"><LogOut className="size-5 text-destructive" /></span>
+          <div className="min-w-0 flex-1"><p className="font-semibold">Log out</p><p className="text-xs text-muted-foreground">Sign out of this Panda account. You will need to log in again to enter Circle Panda.</p></div>
+          <Button variant="outline" className="shrink-0 rounded-xl" onClick={() => void logout()}>Log out</Button>
+        </div>
+      </section>
+
     </AppShell>
   );
 }
