@@ -212,7 +212,7 @@ function EventsPage() {
         </DialogContent>
       </Dialog>
 
-      <CreateEventModal open={createOpen} onOpenChange={setCreateOpen} onCreated={(event) => { setCreatedEvent(event); setOpenEvent(event); setBoostPromptOpen(true); }} />
+      <CreateEventModal open={createOpen} onOpenChange={setCreateOpen} onCreated={(event) => { setCreatedEvent(event); setBoostPromptOpen(true); }} />
 
       <Dialog open={boostPromptOpen} onOpenChange={setBoostPromptOpen}>
         <DialogContent className="w-[calc(100vw-2rem)] max-w-sm rounded-2xl">
