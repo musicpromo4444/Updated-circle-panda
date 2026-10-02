@@ -122,7 +122,7 @@ function EventsPage() {
         <div className="grid gap-4 sm:grid-cols-2">
           {events.map((e, idx) => (
             <>
-            <button key={e.id} type="button" onClick={() => setOpenEvent(e)} className="panda-panel rounded-2xl p-4 text-left transition-all duration-300 hover:-translate-y-0.5">
+            <div key={e.id} role="button" tabIndex={0} onClick={() => setOpenEvent(e)} onKeyDown={(ev) => { if (ev.key === "Enter" || ev.key === " ") setOpenEvent(e); }} className="panda-panel rounded-2xl p-4 text-left transition-all duration-300 hover:-translate-y-0.5">
               <div className="flex items-center justify-between gap-2">
                 <span className="rounded-full bg-primary/15 px-2.5 py-1 text-[11px] font-semibold text-primary">{e.tag}</span>
                 <span className="coin-chip rounded-full px-2.5 py-1 text-[11px] font-semibold">{e.cost === 0 ? "Gate fee: Free" : `Gate fee: ${e.currency === "NGN" ? "₦" : e.currency + " "}${e.cost.toLocaleString()}`}</span>
@@ -136,7 +136,7 @@ function EventsPage() {
               </div>
               {e.rsvp ? <p className="mt-3 rounded-lg bg-primary/15 py-1.5 text-center text-xs font-semibold text-primary">You're going 🐼</p> : null}
               {e.ownerId && e.ownerId === currentUserId ? <div className="mt-3 flex items-center justify-between border-t border-border/60 pt-3"><span className="text-[11px] text-muted-foreground">Your event</span><span role="button" tabIndex={0} onClick={(ev) => { ev.stopPropagation(); setOpenEvent(e); setBlastOpen(true); }} className="rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground">Boost Event</span></div> : null}
-            </button>
+            </div>
             {(idx + 1) % 4 === 0 ? <StandardBannerAd index={Math.floor(idx / 4)} variant="feed-card" placement="events_inline" /> : null}
             </>
           ))}
