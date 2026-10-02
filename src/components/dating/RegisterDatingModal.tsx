@@ -198,6 +198,18 @@ export function RegisterDatingModal({open,onOpenChange}:{open:boolean;onOpenChan
           </div>
           <div><label className="mb-1.5 block text-sm font-black">Occupation</label><Input value={p.occupation} onChange={e=>set("occupation",e.target.value)} placeholder="What you do"/></div>
           <div>
+            <p className="mb-2 text-sm font-black">Children</p>
+            <SingleChoice values={["No children","Have children","Prefer not to say"]} value={p.children} onChange={v=>set("children",v)}/>
+          </div>
+          <div>
+            <p className="mb-2 text-sm font-black">Smoking</p>
+            <SingleChoice values={["Non-smoker","Smoker","Occasionally","Prefer not to say"]} value={p.smoking} onChange={v=>set("smoking",v)}/>
+          </div>
+          <div>
+            <p className="mb-2 text-sm font-black">Drinking</p>
+            <SingleChoice values={["Non-drinker","Drinker","Occasionally","Prefer not to say"]} value={p.drinking} onChange={v=>set("drinking",v)}/>
+          </div>
+          <div>
             <p className="mb-2 text-sm font-black">Sexual Experience</p>
             <SingleChoice values={SEXUAL_EXPERIENCE} value={p.sexualExperience} onChange={v=>set("sexualExperience",v)}/>
           </div>
