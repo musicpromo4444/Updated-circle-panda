@@ -68,6 +68,7 @@ function ProfilePage() {
   const [bio, setBio] = useState("");
   const [savingProfile, setSavingProfile] = useState(false);
   const [profileSaved, setProfileSaved] = useState(false);
+  const [profileDetailsOpen, setProfileDetailsOpen] = useState(false);
   const [cosmeticsOpen, setCosmeticsOpen] = useState(false);
   const [loadingLocations, setLoadingLocations] = useState(false);
   const [avatarHead, setAvatarHead] = useState("🐼");
@@ -256,24 +257,28 @@ function ProfilePage() {
 
       <section className="panda-panel mt-4 rounded-2xl p-4">
         {profileSaved ? (
-          <>
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <h2 className="font-display text-lg font-bold">Profile saved</h2>
-                <p className="mt-1 text-xs text-muted-foreground">Your profile details are saved to your Circle Panda account.</p>
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex min-w-0 items-center gap-2.5">
+              <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-primary/10 text-sm">✓</span>
+              <div className="min-w-0">
+                <h2 className="truncate font-display text-sm font-semibold">Profile Details</h2>
+                <p className="text-[10px] text-muted-foreground">Your profile is saved.</p>
               </div>
-              <span className="grid size-10 place-items-center rounded-xl bg-primary/10 text-xl">✓</span>
             </div>
-            <div className="mt-3 grid gap-2 sm:grid-cols-2">
-              <div className="rounded-xl border border-border bg-secondary/30 p-3"><p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Age</p><p className="mt-1 font-semibold">{age ?? "—"}</p></div>
-              <div className="rounded-xl border border-border bg-secondary/30 p-3"><p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Country</p><p className="mt-1 font-semibold">{country || "—"}</p></div>
-              <div className="rounded-xl border border-border bg-secondary/30 p-3"><p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">State / Province</p><p className="mt-1 font-semibold">{stateProvince || "—"}</p></div>
-              <div className="rounded-xl border border-border bg-secondary/30 p-3"><p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">City / Location</p><p className="mt-1 font-semibold">{city || "—"}</p></div>
-              <div className="rounded-xl border border-border bg-secondary/30 p-3"><p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Area / Neighbourhood</p><p className="mt-1 font-semibold">{area || "—"}</p></div>
-              <div className="rounded-xl border border-border bg-secondary/30 p-3"><p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Street / Address</p><p className="mt-1 font-semibold">{addressLine || "—"}</p></div>
+            <Button type="button" variant="outline" size="sm" className="h-8 shrink-0 rounded-lg px-3 text-xs font-bold" onClick={() => setProfileDetailsOpen((v) => !v)}>
+              {profileDetailsOpen ? "Hide" : "View"}
+            </Button>
+          </div>
+          {profileDetailsOpen ? (
+            <div className="mt-3 grid gap-2 border-t border-border/50 pt-3 sm:grid-cols-2">
+              <div className="rounded-xl border border-border bg-secondary/30 p-2.5"><p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Age</p><p className="mt-1 text-sm font-semibold">{age ?? "—"}</p></div>
+              <div className="rounded-xl border border-border bg-secondary/30 p-2.5"><p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Country</p><p className="mt-1 text-sm font-semibold">{country || "—"}</p></div>
+              <div className="rounded-xl border border-border bg-secondary/30 p-2.5"><p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">State / Province</p><p className="mt-1 text-sm font-semibold">{stateProvince || "—"}</p></div>
+              <div className="rounded-xl border border-border bg-secondary/30 p-2.5"><p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">City / Location</p><p className="mt-1 text-sm font-semibold">{city || "—"}</p></div>
+              <div className="rounded-xl border border-border bg-secondary/30 p-2.5"><p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Area / Neighbourhood</p><p className="mt-1 text-sm font-semibold">{area || "—"}</p></div>
+              <div className="rounded-xl border border-border bg-secondary/30 p-2.5"><p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Street / Address</p><p className="mt-1 text-sm font-semibold">{addressLine || "—"}</p></div>
             </div>
-          </>
-        ) : (
+          ) : null}        ) : (
           <div>
             <div className="flex items-start justify-between gap-3">
           <div><h2 className="font-display text-lg font-bold">Complete your profile</h2>
