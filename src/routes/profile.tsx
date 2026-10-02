@@ -54,6 +54,7 @@ function ProfilePage() {
   const [accountGender, setAccountGender] = useState<"male" | "female" | null>(null);
   const [profileId, setProfileId] = useState<string | null>(null);
   const [displayName, setDisplayName] = useState("Your Panda");
+  const [age, setAge] = useState<number | null>(null);
   const [country, setCountry] = useState("");
   const [stateProvince, setStateProvince] = useState("");
   const [city, setCity] = useState("");
@@ -73,7 +74,7 @@ function ProfilePage() {
       if (!data.user.is_anonymous) {
         await (supabase as any).rpc("ensure_my_circle_panda_profile");
       }
-      const { data: profile } = await (supabase as any).from("profiles").select("display_name,avatar_url,gender,country,state_province,city,area,address_line,bio").eq("id", data.user.id).maybeSingle();
+      const { data: profile } = await (supabase as any).from("profiles").select("display_name,avatar_url,gender,age,country,state_province,city,area,address_line,bio").eq("id", data.user.id).maybeSingle();
       if (profile?.display_name) setDisplayName(profile.display_name);
       if (profile?.avatar_url) {
         const saved = String(profile.avatar_url);
@@ -83,6 +84,7 @@ function ProfilePage() {
         setAvatarFace(saved.includes("😊") ? "😊" : saved.includes("😎") ? "😎" : saved.includes("😴") ? "😴" : saved.includes("😏") ? "😏" : "");
         setAvatarCosmetic(saved.includes("✨") ? "✨" : saved.includes("🔥") ? "🔥" : saved.includes("🌸") ? "🌸" : saved.includes("💎") ? "💎" : saved.includes("⚡") ? "⚡" : saved.includes("🦋") ? "🦋" : saved.includes("🌈") ? "🌈" : "");
       }
+      if (profile?.age) setAge(Number(profile.age));
       if (profile?.country) setCountry(profile.country);
       if (profile?.state_province) setStateProvince(profile.state_province);
       if (profile?.city) setCity(profile.city);
@@ -175,6 +177,7 @@ function ProfilePage() {
         </div>
         <div className="mt-3 grid gap-2 sm:grid-cols-2">
           {[
+            ["Age", age ?? "", (v:string)=>setAge(v ? Number(v) : null), "18+", true],
             ["Country", country, setCountry, "e.g. Nigeria", true],
             ["State / Province", stateProvince, setStateProvince, "e.g. Rivers", false],
             ["City / Location", city, setCity, "e.g. Port Harcourt", false],
@@ -183,18 +186,18 @@ function ProfilePage() {
           ].map(([label, value, setter, placeholder, required]: any) => (
             <label key={label} className={label === "Street / Address" ? "sm:col-span-2" : ""}>
               <span className="mb-1 block text-[11px] font-semibold text-muted-foreground">{label}{required ? " *" : " · optional"}</span>
-              <input value={value} onChange={(e) => setter(e.target.value)} placeholder={placeholder} className="cp-input w-full" />
+              <input value={value} type={label === "Age" ? "number" : "text"} min={label === "Age" ? 18 : undefined} max={label === "Age" ? 120 : undefined} readOnly={label === "Age" && age !== null} onChange={(e) => setter(e.target.value)} placeholder={placeholder} className="cp-input w-full" />
             </label>
           ))}
         </div>
         <Button className="mt-3 w-full rounded-xl" disabled={savingProfile} onClick={() => void (async () => {
           setSavingProfile(true);
           const { data, error } = await (supabase as any).rpc("update_profile_completion_secure", {
-            p_country: country, p_state_province: stateProvince, p_city: city, p_area: area, p_address_line: addressLine,
+            p_country: country, p_state_province: stateProvince, p_city: city, p_area: area, p_address_line: addressLine, p_age: age,
           });
           setSavingProfile(false);
           if (error) { toast.error(error.message ?? "Profile could not be saved"); return; }
-          setCountry(data?.country ?? country); setStateProvince(data?.state_province ?? stateProvince);
+          setAge(data?.age ? Number(data.age) : age); setCountry(data?.country ?? country); setStateProvince(data?.state_province ?? stateProvince);
           setCity(data?.city ?? city); setArea(data?.area ?? area); setAddressLine(data?.address_line ?? addressLine);
           toast.success("Profile details saved 🐼");
         })()}>
