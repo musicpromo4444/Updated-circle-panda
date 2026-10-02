@@ -10,8 +10,8 @@ function LandingPage() {
 
   useEffect(() => {
     let active = true;
-    supabase.auth.getUser().then(({ data }) => {
-      if (active && data.user) void navigate({ to: "/home", replace: true });
+    supabase.auth.getSession().then(({ data }) => {
+      if (active && data.session?.user) void navigate({ to: "/home", replace: true });
     });
     return () => { active = false; };
   }, [navigate]);
@@ -64,10 +64,6 @@ function LandingPage() {
           </button>
         </div>
 
-        <button type="button" onClick={() => void navigate({ to: "/home" })}
-          className="mt-5 text-sm text-white/45 underline-offset-4 hover:text-white hover:underline">
-          Enter Circle Panda
-        </button>
 
         <div className="mt-12 flex items-center gap-4 text-2xl opacity-70">
           <span>🌙</span><span>✨</span><span>⭐</span><span>🐼</span><span>💫</span>
