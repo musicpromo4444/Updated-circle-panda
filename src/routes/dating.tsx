@@ -28,6 +28,10 @@ type Match = {
   gender?: string;
   aboutTraits?: string[];
   lookingFor?: string[];
+  relationshipGoal?: string;
+  lifestyle?: string[];
+  occupation?: string;
+  favoriteDate?: string;
 };
 
 function DatingPhoto({ match, connection }: { match: Match; connection?: any }) {
