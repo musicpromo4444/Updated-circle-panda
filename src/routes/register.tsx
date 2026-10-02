@@ -13,7 +13,7 @@ const looks = Array.from({length: 12}, (_, i) => i);
 
 function RegisterPage() {
   const navigate = useNavigate();
-  const [form, setForm] = useState({ name:"", identifier:"", password:"", confirmPassword:"", country:"", state:"", city:"", area:"", gender:"", dob:"", avatar:"0" });
+  const [form, setForm] = useState({ name:"", identifier:"", password:"", confirmPassword:"", country:"", state:"", city:"", area:"", addressLine:"", gender:"", dob:"", avatar:"0" });
   const [busy,setBusy]=useState(false); const [error,setError]=useState(""); const [notice,setNotice]=useState("");
   const [platform, setPlatform] = useState<"ios" | "android" | "other">("other");
   const [countries, setCountries] = useState<any[]>([]);
@@ -57,7 +57,7 @@ function RegisterPage() {
     if (form.password !== form.confirmPassword) { setError("Passwords do not match."); return; }
     setBusy(true);
     try {
-      const metadata = { name: form.name.trim(), country: form.country.trim(), state_province: form.state.trim(), city: form.city.trim(), area: form.area.trim(), gender: form.gender, date_of_birth: form.dob, avatar_style: form.avatar, age };
+      const metadata = { name: form.name.trim(), country: form.country.trim(), state_province: form.state.trim(), city: form.city.trim(), area: form.area.trim(), address_line: form.addressLine.trim(), gender: form.gender, date_of_birth: form.dob, avatar_style: form.avatar, age };
       const value=form.identifier.trim();
       const result = value.includes("@")
         ? await supabase.auth.signUp({ email:value, password:form.password, options:{data:metadata, emailRedirectTo: window.location.origin + "/auth/callback"} })
@@ -87,6 +87,7 @@ function RegisterPage() {
               <label className="text-sm font-bold">State / region<select required disabled={!form.country || states.length===0} value={form.state} onChange={e=>{set("state",e.target.value); void loadCities(form.country,e.target.value);}} className="cp-input"><option value="">Choose state / region</option>{states.map(s=><option key={s} value={s}>{s}</option>)}</select></label>
               <label className="text-sm font-bold">City / location<select required disabled={!form.state || cities.length===0} value={form.city} onChange={e=>{set("city",e.target.value); void loadAreas(form.country,form.state,e.target.value);}} className="cp-input"><option value="">Choose city / location</option>{cities.map(s=><option key={s} value={s}>{s}</option>)}</select></label>
               <label className="text-sm font-bold">Area / neighbourhood<input required list="register-area-options" value={form.area} onChange={e=>set("area",e.target.value)} className="cp-input" placeholder="Type or choose an area" /><datalist id="register-area-options">{areas.map(s=><option key={s} value={s}/>)}</datalist></label>
+              <label className="text-sm font-bold">Street / Address <span className="font-normal text-white/40">· optional</span><input value={form.addressLine} onChange={e=>set("addressLine",e.target.value)} className="cp-input" placeholder="Optional street, house or address" /></label>
               <label className="text-sm font-bold">Gender<select required value={form.gender} onChange={e=>set("gender",e.target.value)} className="cp-input"><option value="">Choose</option><option value="male">Male</option><option value="female">Female</option><option value="prefer_not_to_say">Prefer not to say</option></select></label>
               <label className="text-sm font-bold">Date of birth
                 <div className="grid grid-cols-3 gap-2">
