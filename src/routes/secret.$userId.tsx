@@ -62,16 +62,17 @@ function SecretProfilePage() {
   useEffect(() => { void load(); }, [userId]);
 
   const submit = async () => {
-    if (content.trim().length < 3) return toast.error("Write at least 3 characters.");
+    if (content.trim().length < 3) { toast.error("Write at least 3 characters."); return false; }
     setPosting(true);
     const { data, error } = await (supabase as any).rpc("submit_profile_secret", { p_target_user_id: userId, p_content: content.trim() });
     setPosting(false);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return false; }
     const newSecret: Secret = { id: String(data), content: content.trim(), created_at: new Date().toISOString() };
     setSecrets((current) => [newSecret, ...current]);
     setInteractions((current) => ({ ...current, [newSecret.id]: { reaction:null,reaction_count:0,comment_count:0,heart_count:0,laugh_count:0,wow_count:0,sad_count:0,angry_count:0,panda_count:0 } }));
     setContent("");
     toast.success("Secret posted anonymously.");
+    return true;
   };
 
   const react = async (id:string, reaction:string) => {
@@ -190,7 +191,7 @@ function SecretProfilePage() {
                 <Button variant="ghost" size="sm" className="rounded-full" onClick={()=>setComposerOpen(false)}>Close</Button>
               </div>
               <textarea ref={composerRef} value={content} onChange={(e)=>setContent(e.target.value)} maxLength={1000} placeholder="Write a secret about this Panda…" className="cp-input mt-4 min-h-28 w-full resize-y" />
-              <Button className="mt-3 w-full rounded-2xl" disabled={posting || content.trim().length<3} onClick={async()=>{ await submit(); setComposerOpen(false); }}>{posting ? "Posting…" : <><Send className="mr-2 size-4" /> Post secret anonymously</>}</Button>
+              <Button className="mt-3 w-full rounded-2xl" disabled={posting || content.trim().length<3} onClick={async()=>{ if (await submit()) setComposerOpen(false); }}>{posting ? "Posting…" : <><Send className="mr-2 size-4" /> Post secret anonymously</>}</Button>
             </div>
           </div> : null}
         </section>
