@@ -56,6 +56,8 @@ function CrushPage() {
   const [showAuth, setShowAuth] = useState(false);
   const [showQuickSignup, setShowQuickSignup] = useState(false);
   const [pendingVote, setPendingVote] = useState(false);
+  const [liveNominees, setLiveNominees] = useState<any[]>([]);
+  const [liveNomineesLoaded, setLiveNomineesLoaded] = useState(false);
 
   const refreshLiveNominees = async () => {
     const monday = new Date();
