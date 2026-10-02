@@ -24,6 +24,10 @@ type Match = {
   location: string;
   photoPath?: string;
   blurredPhotoPath?: string;
+  country?: string;
+  gender?: string;
+  aboutTraits?: string[];
+  lookingFor?: string[];
 };
 
 function DatingPhoto({ match, connection }: { match: Match; connection?: any }) {
