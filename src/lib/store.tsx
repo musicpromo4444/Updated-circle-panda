@@ -715,6 +715,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       if (error) { toast.error(error.message ?? "Could not join group"); return; }
       setState((s) => ({ ...s, groups: s.groups.map((g) => g.id === id ? { ...g, members: Number(data?.member_count ?? g.members), joinPending: data?.status === "pending", openedAt: data?.activated_at ? new Date(data.activated_at).getTime() : g.openedAt } : g) }));
       if (data?.status === "active" || data?.status === "joined") void refreshCoins();
+      window.dispatchEvent(new CustomEvent("circle-panda-action", { detail: { title: data?.status === "pending" ? "Join request sent!" : "Joined group!", emoji: "🤝" } }));
       toast.success(data?.status === "pending" ? "Join request sent" : data?.status === "active" ? "Group activated 🐼" : "Joined group", { description: data?.status === "pending" ? "An admin must approve your request." : data?.status === "active" ? "3 members reached · 24-hour chat started." : "You're now an anonymous member." });
     })();
   }, [dbUserId, refreshCoins]);
@@ -871,6 +872,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         coins: Number(data?.balance ?? Math.max(0, s.coins - NOMINATION_COST)),
         nominees: [...s.nominees, { id: data.id, name, kind: data?.kind ?? kind, emoji, blurb, votes: 0, mine: name === "You (anonymous)" }],
       }));
+      window.dispatchEvent(new CustomEvent("circle-panda-action", { detail: { title: "WCW/MCM post is live!", emoji: kind === "wcw" ? "❤️" : "💙" } }));
       toast.success("Nomination live 💫", { description: `−${NOMINATION_COST} BC · added to this week's ${kind.toUpperCase()} tray.` });
     })();
     return true;
@@ -1028,6 +1030,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       });
       if (error) { toast.error(error.message ?? "Dating profile could not be saved"); return; }
       setState(s => ({...s,datingProfile:{...p,name:data?.name??p.name,userId:dbUserId,registeredAt:Date.now()}}));
+      window.dispatchEvent(new CustomEvent("circle-panda-action", { detail: { title: "Dating card published!", emoji: "💗" } }));
       toast.success("Dating profile saved 💗");
     })();
   }, [dbUserId]);
