@@ -1,4 +1,5 @@
-import { ArrowLeft, createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { ArrowLeft } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Heart, MessageCircle, Sparkles, SlidersHorizontal, X } from "lucide-react";
 import { toast } from "sonner";
