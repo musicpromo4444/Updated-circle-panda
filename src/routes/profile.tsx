@@ -20,6 +20,7 @@ import { StandardBannerAd } from "@/components/ads/StandardBannerAd";
 import { ProfileProgressCard } from "@/components/ProfileProgressCard";
 import { VipIdentity } from "@/components/VipIdentity";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { PandaAvatar } from "@/components/PandaAvatar";
 import { useStore, pandaProgress, starRating, pandaTier, TIERS } from "@/lib/store";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -48,13 +49,18 @@ export const Route = createFileRoute("/profile")({
 function ProfilePage() {
   const HEADS = ["🐼", "🐼🎩", "🐼🧢", "🐼👑", "🐼🎧", "🐼🎀"];
   const GLASSES = ["", "🕶️", "👓", "🥽"];
-  const FACES = ["", "😊", "😎", "😴", "😏"];
-  const COSMETICS = ["", "✨", "🔥", "🌸", "💎", "⚡", "🦋", "🌈"];
+  const FACES = ["", "😊", "🙂", "😄", "😁", "😂", "🤣", "😉", "😎", "😴", "😏", "😠", "😡", "😢", "😭", "🙁", "🤪", "😜", "😮", "😲"];
+  const COSMETICS = ["", "✨", "🔥", "🌸", "💎", "⚡", "🦋", "🌈", "❤️", "💫"];
   const [avatar, setAvatar] = useState("🐼");
   const [accountGender, setAccountGender] = useState<"male" | "female" | null>(null);
   const [profileId, setProfileId] = useState<string | null>(null);
   const [displayName, setDisplayName] = useState("Your Panda");
   const [age, setAge] = useState<number | null>(null);
+  const [dateOfBirth, setDateOfBirth] = useState("");
+  const [locationCountries, setLocationCountries] = useState<any[]>([]);
+  const [locationStates, setLocationStates] = useState<string[]>([]);
+  const [locationCities, setLocationCities] = useState<string[]>([]);
+  const [locationAreas, setLocationAreas] = useState<string[]>([]);
   const [country, setCountry] = useState("");
   const [stateProvince, setStateProvince] = useState("");
   const [city, setCity] = useState("");
@@ -62,6 +68,7 @@ function ProfilePage() {
   const [addressLine, setAddressLine] = useState("");
   const [bio, setBio] = useState("");
   const [savingProfile, setSavingProfile] = useState(false);
+  const [loadingLocations, setLoadingLocations] = useState(false);
   const [avatarHead, setAvatarHead] = useState("🐼");
   const [avatarGlasses, setAvatarGlasses] = useState("");
   const [avatarFace, setAvatarFace] = useState("");
@@ -74,17 +81,18 @@ function ProfilePage() {
       if (!data.user.is_anonymous) {
         await (supabase as any).rpc("ensure_my_circle_panda_profile");
       }
-      const { data: profile } = await (supabase as any).from("profiles").select("display_name,avatar_url,gender,age,country,state_province,city,area,address_line,bio").eq("id", data.user.id).maybeSingle();
+      const { data: profile } = await (supabase as any).from("profiles").select("display_name,avatar_url,gender,age,date_of_birth,country,state_province,city,area,address_line,bio").eq("id", data.user.id).maybeSingle();
       if (profile?.display_name) setDisplayName(profile.display_name);
       if (profile?.avatar_url) {
         const saved = String(profile.avatar_url);
         setAvatar(saved);
         setAvatarHead(saved.includes("🎩") ? "🐼🎩" : saved.includes("🧢") ? "🐼🧢" : saved.includes("👑") ? "🐼👑" : saved.includes("🎧") ? "🐼🎧" : saved.includes("🎀") ? "🐼🎀" : "🐼");
         setAvatarGlasses(saved.includes("🕶️") ? "🕶️" : saved.includes("👓") ? "👓" : saved.includes("🥽") ? "🥽" : "");
-        setAvatarFace(saved.includes("😊") ? "😊" : saved.includes("😎") ? "😎" : saved.includes("😴") ? "😴" : saved.includes("😏") ? "😏" : "");
+        setAvatarFace(FACES.find((face) => face && saved.includes(face)) ?? "");
         setAvatarCosmetic(saved.includes("✨") ? "✨" : saved.includes("🔥") ? "🔥" : saved.includes("🌸") ? "🌸" : saved.includes("💎") ? "💎" : saved.includes("⚡") ? "⚡" : saved.includes("🦋") ? "🦋" : saved.includes("🌈") ? "🌈" : "");
       }
       if (profile?.age) setAge(Number(profile.age));
+      if (profile?.date_of_birth) setDateOfBirth(String(profile.date_of_birth));
       if (profile?.country) setCountry(profile.country);
       if (profile?.state_province) setStateProvince(profile.state_province);
       if (profile?.city) setCity(profile.city);
@@ -94,6 +102,49 @@ function ProfilePage() {
       if (profile?.gender === "male" || profile?.gender === "female") setAccountGender(profile.gender);
     });
   }, []);
+  useEffect(() => {
+    let cancelled = false;
+    setLoadingLocations(true);
+    void fetch("https://countriesnow.space/api/v0.1/countries/positions")
+      .then((r) => r.json())
+      .then((json) => { if (!cancelled) setLocationCountries(Array.isArray(json?.data) ? json.data : []); })
+      .catch(() => { if (!cancelled) setLocationCountries([]); })
+      .finally(() => { if (!cancelled) setLoadingLocations(false); });
+    return () => { cancelled = true; };
+  }, []);
+
+  const loadStates = async (countryName: string) => {
+    setStateProvince(""); setCity(""); setArea(""); setLocationCities([]); setLocationAreas([]);
+    if (!countryName) { setLocationStates([]); return; }
+    try {
+      const r = await fetch("https://countriesnow.space/api/v0.1/countries/states", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ country: countryName }) });
+      const json = await r.json();
+      setLocationStates(Array.isArray(json?.data?.states) ? json.data.states.map((s:any) => s.name).filter(Boolean) : []);
+    } catch { setLocationStates([]); }
+  };
+
+  const loadCities = async (countryName: string, stateName: string) => {
+    setCity(""); setArea(""); setLocationAreas([]);
+    if (!countryName || !stateName) { setLocationCities([]); return; }
+    try {
+      const r = await fetch("https://countriesnow.space/api/v0.1/countries/state/cities", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ country: countryName, state: stateName }) });
+      const json = await r.json();
+      setLocationCities(Array.isArray(json?.data) ? json.data.filter(Boolean) : []);
+    } catch { setLocationCities([]); }
+  };
+
+  const loadAreas = async (countryName: string, stateName: string, cityName: string) => {
+    setArea(""); setLocationAreas([]);
+    if (!countryName || !stateName || !cityName) return;
+    try {
+      const q = encodeURIComponent(cityName + ", " + stateName + ", " + countryName);
+      const r = await fetch("https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=12&q=" + q);
+      const json = await r.json();
+      const areas = Array.isArray(json) ? json.map((x:any) => x?.address?.suburb || x?.address?.neighbourhood || x?.address?.quarter || x?.address?.district).filter(Boolean) : [];
+      setLocationAreas(Array.from(new Set(areas)));
+    } catch { setLocationAreas([]); }
+  };
+
   const logout = async () => {
     const { error } = await supabase.auth.signOut();
     if (error) { toast.error(error.message); return; }
@@ -176,28 +227,66 @@ function ProfilePage() {
           <span className="text-xl">📍</span>
         </div>
         <div className="mt-3 grid gap-2 sm:grid-cols-2">
-          {[
-            ["Age", age ?? "", (v:string)=>setAge(v ? Number(v) : null), "18+", true],
-            ["Country", country, setCountry, "e.g. Nigeria", true],
-            ["State / Province", stateProvince, setStateProvince, "e.g. Rivers", false],
-            ["City / Location", city, setCity, "e.g. Port Harcourt", false],
-            ["Area", area, setArea, "e.g. GRA", false],
-            ["Street / Address", addressLine, setAddressLine, "Optional street or address", false],
-          ].map(([label, value, setter, placeholder, required]: any) => (
-            <label key={label} className={label === "Street / Address" ? "sm:col-span-2" : ""}>
-              <span className="mb-1 block text-[11px] font-semibold text-muted-foreground">{label}{required ? " *" : " · optional"}</span>
-              <input value={value} type={label === "Age" ? "number" : "text"} min={label === "Age" ? 18 : undefined} max={label === "Age" ? 120 : undefined} readOnly={label === "Age" && age !== null} onChange={(e) => setter(e.target.value)} placeholder={placeholder} className="cp-input w-full" />
-            </label>
-          ))}
+          <label>
+            <span className="mb-1 block text-[11px] font-semibold text-muted-foreground">Date of birth *</span>
+            <div className="grid grid-cols-3 gap-2">
+              <select aria-label="Birth year" value={dateOfBirth ? dateOfBirth.slice(0,4) : ""} onChange={(e) => {
+                const y=e.target.value, m=dateOfBirth ? dateOfBirth.slice(5,7) : "", d=dateOfBirth ? dateOfBirth.slice(8,10) : "";
+                setDateOfBirth(y && m && d ? `${y}-${m}-${d}` : y ? `${y}-01-01` : "");
+              }} className="cp-input">
+                <option value="">Year</option>{Array.from({length:123},(_,i)=>new Date().getFullYear()-18-i).map(y=><option key={y} value={y}>{y}</option>)}
+              </select>
+              <select aria-label="Birth month" value={dateOfBirth ? dateOfBirth.slice(5,7) : ""} onChange={(e) => {
+                const y=dateOfBirth ? dateOfBirth.slice(0,4) : "", m=e.target.value, d=dateOfBirth ? dateOfBirth.slice(8,10) : "";
+                setDateOfBirth(y && m && d ? `${y}-${m}-${d}` : y && m ? `${y}-${m}-01` : "");
+              }} className="cp-input">
+                <option value="">Month</option>{Array.from({length:12},(_,i)=>i+1).map(m=><option key={m} value={String(m).padStart(2,"0")}>{new Date(2000,m-1,1).toLocaleString(undefined,{month:"long"})}</option>)}
+              </select>
+              <select aria-label="Birth day" value={dateOfBirth ? dateOfBirth.slice(8,10) : ""} onChange={(e) => {
+                const y=dateOfBirth ? dateOfBirth.slice(0,4) : "", m=dateOfBirth ? dateOfBirth.slice(5,7) : "", d=e.target.value;
+                setDateOfBirth(y && m && d ? `${y}-${m}-${d}` : "");
+              }} className="cp-input">
+                <option value="">Day</option>{Array.from({length:31},(_,i)=>i+1).map(d=><option key={d} value={String(d).padStart(2,"0")}>{d}</option>)}
+              </select>
+            </div>
+            {age !== null ? <p className="mt-1 text-[10px] text-muted-foreground">Age: {age} · Date of birth is locked after it is saved.</p> : null}
+          </label>
+          <label>
+            <span className="mb-1 block text-[11px] font-semibold text-muted-foreground">Country *</span>
+            <select value={country} disabled={loadingLocations} onChange={(e)=>{setCountry(e.target.value); void loadStates(e.target.value);}} className="cp-input w-full">
+              <option value="">Choose country</option>{locationCountries.map((c:any)=><option key={c.name} value={c.name}>{c.emoji ? `${c.emoji} ` : ""}{c.name}</option>)}
+            </select>
+          </label>
+          <label>
+            <span className="mb-1 block text-[11px] font-semibold text-muted-foreground">State / Province</span>
+            <select value={stateProvince} disabled={!country || locationStates.length===0} onChange={(e)=>{setStateProvince(e.target.value); void loadCities(country,e.target.value);}} className="cp-input w-full">
+              <option value="">Choose state / province</option>{locationStates.map(s=><option key={s} value={s}>{s}</option>)}
+            </select>
+          </label>
+          <label>
+            <span className="mb-1 block text-[11px] font-semibold text-muted-foreground">City / Location</span>
+            <select value={city} disabled={!stateProvince || locationCities.length===0} onChange={(e)=>{setCity(e.target.value); void loadAreas(country,stateProvince,e.target.value);}} className="cp-input w-full">
+              <option value="">Choose city / location</option>{locationCities.map(s=><option key={s} value={s}>{s}</option>)}
+            </select>
+          </label>
+          <label>
+            <span className="mb-1 block text-[11px] font-semibold text-muted-foreground">Area / neighbourhood</span>
+            <input list="profile-area-options" value={area} onChange={(e)=>setArea(e.target.value)} placeholder="Type or choose an area" className="cp-input w-full" />
+            <datalist id="profile-area-options">{locationAreas.map(s=><option key={s} value={s} />)}</datalist>
+          </label>
+          <label className="sm:col-span-2">
+            <span className="mb-1 block text-[11px] font-semibold text-muted-foreground">Street / Address · optional</span>
+            <input value={addressLine} onChange={(e)=>setAddressLine(e.target.value)} placeholder="Optional street, house or address" className="cp-input w-full" />
+          </label>
         </div>
         <Button className="mt-3 w-full rounded-xl" disabled={savingProfile} onClick={() => void (async () => {
           setSavingProfile(true);
           const { data, error } = await (supabase as any).rpc("update_profile_completion_secure", {
-            p_country: country, p_state_province: stateProvince, p_city: city, p_area: area, p_address_line: addressLine, p_age: age,
+            p_country: country, p_state_province: stateProvince, p_city: city, p_area: area, p_address_line: addressLine, p_date_of_birth: dateOfBirth || null,
           });
           setSavingProfile(false);
           if (error) { toast.error(error.message ?? "Profile could not be saved"); return; }
-          setAge(data?.age ? Number(data.age) : age); setCountry(data?.country ?? country); setStateProvince(data?.state_province ?? stateProvince);
+          setAge(data?.age ? Number(data.age) : age); setDateOfBirth(data?.date_of_birth ?? dateOfBirth); setCountry(data?.country ?? country); setStateProvince(data?.state_province ?? stateProvince);
           setCity(data?.city ?? city); setArea(data?.area ?? area); setAddressLine(data?.address_line ?? addressLine);
           toast.success("Profile details saved 🐼");
         })()}>
@@ -249,13 +338,7 @@ function ProfilePage() {
           ))}
         </div>
         <div className="mt-4 flex items-center gap-3 rounded-2xl border border-primary/20 bg-primary/5 p-3">
-          <div className="relative grid size-20 shrink-0 place-items-center rounded-2xl bg-secondary">
-            <span className="text-5xl leading-none">🐼</span>
-            {avatarHead !== "🐼" ? <span className="absolute -top-1 text-3xl leading-none">{avatarHead.replace("🐼","")}</span> : null}
-            {avatarGlasses ? <span className="absolute top-7 text-2xl leading-none">{avatarGlasses}</span> : null}
-            {avatarFace ? <span className="absolute bottom-2 text-lg leading-none">{avatarFace}</span> : null}
-            {avatarCosmetic ? <span className="absolute -right-1 -top-1 text-lg leading-none">{avatarCosmetic}</span> : null}
-          </div>
+          <div className="grid size-20 shrink-0 place-items-center rounded-2xl bg-secondary"><PandaAvatar avatar={avatar} size="lg" /></div>
           <div><p className="font-semibold">Your current Panda</p><p className="text-xs text-muted-foreground">Your selected hat, glasses, face style and cosmetics are worn by your Panda and saved to your profile.</p></div>
         </div>
 
