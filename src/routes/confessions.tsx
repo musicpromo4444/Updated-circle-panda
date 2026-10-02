@@ -380,11 +380,23 @@ export function ConfessionsPage() {
         {items.map((item, idx) => (
           <div key={item.id} className="space-y-4">
             <article className={`rounded-[1.65rem] border border-border/70 bg-card p-5 shadow-sm ${item.author_vip_at ? "vip-content-card" : ""}`}>
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <VipIdentity isVip={Boolean(item.author_vip_at)} seed={item.author_id ?? item.id} compact />
-                <span className="min-w-0 truncate">
-                  <Eye className="mr-1 inline size-3.5" /> {item.is_anonymous ? "Anonymous Panda" : "Panda"} · {new Date(item.created_at).toLocaleDateString()}
-                </span>
+              <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
+                <div className="flex min-w-0 items-center gap-2">
+                  <VipIdentity isVip={Boolean(item.author_vip_at)} seed={item.author_id ?? item.id} compact />
+                  <span className="min-w-0 truncate">
+                    <Eye className="mr-1 inline size-3.5" /> {item.is_anonymous ? "Anonymous Panda" : "Panda"}
+                  </span>
+                </div>
+                {item.author_id ? (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 shrink-0 rounded-full px-2.5 text-[11px] font-semibold"
+                    onClick={() => void openMessage(item)}
+                  >
+                    <Send className="mr-1 size-3.5" /> Message
+                  </Button>
+                ) : null}
               </div>
               <p className="mt-4 whitespace-pre-wrap break-words text-[15px] leading-7">{item.content}</p>
               {(() => {
@@ -392,16 +404,37 @@ export function ConfessionsPage() {
                 const selected = reactionOptions.find((r) => r.key === rs.reaction);
                 return (
                   <div className="relative mt-4">
-                    <div className="flex items-center gap-2 overflow-x-auto">
-                      <Button variant={selected ? "default" : "outline"} size="sm" className="rounded-full" onClick={() => setReactionMenuId(reactionMenuId === item.id ? null : item.id)}>
-                        <SmilePlus className="mr-1 size-4" /> {selected ? selected.emoji : "React"}
-                        <span className="ml-1 text-[10px]">{[
+                    <div className="flex w-full flex-wrap items-center gap-2">
+                      <Button
+                        variant={selected ? "default" : "outline"}
+                        size="sm"
+                        aria-label="React to confession"
+                        className="h-9 min-w-9 rounded-full px-2"
+                        onClick={() => setReactionMenuId(reactionMenuId === item.id ? null : item.id)}
+                      >
+                        <SmilePlus className="size-4" />
+                        {selected ? <span className="text-base leading-none">{selected.emoji}</span> : null}
+                        <span className="text-[10px]">{[
                           rs.heart_count,rs.laugh_count,rs.wow_count,rs.sad_count,rs.angry_count,rs.panda_count
                         ].reduce((a,b)=>a+Number(b||0),0)}</span>
                       </Button>
-                      <Button variant="ghost" size="sm" className="rounded-full" onClick={() => void openComments(item)}><MessageCircle className="mr-1 size-4" /> Comment <span className="ml-1 text-[10px]">{commentCounts[item.id] ?? 0}</span></Button>
-                      <Button variant="ghost" size="sm" className="rounded-full" onClick={() => void shareConfession(item)}><Share2 className="mr-1 size-4" /> Share</Button>
-                      {item.author_id ? <Button variant="ghost" size="sm" className="rounded-full" onClick={() => void openMessage(item)}><Send className="mr-1 size-4" /> Message</Button> : null}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-9 rounded-full px-2.5"
+                        onClick={() => void openComments(item)}
+                      >
+                        <MessageCircle className="mr-1 size-4" /> Comment
+                        <span className="ml-1 text-[10px]">{commentCounts[item.id] ?? 0}</span>
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-9 rounded-full px-2.5"
+                        onClick={() => void shareConfession(item)}
+                      >
+                        <Share2 className="mr-1 size-4" /> Share
+                      </Button>
                     </div>
                     {reactionMenuId === item.id ? (
                       <div className="absolute bottom-full left-0 z-30 mb-2 flex items-center gap-1 rounded-full border border-border bg-card p-2 shadow-xl">
