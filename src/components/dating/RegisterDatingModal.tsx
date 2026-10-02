@@ -91,7 +91,7 @@ export function RegisterDatingModal({open,onOpenChange}:{open:boolean;onOpenChan
         onOpenChange(false); window.location.href="/profile"; return;
       }
       const base={...emptyProfile,name:profile.display_name||"Anonymous Panda",age:Number(profile.age),gender:profile.gender,country:profile.country,
-        location:profile.city||profile.area||profile.country,emoji:"🐼"};
+        location:profile.city||profile.area||profile.country,emoji:String(profile.avatar_url||"🐼")};
       if(datingProfile){
         const {registeredAt:_r,userId:_u,...rest}=datingProfile;
         setP({...base,...rest,name:profile.display_name||rest.name,age:Number(profile.age),gender:profile.gender,country:profile.country,location:profile.city||profile.area||profile.country});
