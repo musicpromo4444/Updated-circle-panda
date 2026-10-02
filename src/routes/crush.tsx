@@ -57,7 +57,34 @@ function CrushPage() {
   const [showQuickSignup, setShowQuickSignup] = useState(false);
   const [pendingVote, setPendingVote] = useState(false);
 
-  const pool = useMemo(() => nominees.filter((n) => n.kind === kind && n.mediaUrl), [nominees, kind]);
+  const refreshLiveNominees = async () => {
+    const monday = new Date();
+    const day = monday.getDay();
+    const diff = day === 0 ? -6 : 1 - day;
+    monday.setDate(monday.getDate() + diff);
+    const weekStart = monday.toISOString().slice(0, 10);
+    const { data, error } = await (supabase as any).rpc("get_crush_results", { p_week_start: weekStart });
+    if (error) {
+      toast.error(error.message ?? "Could not load WCW/MCM pictures");
+      return;
+    }
+    const rows = Array.isArray(data) ? data : [];
+    setLiveNominees(rows.map((n:any) => ({
+      id: n.nominee_id,
+      name: n.display_name ?? "Anonymous Panda",
+      kind: n.kind,
+      emoji: n.emoji ?? "🐼",
+      blurb: n.blurb ?? "",
+      votes: Number(n.vote_count ?? 0),
+      avatarUrl: n.media_url ?? undefined,
+      mediaUrl: n.media_url ?? undefined,
+      mediaType: n.media_type,
+      mine: Boolean(n.mine),
+    })));
+    setLiveNomineesLoaded(true);
+  };
+
+  const pool = useMemo(() => (liveNomineesLoaded ? liveNominees : nominees).filter((n) => n.kind === kind && n.mediaUrl), [liveNominees, liveNomineesLoaded, nominees, kind]);
   const card = pool[index] ?? null;
   const ranked = useMemo(() => [...pool].sort((a, b) => b.votes - a.votes), [pool]);
 
