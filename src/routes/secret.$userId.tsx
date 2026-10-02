@@ -1,14 +1,17 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowLeft, Copy, Eye, Lock, Send, Share2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { ArrowLeft, Copy, Eye, Lock, Send, Share2, SmilePlus, MessageCircle } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { StandardBannerAd } from "@/components/ads/StandardBannerAd";
 import { VipIdentity } from "@/components/VipIdentity";
+import { requestLogin } from "@/components/auth/LoginRequiredDialog";
 
 type SharedProfile = { id: string; display_name: string; avatar_url?: string | null; bio?: string | null; country?: string | null; is_vip?: boolean };
 type Secret = { id: string; content: string; created_at: string };
+type Interaction = { reaction: string | null; reaction_count: number; comment_count: number; heart_count:number; laugh_count:number; wow_count:number; sad_count:number; angry_count:number; panda_count:number };
+type SecretComment = { id:string; author_id:string; body:string; created_at:string };
 
 export const Route = createFileRoute("/secret/$userId")({
   head: () => ({ meta: [{ title: "Secret Panda Profile — Circle Panda" }] }),
@@ -16,27 +19,46 @@ export const Route = createFileRoute("/secret/$userId")({
 });
 
 function SecretProfilePage() {
-  const adAfter = (count: number) => count === 5 || count === 10 || count === 17 || count === 24 ? count : count > 24 && (count - 24) % 10 === 0 ? count : -1;
-  const adSlotForCount = (count: number) => count === 5 ? "secret_profile_slot_1" : count === 10 ? "secret_profile_slot_2" : count === 17 ? "secret_profile_slot_3" : "secret_profile_slot_4";
   const { userId } = Route.useParams();
   const [profile, setProfile] = useState<SharedProfile | null>(null);
   const [secrets, setSecrets] = useState<Secret[]>([]);
   const [content, setContent] = useState("");
   const [loading, setLoading] = useState(true);
   const [posting, setPosting] = useState(false);
-  const [justPosted, setJustPosted] = useState(false);
+  const [reactionMenuId, setReactionMenuId] = useState<string | null>(null);
+  const [interactions, setInteractions] = useState<Record<string, Interaction>>({});
+  const [commentPost, setCommentPost] = useState<Secret | null>(null);
+  const [commentText, setCommentText] = useState("");
+  const [commentsBySecret, setCommentsBySecret] = useState<Record<string, SecretComment[]>>({});
+  const composerRef = useRef<HTMLTextAreaElement | null>(null);
 
-  useEffect(() => {
-    void (async () => {
-      const [{ data: profileData }, { data: secretData }] = await Promise.all([
-        (supabase as any).rpc("get_shared_profile_public", { p_user_id: userId }),
-        (supabase as any).from("profile_secrets").select("id,content,created_at").eq("target_user_id", userId).eq("is_published", true).order("created_at", { ascending: false }).limit(50),
-      ]);
-      setProfile(Array.isArray(profileData) ? profileData[0] ?? null : profileData ?? null);
-      setSecrets(secretData ?? []);
-      setLoading(false);
-    })();
-  }, [userId]);
+  const adAfter = (count: number) => count === 5 || count === 10 || count === 17 || count === 24 ? count : count > 24 && (count - 24) % 10 === 0 ? count : -1;
+  const adSlotForCount = (count: number) => count === 5 ? "secret_profile_slot_1" : count === 10 ? "secret_profile_slot_2" : count === 17 ? "secret_profile_slot_3" : "secret_profile_slot_4";
+
+  const load = async () => {
+    setLoading(true);
+    const [{ data: profileData }, { data: secretData }] = await Promise.all([
+      (supabase as any).rpc("get_shared_profile_public", { p_user_id: userId }),
+      (supabase as any).from("profile_secrets").select("id,content,created_at").eq("target_user_id", userId).eq("is_published", true).order("created_at", { ascending: false }).limit(50),
+    ]);
+    setProfile(Array.isArray(profileData) ? profileData[0] ?? null : profileData ?? null);
+    const next = (secretData ?? []) as Secret[];
+    setSecrets(next);
+    if (next.length) {
+      const ids = next.map((x) => x.id);
+      const { data } = await (supabase as any).rpc("get_profile_secret_interactions", { p_secret_ids: ids });
+      const map: Record<string, Interaction> = {};
+      for (const row of data ?? []) map[row.secret_id] = {
+        reaction: row.reaction ?? null, reaction_count:Number(row.reaction_count ?? 0), comment_count:Number(row.comment_count ?? 0),
+        heart_count:Number(row.heart_count ?? 0), laugh_count:Number(row.laugh_count ?? 0), wow_count:Number(row.wow_count ?? 0),
+        sad_count:Number(row.sad_count ?? 0), angry_count:Number(row.angry_count ?? 0), panda_count:Number(row.panda_count ?? 0),
+      };
+      setInteractions(map);
+    } else setInteractions({});
+    setLoading(false);
+  };
+
+  useEffect(() => { void load(); }, [userId]);
 
   const submit = async () => {
     if (content.trim().length < 3) return toast.error("Write at least 3 characters.");
@@ -44,31 +66,69 @@ function SecretProfilePage() {
     const { data, error } = await (supabase as any).rpc("submit_profile_secret", { p_target_user_id: userId, p_content: content.trim() });
     setPosting(false);
     if (error) return toast.error(error.message);
-    if (data) setSecrets((current) => [{ id: String(data), content: content.trim(), created_at: new Date().toISOString() }, ...current]);
+    const newSecret: Secret = { id: String(data), content: content.trim(), created_at: new Date().toISOString() };
+    setSecrets((current) => [newSecret, ...current]);
+    setInteractions((current) => ({ ...current, [newSecret.id]: { reaction:null,reaction_count:0,comment_count:0,heart_count:0,laugh_count:0,wow_count:0,sad_count:0,angry_count:0,panda_count:0 } }));
     setContent("");
-    setJustPosted(true);
     toast.success("Secret posted anonymously.");
   };
 
-  const share = async () => {
-    const url = window.location.href;
-    if (navigator.share) {
-      try { await navigator.share({ title: "Secret Panda Profile", text: "Leave a secret about this Panda.", url }); } catch {}
-    } else {
-      await navigator.clipboard?.writeText(url);
-      toast.success("Secret Profile link copied.");
-    }
+  const react = async (id:string, reaction:string) => {
+    const { data: authData } = await supabase.auth.getUser();
+    if (!authData.user || authData.user.is_anonymous) { requestLogin("react to a secret"); return; }
+    const { error } = await (supabase as any).rpc("react_to_profile_secret_secure", { p_secret_id:id, p_reaction:reaction });
+    if (error) return toast.error(error.message);
+    setReactionMenuId(null);
+    await load();
+  };
+
+  const openComments = async (secret:Secret) => {
+    const { data: authData } = await supabase.auth.getUser();
+    if (!authData.user || authData.user.is_anonymous) { requestLogin("comment on a secret"); return; }
+    setCommentPost(secret);
+    setCommentText("");
+    const { data } = await (supabase as any).rpc("get_profile_secret_comments", { p_secret_id:secret.id });
+    setCommentsBySecret((current) => ({ ...current, [secret.id]: data ?? [] }));
+  };
+
+  const submitComment = async () => {
+    if (!commentPost || !commentText.trim()) return;
+    const { error } = await (supabase as any).rpc("add_profile_secret_comment_secure", { p_secret_id:commentPost.id, p_body:commentText.trim() });
+    if (error) return toast.error(error.message);
+    const { data } = await (supabase as any).rpc("get_profile_secret_comments", { p_secret_id:commentPost.id });
+    setCommentsBySecret((current) => ({ ...current, [commentPost.id]: data ?? [] }));
+    setInteractions((current) => ({ ...current, [commentPost.id]: { ...(current[commentPost.id] ?? {reaction:null,reaction_count:0,heart_count:0,laugh_count:0,wow_count:0,sad_count:0,angry_count:0,panda_count:0}), comment_count:data?.length ?? 0 } }));
+    setCommentText("");
+    toast.success("Comment posted");
+  };
+
+  const shareSecret = async (secret:Secret) => {
+    const url = window.location.origin + "/secret/" + userId + "#" + secret.id;
+    try {
+      if (navigator.share) await navigator.share({ title:"Secret Panda Profile", text:secret.content, url });
+      else { await navigator.clipboard.writeText(url); toast.success("Share link copied"); }
+    } catch (e:any) { if (e?.name !== "AbortError") toast.error("Could not share this secret."); }
+  };
+
+  const focusComposer = () => {
+    composerRef.current?.scrollIntoView({ behavior:"smooth", block:"center" });
+    composerRef.current?.focus();
   };
 
   if (loading) return <main className="min-h-screen bg-background p-5 text-center text-muted-foreground">Loading Secret Profile…</main>;
   if (!profile) return <main className="min-h-screen bg-background p-5"><div className="mx-auto max-w-md rounded-3xl border border-border bg-card p-6 text-center"><p className="text-4xl">🐼</p><h1 className="mt-3 text-xl font-bold">Profile not found</h1><Link to="/" className="mt-5 inline-flex rounded-xl bg-primary px-4 py-2 text-sm font-bold text-primary-foreground">Back to Circle</Link></div></main>;
 
+  const reactionOptions = [
+    {key:"heart",emoji:"❤️",label:"Heart"},{key:"laugh",emoji:"😂",label:"Laugh"},{key:"wow",emoji:"😮",label:"Wow"},
+    {key:"angry",emoji:"😡",label:"Angry"},{key:"panda",emoji:"🐼",label:"Panda"},
+  ];
+
   return (
-    <main className="min-h-screen bg-background px-4 py-6">
+    <main className="min-h-screen bg-background px-4 py-5">
       <div className="mx-auto max-w-xl space-y-4">
         <div className="flex items-center justify-between">
           <Link to="/" className="inline-flex items-center gap-2 text-sm font-semibold text-muted-foreground"><ArrowLeft className="size-4" /> Circle Panda</Link>
-          <Button variant="outline" size="sm" onClick={() => void share()}><Share2 className="mr-1 size-4" /> Share</Button>
+          <Button variant="outline" size="sm" onClick={() => void navigator.share?.({title:"Secret Panda Profile",text:"Leave a secret about this Panda.",url:window.location.href})}><Share2 className="mr-1 size-4" /> Share</Button>
         </div>
 
         <section className="panda-panel rounded-3xl p-6 text-center">
@@ -77,48 +137,56 @@ function SecretProfilePage() {
           {profile.country ? <p className="mt-1 text-sm text-muted-foreground">{profile.country}</p> : null}
           {profile.bio ? <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-muted-foreground">{profile.bio}</p> : null}
           <div className="mt-4 rounded-2xl border border-primary/20 bg-primary/5 p-3 text-xs text-muted-foreground">
-            <Eye className="mx-auto mb-1 size-4 text-primary" /> Browse the public profile and secrets. No account is required to read or leave a secret.
+            <Eye className="mx-auto mb-1 size-4 text-primary" /> Browse the secrets. Authors remain anonymous.
           </div>
+        </section>
+
+        <section className="sticky top-2 z-40 rounded-3xl border border-primary/30 bg-card/95 p-4 shadow-xl backdrop-blur">
+          <p className="text-sm font-black">Want to post your own secret?</p>
+          <p className="mt-1 text-xs text-muted-foreground">Click here to post a secret about this person. This button stays with you while you scroll.</p>
+          <Button className="mt-3 h-12 w-full rounded-2xl text-sm font-black" onClick={focusComposer}><Send className="mr-2 size-4" /> Post your own secret</Button>
         </section>
 
         <section className="panda-panel rounded-3xl p-5">
           <div className="flex items-start gap-3">
             <span className="grid size-10 place-items-center rounded-xl bg-primary/10"><Lock className="size-5 text-primary" /></span>
-            <div><h2 className="font-display text-lg font-bold">Secrets about {profile.display_name}</h2><p className="mt-1 text-xs text-muted-foreground">People can leave anonymous secrets about this Panda. The author's identity is never displayed here.</p></div>
+            <div><h2 className="font-display text-lg font-bold">Secrets about {profile.display_name}</h2><p className="mt-1 text-xs text-muted-foreground">A full feed of anonymous secrets, with reactions, comments, and sharing.</p></div>
           </div>
+
           <div className="mt-4 space-y-3">
-            {secrets.length ? secrets.map((secret, index) => {
-              const count = index + 1;
-              const showAd = adAfter(count) === count;
-              return (
-                <div key={secret.id} className="space-y-3">
-                  <article className="rounded-2xl border border-border bg-secondary/30 p-4">
-                    <p className="whitespace-pre-wrap break-words text-sm leading-6">{secret.content}</p>
-                    <p className="mt-2 text-[10px] text-muted-foreground">{new Date(secret.created_at).toLocaleString()}</p>
-                  </article>
-                  {showAd ? <StandardBannerAd placement={adSlotForCount(count)} variant="card" /> : null}
-                </div>
-              );
+            {secrets.length ? secrets.map((secret,index) => {
+              const ix = interactions[secret.id] ?? {reaction:null,reaction_count:0,comment_count:0,heart_count:0,laugh_count:0,wow_count:0,sad_count:0,angry_count:0,panda_count:0};
+              const selected = reactionOptions.find((r) => r.key === ix.reaction);
+              const showAd = adAfter(index + 1) === index + 1;
+              return <div key={secret.id} className="space-y-3">
+                <article id={secret.id} className="rounded-[1.35rem] border border-border/70 bg-card p-4 shadow-sm">
+                  <p className="whitespace-pre-wrap break-words text-[15px] leading-7">{secret.content}</p>
+                  <p className="mt-2 text-[10px] text-muted-foreground">{new Date(secret.created_at).toLocaleString()}</p>
+                  <div className="relative mt-3 flex items-center gap-1.5 overflow-x-auto border-t border-border/50 pt-3">
+                    <Button variant={selected ? "default" : "outline"} size="sm" className="rounded-full" onClick={() => setReactionMenuId(reactionMenuId===secret.id?null:secret.id)}>
+                      <SmilePlus className="mr-1 size-4" /> {selected ? selected.emoji : "React"} <span className="ml-1 text-[10px]">{ix.reaction_count}</span>
+                    </Button>
+                    <Button variant="ghost" size="sm" className="rounded-full" onClick={() => void openComments(secret)}><MessageCircle className="mr-1 size-4" /> Comment <span className="ml-1 text-[10px]">{ix.comment_count}</span></Button>
+                    <Button variant="ghost" size="sm" className="rounded-full" onClick={() => void shareSecret(secret)}><Share2 className="mr-1 size-4" /> Share</Button>
+                    {reactionMenuId===secret.id ? <div className="absolute bottom-full left-0 z-50 mb-2 flex gap-1 rounded-full border border-border bg-card p-2 shadow-xl">
+                      {reactionOptions.map((r)=><button key={r.key} type="button" title={r.label} onClick={()=>void react(secret.id,r.key)} className="grid size-10 place-items-center rounded-full text-xl hover:bg-secondary">{r.emoji}</button>)}
+                    </div> : null}
+                  </div>
+                  {commentsBySecret[secret.id]?.length ? <div className="mt-3 space-y-2 rounded-2xl bg-secondary/30 p-3">
+                    {commentsBySecret[secret.id].slice(-3).map((comment)=><div key={comment.id} className="text-sm"><span className="font-semibold">Anonymous Panda</span><span className="text-muted-foreground"> · {comment.body}</span></div>)}
+                  </div> : null}
+                </article>
+                {showAd ? <StandardBannerAd placement={adSlotForCount(index + 1)} variant="card" /> : null}
+              </div>;
             }) : <p className="rounded-2xl border border-dashed border-border p-6 text-center text-sm text-muted-foreground">No secrets yet. Be the first.</p>}
           </div>
 
-          <div className="mt-4 rounded-2xl border border-primary/25 bg-primary/5 p-4">
-            <p className="text-sm font-bold">Anyone can post a secret — no account required.</p>
-            <p className="mt-1 text-xs text-muted-foreground">Your secret is published first. Then you can create a free Circle Panda account.</p>
+          <div ref={undefined} className="mt-5 rounded-2xl border border-primary/25 bg-primary/5 p-4">
+            <p className="text-sm font-bold">Post your own secret about {profile.display_name}</p>
+            <p className="mt-1 text-xs text-muted-foreground">Your secret is published anonymously and appears at the top of this feed.</p>
+            <textarea ref={composerRef} value={content} onChange={(e)=>setContent(e.target.value)} maxLength={1000} placeholder="Write a secret about this Panda…" className="cp-input mt-3 min-h-28 w-full resize-y" />
+            <Button className="mt-3 w-full rounded-2xl" disabled={posting || content.trim().length<3} onClick={()=>void submit()}>{posting ? "Posting…" : <><Send className="mr-2 size-4" /> Post secret anonymously</>}</Button>
           </div>
-          {!justPosted ? (
-            <div className="mt-4 space-y-3">
-              <textarea value={content} onChange={(e) => setContent(e.target.value)} maxLength={1000} placeholder="Write a secret about this Panda…" className="cp-input min-h-28 w-full resize-y" />
-              <Button className="w-full rounded-2xl" disabled={posting || content.trim().length < 3} onClick={() => void submit()}>{posting ? "Posting…" : <><Send className="mr-2 size-4" /> Post secret anonymously</>}</Button>
-            </div>
-          ) : (
-            <div className="mt-4 rounded-2xl border border-primary/30 bg-primary/5 p-4 text-center">
-              <p className="text-sm font-bold">Your secret has been published anonymously.</p>
-              <p className="mt-1 text-xs text-muted-foreground">Create a free Circle Panda account to continue.</p>
-              <Link to="/register" search={{ redirect: "/secret/" + userId } as any} className="mt-3 inline-flex w-full items-center justify-center rounded-xl bg-primary px-4 py-3 text-sm font-black text-primary-foreground">Create my free account</Link>
-              <Button variant="ghost" className="mt-1 w-full" onClick={() => setJustPosted(false)}>Post another secret</Button>
-            </div>
-          )}
         </section>
 
         <div className="rounded-2xl border border-border/70 bg-card p-4 text-center text-xs text-muted-foreground">
@@ -126,6 +194,20 @@ function SecretProfilePage() {
           <Link to="/login" className="mt-1 inline-flex items-center gap-1 font-bold text-primary"><Copy className="size-3" /> Log in or create your Panda</Link>
         </div>
       </div>
+
+      <DialogPlaceholder commentPost={commentPost} setCommentPost={setCommentPost} commentText={commentText} setCommentText={setCommentText} submitComment={submitComment} />
     </main>
   );
+}
+
+function DialogPlaceholder({commentPost,setCommentPost,commentText,setCommentText,submitComment}:{commentPost:Secret|null;setCommentPost:(v:Secret|null)=>void;commentText:string;setCommentText:(v:string)=>void;submitComment:()=>Promise<void>}) {
+  if (!commentPost) return null;
+  return <div className="fixed inset-0 z-[100] grid place-items-center bg-black/60 p-4" role="dialog" aria-modal="true">
+    <div className="w-full max-w-md rounded-3xl border border-border bg-card p-5 shadow-2xl">
+      <h2 className="font-display text-lg font-bold">Comment on this secret</h2>
+      <p className="mt-1 text-xs text-muted-foreground">Your comment is shown as Anonymous Panda.</p>
+      <textarea value={commentText} onChange={(e)=>setCommentText(e.target.value)} maxLength={1000} className="cp-input mt-3 min-h-28 w-full" placeholder="Write a comment..." />
+      <div className="mt-3 flex gap-2"><Button variant="outline" className="flex-1 rounded-xl" onClick={()=>setCommentPost(null)}>Cancel</Button><Button className="flex-1 rounded-xl" disabled={!commentText.trim()} onClick={()=>void submitComment()}>Post comment</Button></div>
+    </div>
+  </div>;
 }
