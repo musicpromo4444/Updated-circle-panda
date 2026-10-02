@@ -14,19 +14,19 @@ begin
     computed_age:=extract(year from age(current_date,dob))::integer;
     if computed_age<18 or computed_age>120 then dob:=null; computed_age:=null; end if;
   end if;
-  insert into public.profiles(id,display_name,avatar_url,gender,country,state_province,city,area,date_of_birth,age,updated_at)
+  insert into public.profiles(id,display_name,avatar_url,gender,country,state_province,city,area,address_line,date_of_birth,age,updated_at)
   select u.id,coalesce(nullif(trim(u.raw_user_meta_data->>'name'),''),'Anonymous Panda'),
     coalesce(nullif(trim(u.raw_user_meta_data->>'avatar_style'),''),'🐼'),
     nullif(trim(u.raw_user_meta_data->>'gender'),''),nullif(trim(u.raw_user_meta_data->>'country'),''),
     nullif(trim(u.raw_user_meta_data->>'state_province'),''),nullif(trim(u.raw_user_meta_data->>'city'),''),
-    nullif(trim(u.raw_user_meta_data->>'area'),''),dob,computed_age,now()
+    nullif(trim(u.raw_user_meta_data->>'area'),''),nullif(trim(u.raw_user_meta_data->>'address_line'),''),dob,computed_age,now()
   from auth.users u where u.id=uid
   on conflict(id) do update set
     display_name=case when public.profiles.display_name is null or public.profiles.display_name in ('','Anonymous Panda') then excluded.display_name else public.profiles.display_name end,
     avatar_url=case when public.profiles.avatar_url is null or public.profiles.avatar_url='' then excluded.avatar_url else public.profiles.avatar_url end,
     gender=coalesce(public.profiles.gender,excluded.gender),country=coalesce(public.profiles.country,excluded.country),
     state_province=coalesce(public.profiles.state_province,excluded.state_province),city=coalesce(public.profiles.city,excluded.city),
-    area=coalesce(public.profiles.area,excluded.area),date_of_birth=coalesce(public.profiles.date_of_birth,excluded.date_of_birth),
+    area=coalesce(public.profiles.area,excluded.area),address_line=coalesce(public.profiles.address_line,excluded.address_line),date_of_birth=coalesce(public.profiles.date_of_birth,excluded.date_of_birth),
     age=coalesce(public.profiles.age,excluded.age),updated_at=now()
   returning * into result;
   return result;
