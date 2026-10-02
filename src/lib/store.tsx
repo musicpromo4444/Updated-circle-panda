@@ -689,14 +689,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         ...s,
         groups: s.groups.map((g) => g.id === id ? { ...g, openedAt, members: Number(data?.member_count ?? g.members) } : g),
       }));
-      toast.success("Group chat activated 🐼", { description: "Members notified · 24:00:00 countdown started" });
+      window.dispatchEvent(new CustomEvent("circle-panda-action", { detail: { title: "Group is now open!", emoji: "🐼" } }));
+      toast.success("Group chat activated 🐼", { description: "3 members reached · the group is now open." });
     })();
   }, [dbUserId]);
 
-  const isGroupExpired = useCallback(
-    (g: GroupChat) => g.openedAt !== null && Date.now() - g.openedAt >= DAY_MS,
-    [],
-  );
+  const isGroupExpired = useCallback((_g: GroupChat) => false, []);
 
   const sendGroupMessage = useCallback((id: string, body: string) => {
     if (!dbUserId) { requestLogin("message this group"); return; }
