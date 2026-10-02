@@ -89,6 +89,7 @@ function CrushPage() {
   const ranked = useMemo(() => [...pool].sort((a, b) => b.votes - a.votes), [pool]);
 
   useEffect(() => {
+    void refreshLiveNominees();
     const section = window.location.hash.replace("#", "").toLowerCase();
     if (section === "mcm" || section === "wcw") setKind(section as CrushKind);
     setIndex(0);
@@ -101,7 +102,7 @@ function CrushPage() {
   }, [card?.id]);
 
   useEffect(() => {
-    const refresh = () => window.location.reload();
+    const refresh = () => { void refreshLiveNominees(); };
     window.addEventListener("circle-panda-crush-refresh", refresh);
     return () => window.removeEventListener("circle-panda-crush-refresh", refresh);
   }, []);
@@ -141,6 +142,7 @@ function CrushPage() {
       return;
     }
     voteFor(card.id);
+    void refreshLiveNominees();
     next(1);
   };
 
