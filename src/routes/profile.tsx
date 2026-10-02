@@ -54,7 +54,12 @@ function ProfilePage() {
   const [profileId, setProfileId] = useState<string | null>(null);
   const [displayName, setDisplayName] = useState("Your Panda");
   const [country, setCountry] = useState("");
+  const [stateProvince, setStateProvince] = useState("");
+  const [city, setCity] = useState("");
+  const [area, setArea] = useState("");
+  const [addressLine, setAddressLine] = useState("");
   const [bio, setBio] = useState("");
+  const [savingProfile, setSavingProfile] = useState(false);
   const [avatarHead, setAvatarHead] = useState("🐼");
   const [avatarGlasses, setAvatarGlasses] = useState("");
   const [avatarFace, setAvatarFace] = useState("");
@@ -67,10 +72,14 @@ function ProfilePage() {
       if (!data.user.is_anonymous) {
         await (supabase as any).rpc("ensure_my_circle_panda_profile");
       }
-      const { data: profile } = await (supabase as any).from("profiles").select("display_name,avatar_url,gender,country,bio").eq("id", data.user.id).maybeSingle();
+      const { data: profile } = await (supabase as any).from("profiles").select("display_name,avatar_url,gender,country,state_province,city,area,address_line,bio").eq("id", data.user.id).maybeSingle();
       if (profile?.display_name) setDisplayName(profile.display_name);
       if (profile?.avatar_url) setAvatar(profile.avatar_url);
       if (profile?.country) setCountry(profile.country);
+      if (profile?.state_province) setStateProvince(profile.state_province);
+      if (profile?.city) setCity(profile.city);
+      if (profile?.area) setArea(profile.area);
+      if (profile?.address_line) setAddressLine(profile.address_line);
       if (profile?.bio) setBio(profile.bio);
       if (profile?.gender === "male" || profile?.gender === "female") setAccountGender(profile.gender);
     });
@@ -86,7 +95,14 @@ function ProfilePage() {
     useStore();
   const pandaRank = pandaProgress(xp);
   const tier = pandaTier(reputation);
-  const myPosts = posts.filter((p) => p.author === "You (anonymous)").length;
+  const [publishedConfessions, setPublishedConfessions] = useState(0);
+  useEffect(() => {
+    if (!profileId) return;
+    void (supabase as any).from("confessions").select("id", { count: "exact", head: true })
+      .eq("author_id", profileId).eq("is_published", true)
+      .then(({ count }: any) => setPublishedConfessions(Number(count ?? 0)));
+  }, [profileId]);
+  const myPosts = posts.filter((p) => p.authorId === profileId || p.author === "You (anonymous)").length + publishedConfessions;
 
   const stats = [
     { label: "Panda Coins", value: `${coins} BC`, icon: Trophy },
@@ -135,6 +151,41 @@ function ProfilePage() {
       </section>
 
       <ProfileProgressCard level={level} xp={xp} />
+
+      <section className="panda-panel mt-4 rounded-2xl p-4">
+        <div className="flex items-start justify-between gap-3">
+          <div><h2 className="font-display text-lg font-bold">Complete your profile</h2>
+            <p className="mt-1 text-xs text-muted-foreground">Country is recommended. State, city, area, and street/address can be left optional and completed later.</p></div>
+          <span className="text-xl">📍</span>
+        </div>
+        <div className="mt-3 grid gap-2 sm:grid-cols-2">
+          {[
+            ["Country", country, setCountry, "e.g. Nigeria", true],
+            ["State / Province", stateProvince, setStateProvince, "e.g. Rivers", false],
+            ["City / Location", city, setCity, "e.g. Port Harcourt", false],
+            ["Area", area, setArea, "e.g. GRA", false],
+            ["Street / Address", addressLine, setAddressLine, "Optional street or address", false],
+          ].map(([label, value, setter, placeholder, required]: any) => (
+            <label key={label} className={label === "Street / Address" ? "sm:col-span-2" : ""}>
+              <span className="mb-1 block text-[11px] font-semibold text-muted-foreground">{label}{required ? " *" : " · optional"}</span>
+              <input value={value} onChange={(e) => setter(e.target.value)} placeholder={placeholder} className="cp-input w-full" />
+            </label>
+          ))}
+        </div>
+        <Button className="mt-3 w-full rounded-xl" disabled={savingProfile} onClick={() => void (async () => {
+          setSavingProfile(true);
+          const { data, error } = await (supabase as any).rpc("update_profile_completion_secure", {
+            p_country: country, p_state_province: stateProvince, p_city: city, p_area: area, p_address_line: addressLine,
+          });
+          setSavingProfile(false);
+          if (error) { toast.error(error.message ?? "Profile could not be saved"); return; }
+          setCountry(data?.country ?? country); setStateProvince(data?.state_province ?? stateProvince);
+          setCity(data?.city ?? city); setArea(data?.area ?? area); setAddressLine(data?.address_line ?? addressLine);
+          toast.success("Profile details saved 🐼");
+        })()}>
+          {savingProfile ? "Saving…" : "Save profile details"}
+        </Button>
+      </section>
 
       <section className="panda-panel mt-4 rounded-2xl p-4">
         <div className="flex items-start justify-between gap-3">
