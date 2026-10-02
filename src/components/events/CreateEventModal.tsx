@@ -5,13 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { useStore } from "@/lib/store";
+import { useStore, type PandaEvent } from "@/lib/store";
 import { supabase } from "@/integrations/supabase/client";
 import { requestLogin } from "@/components/auth/LoginRequiredDialog";
 
 const EVENT_TAGS=["Meetup","Nightlife","Gaming","Music & Vinyl","Study & Chill","Foodie","Arts","Sports","Business","Party","Other"];
 
-export function CreateEventModal({open,onOpenChange}:{open:boolean;onOpenChange:(open:boolean)=>void}) {
+export function CreateEventModal({open,onOpenChange,onCreated}:{open:boolean;onOpenChange:(open:boolean)=>void;onCreated?:(event:PandaEvent)=>void}) {
  const {createEvent}=useStore();
  const [title,setTitle]=useState(""); const [tag,setTag]=useState("Meetup"); const [date,setDate]=useState("");
  const [duration,setDuration]=useState(120); const [venue,setVenue]=useState(""); const [address,setAddress]=useState("");
@@ -44,8 +44,12 @@ export function CreateEventModal({open,onOpenChange}:{open:boolean;onOpenChange:
   const gateFee = price.trim() === "" ? 0 : Number(price);
   if(!Number.isFinite(gateFee) || gateFee < 0) return toast.error("Enter a valid gate fee.");
   if(gateFee>0 && currency!=="NGN") return toast.error("Paid gate fees currently use NGN.");
-   createEvent({title:title.trim(),tag,date,time:`${duration} minutes`,place:venue.trim(),cost:Math.max(0,gateFee),currency,blurb:blurb.trim(),details:details.trim()||blurb.trim(),coverUrl:imageUrl,venueName:venue.trim(),addressLine:address.trim(),country:country.trim(),stateProvince:state.trim(),city:city.trim(),area:area.trim(),reachScope,reachCountry:reachCountry.trim(),reachState:reachState.trim(),reachCity:reachCity.trim(),reachArea:reachArea.trim(),durationMinutes:duration});
-   setTitle("");setBlurb("");setDetails("");setVenue("");setAddress("");setCountry("");setState("");setCity("");setArea("");setPrice("");setImageUrl("");setDuration(120);onOpenChange(false);
+   void (async () => {
+    const created = await createEvent({title:title.trim(),tag,date,time:`${duration} minutes`,place:venue.trim(),cost:Math.max(0,gateFee),currency,blurb:blurb.trim(),details:details.trim()||blurb.trim(),coverUrl:imageUrl,venueName:venue.trim(),addressLine:address.trim(),country:country.trim(),stateProvince:state.trim(),city:city.trim(),area:area.trim(),reachScope,reachCountry:reachCountry.trim(),reachState:reachState.trim(),reachCity:reachCity.trim(),reachArea:reachArea.trim(),durationMinutes:duration});
+    if (!created) return;
+    setTitle("");setBlurb("");setDetails("");setVenue("");setAddress("");setCountry("");setState("");setCity("");setArea("");setPrice("");setImageUrl("");setDuration(120);onOpenChange(false);
+    onCreated?.(created);
+   })();
   });
  };
  return <Dialog open={open} onOpenChange={onOpenChange}><DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-2xl rounded-2xl p-6">
