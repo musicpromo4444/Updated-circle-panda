@@ -71,7 +71,7 @@ export type Thread = {
   startedAt?: number;
 };
 export type PandaEvent = {
-  id: string; title: string; tag: string; date: string; time: string; place: string;
+  id: string; title: string; tag: string; date: string; time: string; place: string; ownerId?: string;
   cost: number; currency?: string; blurb: string; details: string; rsvp: boolean;
   coverUrl?: string; venueName?: string; addressLine?: string; country?: string;
   stateProvince?: string; city?: string; area?: string; latitude?: number | null; longitude?: number | null;
@@ -566,7 +566,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         return {id:g.id,name:g.name,topic:g.topic,ownerId:g.owner_id,memberRole:g.member_role,editGroupInfo:settings?.edit_group_info ?? "admins",sendMessages:settings?.send_messages ?? true,approveNewMembers:settings?.approve_new_members ?? false,joinPending:Boolean(g.join_pending),members:Number(g.member_count ?? 0),openedAt:g.activated_at?new Date(g.activated_at).getTime():null,country:g.country??"",stateProvince:g.state_province??"",city:g.city??"",area:g.area??"",messages:groupMessages.filter((m:any)=>m.group_id===g.id).map((m:any)=>({id:m.id,author:m.user_id===uid?"You (anonymous)":"Anonymous Panda",body:m.body,at:new Date(m.created_at).getTime(),mine:m.user_id===uid,messageType:m.message_type ?? "text",mediaPath:m.media_path ?? undefined,mimeType:m.mime_type ?? undefined,durationSeconds:m.duration_seconds ?? null}))};
       });
       const attendees = attendeesRes.data ?? [];
-      const events = (eventsRes.data ?? []).map((e:any)=>({id:e.id,title:e.title,tag:e.category ?? "Meetup",date:e.starts_at?new Date(e.starts_at).toLocaleDateString():"",time:e.starts_at?`${new Date(e.starts_at).toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"})}${e.ends_at ? ` · ${Math.max(1,Math.round((new Date(e.ends_at).getTime()-new Date(e.starts_at).getTime())/60000))} min` : ""}`:"",place:e.location??"",cost:Number(e.entry_fee_amount ?? 0),currency:e.entry_fee_currency ?? "NGN",blurb:e.description,details:e.description,rsvp:attendees.some((a:any)=>a.event_id===e.id&&a.user_id===uid),reachScope:e.reach_scope ?? "worldwide",reachCountry:e.reach_country ?? "",reachState:e.reach_state ?? "",reachCity:e.reach_city ?? "",reachArea:e.reach_area ?? "",durationMinutes:Number(e.duration_minutes ?? 120),coverUrl:e.cover_url ?? "",venueName:e.venue_name ?? "",addressLine:e.address_line ?? "",country:e.country ?? "",stateProvince:e.state_province ?? "",city:e.city ?? "",area:e.area ?? "",latitude:e.latitude ?? null,longitude:e.longitude ?? null}));
+      const events = (eventsRes.data ?? []).map((e:any)=>({id:e.id,title:e.title,tag:e.category ?? "Meetup",date:e.starts_at?new Date(e.starts_at).toLocaleDateString():"",time:e.starts_at?`${new Date(e.starts_at).toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"})}${e.ends_at ? ` · ${Math.max(1,Math.round((new Date(e.ends_at).getTime()-new Date(e.starts_at).getTime())/60000))} min` : ""}`:"",place:e.location??"",cost:Number(e.entry_fee_amount ?? 0),currency:e.entry_fee_currency ?? "NGN",blurb:e.description,details:e.description,rsvp:attendees.some((a:any)=>a.event_id===e.id&&a.user_id===uid),reachScope:e.reach_scope ?? "worldwide",reachCountry:e.reach_country ?? "",reachState:e.reach_state ?? "",reachCity:e.reach_city ?? "",reachArea:e.reach_area ?? "",durationMinutes:Number(e.duration_minutes ?? 120),coverUrl:e.cover_url ?? "",venueName:e.venue_name ?? "",addressLine:e.address_line ?? "",country:e.country ?? "",stateProvince:e.state_province ?? "",city:e.city ?? "",area:e.area ?? "",latitude:e.latitude ?? null,longitude:e.longitude ?? null,ownerId:e.owner_id ?? undefined}));
       const dating = datingOwnRes.data;
       const crushCounts = new Map<string, number>((crushResultsRes.data ?? []).map((r:any)=>[r.nominee_id, Number(r.vote_count ?? r.votes ?? 0)]));
       const nominees = (crushResultsRes.data ?? []).map((n:any)=>({id:n.nominee_id,name:n.display_name,kind:n.kind,emoji:n.emoji,blurb:n.blurb,votes:Number(n.vote_count ?? 0),avatarUrl:n.media_url,mediaUrl:n.media_url,mediaType:n.media_type,mine:Boolean(n.mine)}));
@@ -930,11 +930,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     return group;
   }, [dbUserId]);
 
-  const createEvent = useCallback((eventData: Omit<PandaEvent, "id" | "rsvp">): PandaEvent => {
+  const createEvent = useCallback(async (eventData: Omit<PandaEvent, "id" | "rsvp">): Promise<PandaEvent | null> => {
     const localId = crypto.randomUUID();
-    const optimistic: PandaEvent = { ...eventData, id: localId, rsvp: false };
-    if (!dbUserId) { toast.error("Sign in to create an event"); return optimistic; }
-    void (async () => {
+    const optimistic: PandaEvent = { ...eventData, id: localId, rsvp: false, ownerId: dbUserId ?? undefined };
+    if (!dbUserId) { toast.error("Sign in to create an event"); return null; }
+    {
       const startsAt = eventData.date ? new Date(eventData.date).toISOString() : new Date(Date.now() + 60 * 60 * 1000).toISOString();
       const durationMinutes = Math.max(15, Math.min(10080, Number(eventData.durationMinutes) || 120));
       const endsAt = new Date(new Date(startsAt).getTime() + durationMinutes * 60 * 1000).toISOString();
@@ -946,12 +946,13 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         p_address_line:eventData.addressLine ?? null,p_country:eventData.country ?? null,p_state_province:eventData.stateProvince ?? null,p_city:eventData.city ?? null,p_area:eventData.area ?? null,
         p_latitude:eventData.latitude ?? null,p_longitude:eventData.longitude ?? null,p_cover_url:eventData.coverUrl ?? null,
       });
-      if (error) { toast.error(error.message ?? "Could not publish event"); return; }
-      setState(s=>({...s,events:[{...optimistic,id:data.id},...s.events]}));
+      if (error) { toast.error(error.message ?? "Could not publish event"); return null; }
+      const created = { ...optimistic, id: data.id, ownerId: dbUserId };
+      setState(s=>({...s,events:[created,...s.events]}));
       void (supabase as any).rpc("record_activity_participation",{p_activity_id:null,p_activity_type:"event_created",p_reference_id:data.id,p_points:5});
       toast.success("Event published 🐼");
-    })();
-    return optimistic;
+      return created;
+    }
   }, [dbUserId, refreshCoins]);
 
   const startEventBlast = useCallback(async (eventId: string, planId = "starter", paymentMethod: "bc" | "cash" = "bc", targetScope = "worldwide", targetCountry = "", targetState = "", targetCity = "", targetArea = "") => {
