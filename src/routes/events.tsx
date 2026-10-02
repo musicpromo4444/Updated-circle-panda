@@ -187,7 +187,7 @@ function EventsPage() {
                     if (!current) return;
                     setBcProcessing(plan.id);
                     try {
-                      const ok = await startEventBlast(current.id, plan.id, "bc", targetScope, targetCountry, targetState, targetCity, targetArea);
+                      const ok = await (startEventBlast as any)(current.id, plan.id, "bc", targetScope, targetCountry, targetState, targetCity, targetArea);
                       if (ok) setBlastOpen(false);
                     } finally {
                       setBcProcessing(null);
