@@ -224,6 +224,7 @@ function EventsPage() {
           </div>
         </DialogContent>
       </Dialog>
+      </div>
     </AppShell>
   );
 }
