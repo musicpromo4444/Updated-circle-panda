@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { ArrowLeft, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Heart, MessageCircle, Sparkles, SlidersHorizontal, X } from "lucide-react";
 import { toast } from "sonner";
@@ -332,9 +332,13 @@ function DatingPage() {
       <RegisterDatingModal open={registerOpen} onOpenChange={setRegisterOpen} />
 
       <Dialog open={!!openMatch} onOpenChange={(o) => !o && setOpenMatch(null)}>
-        <DialogContent className="max-h-[85vh] overflow-y-auto p-0 sm:max-w-lg">
+        <DialogContent className="h-[100dvh] w-screen max-w-none overflow-y-auto rounded-none border-0 bg-background p-0">
           {openMatch ? (
-            <div>
+            <div className="min-h-full">
+              <div className="sticky top-0 z-20 flex items-center gap-2 border-b border-border/70 bg-background/95 px-3 py-3 backdrop-blur-xl">
+                <Button variant="ghost" size="sm" className="gap-1 px-2" onClick={() => setOpenMatch(null)}><ArrowLeft className="size-4" /> Back</Button>
+                <span className="font-display font-semibold">Dating Profile</span>
+              </div>
               <div className="grid h-40 place-items-center bg-[color-mix(in_oklab,var(--dating)_22%,transparent)] text-6xl">
                 <DatingPhoto match={openMatch} connection={connectionFor(openMatch.userId)} />
               </div>
