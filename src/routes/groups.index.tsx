@@ -1,146 +1,97 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Bell, ChevronRight, Lock, PlusCircle, Timer, Users } from "lucide-react";
+import { ChevronRight, Lock, PlusCircle, Share2, Users } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { StandardBannerAd } from "@/components/ads/StandardBannerAd";
 import { VipLoungeCard } from "@/components/groups/VipLoungeCard";
 import { CreateGroupModal } from "@/components/groups/CreateGroupModal";
-import { useStore, DAY_MS, type GroupChat } from "@/lib/store";
+import { useStore, type GroupChat } from "@/lib/store";
 
 export const Route = createFileRoute("/groups/")({
   head: () => ({
     meta: [
-      { title: "24-Hour Group Chats — Circle Panda" },
+      { title: "Group Chats — Circle Panda" },
       {
         name: "description",
         content:
-          "Anonymous group chats that stay hidden until the admin opens them, then lock forever after 24 hours.",
+          "Anonymous group chats stay as cards until 3 members join, then open into a full-screen chat.",
       },
-      { property: "og:title", content: "24-Hour Group Chats — Circle Panda" },
+      { property: "og:title", content: "Group Chats — Circle Panda" },
       {
         property: "og:description",
-        content: "Ephemeral anonymous rooms with a strict 24-hour countdown.",
+        content: "Join anonymous groups and open the full chat when 3 members are present.",
       },
     ],
   }),
   component: GroupsPage,
 });
 
-function useTick() {
-  const [, setT] = useState(0);
-  useEffect(() => {
-    const i = setInterval(() => setT((v) => v + 1), 1000);
-    return () => clearInterval(i);
-  }, []);
-}
-
-export function countdown(openedAt: number) {
-  const left = Math.max(0, openedAt + DAY_MS - Date.now());
-  const h = Math.floor(left / 3600000);
-  const m = Math.floor((left % 3600000) / 60000);
-  const s = Math.floor((left % 60000) / 1000);
-  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
-}
-
-export function GroupCountdown({ openedAt }: { openedAt: number }) {
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  return (
-    <span
-      suppressHydrationWarning
-      className="flex shrink-0 items-center gap-1 rounded-full border border-primary/40 bg-primary/15 px-2.5 py-1 font-display text-xs font-semibold text-primary tabular-nums"
-    >
-      <Timer className="size-3.5" />
-      <span suppressHydrationWarning>{mounted ? countdown(openedAt) : "--:--:--"}</span>
-    </span>
-  );
-}
-
 function GroupCard({ group }: { group: GroupChat }) {
-  const { openGroup, joinGroup, isGroupExpired } = useStore();
+  const { joinGroup, isGroupExpired } = useStore();
   const navigate = useNavigate();
   const expired = isGroupExpired(group);
   const live = group.openedAt !== null && !expired;
 
+  const shareGroup = async () => {
+    const url = window.location.origin + "/groups/" + group.id;
+    const text = group.name + " — " + group.topic;
+    try {
+      if (navigator.share) await navigator.share({ title: group.name, text, url });
+      else await navigator.clipboard.writeText(url);
+    } catch {}
+  };
+
+  const openRoom = () => void navigate({ to: "/groups/$groupId", params: { groupId: group.id } });
+
   return (
-    <section className="panda-panel rounded-2xl p-4">
-      <button
-        type="button"
-        disabled={!live}
-        onClick={() => void navigate({ to: "/groups/$groupId", params: { groupId: group.id } })}
-        className="flex w-full items-start gap-3 text-left disabled:cursor-default"
-      >
-        <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-secondary text-lg">
+    <section className={`panda-panel rounded-2xl p-4 transition-all duration-300 ${live ? "" : "opacity-75"}`}>
+      <button type="button" disabled={!live} onClick={openRoom}
+        className="flex w-full items-start gap-3 text-left disabled:cursor-default">
+        <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-secondary text-lg">
           🎍
         </span>
         <span className="min-w-0 flex-1">
-          <span className="block font-display text-lg leading-tight font-semibold">
-            {group.name}
-          </span>
+          <span className="block font-display text-lg leading-tight font-semibold">{group.name}</span>
           <span className="block text-sm text-muted-foreground">{group.topic}</span>
           <span className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
             <Users className="size-3.5" /> {group.members} anonymous members
           </span>
         </span>
         {live ? (
-          <GroupCountdown openedAt={group.openedAt!} />
-        ) : expired ? (
-          <span className="flex shrink-0 items-center gap-1 rounded-full border border-border bg-secondary px-2.5 py-1 text-xs text-muted-foreground">
-            <Lock className="size-3.5" /> Expired
-          </span>
+          <span className="shrink-0 rounded-full border border-primary/40 bg-primary/15 px-2.5 py-1 text-xs font-semibold text-primary">Open</span>
         ) : (
-          <span className="shrink-0 rounded-full border border-border bg-secondary px-2.5 py-1 text-xs text-muted-foreground">
-            Hidden
+          <span className="flex shrink-0 items-center gap-1 rounded-full border border-border bg-secondary px-2.5 py-1 text-xs text-muted-foreground">
+            <Lock className="size-3.5" /> Locked
           </span>
         )}
       </button>
 
-      {group.openedAt === null && !group.memberRole && !group.joinPending ? (
-        <div className="mt-4 rounded-xl border border-dashed border-border bg-secondary/30 p-4 text-center">
-          <p className="text-sm text-muted-foreground">Join this anonymous room. It activates automatically when 3 members are present.
-          </p>
-          <Button className="mt-3 w-full gap-2" onClick={() => joinGroup(group.id)}>
-            <Users className="size-4" /> Join Group
+      <div className="mt-4 rounded-xl border border-dashed border-border bg-secondary/30 p-4 text-center">
+        {live ? (
+          <p className="text-sm font-semibold text-primary">This group is open and live.</p>
+        ) : (
+          <>
+            <Lock className="mx-auto mb-2 size-5 text-muted-foreground" />
+            <p className="text-sm font-medium">Group locked</p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              {group.members < 3
+                ? `This group has ${group.members} member${group.members === 1 ? "" : "s"}. 3 members are needed before the group can start.`
+                : "The group is ready to open."}
+            </p>
+          </>
+        )}
+
+        <div className="mt-3 grid grid-cols-2 gap-2">
+          <Button className="gap-2" variant={live ? "secondary" : "default"}
+            onClick={() => live ? openRoom() : joinGroup(group.id)}>
+            <Users className="size-4" /> {live ? "Open Group" : "Join Group"}
+          </Button>
+          <Button variant="outline" className="gap-2" onClick={shareGroup}>
+            <Share2 className="size-4" /> Share
           </Button>
         </div>
-      ) : group.openedAt === null && group.joinPending ? (
-        <div className="mt-4 rounded-xl border border-dashed border-border bg-secondary/30 p-4 text-center">
-          <p className="text-sm font-medium">Join request pending</p>
-          <p className="mt-1 text-xs text-muted-foreground">An admin must approve your anonymous membership request.</p>
-        </div>
-      ) : group.openedAt === null ? (
-        <div className="mt-4 rounded-xl border border-dashed border-border bg-secondary/30 p-4 text-center">
-          <p className="text-sm text-muted-foreground">
-            This room is inactive. Opening it requires 3 active members and starts the 24-hour clock.
-          </p>
-          <Button
-            className="mt-3 w-full gap-2"
-            onClick={() => {
-              openGroup(group.id);
-            }}
-          >
-            <Bell className="size-4" /> Open Group Chat
-          </Button>
-        </div>
-      ) : expired ? (
-        <div className="mt-4 rounded-xl border border-border bg-secondary/30 p-4 text-center text-sm text-muted-foreground">
-          <Lock className="mx-auto mb-2 size-5" />
-          This chat locked when the 24-hour timer hit zero. Nothing here can be read or sent.
-        </div>
-      ) : (
-        <Button
-          variant="secondary"
-          className="mt-4 w-full justify-between"
-          onClick={() => void navigate({ to: "/groups/$groupId", params: { groupId: group.id } })}
-        >
-          Open room · {group.messages.length} messages
-          <ChevronRight className="size-4" />
-        </Button>
-      )}
+      </div>
     </section>
   );
 }
