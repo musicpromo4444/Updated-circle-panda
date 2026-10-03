@@ -514,7 +514,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
    */
   const refreshGroupsAndEvents = useCallback(async () => {
     if (!dbUserId) return;
-    const [groupsRes, groupSettingsRes, groupMessagesRes, eventsRes, attendeesRes, attendeeCountsRes] = await Promise.all([
+    const [groupsRes, groupSettingsRes, groupMessagesRes, eventsRes, attendeesRes] = await Promise.all([
       (supabase as any).rpc("get_group_summaries", { p_country:"", p_state_province:"", p_city:"", p_area:"" }),
       (supabase as any).from("group_settings").select("group_id,edit_group_info,send_messages,approve_new_members"),
       (supabase as any).from("cp_group_messages").select("id,group_id,body,created_at,author_id").order("created_at", {ascending:true}).limit(1000),
