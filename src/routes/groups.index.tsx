@@ -84,8 +84,9 @@ function GroupCard({ group }: { group: GroupChat }) {
 
         <div className="mt-3 grid grid-cols-2 gap-2">
           <Button className="gap-2" variant={live ? "secondary" : "default"}
-            onClick={() => live ? openRoom() : joinGroup(group.id)}>
-            <Users className="size-4" /> {live ? "Open Group" : "Join Group"}
+            onClick={() => live ? openRoom() : joinGroup(group.id)}
+            disabled={!live && Boolean(group.memberRole)}>
+            <Users className="size-4" /> {live ? "Open Group" : group.joinPending ? "Request Sent" : group.memberRole ? "Already Joined" : "Join Group"}
           </Button>
           <Button variant="outline" className="gap-2" onClick={shareGroup}>
             <Share2 className="size-4" /> Share
