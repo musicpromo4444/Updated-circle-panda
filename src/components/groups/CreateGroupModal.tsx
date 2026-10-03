@@ -134,8 +134,7 @@ export function CreateGroupModal({
           <div className="rounded-xl border border-border/70 bg-secondary/30 p-3 text-xs text-muted-foreground">
             <p className="font-semibold text-foreground">⏳ Ephemeral 24-Hour Rule</p>
             <p className="mt-0.5">
-              Every message stays anonymous. When the 24-hour countdown reaches zero, the room
-              securely locks.
+              The group is created as a locked card. When 3 members have joined, it opens into the full group chat.
             </p>
           </div>
 
@@ -145,7 +144,7 @@ export function CreateGroupModal({
             </Button>
             <Button type="submit" className="gap-1.5 font-bold">
               <Sparkles className="size-4" />
-              Create & Open Circle
+              Create Group
             </Button>
           </DialogFooter>
         </form>
