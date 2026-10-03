@@ -508,6 +508,66 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, [dbUserId]);
 
 
+  /**
+   * Community content is server-owned. Always re-read Groups + Events from Supabase
+   * after auth settles and after a create action so refresh cannot erase UI-only cards.
+   */
+  const refreshGroupsAndEvents = useCallback(async () => {
+    if (!dbUserId) return;
+    const [groupsRes, groupSettingsRes, groupMessagesRes, eventsRes, attendeesRes] = await Promise.all([
+      (supabase as any).rpc("get_group_summaries", { p_country:"", p_state_province:"", p_city:"", p_area:"" }),
+      (supabase as any).from("group_settings").select("group_id,edit_group_info,send_messages,approve_new_members"),
+      (supabase as any).from("cp_group_messages").select("id,group_id,body,created_at,author_id").order("created_at", {ascending:true}).limit(1000),
+      (supabase as any).from("events").select("id,title,description,location,starts_at,ends_at,category,entry_fee_bc,entry_fee_amount,entry_fee_currency,duration_minutes,reach_scope,reach_country,reach_state,reach_city,reach_area,cover_url,venue_name,address_line,country,state_province,city,area,latitude,longitude,is_published,owner_id").eq("is_published",true).order("starts_at", {ascending:true}),
+      (supabase as any).from("event_attendees").select("event_id,user_id"),
+    ]);
+    if (groupsRes.error) console.error("Circle Panda groups refresh failed", groupsRes.error);
+    if (eventsRes.error) console.error("Circle Panda events refresh failed", eventsRes.error);
+
+    const groupSettings = groupSettingsRes.data ?? [];
+    const groupMessages = groupMessagesRes.data ?? [];
+    const groups = (groupsRes.data ?? []).map((g:any) => {
+      const settings = groupSettings.find((x:any) => x.group_id === g.id);
+      return {
+        id:g.id, name:g.name, topic:g.topic, ownerId:g.owner_id, memberRole:g.member_role,
+        editGroupInfo:settings?.edit_group_info ?? "admins",
+        sendMessages:settings?.send_messages ?? true,
+        approveNewMembers:settings?.approve_new_members ?? false,
+        joinPending:Boolean(g.join_pending), members:Number(g.member_count ?? 0),
+        openedAt:g.activated_at ? new Date(g.activated_at).getTime() : null,
+        expiresAt:g.expires_at ?? null, country:g.country ?? "", stateProvince:g.state_province ?? "",
+        city:g.city ?? "", area:g.area ?? "",
+        messages:groupMessages.filter((m:any) => m.group_id === g.id).map((m:any) => ({
+          id:m.id, author:m.author_id === dbUserId ? "You (anonymous)" : "Anonymous Panda",
+          body:m.body, at:new Date(m.created_at).getTime(), mine:m.author_id === dbUserId
+        })),
+      };
+    }) as GroupChat[];
+
+    const attendees = attendeesRes.data ?? [];
+    const events = (eventsRes.data ?? []).map((e:any) => {
+      const start = e.starts_at ? new Date(e.starts_at) : null;
+      const end = e.ends_at ? new Date(e.ends_at) : null;
+      const duration = start && end ? Math.max(1, Math.round((end.getTime() - start.getTime()) / 60000)) : Number(e.duration_minutes ?? 120);
+      return {
+        id:e.id, title:e.title, tag:e.category ?? "Meetup",
+        date:start ? start.toLocaleDateString() : "",
+        time:start ? start.toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"}) + (end ? " · " + duration + " min" : "") : "",
+        place:e.location ?? "", cost:Number(e.entry_fee_amount ?? 0), currency:e.entry_fee_currency ?? "NGN",
+        blurb:e.description ?? "", details:e.description ?? "",
+        rsvp:attendees.some((a:any) => a.event_id === e.id && a.user_id === dbUserId),
+        reachScope:e.reach_scope ?? "worldwide", reachCountry:e.reach_country ?? "", reachState:e.reach_state ?? "",
+        reachCity:e.reach_city ?? "", reachArea:e.reach_area ?? "", durationMinutes:Number(e.duration_minutes ?? 120),
+        coverUrl:e.cover_url ?? "", venueName:e.venue_name ?? "", addressLine:e.address_line ?? "",
+        country:e.country ?? "", stateProvince:e.state_province ?? "", city:e.city ?? "", area:e.area ?? "",
+        latitude:e.latitude ?? null, longitude:e.longitude ?? null, ownerId:e.owner_id ?? undefined,
+      };
+    }) as PandaEvent[];
+
+    setState(s => ({ ...s, groups, events }));
+    return { groups, events };
+  }, [dbUserId]);
+
   const persistUserState = useCallback((next: State) => {
     if (!dbUserId) return;
     void (supabase as any).from("user_app_state").upsert({
@@ -968,66 +1028,6 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         toast.success("RSVP cancelled", { description: refunded > 0 ? `+${refunded} BC refunded` : undefined });
       }
     })();
-  }, [dbUserId]);
-
-  /**
-   * Community content is server-owned. Always re-read Groups + Events from Supabase
-   * after auth settles and after a create action so refresh cannot erase UI-only cards.
-   */
-  const refreshGroupsAndEvents = useCallback(async () => {
-    if (!dbUserId) return;
-    const [groupsRes, groupSettingsRes, groupMessagesRes, eventsRes, attendeesRes] = await Promise.all([
-      (supabase as any).rpc("get_group_summaries", { p_country:"", p_state_province:"", p_city:"", p_area:"" }),
-      (supabase as any).from("group_settings").select("group_id,edit_group_info,send_messages,approve_new_members"),
-      (supabase as any).from("cp_group_messages").select("id,group_id,body,created_at,author_id").order("created_at", {ascending:true}).limit(1000),
-      (supabase as any).from("events").select("id,title,description,location,starts_at,ends_at,category,entry_fee_bc,entry_fee_amount,entry_fee_currency,duration_minutes,reach_scope,reach_country,reach_state,reach_city,reach_area,cover_url,venue_name,address_line,country,state_province,city,area,latitude,longitude,is_published,owner_id").eq("is_published",true).order("starts_at", {ascending:true}),
-      (supabase as any).from("event_attendees").select("event_id,user_id"),
-    ]);
-    if (groupsRes.error) console.error("Circle Panda groups refresh failed", groupsRes.error);
-    if (eventsRes.error) console.error("Circle Panda events refresh failed", eventsRes.error);
-
-    const groupSettings = groupSettingsRes.data ?? [];
-    const groupMessages = groupMessagesRes.data ?? [];
-    const groups = (groupsRes.data ?? []).map((g:any) => {
-      const settings = groupSettings.find((x:any) => x.group_id === g.id);
-      return {
-        id:g.id, name:g.name, topic:g.topic, ownerId:g.owner_id, memberRole:g.member_role,
-        editGroupInfo:settings?.edit_group_info ?? "admins",
-        sendMessages:settings?.send_messages ?? true,
-        approveNewMembers:settings?.approve_new_members ?? false,
-        joinPending:Boolean(g.join_pending), members:Number(g.member_count ?? 0),
-        openedAt:g.activated_at ? new Date(g.activated_at).getTime() : null,
-        expiresAt:g.expires_at ?? null, country:g.country ?? "", stateProvince:g.state_province ?? "",
-        city:g.city ?? "", area:g.area ?? "",
-        messages:groupMessages.filter((m:any) => m.group_id === g.id).map((m:any) => ({
-          id:m.id, author:m.author_id === dbUserId ? "You (anonymous)" : "Anonymous Panda",
-          body:m.body, at:new Date(m.created_at).getTime(), mine:m.author_id === dbUserId
-        })),
-      };
-    }) as GroupChat[];
-
-    const attendees = attendeesRes.data ?? [];
-    const events = (eventsRes.data ?? []).map((e:any) => {
-      const start = e.starts_at ? new Date(e.starts_at) : null;
-      const end = e.ends_at ? new Date(e.ends_at) : null;
-      const duration = start && end ? Math.max(1, Math.round((end.getTime() - start.getTime()) / 60000)) : Number(e.duration_minutes ?? 120);
-      return {
-        id:e.id, title:e.title, tag:e.category ?? "Meetup",
-        date:start ? start.toLocaleDateString() : "",
-        time:start ? start.toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"}) + (end ? " · " + duration + " min" : "") : "",
-        place:e.location ?? "", cost:Number(e.entry_fee_amount ?? 0), currency:e.entry_fee_currency ?? "NGN",
-        blurb:e.description ?? "", details:e.description ?? "",
-        rsvp:attendees.some((a:any) => a.event_id === e.id && a.user_id === dbUserId),
-        reachScope:e.reach_scope ?? "worldwide", reachCountry:e.reach_country ?? "", reachState:e.reach_state ?? "",
-        reachCity:e.reach_city ?? "", reachArea:e.reach_area ?? "", durationMinutes:Number(e.duration_minutes ?? 120),
-        coverUrl:e.cover_url ?? "", venueName:e.venue_name ?? "", addressLine:e.address_line ?? "",
-        country:e.country ?? "", stateProvince:e.state_province ?? "", city:e.city ?? "", area:e.area ?? "",
-        latitude:e.latitude ?? null, longitude:e.longitude ?? null, ownerId:e.owner_id ?? undefined,
-      };
-    }) as PandaEvent[];
-
-    setState(s => ({ ...s, groups, events }));
-    return { groups, events };
   }, [dbUserId]);
 
   const createGroup = useCallback(async (name: string, topic: string, country = "", stateProvince = "", city = "", area = ""): Promise<GroupChat | null> => {
