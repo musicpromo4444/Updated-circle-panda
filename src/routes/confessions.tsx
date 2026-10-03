@@ -328,7 +328,7 @@ export function ConfessionsPage() {
 
             <button
               type="button"
-              onClick={() => window.location.assign("/crush#mcm")}
+              onClick={() => window.location.assign("/crush?kind=mcm")}
               className="flex min-w-0 flex-col items-center gap-1.5 rounded-2xl p-1.5 text-center transition-transform active:scale-95"
             >
               <span className="relative grid size-[58px] place-items-center overflow-hidden rounded-full border-2 border-sky-400 bg-background text-2xl shadow-[0_0_12px_rgba(56,189,248,.12)] sm:size-16">
@@ -345,7 +345,7 @@ export function ConfessionsPage() {
 
             <button
               type="button"
-              onClick={() => window.location.assign("/crush#wcw")}
+              onClick={() => window.location.assign("/crush?kind=wcw")}
               className="flex min-w-0 flex-col items-center gap-1.5 rounded-2xl p-1.5 text-center transition-transform active:scale-95"
             >
               <span className="relative grid size-[58px] place-items-center overflow-hidden rounded-full border-2 border-pink-400 bg-background text-2xl shadow-[0_0_12px_rgba(244,114,182,.12)] sm:size-16">
