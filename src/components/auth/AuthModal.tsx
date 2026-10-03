@@ -24,6 +24,8 @@ export function AuthModal({ open, onOpenChange, defaultTab = "signin", onOpenBac
   const [showPassword, setShowPassword] = useState(false);
   const [busy, setBusy] = useState(false);
   const [platform, setPlatform] = useState<"ios" | "android" | "other">("other");
+  const [mode, setMode] = useState<"auth" | "forgot">("auth");
+  const [resetSent, setResetSent] = useState(false);
 
   useEffect(() => {
     if (!open) return;
@@ -40,6 +42,8 @@ export function AuthModal({ open, onOpenChange, defaultTab = "signin", onOpenBac
     setConfirmPassword("");
     setName("");
     setBusy(false);
+    setMode("auth");
+    setResetSent(false);
   };
 
   const normalizePhone = (value: string) => {
@@ -141,6 +145,29 @@ export function AuthModal({ open, onOpenChange, defaultTab = "signin", onOpenBac
     }
   };
 
+  const sendPasswordReset = async (event: React.FormEvent) => {
+    event.preventDefault();
+    const email = identifier.trim().toLowerCase();
+    if (!email || !email.includes("@")) {
+      toast.error("Enter a valid email address.");
+      return;
+    }
+
+    setBusy(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: window.location.origin + "/update-password",
+      });
+      if (error) throw error;
+      setResetSent(true);
+      toast.success("If that email is registered, a reset link has been sent.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not send the reset email.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const social = platform === "ios"
     ? <Button type="button" variant="outline" className="w-full bg-black text-white" disabled={busy} onClick={() => void providerLogin("apple")}>Continue with Apple</Button>
     : platform === "android"
@@ -163,6 +190,27 @@ export function AuthModal({ open, onOpenChange, defaultTab = "signin", onOpenBac
           </div>
         </DialogHeader>
 
+        {mode === "forgot" ? (
+          <div className="mt-4 space-y-4">
+            <div>
+              <h2 className="font-display text-lg font-bold">Forgot Password?</h2>
+              <p className="mt-1 text-xs text-muted-foreground">Enter the email connected to your Circle Panda account.</p>
+            </div>
+            {resetSent ? (
+              <div className="rounded-xl border border-primary/30 bg-primary/10 p-4 text-sm">
+                Check your email for the Circle Panda password reset link.
+              </div>
+            ) : (
+              <form onSubmit={sendPasswordReset} className="space-y-3">
+                <Input value={identifier} onChange={(e) => setIdentifier(e.target.value)} type="email" placeholder="Email address" autoComplete="email" />
+                <Button type="submit" disabled={busy} className="w-full">{busy ? "Sending…" : "Send Reset Link"}</Button>
+              </form>
+            )}
+            <button type="button" className="w-full text-center text-xs text-muted-foreground hover:underline" onClick={() => { setMode("auth"); setResetSent(false); }}>
+              Back to Login
+            </button>
+          </div>
+        ) : (
         <Tabs value={tab} onValueChange={(value) => setTab(value as "signin" | "signup")} className="mt-3">
           <TabsList className="grid w-full grid-cols-2 rounded-xl">
             <TabsTrigger value="signin" className="gap-1.5 text-xs font-semibold"><LogIn className="size-3.5" /> Sign In</TabsTrigger>
@@ -176,6 +224,9 @@ export function AuthModal({ open, onOpenChange, defaultTab = "signin", onOpenBac
                 <Input value={password} onChange={(e) => setPassword(e.target.value)} type={showPassword ? "text" : "password"} placeholder="Password" autoComplete="current-password" className="pr-11" />
                 <button type="button" className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground" onClick={() => setShowPassword((v) => !v)} aria-label="Toggle password visibility">{showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}</button>
               </div>
+              <button type="button" className="text-right text-xs text-primary hover:underline" onClick={() => { setMode("forgot"); setResetSent(false); setIdentifier(""); }}>
+                Forgot password?
+              </button>
               <Button type="submit" disabled={busy} className="w-full">{busy ? "Signing in…" : "Enter the Circle"}</Button>
               <div className="relative py-1"><div className="border-t border-border" /><span className="absolute left-1/2 top-1/2 -translate-x-1/2 bg-card px-2 text-[10px] text-muted-foreground">OR</span></div>
               {social}
@@ -194,6 +245,7 @@ export function AuthModal({ open, onOpenChange, defaultTab = "signin", onOpenBac
             </form>
           </TabsContent>
         </Tabs>
+        )}
 
         {onOpenBackendGuide ? <button type="button" onClick={() => { onOpenChange(false); onOpenBackendGuide(); }} className="mt-3 text-center text-[11px] text-muted-foreground hover:underline">Backend setup guide</button> : null}
       </DialogContent>
