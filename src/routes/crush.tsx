@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, ChevronLeft, ChevronRight, Flag, Heart, MessageCircle, Send, Trophy } from "lucide-react";
+import { ArrowLeft, ChevronLeft, ChevronRight, Flag, Heart, MessageCircle, Send, Smile, Trophy } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
@@ -95,7 +95,6 @@ function CrushPage() {
   );
   const card = pool[index] ?? null;
   const ranked = useMemo(() => [...pool].sort((a, b) => b.votes - a.votes), [pool]);
-  const selectedReaction = mineReaction ?? "🐼";
 
   useEffect(() => {
     void refreshLiveNominees();
@@ -372,15 +371,10 @@ function CrushPage() {
                   <button
                     type="button"
                     onClick={() => setReactionOpen((value) => !value)}
-                    aria-label="Choose reaction"
-                    className="relative grid size-12 shrink-0 place-items-center rounded-full border border-white/15 bg-[#20262a] text-2xl"
+                    aria-label="Choose emoji reaction"
+                    className="grid size-12 shrink-0 place-items-center rounded-full border border-white/15 bg-[#20262a] text-white/90"
                   >
-                    {selectedReaction}
-                    {mineReaction ? (
-                      <span className="absolute -right-0.5 -top-0.5 min-w-4 rounded-full bg-primary px-1 text-[8px] font-black text-primary-foreground">
-                        {reactions[mineReaction] ?? 0}
-                      </span>
-                    ) : null}
+                    <Smile className="size-6" />
                   </button>
                 </div>
               )}
