@@ -80,6 +80,7 @@ function DatingPage() {
   const { requestDatingMatch, startDatingChat, searchDatingProfiles, refreshDatingData, datingProfile, datingMatches } = useStore();
   const navigate = useNavigate();
   const [openMatch, setOpenMatch] = useState<Match | null>(null);
+  const [profilePage, setProfilePage] = useState(0);
   const [registerOpen, setRegisterOpen] = useState(false);
   const openDatingRegistration = async () => {
     const { data } = await supabase.auth.getUser();
@@ -256,7 +257,7 @@ function DatingPage() {
               <button
                 type="button"
                 className="w-full text-left"
-                onClick={() => setOpenMatch(m)}
+                onClick={() => { setOpenMatch(m); setProfilePage(0); }}
                 aria-label={`Open ${m.name}'s profile`}
               >
                 <span className="block p-4 pb-0">
@@ -347,52 +348,88 @@ function DatingPage() {
       <Dialog open={!!openMatch} onOpenChange={(o) => !o && setOpenMatch(null)}>
         <DialogContent className="h-[100dvh] w-screen max-w-none overflow-y-auto rounded-none border-0 bg-background p-0">
           {openMatch ? (
-            <div className="min-h-full">
+            <div className="flex min-h-full flex-col">
               <div className="sticky top-0 z-20 flex items-center gap-2 border-b border-border/70 bg-background/95 px-3 py-3 backdrop-blur-xl">
                 <Button variant="ghost" size="sm" className="gap-1 px-2" onClick={() => setOpenMatch(null)}><ArrowLeft className="size-4" /> Back</Button>
-                <span className="font-display font-semibold">Dating Profile</span>
+                <span className="flex-1 text-center font-display font-semibold">Dating Profile</span>
+                <span className="w-14 text-right text-xs text-muted-foreground">{profilePage + 1}/2</span>
               </div>
-              <div className="grid h-40 place-items-center bg-[color-mix(in_oklab,var(--dating)_22%,transparent)] text-6xl">
-                <DatingPhoto match={openMatch} connection={connectionFor(openMatch.userId)} />
+
+              <div className="flex-1 p-5">
+                {profilePage === 0 ? (
+                  <>
+                    <div className="mb-6">
+                      <div className="mb-2 inline-flex rounded-full bg-[var(--dating)]/10 px-3 py-1 text-xs font-bold uppercase tracking-wide text-[var(--dating)]">
+                        About this Panda
+                      </div>
+                      <DialogTitle className="font-display text-3xl">{openMatch.name} <span className="text-lg font-normal text-muted-foreground">{openMatch.age}</span></DialogTitle>
+                      <DialogDescription className="mt-1">{openMatch.vibe || "Dating profile"}</DialogDescription>
+                    </div>
+
+                    <div className="space-y-3">
+                      {[
+                        ["Gender", openMatch.gender],
+                        ["Relationship goal", openMatch.relationshipGoal],
+                        ["Looking for", (openMatch.lookingFor ?? []).join(", ")],
+                        ["About", (openMatch.aboutTraits ?? []).join(", ")],
+                        ["Lifestyle", (openMatch.lifestyle ?? []).join(", ")],
+                        ["Personality", (openMatch.personality ?? []).join(", ")],
+                        ["Interests", (openMatch.interests ?? []).join(", ")],
+                        ["Occupation", openMatch.occupation],
+                      ].filter(([,v]) => String(v ?? "").trim()).map(([label,value]) => (
+                        <div key={label} className="rounded-2xl border border-border bg-card p-4">
+                          <p className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground">{label}</p>
+                          <p className="mt-1 text-sm leading-relaxed">{value}</p>
+                        </div>
+                      ))}
+                      {openMatch.bio ? <div className="rounded-2xl border border-border bg-card p-4"><p className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground">Bio</p><p className="mt-1 text-sm leading-relaxed">{openMatch.bio}</p></div> : null}
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="mb-6">
+                      <div className="mb-2 inline-flex rounded-full bg-[var(--dating)]/10 px-3 py-1 text-xs font-bold uppercase tracking-wide text-[var(--dating)]">More about this Panda</div>
+                      <DialogTitle className="font-display text-2xl">Lifestyle & preferences</DialogTitle>
+                      <DialogDescription className="mt-1">Photos remain hidden until the Dating reveal rules are completed.</DialogDescription>
+                    </div>
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      {[
+                        ["Country", openMatch.country],
+                        ["Location", openMatch.location],
+                        ["Education", openMatch.education],
+                        ["Children", openMatch.children],
+                        ["Smoking", openMatch.smoking],
+                        ["Drinking", openMatch.drinking],
+                        ["Height", openMatch.heightCm ? `${openMatch.heightCm} cm` : ""],
+                        ["Zodiac", openMatch.zodiac],
+                        ["Sexual Experience", openMatch.sexualExperience],
+                        ["Intimacy Preference", openMatch.intimacyPreference],
+                        ["Love Language", openMatch.loveLanguage],
+                        ["Favorite Date", openMatch.favoriteDate],
+                      ].filter(([,v]) => String(v ?? "").trim()).map(([label,value]) => (
+                        <div key={label} className="rounded-2xl border border-border bg-card p-4">
+                          <p className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground">{label}</p>
+                          <p className="mt-1 text-sm">{value}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                )}
               </div>
-              <div className="p-5">
-                <DialogTitle className="flex items-center gap-2 font-display text-2xl">
-                  {openMatch.name}
-                  <span className="text-base font-normal text-muted-foreground">
-                    {openMatch.age}
-                  </span>
-                </DialogTitle>
-                <DialogDescription className="mt-1">{openMatch.vibe}</DialogDescription>
 
-                <p className="mt-4 text-[15px] leading-relaxed">{openMatch.bio}</p>
-
-                {openMatch.aboutTraits?.length ? <div className="mt-4"><p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">About</p><div className="mt-2 flex flex-wrap gap-2">{openMatch.aboutTraits.map((i:string)=><span key={i} className="rounded-full border border-border bg-secondary/60 px-3 py-1 text-xs text-muted-foreground">{i}</span>)}</div></div> : null}
-
-                <div className="mt-4 flex flex-wrap gap-2">
-                  {openMatch.interests.map((i) => (
-                    <span
-                      key={i}
-                      className="rounded-full border border-border bg-secondary/60 px-3 py-1 text-xs text-muted-foreground"
-                    >
-                      {i}
-                    </span>
-                  ))}
+              <div className="sticky bottom-0 border-t border-border/70 bg-background/95 p-4 backdrop-blur-xl">
+                <div className="flex gap-2">
+                  {profilePage > 0 ? <Button variant="outline" className="flex-1" onClick={() => setProfilePage(0)}>Previous</Button> : null}
+                  {profilePage === 0 ? <Button className="flex-1 bg-[var(--dating)] text-[var(--dating-foreground)] hover:bg-[var(--dating)]/90" onClick={() => setProfilePage(1)}>Next</Button> : (
+                    <Button className="flex-1 bg-[var(--dating)] text-[var(--dating-foreground)] hover:bg-[var(--dating)]/90" onClick={() => match(openMatch)}>
+                      <Heart className="mr-2 size-4 fill-current" /> Send dating request
+                    </Button>
+                  )}
                 </div>
-
-                {openMatch.lookingFor?.length ? <div className="mt-4"><p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Looking for</p><div className="mt-2 flex flex-wrap gap-2">{openMatch.lookingFor.map((i:string)=><span key={i} className="rounded-full border border-[var(--dating)]/25 bg-[var(--dating)]/5 px-3 py-1 text-xs text-muted-foreground">{i}</span>)}</div></div> : null}
-                <p className="mt-3 text-xs text-muted-foreground">📍 {openMatch.country || openMatch.location} · anonymous profile</p>
-
-                <Button
-                  className="mt-5 w-full gap-2 bg-[var(--dating)] text-[var(--dating-foreground)] hover:bg-[var(--dating)]/90"
-                  onClick={() => match(openMatch)}
-                >
-                  <Heart className="size-4 fill-current" /> Send dating request
-                </Button>
               </div>
             </div>
           ) : null}
         </DialogContent>
-      </Dialog>
-    </AppShell>
+      </Dialog>    </AppShell>
   );
 }
