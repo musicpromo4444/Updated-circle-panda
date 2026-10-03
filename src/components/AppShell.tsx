@@ -23,6 +23,7 @@ import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { UniversalFloatingCampaign } from "@/components/UniversalFloatingCampaign";
 import { PandaAvatar } from "@/components/PandaAvatar";
+import { InsufficientBcDialog } from "@/components/InsufficientBcDialog";
 
 const TABS = [
   { to: "/", label: "Confessions", icon: MessageSquare },
@@ -483,6 +484,7 @@ export function AppShell({
       {!immersive ? <BottomNav /> : null}
       {!immersive ? <ActionCelebration /> : null}
       {!immersive ? <DailyRewardPopup /> : null}
+      <InsufficientBcDialog />
     </div>
   );
 }
