@@ -104,7 +104,7 @@ export function VipPrivateCall({ callId, incoming = false, onClose }: Props) {
       const extensionBase = extensionStartedAt.current;
       const elapsed = Math.floor((Date.now() - base) / 1000);
       const extensionElapsed = extensionBase ? Math.floor((Date.now() - extensionBase) / 1000) : 0;
-      const left = Math.max(0, FREE_CALL_SECONDS - elapsed + extensionElapsed);
+      const left = extensionBase ? Math.max(0, FREE_CALL_SECONDS - extensionElapsed) : Math.max(0, FREE_CALL_SECONDS - elapsed);
       setRemaining(left);
       if (left <= 0) {
         setLimitOpen(true);
