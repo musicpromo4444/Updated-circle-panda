@@ -199,12 +199,35 @@ function ProfilePage() {
     window.location.replace("/");
   };
 
-  const saveAvatar = (next:string) => {
-    void (supabase as any).rpc("set_panda_avatar_secure", { p_avatar: next }).then(({ data, error }: any) => {
-      if (error) { toast.error(error.message ?? "Avatar could not be updated"); return; }
-      setAvatar(data ?? next);
-      toast.success("Panda avatar updated 🐼");
-    });
+  const refreshProfileAvatar = async () => {
+    if (!profileId) return;
+    const { data: profile, error } = await (supabase as any)
+      .from("profiles")
+      .select("avatar_url")
+      .eq("id", profileId)
+      .maybeSingle();
+    if (error) {
+      toast.error(error.message ?? "Could not refresh Panda avatar");
+      return;
+    }
+    if (profile?.avatar_url) {
+      const saved = String(profile.avatar_url);
+      setAvatar(saved);
+      setAvatarHead(saved.includes("🎩") ? "🐼🎩" : saved.includes("🧢") ? "🐼🧢" : saved.includes("🎧") ? "🐼🎧" : saved.includes("🎀") ? "🐼🎀" : "🐼");
+      setAvatarGlasses(saved.includes("🕶️") ? "🕶️" : saved.includes("👓") ? "👓" : saved.includes("🥽") ? "🥽" : "");
+      setAvatarCosmetic(saved.includes("✨") ? "✨" : saved.includes("🔥") ? "🔥" : saved.includes("🌸") ? "🌸" : saved.includes("💎") ? "💎" : saved.includes("⚡") ? "⚡" : saved.includes("🦋") ? "🦋" : saved.includes("🌈") ? "🌈" : saved.includes("❤️") ? "❤️" : saved.includes("💫") ? "💫" : "");
+    }
+  };
+
+  const saveAvatar = async (next:string) => {
+    const { data, error } = await (supabase as any).rpc("set_panda_avatar_secure", { p_avatar: next });
+    if (error) {
+      toast.error(error.message ?? "Avatar could not be updated");
+      return false;
+    }
+    setAvatar(String(data ?? next));
+    window.dispatchEvent(new CustomEvent("circle-panda-avatar-refresh", { detail: { avatar: String(data ?? next) } }));
+    return true;
   };
   const { coins, reputation, level, xp, posts, threads, groups, mySpotlight, isVip, vipExpiresAt } =
     useStore();
@@ -236,7 +259,7 @@ function ProfilePage() {
       <section className="panda-panel rounded-2xl p-5">
         <div className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-3">
           <div className="min-w-0">
-          <VipIdentity isVip={isVip} seed={profileId ?? displayName} avatar={""} />
+          <VipIdentity isVip={isVip} seed={profileId ?? displayName} avatar={avatar} />
             <p className="truncate font-display text-xl font-semibold">{displayName}</p>
             <p className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
               <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-black text-primary">{pandaRank.current.name}</span> {xp.toLocaleString()} XP
@@ -278,7 +301,7 @@ function ProfilePage() {
         <section className="panda-panel mt-4 rounded-2xl p-4">
           <div className="flex items-center justify-between gap-3">
             <div><h2 className="font-display text-lg font-semibold">Panda Avatar Studio</h2><p className="text-xs text-muted-foreground">Choose your built-in Panda head, glasses and cosmetic.</p></div>
-            <Button variant="outline" size="sm" className="h-8 rounded-lg px-3 text-xs font-bold" onClick={() => setCosmeticsOpen(false)}>Done</Button>
+            <Button variant="outline" size="sm" className="h-8 rounded-lg px-3 text-xs font-bold" onClick={() => { void refreshProfileAvatar(); setCosmeticsOpen(false); }}>Done</Button>
           </div>
           <div className="mt-4 grid gap-4">
             {[
@@ -290,7 +313,7 @@ function ProfilePage() {
                 <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{label as string}</p>
                 <div className="flex flex-wrap gap-2">
                   {(values as string[]).map((value) => (
-                    <button key={`${label}-${value}`} type="button" onClick={() => { setter(value); const next = composeAvatar(label === "Head / hat" ? value : avatarHead, label === "Eyeglasses" ? value : avatarGlasses, label === "Cosmetics" ? value : avatarCosmetic); saveAvatar(next); }} className={`grid min-h-11 min-w-11 place-items-center rounded-xl border px-2 text-xl transition-transform hover:scale-105 ${selected===value?"border-primary bg-primary/10":"border-border bg-secondary/40"}`}>{value || "None"}</button>
+                    <button key={`${label}-${value}`} type="button" onClick={() => { setter(value); const next = composeAvatar(label === "Head / hat" ? value : avatarHead, label === "Eyeglasses" ? value : avatarGlasses, label === "Cosmetics" ? value : avatarCosmetic); void saveAvatar(next); }} className={`grid min-h-11 min-w-11 place-items-center rounded-xl border px-2 text-xl transition-transform hover:scale-105 ${selected===value?"border-primary bg-primary/10":"border-border bg-secondary/40"}`}>{value || "None"}</button>
                   ))}
                 </div>
               </div>
