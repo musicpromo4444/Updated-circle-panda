@@ -10,7 +10,6 @@ import { Input } from "@/components/ui/input";
 import { CreateEventModal } from "@/components/events/CreateEventModal";
 import { useStore, type PandaEvent } from "@/lib/store";
 import { supabase } from "@/integrations/supabase/client";
-import { loadPricingConfig } from "@/components/store/pricingStorage";
 
 export const Route = createFileRoute("/events")({
   head: () => ({
@@ -56,10 +55,8 @@ function EventsPage() {
     void (async () => {
       const [{ data }, config] = await Promise.all([
         (supabase as any).from("event_blast_plans").select("id,name,unique_reach,duration_minutes,price_usd,price_ngn,bc_price").eq("enabled", true).order("sort_order"),
-        loadPricingConfig(),
       ]);
       setPlans((data ?? []) as BlastPlan[]);
-      void config;
     })();
   }, []);
 
@@ -76,8 +73,9 @@ function EventsPage() {
     }
     setProcessing(true);
     try {
-      const config = await loadPricingConfig();
-      const key = config.paystack.publicKey.trim();
+      const { data: paystackConfig, error: paystackConfigError } = await (supabase as any).rpc("get_paystack_public_config");
+      if (paystackConfigError) throw new Error(paystackConfigError.message || "Payment configuration could not be loaded.");
+      const key = String(paystackConfig?.public_key || "").trim();
       if (!key || !window.PaystackPop?.setup) throw new Error("Paystack checkout is not configured yet.");
       const reference = `CP_BLAST_${Date.now()}_${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
       await new Promise<void>((resolve, reject) => {
