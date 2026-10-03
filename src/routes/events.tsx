@@ -186,17 +186,32 @@ function EventsPage() {
                   <p className="font-bold">${Number(plan.price_usd).toFixed(2)}</p>
                 </div>
                 <div className="mt-3 flex flex-wrap gap-2">
-                  {plan.bc_price ? <Button size="sm" disabled={processing || bcProcessing !== null} onClick={() => void (async () => {
-                    if (!current) return;
-                    setBcProcessing(plan.id);
-                    try {
-                      const ok = await (startEventBlast as any)(current.id, plan.id, "bc", targetScope, targetCountry, targetState, targetCity, targetArea);
-                      if (ok) setBlastOpen(false);
-                    } finally {
-                      setBcProcessing(null);
-                    }
-                  })()}>{bcProcessing === plan.id ? "Starting…" : `${Number(plan.bc_price).toLocaleString()} BC`}</Button> : null}
-                  <Button size="sm" variant="outline" disabled={processing} onClick={() => void payCashBlast(plan)}>{processing ? "Processing…" : `Pay $${Number(plan.price_usd).toFixed(2)}`}</Button>
+                  <Button
+                    size="sm"
+                    variant={plan.bc_price ? "default" : "outline"}
+                    disabled={processing || bcProcessing !== null}
+                    onClick={() => {
+                      if (!plan.bc_price) {
+                        window.dispatchEvent(new CustomEvent("circle-panda-insufficient-bc", { detail: { noEquivalent: true, reason: "No equivalent BC price for this Event Blast plan" } }));
+                        return;
+                      }
+                      if (!current) return;
+                      setBcProcessing(plan.id);
+                      void (async () => {
+                        try {
+                          const ok = await startEventBlast(current.id, plan.id, "bc", targetScope, targetCountry, targetState, targetCity, targetArea);
+                          if (ok) setBlastOpen(false);
+                        } finally {
+                          setBcProcessing(null);
+                        }
+                      })();
+                    }}
+                  >
+                    {bcProcessing === plan.id ? "Starting…" : plan.bc_price ? `${Number(plan.bc_price).toLocaleString()} BC` : "BC unavailable"}
+                  </Button>
+                  <Button size="sm" variant="outline" disabled={processing} onClick={() => void payCashBlast(plan)}>
+                    {processing ? "Processing…" : `Pay $${Number(plan.price_usd).toFixed(2)}`}
+                  </Button>
                 </div>
               </div>
             ))}
