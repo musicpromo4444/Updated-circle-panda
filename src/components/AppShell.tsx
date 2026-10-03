@@ -86,7 +86,7 @@ function ActionCelebration() {
     return () => window.removeEventListener("circle-panda-action", handler);
   }, []);
   if (!action) return null;
-  return <div className="pointer-events-none fixed inset-0 z-[100] flex items-center justify-center px-6"><div className="animate-in zoom-in-75 fade-in duration-300 rounded-3xl border border-primary/30 bg-background/90 px-8 py-6 text-center shadow-2xl backdrop-blur-xl"><div className="animate-bounce text-5xl">{action.emoji}</div><p className="mt-2 font-display text-xl font-black">{action.title}</p><div className="mx-auto mt-3 h-1 w-24 overflow-hidden rounded-full bg-primary/15"><div className="h-full w-full origin-left animate-[scale-x_1.4s_ease-out] bg-primary" /></div></div></div>;
+  return <div className="pointer-events-none fixed inset-0 z-[100] flex items-center justify-center px-6"><div className="cp-pop animate-in zoom-in-75 fade-in duration-300 rounded-3xl border border-primary/30 bg-background/90 px-8 py-6 text-center shadow-2xl backdrop-blur-xl"><div className="animate-bounce text-5xl">{action.emoji}</div><p className="mt-2 font-display text-xl font-black">{action.title}</p><div className="mx-auto mt-3 h-1 w-24 overflow-hidden rounded-full bg-primary/15"><div className="h-full w-full origin-left animate-[scale-x_1.4s_ease-out] bg-primary" /></div></div></div>;
 }
 
 export function BottomNav() {
