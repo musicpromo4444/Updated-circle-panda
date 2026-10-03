@@ -122,6 +122,7 @@ function DatingPage() {
 
   useEffect(() => {
     void loadConnections();
+    void searchDatingProfiles({ ageMin:18, ageMax:120, sameCountryOnly:true });
     const timer = window.setInterval(() => setClock(Date.now()), 1000);
     return () => window.clearInterval(timer);
   }, []);
@@ -184,6 +185,13 @@ function DatingPage() {
       title="Dating"
       subtitle="Tap a card for the full profile. Send a request first. Mutual matches open a free 72-hour Dating Chat. Photos stay hidden until both people continue after 72 hours."
     >
+
+
+      <div className="mb-5 flex items-center gap-2">
+        <Button variant="outline" className="flex-1 gap-2 rounded-2xl" onClick={() => setFiltersOpen(true)}><SlidersHorizontal className="size-4" /> Filters {activeFilterCount ? `(${activeFilterCount})` : ""}</Button>
+        {datingProfile ? <span className="rounded-2xl border border-border bg-secondary/50 px-3 py-2 text-xs text-muted-foreground">{sameCountryOnly ? `Showing ${datingProfile.country || "your country"} first` : "Worldwide"}</span> : null}
+      </div>
+
       {/* Primary CTA button immediately below subtitle description and above main content cards */}
       <div className="mb-5">
         <Button
@@ -194,11 +202,6 @@ function DatingPage() {
           <Heart className="size-5 fill-current" />
           Register for Dating
         </Button>
-      </div>
-
-      <div className="mb-5 flex items-center gap-2">
-        <Button variant="outline" className="flex-1 gap-2 rounded-2xl" onClick={() => setFiltersOpen(true)}><SlidersHorizontal className="size-4" /> Filters {activeFilterCount ? `(${activeFilterCount})` : ""}</Button>
-        {datingProfile ? <span className="rounded-2xl border border-border bg-secondary/50 px-3 py-2 text-xs text-muted-foreground">{sameCountryOnly ? `Showing ${datingProfile.country || "your country"} first` : "Worldwide"}</span> : null}
       </div>
 
       {connections.filter((x:any)=>x.status==="matched" && x.reveal_at && new Date(x.reveal_at).getTime()>Date.now()).map((x:any)=>{
