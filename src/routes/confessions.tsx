@@ -44,6 +44,7 @@ export function ConfessionsPage() {
   const [weekly, setWeekly] = useState<{ wcw: WeeklyEntry[]; mcm: WeeklyEntry[] }>({ wcw: [], mcm: [] });
   const [uploadOpen, setUploadOpen] = useState(false);
   const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const [uploadPreviewUrl, setUploadPreviewUrl] = useState<string | null>(null);
   const [uploadCaption, setUploadCaption] = useState("");
   const [uploading, setUploading] = useState(false);
   const [accountGender, setAccountGender] = useState<"male" | "female" | null>(null);
@@ -136,7 +137,16 @@ export function ConfessionsPage() {
       toast.error("Please keep the upload under 6MB.");
       return;
     }
+    if (uploadPreviewUrl) URL.revokeObjectURL(uploadPreviewUrl);
     setUploadFile(file);
+    setUploadPreviewUrl(URL.createObjectURL(file));
+  };
+
+  const clearUpload = () => {
+    if (uploadPreviewUrl) URL.revokeObjectURL(uploadPreviewUrl);
+    setUploadPreviewUrl(null);
+    setUploadFile(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   const uploadCrush = async () => {
@@ -169,10 +179,10 @@ export function ConfessionsPage() {
       if (error) throw error;
 
       toast.success("Your WCW/MCM entry is uploaded.");
-      setUploadFile(null);
+      clearUpload();
       setUploadCaption("");
       setUploadOpen(false);
-      if (fileInputRef.current) fileInputRef.current.value = "";
+      window.dispatchEvent(new Event("circle-panda-crush-refresh"));
       await loadWeekly();
     } catch (e: any) {
       toast.error(e?.message ?? "Upload failed.");
@@ -340,9 +350,25 @@ export function ConfessionsPage() {
           </p>
 
           {mcmCount + wcwCount > 0 ? (
-            <p className="mt-1 text-center text-[9px] text-muted-foreground">
-              {mcmCount} MCM entries · {wcwCount} WCW entries
-            </p>
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              {[["mcm", weekly.mcm, "MCM", "💙"], ["wcw", weekly.wcw, "WCW", "❤️"]].map(([key, entries, label, icon]) => (
+                <button key={String(key)} type="button" onClick={() => window.location.assign("/crush#" + key)} className="overflow-hidden rounded-2xl border border-border/60 bg-background text-left">
+                  <div className="relative aspect-[4/3] w-full bg-secondary/40">
+                    {Array.isArray(entries) && entries[0]?.media_url ? (
+                      entries[0].media_type === "video" ? (
+                        <video src={entries[0].media_url} muted playsInline preload="metadata" className="size-full object-cover" />
+                      ) : (
+                        <img src={entries[0].media_url} alt={label + " submission"} className="size-full object-cover" loading="lazy" />
+                      )
+                    ) : <div className="grid size-full place-items-center text-2xl">{icon}</div>}
+                    <span className="absolute left-2 top-2 rounded-full bg-black/65 px-2 py-1 text-[10px] font-black text-white">{label}</span>
+                  </div>
+                  <div className="px-2.5 py-2 text-[10px] font-semibold text-muted-foreground">
+                    {Array.isArray(entries) ? entries.length : 0} {label} {Array.isArray(entries) && entries.length === 1 ? "entry" : "entries"}
+                  </div>
+                </button>
+              ))}
+            </div>
           ) : null}
         </section>
 
@@ -481,8 +507,7 @@ export function ConfessionsPage() {
       <Dialog open={uploadOpen} onOpenChange={(v) => {
         if (!v && !uploading) {
           setUploadOpen(false);
-          setUploadFile(null);
-          if (fileInputRef.current) fileInputRef.current.value = "";
+          clearUpload();
         }
       }}>
         <DialogContent className="max-w-sm rounded-3xl">
@@ -498,18 +523,30 @@ export function ConfessionsPage() {
             disabled={uploading}
           />
 
-          <button
-            type="button"
-            onClick={chooseFile}
-            disabled={uploading}
-            className="flex min-h-28 w-full flex-col items-center justify-center rounded-2xl border border-dashed border-primary/60 bg-secondary/30 px-4 text-center transition-colors hover:bg-secondary/50 active:scale-[.99]"
-          >
-            <Upload className="size-7 text-primary" />
-            <span className="mt-2 text-sm font-bold">{uploadFile ? "Change photo or video" : "Choose photo or video"}</span>
-            <span className="mt-1 max-w-full truncate text-xs text-muted-foreground">
-              {uploadFile ? uploadFile.name : "Tap here to open your phone gallery/files"}
-            </span>
-          </button>
+          {uploadPreviewUrl ? (
+            <div className="relative overflow-hidden rounded-2xl border border-border/70 bg-black">
+              {uploadFile?.type.startsWith("video/") ? (
+                <video src={uploadPreviewUrl} controls playsInline className="max-h-72 w-full object-contain" />
+              ) : (
+                <img src={uploadPreviewUrl} alt="WCW/MCM upload preview" className="max-h-72 w-full object-contain" />
+              )}
+              <button type="button" onClick={clearUpload} disabled={uploading} className="absolute right-2 top-2 rounded-full bg-black/70 px-3 py-1.5 text-xs font-bold text-white">
+                Change
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={chooseFile}
+              disabled={uploading}
+              className="flex min-h-28 w-full flex-col items-center justify-center rounded-2xl border border-dashed border-primary/60 bg-secondary/30 px-4 text-center transition-colors hover:bg-secondary/50 active:scale-[.99]"
+            >
+              <Upload className="size-7 text-primary" />
+              <span className="mt-2 text-sm font-bold">Choose photo or video</span>
+              <span className="mt-1 max-w-full truncate text-xs text-muted-foreground">Tap here to open your phone gallery/files</span>
+            </button>
+          )}
+          {uploadFile ? <p className="mt-2 truncate text-center text-[11px] text-muted-foreground">{uploadFile.name}</p> : null}
 
           <Textarea
             value={uploadCaption}
