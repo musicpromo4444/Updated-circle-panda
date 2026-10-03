@@ -231,7 +231,8 @@ function ProfilePage() {
     : 0;
 
   return (
-    <AppShell title="Your Profile" subtitle="Anonymous to everyone else. Tracked only for you.">\n      <div className="mb-3 flex justify-end"><Button type="button" variant="outline" className="gap-2 rounded-xl" onClick={() => setSettingsOpen(true)}><Settings className="size-4" /> Profile Settings</Button></div>
+    <AppShell title="Your Profile" subtitle="Anonymous to everyone else. Tracked only for you.">
+      <div className="mb-3 flex justify-end"><Button type="button" variant="outline" className="gap-2 rounded-xl" onClick={() => setSettingsOpen(true)}><Settings className="size-4" /> Profile Settings</Button></div>
       <section className="panda-panel rounded-2xl p-5">
         <div className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-3">
           <div className="min-w-0">
