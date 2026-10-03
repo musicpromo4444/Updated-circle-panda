@@ -29,6 +29,7 @@ function SecretProfilePage() {
   const [interactions, setInteractions] = useState<Record<string, Interaction>>({});
   const [commentPost, setCommentPost] = useState<Secret | null>(null);
   const [commentText, setCommentText] = useState("");
+  const [expandedCommentsId, setExpandedCommentsId] = useState<string | null>(null);
   const [composerOpen, setComposerOpen] = useState(false);
   const [commentsBySecret, setCommentsBySecret] = useState<Record<string, SecretComment[]>>({});
   const composerRef = useRef<HTMLTextAreaElement | null>(null);
@@ -87,10 +88,17 @@ function SecretProfilePage() {
   const openComments = async (secret:Secret) => {
     const { data: authData } = await supabase.auth.getUser();
     if (!authData.user || authData.user.is_anonymous) { requestLogin("comment on a secret"); return; }
-    setCommentPost(secret);
     setCommentText("");
     const { data } = await (supabase as any).rpc("get_profile_secret_comments", { p_secret_id:secret.id });
-    setCommentsBySecret((current) => ({ ...current, [secret.id]: data ?? [] }));
+    const comments = data ?? [];
+    setCommentsBySecret((current) => ({ ...current, [secret.id]: comments }));
+    if (comments.length) {
+      setExpandedCommentsId(secret.id);
+      setCommentPost(null);
+    } else {
+      setExpandedCommentsId(null);
+      setCommentPost(secret);
+    }
   };
 
   const submitComment = async () => {
@@ -101,6 +109,7 @@ function SecretProfilePage() {
     setCommentsBySecret((current) => ({ ...current, [commentPost.id]: data ?? [] }));
     setInteractions((current) => ({ ...current, [commentPost.id]: { ...(current[commentPost.id] ?? {reaction:null,reaction_count:0,heart_count:0,laugh_count:0,wow_count:0,sad_count:0,angry_count:0,panda_count:0}), comment_count:data?.length ?? 0 } }));
     setCommentText("");
+    setExpandedCommentsId(commentPost.id);
     setCommentPost(null);
     toast.success("Comment posted");
   };
@@ -164,9 +173,10 @@ function SecretProfilePage() {
                   <p className="mt-4 whitespace-pre-wrap break-words text-[15px] leading-7">{secret.content}</p>
                   <div className="relative mt-4 w-full border-t border-border/50 pt-3">
                     <div className="grid w-full grid-cols-3 items-center gap-1">
-                    <Button variant={selected ? "default" : "ghost"} size="sm" className="w-full min-w-0 rounded-full px-1 text-xs" aria-label="React to secret" onClick={() => setReactionMenuId(reactionMenuId===secret.id?null:secret.id)}>
-                      {selected ? <><span className="text-base leading-none">{selected.emoji}</span><span className="ml-1 text-[10px]">{ix.reaction_count}</span></> : <><SmilePlus className="mr-1 size-4" /><span className="text-[10px]">{ix.reaction_count}</span></>}
-                    </Button>
+                    <button type="button" className="inline-flex min-w-0 items-center gap-1 px-1 py-1 text-xs" aria-label="React to secret" onClick={() => setReactionMenuId(reactionMenuId===secret.id?null:secret.id)}>
+                      {selected ? <span className="text-base leading-none">{selected.emoji}</span> : <SmilePlus className="size-4" />}
+                      <span className="text-[10px]">{ix.reaction_count}</span>
+                    </button>
                     <Button variant="ghost" size="sm" className="w-full min-w-0 rounded-full px-1 text-xs" onClick={() => void openComments(secret)}><MessageCircle className="mr-1 size-4 shrink-0" /> Comment <span className="ml-1 text-[10px]">{ix.comment_count}</span></Button>
                     <Button variant="ghost" size="sm" className="w-full min-w-0 rounded-full px-1 text-xs" onClick={() => void shareSecret(secret)}><Share2 className="mr-1 size-4 shrink-0" /> Share</Button>
                     </div>
@@ -174,8 +184,13 @@ function SecretProfilePage() {
                       {reactionOptions.map((r)=><button key={r.key} type="button" title={r.label} onClick={()=>void react(secret.id,r.key)} className="grid size-10 place-items-center rounded-full text-xl hover:bg-secondary">{r.emoji}</button>)}
                     </div> : null}
                   </div>
-                  {commentsBySecret[secret.id]?.length ? <div className="mt-3 space-y-2 rounded-2xl bg-secondary/30 p-3">
-                    {commentsBySecret[secret.id].slice(-3).map((comment)=><div key={comment.id} className="text-sm"><span className="font-semibold">Anonymous Panda</span><span className="text-muted-foreground"> · {comment.body}</span></div>)}
+                  {expandedCommentsId === secret.id && commentsBySecret[secret.id]?.length ? <div className="mt-3 space-y-3 rounded-2xl bg-secondary/30 p-3">
+                    <div className="space-y-2">
+                      {commentsBySecret[secret.id].map((comment)=><div key={comment.id} className="text-sm leading-6"><span className="font-semibold">Anonymous Panda</span><span className="text-muted-foreground"> · {comment.body}</span></div>)}
+                    </div>
+                    <button type="button" className="w-full rounded-xl border border-border/60 bg-card px-3 py-2 text-left text-xs text-muted-foreground" onClick={() => setCommentPost(secret)}>
+                      Write a comment…
+                    </button>
                   </div> : null}
                 </article>
                 {showAd ? <StandardBannerAd placement={adSlotForCount(index + 1)} variant="card" /> : null}
