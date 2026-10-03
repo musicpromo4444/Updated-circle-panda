@@ -146,7 +146,9 @@ function CrushPage() {
   useEffect(() => {
     void refreshLiveNominees();
     const section = window.location.hash.replace("#", "").toLowerCase();
-    if (section === "mcm" || section === "wcw") setKind(section as CrushKind);
+    const queryKind = new URLSearchParams(window.location.search).get("kind")?.toLowerCase();
+    const requestedKind = queryKind === "mcm" || queryKind === "wcw" ? queryKind : section;
+    if (requestedKind === "mcm" || requestedKind === "wcw") setKind(requestedKind as CrushKind);
     setIndex(0);
   }, [kind]);
 
@@ -329,7 +331,7 @@ function CrushPage() {
                     <button
                       key={k}
                       type="button"
-                      onClick={() => { setKind(k); window.history.replaceState(null, "", `#${k}`); }}
+                      onClick={() => { setKind(k); window.history.replaceState(null, "", `/crush?kind=${k}`); }}
                       className={cn(
                         "rounded-full px-4 py-1.5 text-[10px] font-black tracking-wider",
                         kind === k ? "bg-white text-black" : "text-white/70",
