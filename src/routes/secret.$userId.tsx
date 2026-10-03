@@ -141,14 +141,14 @@ function SecretProfilePage() {
           <VipIdentity isVip={Boolean(profile.is_vip)} seed={profile.id} avatar={profile.avatar_url || "🐼"} />
           <h1 className="mt-2 font-display text-xl font-bold">{profile.display_name}</h1>
           {profile.country ? <p className="mt-0.5 text-xs font-semibold text-muted-foreground">{profile.country}</p> : null}
-          <p className="mx-auto mt-2 max-w-md text-xs leading-5 text-muted-foreground">Post on this secret page and they will not know it was you. Feel free.</p>
+          <p className="mx-auto mt-2 max-w-md text-xs font-bold leading-5 text-red-500 dark:text-red-400">Post on this secret page and they will not know it was you. Feel free.</p>
           <Button className="mt-3 h-9 rounded-xl px-4 text-xs font-black" onClick={focusComposer}><Send className="mr-1.5 size-3.5" /> Post a Secret</Button>
         </section>
 
         <section className="panda-panel rounded-3xl p-5">
           <div className="flex items-start gap-3">
             <span className="grid size-10 place-items-center rounded-xl bg-primary/10"><Lock className="size-5 text-primary" /></span>
-            <div><h2 className="font-display text-lg font-bold">Secrets about {profile.display_name}</h2><p className="mt-1 text-xs text-muted-foreground">A full feed of anonymous secrets, with reactions, comments, and sharing.</p></div>
+            <div><h2 className="font-display text-lg font-bold">Secrets about {profile.display_name}</h2><p className="mt-1 text-xs font-bold text-red-500 dark:text-red-400">A full feed of anonymous secrets, with reactions, comments, and sharing.</p></div>
           </div>
 
           <div className="mt-4 space-y-3">
@@ -166,7 +166,7 @@ function SecretProfilePage() {
                   <div className="relative mt-4 w-full border-t border-border/50 pt-3">
                     <div className="flex w-full flex-nowrap items-center gap-1 sm:gap-2">
                     <Button variant={selected ? "default" : "outline"} size="sm" className="h-8 min-w-8 rounded-full px-2" aria-label="React to secret" onClick={() => setReactionMenuId(reactionMenuId===secret.id?null:secret.id)}>
-                      <SmilePlus className="size-4" /> {selected ? <span className="text-base leading-none">{selected.emoji}</span> : null} <span className="text-[10px]">{ix.reaction_count}</span>
+                      {selected ? <span className="text-base leading-none">{selected.emoji}</span> : <SmilePlus className="size-4" />} <span className="text-[10px]">{ix.reaction_count}</span>
                     </Button>
                     <Button variant="ghost" size="sm" className="shrink-0 whitespace-nowrap rounded-full px-2 text-xs" onClick={() => void openComments(secret)}><MessageCircle className="mr-1 size-4" /> Comment <span className="ml-1 text-[10px]">{ix.comment_count}</span></Button>
                     <Button variant="ghost" size="sm" className="shrink-0 whitespace-nowrap rounded-full px-2 text-xs" onClick={() => void shareSecret(secret)}><Share2 className="mr-1 size-4" /> Share</Button>
