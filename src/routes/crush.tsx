@@ -28,6 +28,35 @@ export const Route = createFileRoute("/crush")({
 
 const REACTIONS = ["🐼", "❤️", "👍", "⚡", "🌧️"];
 
+const CRUSH_BUCKET = "circle-panda-crush";
+
+function crushStoragePath(value: string): string | null {
+  if (!value) return null;
+  if (!/^https?:\/\//i.test(value)) return value.replace(/^\/+/, "");
+  const marker = `/storage/v1/object/public/${CRUSH_BUCKET}/`;
+  const signedMarker = `/storage/v1/object/sign/${CRUSH_BUCKET}/`;
+  const publicIndex = value.indexOf(marker);
+  if (publicIndex >= 0) return decodeURIComponent(value.slice(publicIndex + marker.length).split("?")[0]);
+  const signedIndex = value.indexOf(signedMarker);
+  if (signedIndex >= 0) return decodeURIComponent(value.slice(signedIndex + signedMarker.length).split("?")[0]);
+  return null;
+}
+
+async function resolveCrushMediaUrl(value: string): Promise<string> {
+  const path = crushStoragePath(value);
+  if (!path) return value;
+  const publicUrl = supabase.storage.from(CRUSH_BUCKET).getPublicUrl(path).data.publicUrl;
+  try {
+    const response = await fetch(publicUrl, { method: "HEAD" });
+    if (response.ok) return publicUrl;
+  } catch {
+    // Fall through to a signed URL for projects/CDN paths that require auth.
+  }
+  const { data, error } = await supabase.storage.from(CRUSH_BUCKET).createSignedUrl(path, 60 * 60);
+  if (!error && data?.signedUrl) return data.signedUrl;
+  return publicUrl;
+}
+
 function CrushPage() {
   const { nominees, voteFor, freeVotesLeft, spotlights } = useStore();
   const [kind, setKind] = useState<CrushKind>("wcw");
@@ -86,7 +115,7 @@ function CrushPage() {
     if (!rows.length && error) {
       toast.error(error.message ?? "Could not load WCW/MCM pictures");
     }
-    setLiveNominees(rows
+    const mediaRows = rows
       .filter((n: any) => typeof n.media_url === "string" && n.media_url.trim().length > 0)
       .map((n: any) => ({
         id: n.nominee_id ?? n.id,
@@ -99,7 +128,11 @@ function CrushPage() {
         mediaUrl: n.media_url,
         mediaType: n.media_type === "video" ? "video" : "image",
         mine: Boolean(n.mine),
-      })));
+      }));
+    const resolvedRows = await Promise.all(
+      mediaRows.map(async (row: any) => ({ ...row, mediaUrl: await resolveCrushMediaUrl(row.mediaUrl) })),
+    );
+    setLiveNominees(resolvedRows);
     setLiveNomineesLoaded(true);
   };
 
@@ -273,6 +306,14 @@ function CrushPage() {
                 src={card.mediaUrl}
                 alt="Circle Panda Crush submission"
                 className="absolute inset-0 size-full object-cover"
+                onError={async (event) => {
+                  const fallback = await resolveCrushMediaUrl(card.mediaUrl);
+                  if (fallback && fallback !== card.mediaUrl) {
+                    event.currentTarget.src = fallback;
+                  } else {
+                    toast.error("This picture could not be loaded from Circle Panda storage.");
+                  }
+                }}
               />
             )}
 
