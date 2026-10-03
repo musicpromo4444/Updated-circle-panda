@@ -131,7 +131,7 @@ function SecretProfilePage() {
 
   return (
     <main className="min-h-screen bg-background px-4 py-5">
-      <div className="mx-auto max-w-xl space-y-4">
+      <div className="mx-auto max-w-2xl space-y-4">
         <div className="flex items-center justify-between">
           <Link to="/" className="inline-flex items-center gap-2 text-sm font-semibold text-muted-foreground"><ArrowLeft className="size-4" /> Circle Panda</Link>
           <Button variant="outline" size="sm" onClick={() => void navigator.share?.({title:"Secret Panda Profile",text:"Leave a secret about this Panda.",url:window.location.href})}><Share2 className="mr-1 size-4" /> Share</Button>
