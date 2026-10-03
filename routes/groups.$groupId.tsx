@@ -111,7 +111,7 @@ function GroupRoom() {
     <main className="min-h-0 flex-1 overflow-y-auto bg-secondary/10 px-3 py-4 sm:px-5">
       <div className="mx-auto max-w-4xl space-y-3">
         {!live?<div className="py-12 text-center text-sm text-muted-foreground"><Lock className="mx-auto mb-2 size-6"/>{expired?"This group is locked after its 24-hour chat window.":"This group is waiting to be activated."}</div>:null}
-        {live&&mediaMessages.map(m=><div key={m.id} className={m.mine?"text-right":""}><p className="px-2 text-[11px] text-muted-foreground">{m.author}</p><GroupMediaMessage message={m}/></div>)}
+        {live&&mediaMessages.map(m=><div key={m.id} className={m.mine?"text-right":""}><p className="px-2 text-[11px] text-muted-foreground">{m.author}</p><GroupMediaMessage message={m} viewOnce={m.messageType==="image"||m.messageType==="video"}/></div>)}
         <div ref={bottom}/>
       </div>
     </main>
