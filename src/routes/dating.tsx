@@ -77,7 +77,7 @@ export const Route = createFileRoute("/dating")({
 });
 
 function DatingPage() {
-  const { requestDatingMatch, startDatingChat, searchDatingProfiles, datingProfile, datingMatches } = useStore();
+  const { requestDatingMatch, startDatingChat, searchDatingProfiles, refreshDatingData, datingProfile, datingMatches } = useStore();
   const navigate = useNavigate();
   const [openMatch, setOpenMatch] = useState<Match | null>(null);
   const [registerOpen, setRegisterOpen] = useState(false);
@@ -122,10 +122,10 @@ function DatingPage() {
 
   useEffect(() => {
     void loadConnections();
-    void searchDatingProfiles({ ageMin:18, ageMax:120, sameCountryOnly:true });
+    void refreshDatingData();
     const timer = window.setInterval(() => setClock(Date.now()), 1000);
     return () => window.clearInterval(timer);
-  }, []);
+  }, [refreshDatingData]);
 
   // Pre-cache video ad units
 
