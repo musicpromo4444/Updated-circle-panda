@@ -78,7 +78,7 @@ export type Thread = {
 };
 export type PandaEvent = {
   id: string; title: string; tag: string; date: string; time: string; place: string;
-  cost: number; currency?: string; blurb: string; details: string; rsvp: boolean;
+  cost: number; currency?: string; blurb: string; details: string; rsvp: boolean; attendeeCount?: number;
   coverUrl?: string; venueName?: string; addressLine?: string; country?: string;
   stateProvince?: string; city?: string; area?: string; latitude?: number | null; longitude?: number | null;
   reachScope?: "worldwide" | "country" | "state" | "city" | "area"; reachCountry?: string; reachState?: string; reachCity?: string; reachArea?: string; durationMinutes?: number;
@@ -514,7 +514,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
    */
   const refreshGroupsAndEvents = useCallback(async () => {
     if (!dbUserId) return;
-    const [groupsRes, groupSettingsRes, groupMessagesRes, eventsRes, attendeesRes] = await Promise.all([
+    const [groupsRes, groupSettingsRes, groupMessagesRes, eventsRes, attendeesRes, attendeeCountsRes] = await Promise.all([
       (supabase as any).rpc("get_group_summaries", { p_country:"", p_state_province:"", p_city:"", p_area:"" }),
       (supabase as any).from("group_settings").select("group_id,edit_group_info,send_messages,approve_new_members"),
       (supabase as any).from("cp_group_messages").select("id,group_id,body,created_at,author_id").order("created_at", {ascending:true}).limit(1000),
@@ -563,6 +563,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     }) as GroupChat[];
 
     const attendees = attendeesRes.data ?? [];
+    const attendeeCountsRes = eventsRes.data?.length ? await (supabase as any).rpc("get_event_attendee_counts", { p_event_ids: eventsRes.data.map((e:any) => e.id) }) : { data: [] };
+    const attendeeCounts = new Map((attendeeCountsRes.data ?? []).map((x:any) => [x.event_id, Number(x.attendee_count ?? 0)]));
     const events = (eventsRes.data ?? []).map((e:any) => {
       const start = e.starts_at ? new Date(e.starts_at) : null;
       const end = e.ends_at ? new Date(e.ends_at) : null;
@@ -573,7 +575,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         time:start ? start.toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"}) + (end ? " · " + duration + " min" : "") : "",
         place:e.location ?? "", cost:Number(e.entry_fee_amount ?? 0), currency:e.entry_fee_currency ?? "NGN",
         blurb:e.description ?? "", details:e.description ?? "",
-        rsvp:attendees.some((a:any) => a.event_id === e.id && a.user_id === dbUserId),
+        rsvp:attendees.some((a:any) => a.event_id === e.id && a.user_id === dbUserId), attendeeCount:Number(attendeeCounts.get(e.id) ?? 0),
         reachScope:e.reach_scope ?? "worldwide", reachCountry:e.reach_country ?? "", reachState:e.reach_state ?? "",
         reachCity:e.reach_city ?? "", reachArea:e.reach_area ?? "", durationMinutes:Number(e.duration_minutes ?? 120),
         coverUrl:e.cover_url ?? "", venueName:e.venue_name ?? "", addressLine:e.address_line ?? "",
@@ -676,7 +678,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         return {id:g.id,name:g.name,topic:g.topic,ownerId:g.owner_id,memberRole:g.member_role,editGroupInfo:settings?.edit_group_info ?? "admins",sendMessages:settings?.send_messages ?? true,approveNewMembers:settings?.approve_new_members ?? false,joinPending:Boolean(g.join_pending),members:Number(g.member_count ?? 0),openedAt:g.activated_at?new Date(g.activated_at).getTime():null,expiresAt:g.expires_at??null,country:g.country??"",stateProvince:g.state_province??"",city:g.city??"",area:g.area??"",messages:groupMessages.filter((m:any)=>m.group_id===g.id).map((m:any)=>({id:m.id,author:m.author_id===uid?"You (anonymous)":"Anonymous Panda",body:m.body,at:new Date(m.created_at).getTime(),mine:m.author_id===uid}))};
       });
       const attendees = attendeesRes.data ?? [];
-      const events = (eventsRes.data ?? []).map((e:any)=>({id:e.id,title:e.title,tag:e.category ?? "Meetup",date:e.starts_at?new Date(e.starts_at).toLocaleDateString():"",time:e.starts_at?`${new Date(e.starts_at).toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"})}${e.ends_at ? ` · ${Math.max(1,Math.round((new Date(e.ends_at).getTime()-new Date(e.starts_at).getTime())/60000))} min` : ""}`:"",place:e.location??"",cost:Number(e.entry_fee_amount ?? 0),currency:e.entry_fee_currency ?? "NGN",blurb:e.description,details:e.description,rsvp:attendees.some((a:any)=>a.event_id===e.id&&a.user_id===uid),reachScope:e.reach_scope ?? "worldwide",reachCountry:e.reach_country ?? "",reachState:e.reach_state ?? "",reachCity:e.reach_city ?? "",reachArea:e.reach_area ?? "",durationMinutes:Number(e.duration_minutes ?? 120),coverUrl:e.cover_url ?? "",venueName:e.venue_name ?? "",addressLine:e.address_line ?? "",country:e.country ?? "",stateProvince:e.state_province ?? "",city:e.city ?? "",area:e.area ?? "",latitude:e.latitude ?? null,longitude:e.longitude ?? null}));
+      const attendeeCountsRes = eventsRes.data?.length ? await (supabase as any).rpc("get_event_attendee_counts", { p_event_ids: eventsRes.data.map((e:any) => e.id) }) : { data: [] };
+      const attendeeCounts = new Map((attendeeCountsRes.data ?? []).map((x:any) => [x.event_id, Number(x.attendee_count ?? 0)]));
+      const events = (eventsRes.data ?? []).map((e:any)=>({id:e.id,title:e.title,tag:e.category ?? "Meetup",date:e.starts_at?new Date(e.starts_at).toLocaleDateString():"",time:e.starts_at?`${new Date(e.starts_at).toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"})}${e.ends_at ? ` · ${Math.max(1,Math.round((new Date(e.ends_at).getTime()-new Date(e.starts_at).getTime())/60000))} min` : ""}`:"",place:e.location??"",cost:Number(e.entry_fee_amount ?? 0),currency:e.entry_fee_currency ?? "NGN",blurb:e.description,details:e.description,rsvp:attendees.some((a:any)=>a.event_id===e.id&&a.user_id===uid),attendeeCount:Number(attendeeCounts.get(e.id) ?? 0),reachScope:e.reach_scope ?? "worldwide",reachCountry:e.reach_country ?? "",reachState:e.reach_state ?? "",reachCity:e.reach_city ?? "",reachArea:e.reach_area ?? "",durationMinutes:Number(e.duration_minutes ?? 120),coverUrl:e.cover_url ?? "",venueName:e.venue_name ?? "",addressLine:e.address_line ?? "",country:e.country ?? "",stateProvince:e.state_province ?? "",city:e.city ?? "",area:e.area ?? "",latitude:e.latitude ?? null,longitude:e.longitude ?? null}));
       const dating = datingOwnRes.data;
       const crushCounts = new Map<string, number>((crushResultsRes.data ?? []).map((r:any)=>[r.nominee_id, Number(r.vote_count ?? r.votes ?? 0)]));
       const nominees = (crushResultsRes.data ?? []).map((n:any)=>({id:n.nominee_id,name:n.display_name,kind:n.kind,emoji:n.emoji,blurb:n.blurb,votes:Number(n.vote_count ?? 0),avatarUrl:n.media_url,mediaUrl:n.media_url,mediaType:n.media_type,mine:Boolean(n.mine)}));
@@ -1035,10 +1039,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       const joined = Boolean(data?.joined);
       const charged = Number(data?.charged_bc ?? 0);
       const refunded = Number(data?.refunded_bc ?? 0);
+      const attendeeCount = Number(data?.attendee_count ?? 0);
       setState((s) => ({
         ...s,
         coins: Math.max(0, s.coins - charged + refunded),
-        events: s.events.map((e) => e.id === id ? { ...e, rsvp: joined } : e),
+        events: s.events.map((e) => e.id === id ? { ...e, rsvp: joined, attendeeCount } : e),
       }));
       if (joined) {
         toast.success("You're on the list 🐼", { description: charged > 0 ? `−${charged} BC entry fee` : "Free RSVP" });
