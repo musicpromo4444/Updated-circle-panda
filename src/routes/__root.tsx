@@ -9,13 +9,11 @@ import {
   Scripts,
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
-import { toast } from "sonner";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { StoreProvider } from "@/lib/store";
 import { ThemeProvider, useTheme } from "@/lib/theme";
-import { Toaster } from "@/components/ui/sonner";
 import { HotSeatFloatingPresence } from "@/components/hotseat/HotSeatFloatingPresence";
 import { AppDownloadPromotion } from "@/components/AppDownloadPromotion";
 import { UniversalWinnerFlow } from "@/components/UniversalWinnerFlow";
@@ -156,30 +154,6 @@ function RootShell({ children }: { children: ReactNode }) {
   );
 }
 
-function ThemedToaster() {
-  const { theme } = useTheme();
-  return <Toaster position="bottom-center" richColors closeButton theme={theme} />;
-}
-
-
-function CircleWelcome() {
-  useEffect(() => {
-    try {
-      if (localStorage.getItem("circle_panda_welcomed") === "1") return;
-      const timer = window.setTimeout(() => {
-        localStorage.setItem("circle_panda_welcomed", "1");
-        toast.success("Welcome to the Circle 🐼", {
-          description: "Come in, have a seat, and find your people.",
-        });
-      }, 700);
-      return () => window.clearTimeout(timer);
-    } catch {
-      return;
-    }
-  }, []);
-  return null;
-}
-
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const location = useLocation();
@@ -189,14 +163,12 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <StoreProvider>
-          <CircleWelcome />
           {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
           <Outlet />
           <UniversalWinnerFlow />
           <LoginRequiredDialog />
           <AppDownloadPromotion />
           {!hideHotSeatPresence ? <HotSeatFloatingPresence /> : null}
-          <ThemedToaster />
         </StoreProvider>
       </ThemeProvider>
     </QueryClientProvider>
