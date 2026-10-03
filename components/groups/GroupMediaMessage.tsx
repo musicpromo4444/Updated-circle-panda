@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Image as ImageIcon, Play, Volume2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 export type GroupMediaItem = {
   id: string;
@@ -23,7 +25,7 @@ export function GroupMediaMessage({ message }: { message: GroupMediaItem }) {
     <>
       <button
         type="button"
-        onClick={() => message.mediaUrl && setViewerOpen(true)}
+        onClick={() => void openMedia()}
         className={`mt-1 block max-w-[88%] overflow-hidden rounded-2xl border text-left ${message.mine ? "border-primary/40 bg-primary/10" : "border-border bg-card"}`}
       >
         {message.messageType === "image" && message.mediaUrl ? (
