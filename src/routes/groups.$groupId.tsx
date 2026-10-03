@@ -78,6 +78,7 @@ function GroupRoom() {
     return () => { active = false; };
   }, [groupId, groups]);
   const expired = !!group?.expiresAt && new Date(group.expiresAt).getTime() <= Date.now();
+  const live = !!group && group.openedAt !== null;
 
   useEffect(() => {
     bottom.current?.scrollIntoView({ behavior: "smooth" });
@@ -89,7 +90,7 @@ function GroupRoom() {
     const load = async () => {
       const [{ data: rows, error }, { data: reactions }] = await Promise.all([
         (supabase as any).from("cp_group_messages").select("id,group_id,body,created_at,user_id,message_type,reply_to_id").eq("group_id", groupId).order("created_at", { ascending: true }).limit(1000),
-        (supabase as any).from("cp_group_message_reactions").select("message_id,user_id,reaction").in("message_id", (group?.messages ?? []).map((m:any)=>m.id)),
+        (supabase as any).from("cp_group_message_reactions").select("message_id,user_id,reaction"),
       ]);
       if (error) { toast.error(error.message ?? "Could not load group messages"); return; }
       const uid = (await supabase.auth.getUser()).data.user?.id;
@@ -106,8 +107,6 @@ function GroupRoom() {
       .subscribe();
     return()=>{cancelled=true;void supabase.removeChannel(channel);};
   },[groupId,live]);
-
-  const live = !!group && group.openedAt !== null;
 
   useEffect(() => {
     if (!group) return;
@@ -150,8 +149,12 @@ function GroupRoom() {
         </div>
       </header>
 
-      {group && group.memberRole ? (
-        <div className="border-b border-border/60 bg-background/80 px-3 py-2">\n          <div className="mx-auto mb-2 max-w-3xl rounded-xl border border-primary/20 bg-primary/5 px-3 py-2 text-center">\n            <p className="text-sm font-semibold">Welcome to the circle 🐼</p>\n            <p className="mt-0.5 text-[11px] text-muted-foreground">You’re in. Have a seat and join the conversation.</p>\n          </div>
+{group && group.memberRole ? (
+        <div className="border-b border-border/60 bg-background/80 px-3 py-2">
+          <div className="mx-auto mb-2 max-w-3xl rounded-xl border border-primary/20 bg-primary/5 px-3 py-2 text-center">
+            <p className="text-sm font-semibold">Welcome to the group 🐼</p>
+            <p className="mt-0.5 text-[11px] text-muted-foreground">Feel free to chat and enjoy the conversation.</p>
+          </div>
           <div className="mx-auto flex max-w-3xl items-center gap-2">
             <span className="text-[11px] text-muted-foreground">
               {group.memberRole === "owner" ? "Group owner" : group.memberRole === "admin" ? "Group admin" : "Member"}
