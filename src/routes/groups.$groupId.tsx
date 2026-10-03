@@ -1,11 +1,9 @@
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { ChevronLeft, Flame, Send, Users, Settings, Pencil, LogOut, Lock } from "lucide-react";
-import { BottomNav } from "@/components/AppShell";
+import { ChevronLeft, Send, Users, Settings, Pencil, LogOut, Lock, Reply, Smile } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useStore, type GroupChat } from "@/lib/store";
-import { HotSeatBanner } from "@/components/HotSeatBanner";
 import { AD_COOLDOWN_MS, RewardedAdModal } from "@/components/RewardedAdModal";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -33,9 +31,6 @@ function GroupRoom() {
   const {
     groups,
     sendGroupMessage,
-    hotSeatFor,
-    startHotSeat,
-    stopHotSeat,
     lastAdShownAt,
     leaveGroup,
     updateGroupInfo,
@@ -45,6 +40,9 @@ function GroupRoom() {
   const [draft, setDraft] = useState("");
   const bottom = useRef<HTMLDivElement>(null);
   const [showActivation, setShowActivation] = useState(false);
+  const [chatMessages, setChatMessages] = useState<any[]>([]);
+  const [replyTo, setReplyTo] = useState<any | null>(null);
+  const [reactionOpen, setReactionOpen] = useState<string | null>(null);
   const activationShown = useRef(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [editName, setEditName] = useState("");
@@ -83,7 +81,31 @@ function GroupRoom() {
 
   useEffect(() => {
     bottom.current?.scrollIntoView({ behavior: "smooth" });
-  }, [group?.messages.length]);
+  }, [chatMessages.length]);
+
+  useEffect(() => {
+    if (!live) return;
+    let cancelled = false;
+    const load = async () => {
+      const [{ data: rows, error }, { data: reactions }] = await Promise.all([
+        (supabase as any).from("cp_group_messages").select("id,group_id,body,created_at,user_id,message_type,reply_to_id").eq("group_id", groupId).order("created_at", { ascending: true }).limit(1000),
+        (supabase as any).from("cp_group_message_reactions").select("message_id,user_id,reaction").in("message_id", (group?.messages ?? []).map((m:any)=>m.id)),
+      ]);
+      if (error) { toast.error(error.message ?? "Could not load group messages"); return; }
+      const uid = (await supabase.auth.getUser()).data.user?.id;
+      const reactionMap = new Map<string, any[]>();
+      (reactions ?? []).forEach((r:any) => reactionMap.set(r.message_id, [...(reactionMap.get(r.message_id) ?? []), r]));
+      if (!cancelled) setChatMessages((rows ?? []).map((m:any) => ({ ...m, author:m.user_id===uid?"You (anonymous)":"Anonymous Panda", mine:m.user_id===uid, reactions:reactionMap.get(m.id) ?? [] })));
+    };
+    void load();
+    const channel=supabase.channel(`group:${groupId}:whatsapp`)
+      .on("postgres_changes",{event:"INSERT",schema:"public",table:"cp_group_messages",filter:`group_id=eq.${groupId}`},(payload:any)=>{
+        void (async()=>{ const uid=(await supabase.auth.getUser()).data.user?.id; const m=payload.new; setChatMessages(x=>x.some(v=>v.id===m.id)?x:[...x,{...m,author:m.user_id===uid?"You (anonymous)":"Anonymous Panda",mine:m.user_id===uid,reactions:[]}]); })();
+      })
+      .on("postgres_changes",{event:"*",schema:"public",table:"cp_group_message_reactions"},()=>void load())
+      .subscribe();
+    return()=>{cancelled=true;void supabase.removeChannel(channel);};
+  },[groupId,live]);
 
   const live = !!group && group.openedAt !== null;
 
@@ -105,7 +127,7 @@ function GroupRoom() {
     if (!live || activationShown.current) return;
     activationShown.current = true;
     setShowActivation(true);
-    const timer = window.setTimeout(() => setShowActivation(false), 6000);
+    const timer = window.setTimeout(() => setShowActivation(false), 4000);
     return () => window.clearTimeout(timer);
   }, [live]);
 
@@ -126,27 +148,6 @@ function GroupRoom() {
             <Users className="size-3" /> {group?.members ?? 0} anonymous members
           </p>
         </div>
-        {live ? (
-          hotSeatFor(groupId) ? (
-            <Button
-              size="sm"
-              variant="ghost"
-              className="h-8 shrink-0 gap-1 px-2 text-xs"
-              onClick={() => stopHotSeat(groupId)}
-            >
-              <Flame className="size-3.5 text-primary" /> End
-            </Button>
-          ) : (
-            <Button
-              size="sm"
-              variant="secondary"
-              className="h-8 shrink-0 gap-1 px-2 text-xs"
-              onClick={() => startHotSeat(groupId)}
-            >
-              <Flame className="size-3.5 text-primary" /> Hot Seat
-            </Button>
-          )
-        ) : null}
       </header>
 
       {group && group.memberRole ? (
@@ -221,14 +222,12 @@ function GroupRoom() {
         </div>
       ) : null}
 
-      {live ? <HotSeatBanner groupId={groupId} /> : null}
-
       {showActivation ? (
         <div className="pointer-events-none fixed inset-0 z-50 grid place-items-center bg-background/40 backdrop-blur-[2px]" aria-live="polite">
           <div className="animate-in zoom-in-75 rounded-3xl border border-primary/40 bg-card/95 px-8 py-7 text-center shadow-2xl duration-500">
             <div className="mx-auto mb-2 grid size-20 place-items-center rounded-full bg-primary/15 text-5xl">🐼</div>
-            <p className="font-display text-xl font-bold">Group activated!</p>
-            <p className="mt-1 text-sm text-muted-foreground">24 hours of anonymous chat starts now.</p>
+            <p className="font-display text-xl font-bold">Welcome to the group!</p>
+            <p className="mt-1 text-sm text-muted-foreground">Feel free to chat and enjoy the conversation.</p>
           </div>
         </div>
       ) : null}
@@ -246,29 +245,20 @@ function GroupRoom() {
               : "This room hasn't been opened yet."}
           </div>
         ) : (
-          group.messages.map((m) => (
+          chatMessages.map((m) => (
             <div key={m.id} className={m.mine ? "text-right" : ""}>
-              <p
-                className={`flex items-center gap-1.5 text-[11px] text-muted-foreground ${m.mine ? "justify-end" : ""}`}
-              >
-                {m.hotSeat ? (
-                  <span className="rounded-full bg-primary/20 px-1.5 py-0.5 text-[10px] font-semibold text-primary">
-                    🔥 Hot Seat
-                  </span>
-                ) : null}
-                {m.author}
-              </p>
-              <p
-                className={`mt-0.5 inline-block max-w-[85%] rounded-2xl px-3.5 py-2 text-sm ${
-                  m.hotSeat
-                    ? "scale-[1.02] border border-primary/60 bg-primary/25 text-foreground shadow-[0_0_20px_hsl(var(--primary)/0.35)]"
-                    : m.mine
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-card"
-                }`}
-              >
-                {m.body}
-              </p>
+              {m.reply_to_id ? <button type="button" onClick={()=>{const target=chatMessages.find(x=>x.id===m.reply_to_id); if(target) document.getElementById(`group-msg-${target.id}`)?.scrollIntoView({behavior:"smooth"});}} className="mb-1 inline-block max-w-[85%] rounded-lg border-l-2 border-primary bg-background/60 px-2 py-1 text-left text-[10px] text-muted-foreground">↩ {chatMessages.find(x=>x.id===m.reply_to_id)?.body?.slice(0,80) ?? "Reply"}</button> : null}
+              <div id={`group-msg-${m.id}`} className="relative">
+                <p className={`text-[11px] text-muted-foreground ${m.mine ? "text-right" : ""}`}>{m.author}</p>
+                <p className={`mt-0.5 inline-block max-w-[85%] rounded-2xl px-3.5 py-2 text-sm ${m.mine ? "bg-primary text-primary-foreground" : "bg-card"}`}>{m.body}</p>
+                <div className={`mt-1 flex items-center gap-1 ${m.mine ? "justify-end" : ""}`}>
+                  <Button type="button" variant="ghost" size="icon" className="size-7" onClick={()=>setReplyTo(m)} aria-label="Reply"><Reply className="size-3.5"/></Button>
+                  <Button type="button" variant="ghost" size="icon" className="size-7" onClick={()=>setReactionOpen(reactionOpen===m.id?null:m.id)} aria-label="React"><Smile className="size-3.5"/></Button>
+                  {(m.reactions ?? []).map((r:any)=><span key={`${r.user_id}-${r.reaction}`} className="rounded-full bg-secondary px-1.5 py-0.5 text-[11px]">{r.reaction}</span>)}
+                </div>
+                {reactionOpen===m.id ? <div className="mt-1 flex gap-1 rounded-full border bg-background p-1 shadow-lg"><span>❤️</span><span>😂</span><span>👍</span><span>😮</span><span>😢</span><span>🔥</span></div> : null}
+                {reactionOpen===m.id ? <div className="absolute inset-x-0 bottom-0 flex gap-2 opacity-0"><button type="button" onClick={()=>void (async()=>{const emoji="❤️";const {error}=await (supabase as any).rpc("toggle_group_message_reaction",{p_message_id:m.id,p_reaction:emoji});if(error)toast.error(error.message);setReactionOpen(null);})()}>❤️</button><button type="button" onClick={()=>void (async()=>{const emoji="😂";const {error}=await (supabase as any).rpc("toggle_group_message_reaction",{p_message_id:m.id,p_reaction:emoji});if(error)toast.error(error.message);setReactionOpen(null);})()}>😂</button><button type="button" onClick={()=>void (async()=>{const emoji="👍";const {error}=await (supabase as any).rpc("toggle_group_message_reaction",{p_message_id:m.id,p_reaction:emoji});if(error)toast.error(error.message);setReactionOpen(null);})()}>👍</button><button type="button" onClick={()=>void (async()=>{const emoji="😮";const {error}=await (supabase as any).rpc("toggle_group_message_reaction",{p_message_id:m.id,p_reaction:emoji});if(error)toast.error(error.message);setReactionOpen(null);})()}>😮</button><button type="button" onClick={()=>void (async()=>{const emoji="😢";const {error}=await (supabase as any).rpc("toggle_group_message_reaction",{p_message_id:m.id,p_reaction:emoji});if(error)toast.error(error.message);setReactionOpen(null);})()}>😢</button><button type="button" onClick={()=>void (async()=>{const emoji="🔥";const {error}=await (supabase as any).rpc("toggle_group_message_reaction",{p_message_id:m.id,p_reaction:emoji});if(error)toast.error(error.message);setReactionOpen(null);})()}>🔥</button></div> : null}
+              </div>
             </div>
           ))
         )}
@@ -276,12 +266,13 @@ function GroupRoom() {
       </div>
 
       {live && group?.sendMessages !== false ? (
+        {replyTo ? <div className="border-t border-border bg-secondary/30 px-3 py-2 text-xs"><div className="flex items-center justify-between"><span className="text-muted-foreground">Replying to {replyTo.author}</span><Button type="button" variant="ghost" size="sm" onClick={()=>setReplyTo(null)}>Cancel</Button></div><p className="truncate">{replyTo.body}</p></div> : null}
         <form
           className="flex gap-2 border-t border-border bg-background px-3 py-3"
           onSubmit={(e) => {
             e.preventDefault();
             if (!draft.trim()) return;
-            sendGroupMessage(group.id, draft.trim());
+            void (async()=>{ const body=draft.trim(); const {data,error}=await (supabase as any).rpc("send_group_message_secure",{p_group_id:group.id,p_body:body,p_reply_to_id:replyTo?.id ?? null}); if(error){toast.error(error.message ?? "Message could not be sent");return;} setChatMessages(x=>[...x,{id:data.id,group_id:group.id,body,created_at:data.created_at,user_id:(await supabase.auth.getUser()).data.user?.id,author:"You (anonymous)",mine:true,reply_to_id:replyTo?.id ?? null,reactions:[]}]); setReplyTo(null); })();
             setDraft("");
             const cooled = lastAdShownAt === null || Date.now() - lastAdShownAt >= AD_COOLDOWN_MS;
             if (cooled) setAdOpen(true);
@@ -305,7 +296,6 @@ function GroupRoom() {
 
       <RewardedAdModal open={adOpen} groupId={groupId} onClose={() => setAdOpen(false)} />
 
-      <BottomNav />
     </div>
   );
 }
