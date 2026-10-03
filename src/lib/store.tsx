@@ -60,6 +60,11 @@ export type GroupChat = {
   messages: GroupChatMessage[];
   latitude?: number | null;
   longitude?: number | null;
+  country?: string;
+  stateProvince?: string;
+  city?: string;
+  area?: string;
+  expiresAt?: string | null;
 };
 export type ChatMessage = { id: string; body: string; at: number; mine: boolean; messageType?: "text" | "dating_photo"; mediaPath?: string };
 export type Thread = {
@@ -576,7 +581,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       const groupSettings = groupSettingsRes.data ?? [];
       const groups = (groupsRes.data ?? []).map((g:any)=>{
         const settings = groupSettings.find((x:any)=>x.group_id===g.id);
-        return {id:g.id,name:g.name,topic:g.topic,ownerId:g.owner_id,memberRole:g.member_role,editGroupInfo:settings?.edit_group_info ?? "admins",sendMessages:settings?.send_messages ?? true,approveNewMembers:settings?.approve_new_members ?? false,joinPending:Boolean(g.join_pending),members:Number(g.member_count ?? 0),openedAt:g.activated_at?new Date(g.activated_at).getTime():null,country:g.country??"",stateProvince:g.state_province??"",city:g.city??"",area:g.area??"",messages:groupMessages.filter((m:any)=>m.group_id===g.id).map((m:any)=>({id:m.id,author:m.author_id===uid?"You (anonymous)":"Anonymous Panda",body:m.body,at:new Date(m.created_at).getTime(),mine:m.author_id===uid}))};
+        return {id:g.id,name:g.name,topic:g.topic,ownerId:g.owner_id,memberRole:g.member_role,editGroupInfo:settings?.edit_group_info ?? "admins",sendMessages:settings?.send_messages ?? true,approveNewMembers:settings?.approve_new_members ?? false,joinPending:Boolean(g.join_pending),members:Number(g.member_count ?? 0),openedAt:g.activated_at?new Date(g.activated_at).getTime():null,expiresAt:g.expires_at??null,country:g.country??"",stateProvince:g.state_province??"",city:g.city??"",area:g.area??"",messages:groupMessages.filter((m:any)=>m.group_id===g.id).map((m:any)=>({id:m.id,author:m.author_id===uid?"You (anonymous)":"Anonymous Panda",body:m.body,at:new Date(m.created_at).getTime(),mine:m.author_id===uid}))};
       });
       const attendees = attendeesRes.data ?? [];
       const events = (eventsRes.data ?? []).map((e:any)=>({id:e.id,title:e.title,tag:e.category ?? "Meetup",date:e.starts_at?new Date(e.starts_at).toLocaleDateString():"",time:e.starts_at?`${new Date(e.starts_at).toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"})}${e.ends_at ? ` · ${Math.max(1,Math.round((new Date(e.ends_at).getTime()-new Date(e.starts_at).getTime())/60000))} min` : ""}`:"",place:e.location??"",cost:Number(e.entry_fee_amount ?? 0),currency:e.entry_fee_currency ?? "NGN",blurb:e.description,details:e.description,rsvp:attendees.some((a:any)=>a.event_id===e.id&&a.user_id===uid),reachScope:e.reach_scope ?? "worldwide",reachCountry:e.reach_country ?? "",reachState:e.reach_state ?? "",reachCity:e.reach_city ?? "",reachArea:e.reach_area ?? "",durationMinutes:Number(e.duration_minutes ?? 120),coverUrl:e.cover_url ?? "",venueName:e.venue_name ?? "",addressLine:e.address_line ?? "",country:e.country ?? "",stateProvince:e.state_province ?? "",city:e.city ?? "",area:e.area ?? "",latitude:e.latitude ?? null,longitude:e.longitude ?? null}));
