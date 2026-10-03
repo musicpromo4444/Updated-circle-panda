@@ -102,7 +102,7 @@ export function BottomNav() {
               key={to}
               to={to}
               activeOptions={{ exact: to === "/" }}
-              className="flex flex-col items-center gap-1 rounded-xl px-1 py-1.5 text-[11px] font-medium text-muted-foreground transition-colors hover:text-foreground data-[status=active]:text-primary"
+              className="cp-interactive flex flex-col items-center gap-1 rounded-xl px-1 py-1.5 text-[11px] font-medium text-muted-foreground transition-colors hover:text-foreground data-[status=active]:text-primary"
             >
               {({ isActive }) => (
                 <>
@@ -428,14 +428,14 @@ export function AppShell({
           <Link
             to="/profile"
             aria-label="Your profile"
-            className="grid size-9 shrink-0 place-items-center rounded-full border border-border bg-secondary text-sm transition-colors hover:border-primary/60 data-[status=active]:border-primary"
+            className="cp-interactive grid size-9 shrink-0 place-items-center rounded-full border border-border bg-secondary text-sm transition-colors hover:border-primary/60 data-[status=active]:border-primary"
           >
             <User className="size-4.5 text-muted-foreground" />
           </Link>
         </div>
       </header> : null}
 
-      <main className={cn("mx-auto w-full", !immersive && "px-4 pt-4", wide ? "max-w-6xl" : "max-w-3xl")}>
+      <main className={cn("mx-auto w-full cp-page-enter", !immersive && "px-4 pt-4", wide ? "max-w-6xl" : "max-w-3xl")}>
         {!hidePageHeader ? (
           <div className="mb-3 flex items-center justify-between gap-3">
             <div className="min-w-0">
