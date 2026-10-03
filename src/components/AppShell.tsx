@@ -22,6 +22,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { UniversalFloatingCampaign } from "@/components/UniversalFloatingCampaign";
+import { PandaAvatar } from "@/components/PandaAvatar";
 
 const TABS = [
   { to: "/", label: "Confessions", icon: MessageSquare },
@@ -311,6 +312,31 @@ export function FreeCoinsButton() {
   );
 }
 
+function ProfileNavAvatar() {
+  const [avatar, setAvatar] = useState("🐼");
+
+  const refresh = async () => {
+    const { data: userData } = await supabase.auth.getUser();
+    const uid = userData.user?.id;
+    if (!uid) return;
+    const { data } = await (supabase as any).from("profiles").select("avatar_url").eq("id", uid).maybeSingle();
+    if (data?.avatar_url) setAvatar(String(data.avatar_url));
+  };
+
+  useEffect(() => {
+    void refresh();
+    const handler = (event: Event) => {
+      const detail = (event as CustomEvent).detail;
+      if (detail?.avatar) setAvatar(String(detail.avatar));
+      else void refresh();
+    };
+    window.addEventListener("circle-panda-avatar-refresh", handler);
+    return () => window.removeEventListener("circle-panda-avatar-refresh", handler);
+  }, []);
+
+  return <PandaAvatar avatar={avatar} size="sm" />;
+}
+
 function NotificationBell() {
   const [unread, setUnread] = useState(0);
 
@@ -430,7 +456,7 @@ export function AppShell({
             aria-label="Your profile"
             className="cp-interactive grid size-9 shrink-0 place-items-center rounded-full border border-border bg-secondary text-sm transition-colors hover:border-primary/60 data-[status=active]:border-primary"
           >
-            <User className="size-4.5 text-muted-foreground" />
+            <ProfileNavAvatar />
           </Link>
         </div>
       </header> : null}
