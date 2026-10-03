@@ -26,7 +26,33 @@ function createSupabaseFetch(supabaseKey: string): typeof fetch {
     }
 
     headers.set("apikey", supabaseKey);
-    return fetch(input, { ...init, headers });
+
+    // Surface every server-authoritative insufficient-BC response through one
+    // global recovery dialog. The original response is returned unchanged so
+    // each caller keeps its normal error handling.
+    return fetch(input, { ...init, headers }).then(async (response) => {
+      if (!response.ok && typeof window !== "undefined") {
+        try {
+          const clone = response.clone();
+          const payload = await clone.json();
+          const message = String(payload?.message ?? payload?.error_description ?? "");
+          if (/insufficient\\s+(panda\\s+)?coins?|insufficient\\s+bc/i.test(message)) {
+            const requiredMatch = message.match(/required\\s*[:=]\\s*(\\d+)/i);
+            const balanceMatch = message.match(/(?:balance|available)\\s*[:=]\\s*(\\d+)/i);
+            window.dispatchEvent(new CustomEvent("circle-panda-insufficient-bc", {
+              detail: {
+                required: requiredMatch ? Number(requiredMatch[1]) : undefined,
+                balance: balanceMatch ? Number(balanceMatch[1]) : undefined,
+                reason: message,
+              },
+            }));
+          }
+        } catch {
+          // Preserve the original response even when an error body is not JSON.
+        }
+      }
+      return response;
+    });
   };
 }
 
