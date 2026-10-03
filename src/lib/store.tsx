@@ -457,7 +457,7 @@ type StoreValue = State & {
   freeVotesLeft: number;
   mySpotlight: Spotlight | null;
   toggleRsvp: (id: string) => void;
-  startEventBlast: (eventId: string, planId?: string, paymentMethod?: "bc" | "cash") => Promise<boolean>;
+  startEventBlast: (eventId: string, planId?: string, paymentMethod?: "bc" | "cash", targetScope?: "worldwide" | "country" | "state" | "city" | "area", targetCountry?: string, targetState?: string, targetCity?: string, targetArea?: string) => Promise<boolean>;
   buyTicket: (draw: DrawKind) => boolean;
   myTicketCount: (draw: DrawKind) => number;
   hotSeatFor: (groupId: string) => HotSeatSession | null;
