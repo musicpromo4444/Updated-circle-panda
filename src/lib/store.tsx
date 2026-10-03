@@ -715,15 +715,36 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const joinGroup = useCallback((id: string) => {
     if (!dbUserId) { requestLogin("join this group"); return; }
+    const currentGroup = state.groups.find((g) => g.id === id);
+    if (currentGroup?.memberRole) {
+      toast.info("Already joined this group.");
+      return;
+    }
+    if (currentGroup?.joinPending) {
+      toast.info("Your join request is already pending.");
+      return;
+    }
     void (async () => {
       const { data, error } = await (supabase as any).rpc("join_group_secure", { p_group_id: id });
       if (error) { toast.error(error.message ?? "Could not join group"); return; }
-      setState((s) => ({ ...s, groups: s.groups.map((g) => g.id === id ? { ...g, members: Number(data?.member_count ?? g.members), joinPending: data?.status === "pending", openedAt: data?.activated_at ? new Date(data.activated_at).getTime() : g.openedAt } : g) }));
-      if (data?.status === "active" || data?.status === "joined") void refreshCoins();
-      window.dispatchEvent(new CustomEvent("circle-panda-action", { detail: { title: data?.status === "pending" ? "Join request sent!" : "Joined group!", emoji: "🤝" } }));
-      toast.success(data?.status === "pending" ? "Join request sent" : data?.status === "active" ? "Group activated 🐼" : "Joined group", { description: data?.status === "pending" ? "An admin must approve your request." : data?.status === "active" ? "3 members reached · 24-hour chat started." : "You're now an anonymous member." });
+      const joined = data?.status === "active" || data?.status === "joined";
+      setState((s) => ({ ...s, groups: s.groups.map((g) => g.id === id ? {
+        ...g,
+        members: Number(data?.member_count ?? g.members),
+        joinPending: data?.status === "pending",
+        memberRole: joined ? (g.memberRole ?? "member") : g.memberRole,
+        openedAt: data?.activated_at ? new Date(data.activated_at).getTime() : g.openedAt,
+      } : g) }));
+      if (joined) void refreshCoins();
+      if (data?.status === "pending") {
+        window.dispatchEvent(new CustomEvent("circle-panda-action", { detail: { title: "Join request sent!", emoji: "🤝" } }));
+        toast.success("Join request sent", { description: "An admin must approve your request." });
+      } else {
+        window.dispatchEvent(new CustomEvent("circle-panda-action", { detail: { title: "Joined group!", emoji: "🤝" } }));
+        toast.success(data?.status === "active" ? "Group activated 🐼" : "Joined group", { description: data?.status === "active" ? "3 members reached · 24-hour chat started." : "You're now an anonymous member." });
+      }
     })();
-  }, [dbUserId, refreshCoins]);
+  }, [dbUserId, refreshCoins, state.groups]);
 
   const leaveGroup = useCallback((id: string) => {
     if (!dbUserId) { toast.error("Sign in to leave this group"); return; }
