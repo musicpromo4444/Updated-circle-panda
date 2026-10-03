@@ -68,7 +68,6 @@ export function RegisterDatingModal({open,onOpenChange}:{open:boolean;onOpenChan
   const [uploadingPhoto,setUploadingPhoto]=useState(false);
   const [accountReady,setAccountReady]=useState(false);
   const [traits,setTraits]=useState<string[]>([]);
-  const targetTraits=p.gender==="male"?FEMALE_TRAITS:MALE_TRAITS;
 
   useEffect(()=>{
     if(!open) return;
