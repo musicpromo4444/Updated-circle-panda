@@ -5,12 +5,13 @@ import { GroupComposer, type OutgoingGroupMedia } from "@/components/groups/Grou
 import { GroupMediaMessage, type GroupMediaItem } from "@/components/groups/GroupMediaMessage";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { VipPrivateCall } from "@/components/messages/VipPrivateCall";
 
 type VipMessage = GroupMediaItem & { mediaPath?: string };
 
 export function VipGroupChat({ open, onOpenChange }: { open: boolean; onOpenChange: (open:boolean)=>void }) {
   const [messages,setMessages]=useState<VipMessage[]>([]);
-  const bottom=useRef<HTMLDivElement>(null);
+  const bottom=useRef<HTMLDivElement>(null);\n  const [callId,setCallId]=useState<string|null>(null);\n  const [matching,setMatching]=useState(false);
 
   const mapRow=async(row:any):Promise<VipMessage>=>{
     let mediaUrl:string|undefined;
