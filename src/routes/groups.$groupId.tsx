@@ -45,7 +45,7 @@ function GroupRoom() {
   const [draft, setDraft] = useState("");
   const bottom = useRef<HTMLDivElement>(null);
   const [showActivation, setShowActivation] = useState(false);
-  const [previousLive, setPreviousLive] = useState(false);
+  const activationShown = useRef(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [editName, setEditName] = useState("");
   const [editTopic, setEditTopic] = useState("");
@@ -102,14 +102,12 @@ function GroupRoom() {
   }, [group?.id, group?.memberRole, group?.approveNewMembers]);
 
   useEffect(() => {
-    if (live && !previousLive) {
-      setShowActivation(true);
-      const timer = window.setTimeout(() => setShowActivation(false), 2200);
-      setPreviousLive(true);
-      return () => window.clearTimeout(timer);
-    }
-    if (!live) setPreviousLive(false);
-  }, [live, previousLive]);
+    if (!live || activationShown.current) return;
+    activationShown.current = true;
+    setShowActivation(true);
+    const timer = window.setTimeout(() => setShowActivation(false), 6000);
+    return () => window.clearTimeout(timer);
+  }, [live]);
 
   return (
     <div className="fixed inset-0 z-50 flex h-[100dvh] flex-col bg-background">
