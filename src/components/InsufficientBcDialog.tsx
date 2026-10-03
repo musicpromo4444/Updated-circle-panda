@@ -8,7 +8,7 @@ import { useStore } from "@/lib/store";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-type InsufficientDetail = { required?: number; balance?: number; reason?: string };
+type InsufficientDetail = { required?: number; balance?: number; reason?: string; noEquivalent?: boolean };
 
 export function InsufficientBcDialog() {
   const navigate = useNavigate();
@@ -66,8 +66,8 @@ export function InsufficientBcDialog() {
       <Dialog open={detail !== null && !adOpen} onOpenChange={(open) => !open && close()}>
         <DialogContent className="w-[calc(100vw-2rem)] max-w-sm rounded-2xl">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 font-display"><Coins className="size-5 text-amber-500" /> Insufficient BC</DialogTitle>
-            <DialogDescription>You don't have enough Panda Coins for this action.</DialogDescription>
+            <DialogTitle className="flex items-center gap-2 font-display"><Coins className="size-5 text-amber-500" /> {detail?.noEquivalent ? "No equivalent BC" : "Insufficient BC"}</DialogTitle>
+            <DialogDescription>{detail?.noEquivalent ? "This option does not have an equivalent BC price. Get free BC now or buy BC to continue." : "You don't have enough Panda Coins for this action."}</DialogDescription>
           </DialogHeader>
           <div className="rounded-xl bg-secondary/50 p-3 text-sm">
             {detail?.required ? <p><strong>Required:</strong> {Number(detail.required).toLocaleString()} BC</p> : null}
