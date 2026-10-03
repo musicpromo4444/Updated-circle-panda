@@ -69,23 +69,37 @@ function CrushPage() {
     monday.setDate(monday.getDate() + diff);
     const weekStart = monday.toISOString().slice(0, 10);
     const { data, error } = await (supabase as any).rpc("get_crush_results", { p_week_start: weekStart });
-    if (error) {
-      toast.error(error.message ?? "Could not load WCW/MCM pictures");
-      return;
+    let rows = Array.isArray(data) ? data : [];
+    if (error || !rows.length) {
+      // Fallback to the public feed rows when the RPC is temporarily unavailable.
+      // This keeps already-uploaded media visible instead of reverting to stale local state.
+      const { data: directRows, error: directError } = await (supabase as any)
+        .from("crush_nominees")
+        .select("id,display_name,kind,emoji,blurb,media_url,media_type,week_start,created_at")
+        .eq("week_start", weekStart)
+        .in("kind", ["wcw", "mcm"])
+        .order("created_at", { ascending: false });
+      if (!directError && Array.isArray(directRows)) {
+        rows = directRows.map((n: any) => ({ ...n, nominee_id: n.id, vote_count: 0, mine: false }));
+      }
     }
-    const rows = Array.isArray(data) ? data : [];
-    setLiveNominees(rows.map((n: any) => ({
-      id: n.nominee_id,
-      name: n.display_name ?? "Anonymous Panda",
-      kind: n.kind,
-      emoji: n.emoji ?? "🐼",
-      blurb: n.blurb ?? "",
-      votes: Number(n.vote_count ?? 0),
-      avatarUrl: n.media_url ?? undefined,
-      mediaUrl: n.media_url ?? undefined,
-      mediaType: n.media_type,
-      mine: Boolean(n.mine),
-    })));
+    if (!rows.length && error) {
+      toast.error(error.message ?? "Could not load WCW/MCM pictures");
+    }
+    setLiveNominees(rows
+      .filter((n: any) => typeof n.media_url === "string" && n.media_url.trim().length > 0)
+      .map((n: any) => ({
+        id: n.nominee_id ?? n.id,
+        name: n.display_name ?? "Anonymous Panda",
+        kind: n.kind,
+        emoji: n.emoji ?? "🐼",
+        blurb: n.blurb ?? "",
+        votes: Number(n.vote_count ?? 0),
+        avatarUrl: n.media_url,
+        mediaUrl: n.media_url,
+        mediaType: n.media_type === "video" ? "video" : "image",
+        mine: Boolean(n.mine),
+      })));
     setLiveNomineesLoaded(true);
   };
 
