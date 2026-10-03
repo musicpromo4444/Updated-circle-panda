@@ -331,7 +331,15 @@ export function ConfessionsPage() {
               onClick={() => window.location.assign("/crush#mcm")}
               className="flex min-w-0 flex-col items-center gap-1.5 rounded-2xl p-1.5 text-center transition-transform active:scale-95"
             >
-              <span className="grid size-[58px] place-items-center rounded-full border-2 border-sky-400 bg-background text-2xl shadow-[0_0_12px_rgba(56,189,248,.12)] sm:size-16">💙</span>
+              <span className="relative grid size-[58px] place-items-center overflow-hidden rounded-full border-2 border-sky-400 bg-background text-2xl shadow-[0_0_12px_rgba(56,189,248,.12)] sm:size-16">
+                {weekly.mcm[0]?.media_url ? (
+                  weekly.mcm[0].media_type === "video" ? (
+                    <video src={weekly.mcm[0].media_url} muted playsInline preload="metadata" className="size-full object-cover" />
+                  ) : (
+                    <img src={weekly.mcm[0].media_url} alt="MCM" className="size-full object-cover" loading="lazy" />
+                  )
+                ) : "💙"}
+              </span>
               <span className="w-full truncate text-[11px] font-semibold">MCM</span>
             </button>
 
@@ -340,36 +348,23 @@ export function ConfessionsPage() {
               onClick={() => window.location.assign("/crush#wcw")}
               className="flex min-w-0 flex-col items-center gap-1.5 rounded-2xl p-1.5 text-center transition-transform active:scale-95"
             >
-              <span className="grid size-[58px] place-items-center rounded-full border-2 border-pink-400 bg-background text-2xl shadow-[0_0_12px_rgba(244,114,182,.12)] sm:size-16">❤️</span>
+              <span className="relative grid size-[58px] place-items-center overflow-hidden rounded-full border-2 border-pink-400 bg-background text-2xl shadow-[0_0_12px_rgba(244,114,182,.12)] sm:size-16">
+                {weekly.wcw[0]?.media_url ? (
+                  weekly.wcw[0].media_type === "video" ? (
+                    <video src={weekly.wcw[0].media_url} muted playsInline preload="metadata" className="size-full object-cover" />
+                  ) : (
+                    <img src={weekly.wcw[0].media_url} alt="WCW" className="size-full object-cover" loading="lazy" />
+                  )
+                ) : "❤️"}
+              </span>
               <span className="w-full truncate text-[11px] font-semibold">WCW</span>
             </button>
           </div>
 
           <p className="mt-2 text-center text-[10px] leading-4 text-muted-foreground">
-            Upload to enter • MCM Monday • WCW Wednesday
+            Tap MCM or WCW to view pictures • Upload to enter
           </p>
 
-          {mcmCount + wcwCount > 0 ? (
-            <div className="mt-3 grid grid-cols-2 gap-2">
-              {[["mcm", weekly.mcm, "MCM", "💙"], ["wcw", weekly.wcw, "WCW", "❤️"]].map(([key, entries, label, icon]) => (
-                <button key={String(key)} type="button" onClick={() => window.location.assign("/crush#" + key)} className="overflow-hidden rounded-2xl border border-border/60 bg-background text-left">
-                  <div className="relative aspect-[4/3] w-full bg-secondary/40">
-                    {Array.isArray(entries) && entries[0]?.media_url ? (
-                      entries[0].media_type === "video" ? (
-                        <video src={entries[0].media_url} muted playsInline preload="metadata" className="size-full object-cover" />
-                      ) : (
-                        <img src={entries[0].media_url} alt={label + " submission"} className="size-full object-cover" loading="lazy" />
-                      )
-                    ) : <div className="grid size-full place-items-center text-2xl">{icon}</div>}
-                    <span className="absolute left-2 top-2 rounded-full bg-black/65 px-2 py-1 text-[10px] font-black text-white">{label}</span>
-                  </div>
-                  <div className="px-2.5 py-2 text-[10px] font-semibold text-muted-foreground">
-                    {Array.isArray(entries) ? entries.length : 0} {label} {Array.isArray(entries) && entries.length === 1 ? "entry" : "entries"}
-                  </div>
-                </button>
-              ))}
-            </div>
-          ) : null}
         </section>
 
         <section className="rounded-[1.65rem] border border-border/70 bg-card p-4 shadow-sm sm:p-5">
