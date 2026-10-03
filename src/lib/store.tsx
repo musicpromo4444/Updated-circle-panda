@@ -521,12 +521,30 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       (supabase as any).from("events").select("id,title,description,location,starts_at,ends_at,category,entry_fee_bc,entry_fee_amount,entry_fee_currency,duration_minutes,reach_scope,reach_country,reach_state,reach_city,reach_area,cover_url,venue_name,address_line,country,state_province,city,area,latitude,longitude,is_published,owner_id").eq("is_published",true).order("starts_at", {ascending:true}),
       (supabase as any).from("event_attendees").select("event_id,user_id"),
     ]);
-    if (groupsRes.error) console.error("Circle Panda groups refresh failed", groupsRes.error);
+
+    // The RPC carries member/request state. If it ever fails, fall back to the
+    // public groups table so a real persisted group can never disappear from
+    // the card feed just because member metadata failed to load.
+    let rawGroups:any[] = Array.isArray(groupsRes.data) ? groupsRes.data : [];
+    if (groupsRes.error || rawGroups.length === 0) {
+      const fallback = await (supabase as any).from("groups")
+        .select("id,name,topic,owner_id,created_at,activated_at,expires_at,status,country,state_province,city,area")
+        .order("created_at", {ascending:false}).limit(100);
+      if (!fallback.error && Array.isArray(fallback.data)) {
+        rawGroups = fallback.data.map((g:any) => ({
+          ...g,
+          member_role:g.owner_id === dbUserId ? "owner" : null,
+          join_pending:false,
+          member_count:0,
+        }));
+      }
+      if (groupsRes.error) console.error("Circle Panda groups summary refresh failed; used fallback", groupsRes.error);
+    }
     if (eventsRes.error) console.error("Circle Panda events refresh failed", eventsRes.error);
 
     const groupSettings = groupSettingsRes.data ?? [];
     const groupMessages = groupMessagesRes.data ?? [];
-    const groups = (groupsRes.data ?? []).map((g:any) => {
+    const groups = rawGroups.map((g:any) => {
       const settings = groupSettings.find((x:any) => x.group_id === g.id);
       return {
         id:g.id, name:g.name, topic:g.topic, ownerId:g.owner_id, memberRole:g.member_role,
