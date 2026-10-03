@@ -7,14 +7,40 @@ function LandingPage() {
   const navigate = useNavigate();
   const [authOpen, setAuthOpen] = useState(false);
   const [authTab, setAuthTab] = useState<"signin" | "signup">("signin");
+  const [authChecking, setAuthChecking] = useState(true);
 
   useEffect(() => {
     let active = true;
-    supabase.auth.getSession().then(({ data }) => {
-      if (active && data.session?.user) void navigate({ to: "/home", replace: true });
+    const checkSession = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (!active) return;
+      const user = data.session?.user;
+      if (user && !user.is_anonymous) {
+        await navigate({ to: "/home", replace: true });
+        return;
+      }
+      setAuthChecking(false);
+    };
+    void checkSession();
+
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!active) return;
+      const user = session?.user;
+      if (user && !user.is_anonymous) {
+        void navigate({ to: "/home", replace: true });
+      } else {
+        setAuthChecking(false);
+      }
     });
-    return () => { active = false; };
+    return () => {
+      active = false;
+      listener.subscription.unsubscribe();
+    };
   }, [navigate]);
+
+  if (authChecking) {
+    return <main className="min-h-screen bg-[#071412]" aria-hidden="true" />;
+  }
 
   const openAuth = (tab: "signin" | "signup") => {
     setAuthTab(tab);
