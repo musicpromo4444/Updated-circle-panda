@@ -53,9 +53,7 @@ function EventsPage() {
 
   useEffect(() => {
     void (async () => {
-      const [{ data }, config] = await Promise.all([
-        (supabase as any).from("event_blast_plans").select("id,name,unique_reach,duration_minutes,price_usd,price_ngn,bc_price").eq("enabled", true).order("sort_order"),
-      ]);
+      const { data } = await (supabase as any).from("event_blast_plans").select("id,name,unique_reach,duration_minutes,price_usd,price_ngn,bc_price").eq("enabled", true).order("sort_order");
       setPlans((data ?? []) as BlastPlan[]);
     })();
   }, []);
