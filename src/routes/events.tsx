@@ -32,7 +32,7 @@ type BlastPlan = {
 };
 
 function EventsPage() {
-  const { events, startEventBlast } = useStore();
+  const { events, startEventBlast, toggleRsvp } = useStore();
   const [openEvent, setOpenEvent] = useState<PandaEvent | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
   const [blastOpen, setBlastOpen] = useState(false);
@@ -161,9 +161,15 @@ function EventsPage() {
             </div>
             <p className="text-sm leading-relaxed text-muted-foreground">{current.details}</p>
             <div className="grid gap-2 sm:grid-cols-2">
-              <Button variant={current.rsvp ? "secondary" : "default"} onClick={() => { void (async () => { const { data, error } = await (supabase as any).rpc("toggle_event_rsvp_secure", { p_event_id: current.id }); if (error) toast.error(error.message); else toast.success(data?.joined ? "You’re going 🐼" : "RSVP cancelled"); })(); }}>
-                {current.rsvp ? "You’re going 🐼" : "RSVP anonymously"}
-              </Button>
+              {current.ownerId !== currentUserId ? (
+                <Button
+                  type="button"
+                  variant={current.rsvp ? "secondary" : "default"}
+                  onClick={() => toggleRsvp(current.id)}
+                >
+                  {current.rsvp ? "You’re going 🐼" : "I will attend"}
+                </Button>
+              ) : null}
               {current.ownerId === currentUserId ? <Button type="button" variant="outline" onClick={openBlast} className="gap-2"><Rocket className="size-4" /> Event Blast</Button> : null}
             </div>
             </div>
