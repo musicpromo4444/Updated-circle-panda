@@ -4,7 +4,7 @@ import { ChevronLeft, Flame, Send, Users, Settings, Pencil, LogOut, Lock } from 
 import { BottomNav } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useStore } from "@/lib/store";
+import { useStore, type GroupChat } from "@/lib/store";
 import { HotSeatBanner } from "@/components/HotSeatBanner";
 import { AD_COOLDOWN_MS, RewardedAdModal } from "@/components/RewardedAdModal";
 import { supabase } from "@/integrations/supabase/client";
@@ -54,8 +54,31 @@ function GroupRoom() {
   const [approveMembers, setApproveMembers] = useState(false);
   const [joinRequests, setJoinRequests] = useState<any[]>([]);
   const [memberEditOpen, setMemberEditOpen] = useState(false);
+  const [remoteGroup, setRemoteGroup] = useState<GroupChat | null>(null);
 
-  const group = groups.find((g) => g.id === groupId) ?? null;
+  const group = groups.find((g) => g.id === groupId) ?? remoteGroup;
+
+  useEffect(() => {
+    if (groups.some((g) => g.id === groupId)) return;
+    let active = true;
+    void (async () => {
+      const [{ data: summaries }, { data: messages }] = await Promise.all([
+        (supabase as any).rpc("get_group_summaries", { p_country:"", p_state_province:"", p_city:"", p_area:"" }),
+        (supabase as any).from("cp_group_messages").select("id,group_id,body,created_at,author_id").eq("group_id", groupId).order("created_at", { ascending: true }),
+      ]);
+      const row = (summaries ?? []).find((g:any) => g.id === groupId);
+      if (!active || !row) return;
+      const uid = (await supabase.auth.getUser()).data.user?.id;
+      setRemoteGroup({
+        id:row.id,name:row.name,topic:row.topic,ownerId:row.owner_id,memberRole:row.member_role,
+        editGroupInfo:"admins",sendMessages:true,approveNewMembers:false,joinPending:Boolean(row.join_pending),
+        members:Number(row.member_count ?? 0),openedAt:row.activated_at?new Date(row.activated_at).getTime():null,
+        latitude:null,longitude:null,country:row.country ?? "",stateProvince:row.state_province ?? "",city:row.city ?? "",area:row.area ?? "",
+        messages:(messages ?? []).map((m:any)=>({id:m.id,author:m.author_id===uid?"You (anonymous)":"Anonymous Panda",body:m.body,at:new Date(m.created_at).getTime(),mine:m.author_id===uid})),
+      });
+    })();
+    return () => { active = false; };
+  }, [groupId, groups]);
   const expired = !!group?.expiresAt && new Date(group.expiresAt).getTime() <= Date.now();
 
   useEffect(() => {
