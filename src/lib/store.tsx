@@ -473,6 +473,7 @@ type StoreValue = State & {
   createEvent: (event: Omit<PandaEvent, "id" | "rsvp">) => PandaEvent;
   requestDatingMatch: (userId: string) => Promise<string | null>;
   searchDatingProfiles: (filters: { ageMin?: number; ageMax?: number; country?: string; location?: string; gender?: string; relationshipGoal?: string; lookingFor?: string; lifestyle?: string; smoking?: string; drinking?: string; children?: string; education?: string; heightMin?: number; heightMax?: number; zodiac?: string; sameCountryOnly?: boolean }) => Promise<boolean>;
+  refreshDatingData: () => Promise<boolean>;
   registerDatingProfile: (profile: Omit<DatingProfile, "registeredAt" | "userId">) => void;
 };
 
@@ -992,6 +993,23 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     return true;
   }, [dbUserId]);
 
+  const refreshDatingData = useCallback(async () => {
+    const { data: auth } = await supabase.auth.getUser();
+    const uid = auth.user?.id;
+    if (!uid) return false;
+    const [ownRes, discoveryRes] = await Promise.all([
+      (supabase as any).from("dating_profiles").select("user_id,name,age,vibe,emoji,bio,interests,location,country,gender,relationship_goal,looking_for,about_traits,lifestyle,personality,love_language,smoking,drinking,children,education,occupation,sexual_experience,intimacy_preference,relationship_status,height_cm,zodiac,favorite_date,photo_path,blurred_photo_path,updated_at").eq("user_id",uid).eq("enabled",true).maybeSingle(),
+      (supabase as any).rpc("get_dating_discovery_secure", { p_age_min:18,p_age_max:120,p_country:"",p_location:"",p_gender:"",p_relationship_goal:"",p_looking_for:"",p_lifestyle:"",p_smoking:"",p_drinking:"",p_children:"",p_education:"",p_height_min:null,p_height_max:null,p_zodiac:"",p_same_country_only:false }),
+    ]);
+    if (ownRes.error) { toast.error(ownRes.error.message ?? "Your Dating profile could not be loaded"); return false; }
+    if (discoveryRes.error) { toast.error(discoveryRes.error.message ?? "Dating discovery could not be loaded"); return false; }
+    const mapProfile = (d:any): DatingProfile => ({
+      userId:d.user_id,name:d.name ?? "Anonymous Panda",age:Number(d.age ?? 18),vibe:d.vibe ?? "",emoji:d.emoji ?? "🐼",bio:d.bio ?? "",interests:d.interests ?? [],location:d.location ?? "",country:d.country ?? "",gender:d.gender ?? "",relationshipGoal:d.relationship_goal ?? "",lookingFor:d.looking_for ?? [],aboutTraits:d.about_traits ?? [],lifestyle:d.lifestyle ?? [],personality:d.personality ?? [],loveLanguage:d.love_language ?? "",smoking:d.smoking ?? "",drinking:d.drinking ?? "",children:d.children ?? "",education:d.education ?? "",occupation:d.occupation ?? "",sexualExperience:d.sexual_experience ?? "",intimacyPreference:d.intimacy_preference ?? "",relationshipStatus:d.relationship_status ?? "single",heightCm:d.height_cm ?? null,zodiac:d.zodiac ?? "",favoriteDate:d.favorite_date ?? "",photoPath:d.photo_path ?? "",blurredPhotoPath:d.blurred_photo_path ?? "",registeredAt:d.updated_at ? new Date(d.updated_at).getTime() : Date.now()
+    });
+    setState(s => ({ ...s, datingProfile: ownRes.data ? mapProfile(ownRes.data) : null, datingMatches:(discoveryRes.data ?? []).filter((d:any)=>d.user_id!==uid).map(mapProfile) }));
+    return true;
+  }, []);
+
   const searchDatingProfiles = useCallback(async (filters: { ageMin?: number; ageMax?: number; country?: string; location?: string; gender?: string; relationshipGoal?: string; lookingFor?: string; lifestyle?: string; smoking?: string; drinking?: string; children?: string; education?: string; heightMin?: number; heightMax?: number; zodiac?: string; sameCountryOnly?: boolean }) => {
     if (!dbUserId) return false;
     const { data, error } = await (supabase as any).rpc("get_dating_discovery_secure", {
@@ -1038,11 +1056,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         p_favorite_date:p.favoriteDate,p_emoji:p.emoji,p_photo_path:p.photoPath||null,p_blurred_photo_path:p.blurredPhotoPath||null
       });
       if (error) { toast.error(error.message ?? "Dating profile could not be saved"); return; }
-      setState(s => ({...s,datingProfile:{...p,name:data?.name??p.name,userId:dbUserId,registeredAt:Date.now()}}));
+      await refreshDatingData();
       window.dispatchEvent(new CustomEvent("circle-panda-action", { detail: { title: "Dating card published!", emoji: "💗" } }));
       toast.success("Dating profile saved 💗");
     })();
-  }, [dbUserId]);
+  }, [dbUserId, refreshDatingData]);
 
   const requestDatingMatch = useCallback((userId:string) => {
     if (!dbUserId) { requestLogin("use Dating"); return Promise.resolve(null); }
@@ -1202,6 +1220,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       createEvent,
       startEventBlast,
       registerDatingProfile,
+      refreshDatingData,
       requestDatingMatch,
     }),
     [
@@ -1245,6 +1264,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       createEvent,
       startEventBlast,
       registerDatingProfile,
+      refreshDatingData,
       requestDatingMatch,
     ],
   );
