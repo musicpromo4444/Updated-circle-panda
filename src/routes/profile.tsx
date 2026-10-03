@@ -13,6 +13,9 @@ import {
   Trophy,
   Users,
   Share2,
+  Eye,
+  Copy,
+  ShieldAlert,
   LogOut,
 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
@@ -253,15 +256,24 @@ function ProfilePage() {
 
       <ProfileProgressCard level={level} xp={xp} />
 
-      {profileId ? <section className="panda-panel mt-4 rounded-2xl p-4">
-        <div className="flex items-center justify-between gap-3">
-          <div><h2 className="font-display text-base font-semibold">Your Secret Profile</h2><p className="mt-1 text-xs text-muted-foreground">Share this link so people can leave anonymous secrets about you.</p></div>
-          <Share2 className="size-5 text-primary" />
+      {profileId ? <section className="panda-panel mt-4 rounded-2xl border border-amber-500/40 bg-amber-500/5 p-4 shadow-[0_0_18px_rgba(245,158,11,0.08)]">
+        <div className="flex items-start gap-3">
+          <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-amber-500/15 text-amber-400">
+            <ShieldAlert className="size-5" />
+          </span>
+          <div className="min-w-0 flex-1">
+            <h2 className="font-display text-base font-black text-amber-300">View Secrets</h2>
+            <p className="mt-1 text-xs font-medium text-amber-100/80">View the secrets of this Panda. Click the button below to view.</p>
+          </div>
         </div>
-        <div className="mt-3 flex gap-2">
+        <div className="mt-3 flex items-center gap-2">
+          <Link to="/secret/$userId" params={{ userId: profileId }} className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-xl bg-amber-500 px-3.5 py-2 text-xs font-black text-black">
+            <Eye className="size-3.5" /> View
+          </Link>
           <input readOnly value={window.location.origin + "/secret/" + profileId} className="cp-input min-w-0 flex-1 text-xs" aria-label="Secret profile link" />
-          <Button type="button" variant="outline" onClick={() => { const url = window.location.origin + "/secret/" + profileId; void navigator.clipboard?.writeText(url); toast.success("Secret Profile link copied."); }}>Copy</Button>
-          <Link to="/secret/$userId" params={{ userId: profileId }} className="inline-flex items-center justify-center rounded-xl bg-primary px-3 text-xs font-bold text-primary-foreground">Open</Link>
+          <Button type="button" variant="outline" className="shrink-0 gap-1.5 border-amber-500/30" onClick={() => { const url = window.location.origin + "/secret/" + profileId; void navigator.clipboard?.writeText(url); toast.success("Secret link copied."); }}>
+            <Copy className="size-3.5" /> Copy
+          </Button>
         </div>
       </section> : null}
 
