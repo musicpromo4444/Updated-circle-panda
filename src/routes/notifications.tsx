@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Bell, Check, CheckCheck } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -15,6 +15,7 @@ export const Route = createFileRoute("/notifications")({
 function NotificationsPage() {
   const [items, setItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   const load = async () => {
     setLoading(true);
@@ -70,30 +71,43 @@ function NotificationsPage() {
         </div>
       ) : (
         <div className="space-y-2">
-          {items.map((item) => (
-            <article key={item.id} className={`panda-panel rounded-2xl p-4 ${item.read_at ? "opacity-75" : "border-primary/40"}`}>
-              <div className="flex gap-3">
-                <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-primary/15 text-primary">🔔</span>
-                <div className="min-w-0 flex-1">
-                  <h2 className="font-display font-semibold">{item.title}</h2>
-                  <p className="mt-1 text-sm text-muted-foreground">{item.body}</p>
-                  <time className="mt-2 block text-[11px] text-muted-foreground">{new Date(item.created_at).toLocaleString()}</time>
-                </div>
+          {items.map((item) => {
+            const metadata = item.metadata ?? {};
+            const requestId = typeof metadata.request_id === "string" ? metadata.request_id : null;
+            const threadId = typeof metadata.thread_id === "string" ? metadata.thread_id : null;
+            const actionable = Boolean(requestId || threadId);
+            return (
+              <article key={item.id} className={`panda-panel rounded-2xl p-4 ${item.read_at ? "opacity-75" : "border-primary/40"}`}>
+                <button
+                  type="button"
+                  className="w-full text-left"
+                  onClick={() => {
+                    void markOneRead(item.id);
+                    if (requestId) void navigate({ to: "/messages", search: { request: requestId } });
+                    else if (threadId) void navigate({ to: "/messages", search: { thread: threadId } });
+                  }}
+                  disabled={!actionable}
+                >
+                  <div className="flex gap-3">
+                    <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-primary/15 text-primary">🔔</span>
+                    <div className="min-w-0 flex-1">
+                      <h2 className="font-display font-semibold">{item.title}</h2>
+                      <p className="mt-1 text-sm text-muted-foreground">{item.body}</p>
+                      <time className="mt-2 block text-[11px] text-muted-foreground">{new Date(item.created_at).toLocaleString()}</time>
+                      {actionable ? <p className="mt-2 text-xs font-bold text-primary">Tap to open →</p> : null}
+                    </div>
+                  </div>
+                </button>
                 {!item.read_at ? (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="size-8 shrink-0 rounded-full"
-                    aria-label="Mark notification as read"
-                    title="Mark as read"
-                    onClick={() => void markOneRead(item.id)}
-                  >
-                    <Check className="size-4" />
-                  </Button>
+                  <div className="mt-2 flex justify-end">
+                    <Button variant="ghost" size="icon" className="size-8 rounded-full" aria-label="Mark notification as read" title="Mark as read" onClick={() => void markOneRead(item.id)}>
+                      <Check className="size-4" />
+                    </Button>
+                  </div>
                 ) : null}
-              </div>
-            </article>
-          ))}
+              </article>
+            );
+          })}
         </div>
       )}
       <div className="mt-5"><StandardBannerAd variant="feed-card" placement="notifications_inline" /></div>
