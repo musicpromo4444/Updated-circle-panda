@@ -131,7 +131,8 @@ export function RegisterDatingModal({open,onOpenChange}:{open:boolean;onOpenChan
         const blurUpload=await supabase.storage.from("dating-photo-blur").upload(blurredPhotoPath,blurred,{contentType:"image/jpeg",upsert:true});
         if(blurUpload.error)throw blurUpload.error;
       }
-      await registerDatingProfile({...p,aboutTraits:p.aboutTraits,photoPath,blurredPhotoPath,name:p.name.trim(),country:p.country.trim(),location:p.location.trim(),bio:""});
+      const saved = await registerDatingProfile({...p,aboutTraits:p.aboutTraits,photoPath,blurredPhotoPath,name:p.name.trim(),country:p.country.trim(),location:p.location.trim(),bio:""});
+      if (!saved) return;
       toast.success(datingProfile?"Dating profile updated 💗":"🎉 Dating profile is live!");
       onOpenChange(false);
     }catch(err:any){toast.error(err?.message??"Could not save Dating profile");}
