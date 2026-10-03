@@ -23,6 +23,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { PandaAvatar } from "@/components/PandaAvatar";
 import { useStore, pandaProgress, starRating, pandaTier, TIERS } from "@/lib/store";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -70,6 +71,7 @@ function ProfilePage() {
   const [profileSaved, setProfileSaved] = useState(false);
   const [profileDetailsOpen, setProfileDetailsOpen] = useState(false);
   const [cosmeticsOpen, setCosmeticsOpen] = useState(false);
+  const [avatarViewOpen, setAvatarViewOpen] = useState(false);
   const [loadingLocations, setLoadingLocations] = useState(false);
   const [avatarHead, setAvatarHead] = useState("🐼");
   const [avatarGlasses, setAvatarGlasses] = useState("");
@@ -210,8 +212,8 @@ function ProfilePage() {
     <AppShell title="Your Profile" subtitle="Anonymous to everyone else. Tracked only for you.">
       <section className="panda-panel rounded-2xl p-5">
         <div className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-3">
-          <VipIdentity isVip={isVip} seed={profileId ?? displayName} avatar={avatar} />
           <div className="min-w-0">
+          <VipIdentity isVip={isVip} seed={profileId ?? displayName} avatar={""} />
             <p className="truncate font-display text-xl font-semibold">{displayName}</p>
             <p className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
               <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-black text-primary">{pandaRank.current.name}</span> {xp.toLocaleString()} XP
@@ -224,6 +226,14 @@ function ProfilePage() {
             ) : null}
           </div>
         </div>
+
+        <section className="mt-4 rounded-2xl border border-border bg-secondary/20 p-3">
+          <div className="flex items-center gap-3">
+            <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-primary/10 text-2xl">🐼</span>
+            <div className="min-w-0 flex-1"><h2 className="font-display text-sm font-semibold">Panda Avatar</h2><p className="text-[10px] text-muted-foreground">Your built-in Panda look</p></div>
+            <div className="flex gap-2"><Button type="button" variant="outline" size="sm" className="h-8 rounded-lg px-3 text-xs font-bold" onClick={() => setAvatarViewOpen(true)}>View</Button><Button type="button" size="sm" className="h-8 rounded-lg px-3 text-xs font-bold" onClick={() => setCosmeticsOpen(true)}>Edit</Button></div>
+          </div>
+        </section>
 
         <div className="mt-4">
           <div className="flex items-center justify-between text-xs text-muted-foreground">
@@ -380,7 +390,7 @@ function ProfilePage() {
       </div>
 
       <section className="panda-panel mt-4 rounded-2xl p-3">
-        {!cosmeticsOpen ? (
+        {cosmeticsOpen ? (
           <div className="flex items-center justify-between gap-3">
             <div className="flex min-w-0 items-center gap-2">
               <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-primary/15 text-base">🎨</span>
@@ -388,8 +398,9 @@ function ProfilePage() {
             </div>
             <Button variant="outline" size="sm" className="h-8 shrink-0 rounded-lg px-3 text-xs font-bold" onClick={() => setCosmeticsOpen(true)}>Edit</Button>
           </div>
-        ) : (
-          <>
+        ) : null}
+        {!cosmeticsOpen ? null : (
+          <> 
             <div className="flex items-center justify-between gap-3">
               <div><h2 className="font-display text-lg font-semibold">Panda Avatar Studio</h2><p className="text-xs text-muted-foreground">Built-in Panda looks only — choose your head, glasses and cosmetic.</p></div>
               <Button variant="outline" size="sm" className="h-8 rounded-lg px-3 text-xs font-bold" onClick={() => setCosmeticsOpen(false)}>Save</Button>
@@ -513,6 +524,14 @@ function ProfilePage() {
         </div>
       </section>
 
+
+      <Dialog open={avatarViewOpen} onOpenChange={setAvatarViewOpen}>
+        <DialogContent className="max-w-sm rounded-3xl">
+          <DialogHeader><DialogTitle>Your Panda Avatar</DialogTitle><DialogDescription>Your built-in Panda avatar is private to your profile. Use Edit to change the look.</DialogDescription></DialogHeader>
+          <div className="grid place-items-center py-5"><div className="grid size-36 place-items-center rounded-3xl bg-secondary"><PandaAvatar avatar={avatar} size="lg" /></div></div>
+          <Button onClick={() => { setAvatarViewOpen(false); setCosmeticsOpen(true); }}>Edit Avatar</Button>
+        </DialogContent>
+      </Dialog>
     </AppShell>
   );
 }
