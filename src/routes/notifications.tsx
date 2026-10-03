@@ -49,7 +49,7 @@ function NotificationsPage() {
   };
 
   const markOneRead = async (id: string) => {
-    const { error } = await (supabase as any).rpc("mark_notification_read", { p_notification_id: id });
+    const { error } = await (supabase as any).rpc("mark_notification_read", { p_id: id });
     if (error) { toast.error(error.message ?? "Could not mark notification read"); return; }
     setItems((current) => current.map((x) => x.id === id ? { ...x, read_at: x.read_at ?? new Date().toISOString() } : x));
   };
