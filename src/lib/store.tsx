@@ -474,7 +474,7 @@ type StoreValue = State & {
   requestDatingMatch: (userId: string) => Promise<string | null>;
   searchDatingProfiles: (filters: { ageMin?: number; ageMax?: number; country?: string; location?: string; gender?: string; relationshipGoal?: string; lookingFor?: string; lifestyle?: string; smoking?: string; drinking?: string; children?: string; education?: string; heightMin?: number; heightMax?: number; zodiac?: string; sameCountryOnly?: boolean }) => Promise<boolean>;
   refreshDatingData: () => Promise<boolean>;
-  registerDatingProfile: (profile: Omit<DatingProfile, "registeredAt" | "userId">) => void;
+  registerDatingProfile: (profile: Omit<DatingProfile, "registeredAt" | "userId">) => Promise<boolean>;
 };
 
 const StoreContext = createContext<StoreValue | null>(null);
@@ -1046,8 +1046,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, [dbUserId]);
 
   const registerDatingProfile = useCallback((p: Omit<DatingProfile, "registeredAt" | "userId">) => {
-    if (!dbUserId) { requestLogin("register for Dating"); return; }
-    void (async () => {
+    if (!dbUserId) { requestLogin("register for Dating"); return false; }
+    return (async () => {
       const { data, error } = await (supabase as any).rpc("register_dating_profile_secure", {
         p_vibe:p.vibe,p_about_traits:p.aboutTraits,p_interests:p.interests,
         p_relationship_goal:p.relationshipGoal,p_looking_for:p.lookingFor,p_lifestyle:p.lifestyle,p_personality:p.personality,
@@ -1055,10 +1055,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         p_occupation:p.occupation,p_sexual_experience:p.sexualExperience,p_height_cm:p.heightCm??null,p_zodiac:p.zodiac,
         p_favorite_date:p.favoriteDate,p_emoji:p.emoji,p_photo_path:p.photoPath||null,p_blurred_photo_path:p.blurredPhotoPath||null
       });
-      if (error) { toast.error(error.message ?? "Dating profile could not be saved"); return; }
+      if (error) { toast.error(error.message ?? "Dating profile could not be saved"); return false; }
       await refreshDatingData();
       window.dispatchEvent(new CustomEvent("circle-panda-action", { detail: { title: "Dating card published!", emoji: "💗" } }));
       toast.success("Dating profile saved 💗");
+      return true;
     })();
   }, [dbUserId, refreshDatingData]);
 
