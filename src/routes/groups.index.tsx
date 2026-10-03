@@ -97,8 +97,13 @@ function GroupCard({ group }: { group: GroupChat }) {
 }
 
 function GroupsPage() {
-  useTick();
+  const [, setTick] = useState(0);
   const { groups } = useStore();
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setTick((value) => value + 1), 60_000);
+    return () => window.clearInterval(timer);
+  }, []);
   const [createGroupOpen, setCreateGroupOpen] = useState(false);
 
   return (
