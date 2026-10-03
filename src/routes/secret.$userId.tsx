@@ -145,13 +145,12 @@ function SecretProfilePage() {
           <Button className="mt-3 h-9 rounded-xl px-4 text-xs font-black" onClick={focusComposer}><Send className="mr-1.5 size-3.5" /> Post a Secret</Button>
         </section>
 
-        <section className="panda-panel rounded-3xl p-5">
-          <div className="flex items-start gap-3">
-            <span className="grid size-10 place-items-center rounded-xl bg-primary/10"><Lock className="size-5 text-primary" /></span>
-            <div><h2 className="font-display text-lg font-bold">Secrets about {profile.display_name}</h2><p className="mt-1 text-xs font-bold text-red-500 dark:text-red-400">A full feed of anonymous secrets, with reactions, comments, and sharing.</p></div>
+        <section className="space-y-4">
+          <div className="px-1">
+            <h2 className="font-display text-2xl font-black leading-tight">Secrets about {profile.display_name}</h2>
           </div>
 
-          <div className="mt-4 space-y-3">
+          <div className="space-y-4">
             {secrets.length ? secrets.map((secret,index) => {
               const ix = interactions[secret.id] ?? {reaction:null,reaction_count:0,comment_count:0,heart_count:0,laugh_count:0,wow_count:0,sad_count:0,angry_count:0,panda_count:0};
               const selected = reactionOptions.find((r) => r.key === ix.reaction);
