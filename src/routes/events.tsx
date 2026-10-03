@@ -128,7 +128,7 @@ function EventsPage() {
               <div className="mt-3 space-y-1 text-xs text-muted-foreground">
                 <p className="flex items-center gap-1.5"><CalendarDays className="size-3.5" /> {e.date} · {e.time}</p>
                 <p className="flex items-center gap-1.5"><MapPin className="size-3.5" /> {e.place}</p>
-                <p className="flex items-center gap-1.5"><Users className="size-3.5" /> {e.reachScope === "worldwide" ? "Worldwide" : `${e.reachScope}: ${e.reachCity || e.reachCountry || e.reachArea || ""}`}</p>
+                <p className="flex items-center gap-1.5"><Users className="size-3.5" /> {e.attendeeCount ?? 0} attending · {e.reachScope === "worldwide" ? "Worldwide" : `${e.reachScope}: ${e.reachCity || e.reachCountry || e.reachArea || ""}`}</p>
               </div>
               {e.rsvp ? <p className="mt-3 rounded-lg bg-primary/15 py-1.5 text-center text-xs font-semibold text-primary">You're going 🐼</p> : null}
               {e.ownerId && e.ownerId === currentUserId ? <div className="mt-3 flex items-center justify-between border-t border-border/60 pt-3"><span className="text-[11px] text-muted-foreground">Your event</span><span role="button" tabIndex={0} onClick={(ev) => { ev.stopPropagation(); setOpenEvent(e); setBlastOpen(true); }} className="rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground">Boost Event</span></div> : null}
@@ -156,7 +156,7 @@ function EventsPage() {
               <p className="flex items-center gap-2"><Clock className="size-4 text-primary" /> {current.time}</p>
               <p className="flex items-center gap-2"><MapPin className="size-4 text-primary" /> {current.venueName || current.place}</p>
               <p className="text-xs text-muted-foreground">{current.addressLine}{current.area ? `, ${current.area}` : ""}{current.city ? `, ${current.city}` : ""}{current.stateProvince ? `, ${current.stateProvince}` : ""}{current.country ? `, ${current.country}` : ""}</p>
-              <p className="flex items-center gap-2"><Users className="size-4 text-primary" /> {current.reachScope ?? "worldwide"} reach</p>
+              <p className="flex items-center gap-2"><Users className="size-4 text-primary" /> {current.attendeeCount ?? 0} attending · {current.reachScope ?? "worldwide"} reach</p>
               <p>{current.cost === 0 ? "Gate fee: Free" : `Gate fee: ${current.currency === "NGN" ? "₦" : current.currency + " "}${current.cost.toLocaleString()} — paid at the gate`}</p>
             </div>
             <p className="text-sm leading-relaxed text-muted-foreground">{current.details}</p>
