@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { Check, ChevronLeft, Heart, Send, ShieldBan, X, Sparkles, Phone, Video } from "lucide-react";
+import { Check, ChevronLeft, Heart, Send, ShieldBan, X, Sparkles, Phone, Video, MessageCircle } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
@@ -12,12 +12,12 @@ import { useStore } from "@/lib/store";
 import { toast } from "sonner";
 import { VipPrivateCall } from "@/components/messages/VipPrivateCall";
 
-type Search = { thread?: string };
+type Search = { thread?: string; request?: string };
 type PendingDatingDecision = { connection_id:string; other_id:string; other_name:string; other_age:number; other_vibe:string; other_blurred_photo_path:string; reveal_at:string; matched_at:string };
 
 export const Route = createFileRoute("/messages")({
   validateSearch: (search: Record<string, unknown>): Search =>
-    typeof search["thread"] === "string" ? { thread: search["thread"] } : {},
+    typeof search["thread"] === "string" || typeof search["request"] === "string" ? { thread: typeof search["thread"] === "string" ? search["thread"] : undefined, request: typeof search["request"] === "string" ? search["request"] : undefined } : {},
   head: () => ({
     meta: [
       { title: "Direct Messages — Circle Panda" },
@@ -58,7 +58,7 @@ function MessagesPage() {
   const navigate = useNavigate();
   const [activeId, setActiveId] = useState<string | null>(search.thread ?? null);
   const [draft, setDraft] = useState("");
-  const [crushRequests, setCrushRequests] = useState<any[]>([]);
+  const [selectedRequestId, setSelectedRequestId] = useState<string | null>(search.request ?? null);
   const [messageRequests, setMessageRequests] = useState<any[]>([]);
   const [pendingDating, setPendingDating] = useState<PendingDatingDecision | null>(null);
   const [decisionBusy, setDecisionBusy] = useState(false);
@@ -69,6 +69,7 @@ function MessagesPage() {
 
   useEffect(() => {
     if (search.thread) setActiveId(search.thread);
+    if (search.request) setSelectedRequestId(search.request);
   }, [search.thread]);
 
   useEffect(() => {
@@ -82,12 +83,36 @@ function MessagesPage() {
   }, []);
 
   useEffect(() => {
-    void (supabase as any).rpc("get_my_crush_message_requests").then(({ data }: any) => setCrushRequests(data ?? []));
-    void (supabase as any).from("direct_message_requests").select("id,sender_id,message,kind,created_at").eq("status","pending").order("created_at",{ascending:false}).then(({data,error}:any)=>{ if(!error) setMessageRequests(data??[]); });
+    void (async () => {
+      const uid = (await supabase.auth.getUser()).data.user?.id;
+      if (!uid) return;
+      const { data, error } = await (supabase as any).from("direct_message_requests").select("id,sender_id,message,kind,created_at").eq("recipient_id",uid).eq("status","pending").order("created_at",{ascending:false});
+      if (!error) {
+        setMessageRequests(data ?? []);
+        if (search.request && (data ?? []).some((r:any) => r.id === search.request)) setSelectedRequestId(search.request);
+      }
+    })();
     void (supabase as any).rpc("get_pending_dating_decisions_secure").then(({data,error}:any)=>{
       if (!error && Array.isArray(data) && data.length) setPendingDating(data[0]);
     });
   }, []);
+
+  const respondRequest = async (request: any, accept: boolean) => {
+    try {
+      const { data, error } = await (supabase as any).rpc("respond_direct_message_request_secure", { p_request_id: request.id, p_accept: accept });
+      if (error) throw error;
+      setMessageRequests((current) => current.filter((r) => r.id !== request.id));
+      setSelectedRequestId((current) => current === request.id ? null : current);
+      if (accept && data?.thread_id) {
+        toast.success("Request accepted 💬");
+        void navigate({ to: "/messages", search: { thread: data.thread_id } });
+      } else if (!accept) {
+        toast.success("Request declined");
+      }
+    } catch (e:any) {
+      toast.error(e?.message ?? "Could not respond to request");
+    }
+  };
 
   const decideDating = async (decision: "continue" | "ignore") => {
     if (!pendingDating || decisionBusy) return;
@@ -139,31 +164,19 @@ function MessagesPage() {
         <div className="space-y-3">
           {messageRequests.length ? (
             <section className="panda-panel rounded-2xl border border-primary/20 bg-primary/5 p-4">
-              <div className="flex items-center gap-2"><span className="text-lg">💬</span><div><p className="font-display text-sm font-bold">Message requests</p><p className="text-[11px] text-muted-foreground">Accept before a direct chat can begin.</p></div></div>
+              <div className="flex items-center gap-2"><span className="text-lg">💌</span><div><p className="font-display text-sm font-bold">Message requests</p><p className="text-[11px] text-muted-foreground">Open a request or accept/decline it directly.</p></div></div>
               <div className="mt-3 space-y-2">
                 {messageRequests.map((r:any)=>(
                   <div key={r.id} className="rounded-xl bg-background p-3">
-                    <p className="text-[10px] font-bold text-muted-foreground">Anonymous Panda · {r.kind === "dating" ? "Dating request" : "Message request"}</p>
-                    {r.message ? <p className="mt-1 text-sm">{r.message}</p> : null}
+                    <button type="button" className="w-full text-left" onClick={() => setSelectedRequestId(r.id)}>
+                      <p className="text-[10px] font-bold text-muted-foreground">Anonymous Panda · {r.kind === "crush" ? "MCM/WCW Message Request" : r.kind === "dating" ? "Dating request" : "Message request"}</p>
+                      {r.message ? <p className="mt-1 line-clamp-2 text-sm">{r.message}</p> : null}
+                    </button>
                     <div className="mt-2 flex gap-2">
-                      <Button size="sm" className="gap-1" onClick={()=>void (supabase as any).rpc("respond_direct_message_request_secure",{p_request_id:r.id,p_accept:true}).then(({data,error}:any)=>{if(error)throw error;setMessageRequests(x=>x.filter(y=>y.id!==r.id));if(data?.thread_id) void navigate({to:"/messages",search:{thread:data.thread_id}});})}><Check className="size-3.5"/>Accept</Button>
-                      <Button size="sm" variant="outline" className="gap-1" onClick={()=>void (supabase as any).rpc("respond_direct_message_request_secure",{p_request_id:r.id,p_accept:false}).then(({error}:any)=>{if(error)throw error;setMessageRequests(x=>x.filter(y=>y.id!==r.id));})}><X className="size-3.5"/>Decline</Button>
-                      <Button size="sm" variant="ghost" className="gap-1 text-destructive" onClick={()=>void (supabase as any).rpc("block_user_secure",{p_user_id:r.sender_id}).then(({error}:any)=>{if(error)throw error;setMessageRequests(x=>x.filter(y=>y.id!==r.id));})}><ShieldBan className="size-3.5"/>Block</Button>
+                      <Button size="sm" className="gap-1" onClick={() => void respondRequest(r,true)}><Check className="size-3.5"/>Accept</Button>
+                      <Button size="sm" variant="outline" className="gap-1" onClick={() => void respondRequest(r,false)}><X className="size-3.5"/>Decline</Button>
+                      <Button size="sm" variant="ghost" className="gap-1 text-destructive" onClick={() => void (supabase as any).rpc("block_user_secure",{p_user_id:r.sender_id}).then(({error}:any)=>{if(error)throw error;setMessageRequests(x=>x.filter(y=>y.id!==r.id));}).catch((e:any)=>toast.error(e?.message??"Could not block user"))}><ShieldBan className="size-3.5"/>Block</Button>
                     </div>
-                  </div>
-                ))}
-              </div>
-            </section>
-          ) : null}
-          {crushRequests.length ? (
-            <section className="panda-panel rounded-2xl border border-primary/20 bg-primary/5 p-4">
-              <div className="flex items-center gap-2"><span className="text-lg">💌</span><div><p className="font-display text-sm font-bold">Crush message requests</p><p className="text-[11px] text-muted-foreground">Anonymous messages sent to your MCM/WCW picture.</p></div></div>
-              <div className="mt-3 space-y-2">
-                {crushRequests.slice(0, 8).map((r: any) => (
-                  <div key={r.id} className="rounded-xl bg-background p-3">
-                    <p className="text-[10px] font-bold text-muted-foreground">Anonymous Panda · Message Request</p>
-                    {r.body ? <p className="mt-1 text-sm">{r.body}</p> : null}
-                    {r.attachment_url ? <a href={r.attachment_url} target="_blank" rel="noreferrer" className="mt-2 inline-block text-xs font-semibold text-primary">📎 View attachment</a> : null}
                   </div>
                 ))}
               </div>
@@ -208,6 +221,29 @@ function MessagesPage() {
             </div>
           ))}
         </div>
+      <Dialog open={!!selectedRequestId} onOpenChange={(open) => { if (!open) { setSelectedRequestId(null); void navigate({ to: "/messages" }); } }}>
+        <DialogContent className="h-[100dvh] w-screen max-w-none rounded-none border-0 bg-background p-0">
+          {(() => {
+            const request = messageRequests.find((r:any) => r.id === selectedRequestId);
+            if (!request) return null;
+            return <div className="flex h-full flex-col">
+              <div className="flex items-center gap-3 border-b border-border bg-card px-3 py-3">
+                <Button variant="ghost" size="icon" onClick={() => setSelectedRequestId(null)}><ChevronLeft className="size-5"/></Button>
+                <span className="grid size-10 place-items-center rounded-full bg-secondary text-xl">🐼</span>
+                <div className="min-w-0 flex-1"><p className="font-semibold">Anonymous Panda</p><p className="text-[11px] text-muted-foreground">{request.kind === "crush" ? "MCM/WCW Message Request" : "Message Request"}</p></div>
+              </div>
+              <div className="flex-1 overflow-y-auto bg-secondary/20 p-4">
+                <div className="max-w-[82%] rounded-2xl rounded-tl-md bg-card px-4 py-3 text-sm shadow-sm">{request.message || "This Panda sent you a message request."}</div>
+              </div>
+              <div className="grid grid-cols-2 gap-2 border-t border-border bg-card p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+                <Button variant="outline" onClick={() => void respondRequest(request,false)}>Decline</Button>
+                <Button onClick={() => void respondRequest(request,true)} className="gap-2"><Check className="size-4"/>Accept & Reply</Button>
+              </div>
+            </div>;
+          })()}
+        </DialogContent>
+      </Dialog>
+
       <Dialog open={!!pendingDating} onOpenChange={(open)=>{ if (!open && !decisionBusy) setPendingDating(null); }}>
         <DialogContent className="max-w-md overflow-hidden border-[var(--dating)]/30 p-0">
           {pendingDating ? (
