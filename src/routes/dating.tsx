@@ -32,6 +32,16 @@ type Match = {
   lifestyle?: string[];
   occupation?: string;
   favoriteDate?: string;
+  personality?: string[];
+  education?: string;
+  children?: string;
+  smoking?: string;
+  drinking?: string;
+  heightCm?: number | null;
+  zodiac?: string;
+  sexualExperience?: string;
+  intimacyPreference?: string;
+  loveLanguage?: string;
 };
 
 function DatingPhoto({ match, connection }: { match: Match; connection?: any }) {
