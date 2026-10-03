@@ -17,6 +17,12 @@ import {
   Copy,
   ShieldAlert,
   LogOut,
+  Settings,
+  CreditCard,
+  Info,
+  PauseCircle,
+  PlayCircle,
+  Trash2,
 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { StandardBannerAd } from "@/components/ads/StandardBannerAd";
@@ -75,6 +81,13 @@ function ProfilePage() {
   const [profileDetailsOpen, setProfileDetailsOpen] = useState(false);
   const [cosmeticsOpen, setCosmeticsOpen] = useState(false);
   const [avatarViewOpen, setAvatarViewOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [accountStatus, setAccountStatus] = useState<"active" | "deactivated" | "pending_deletion">("active");
+  const [deactivatedUntil, setDeactivatedUntil] = useState<string | null>(null);
+  const [deletionScheduledFor, setDeletionScheduledFor] = useState<string | null>(null);
+  const [resumeDate, setResumeDate] = useState("");
+  const [deletionConfirmOpen, setDeletionConfirmOpen] = useState(false);
+  const [settingsBusy, setSettingsBusy] = useState(false);
   const [loadingLocations, setLoadingLocations] = useState(false);
   const [avatarHead, setAvatarHead] = useState("🐼");
   const [avatarGlasses, setAvatarGlasses] = useState("");
@@ -106,6 +119,12 @@ function ProfilePage() {
       if (profile?.address_line) setAddressLine(profile.address_line);
       if (profile?.bio) setBio(profile.bio);
       if (profile?.gender === "male" || profile?.gender === "female") setAccountGender(profile.gender);
+      const { data: settings } = await (supabase as any).rpc("get_my_account_settings_secure");
+      if (settings) {
+        setAccountStatus(settings.status ?? "active");
+        setDeactivatedUntil(settings.deactivated_until ?? null);
+        setDeletionScheduledFor(settings.deletion_scheduled_for ?? null);
+      }
     });
   }, []);
   useEffect(() => {
@@ -212,7 +231,7 @@ function ProfilePage() {
     : 0;
 
   return (
-    <AppShell title="Your Profile" subtitle="Anonymous to everyone else. Tracked only for you.">
+    <AppShell title="Your Profile" subtitle="Anonymous to everyone else. Tracked only for you.">\n      <div className="mb-3 flex justify-end"><Button type="button" variant="outline" className="gap-2 rounded-xl" onClick={() => setSettingsOpen(true)}><Settings className="size-4" /> Profile Settings</Button></div>
       <section className="panda-panel rounded-2xl p-5">
         <div className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-3">
           <div className="min-w-0">
@@ -526,6 +545,27 @@ function ProfilePage() {
       </section>
 
 
+
+      <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
+        <DialogContent className="max-w-md rounded-3xl">
+          <DialogHeader><DialogTitle className="flex items-center gap-2"><Settings className="size-5" /> Profile Settings</DialogTitle><DialogDescription>Manage your plan, account information, deactivation and deletion.</DialogDescription></DialogHeader>
+          <div className="max-h-[70vh] space-y-3 overflow-y-auto pr-1">
+            <section className="rounded-2xl border border-border bg-secondary/20 p-4"><div className="flex items-start gap-3"><span className="grid size-10 place-items-center rounded-xl bg-primary/10"><CreditCard className="size-5 text-primary" /></span><div className="min-w-0 flex-1"><h3 className="font-semibold">Plan</h3><p className="mt-1 text-xs text-muted-foreground">{isVip && vipExpiresAt ? "VIP active · expires " + new Date(vipExpiresAt).toLocaleDateString() : "Free Panda plan"}</p></div><Link to="/store" onClick={() => setSettingsOpen(false)} className="rounded-xl bg-primary px-3 py-2 text-xs font-bold text-primary-foreground">View Plan</Link></div></section>
+            <section className="rounded-2xl border border-border bg-secondary/20 p-4"><div className="flex items-start gap-3"><span className="grid size-10 place-items-center rounded-xl bg-primary/10"><Info className="size-5 text-primary" /></span><div><h3 className="font-semibold">About</h3><p className="mt-1 text-xs text-muted-foreground">Circle Panda profile, privacy and account controls. Your account identity stays separate from your public Panda activity.</p></div></div></section>
+            <section className="rounded-2xl border border-amber-500/30 bg-amber-500/5 p-4"><div className="flex items-start gap-3"><span className="grid size-10 place-items-center rounded-xl bg-amber-500/15"><PauseCircle className="size-5 text-amber-400" /></span><div className="min-w-0 flex-1"><h3 className="font-semibold">Deactivate Account</h3><p className="mt-1 text-xs text-muted-foreground">Choose when your account should automatically resume. You can resume early at any time.</p></div></div>
+              {accountStatus === "deactivated" ? <div className="mt-3 space-y-2"><p className="text-xs font-semibold text-amber-200">Scheduled to resume {deactivatedUntil ? new Date(deactivatedUntil).toLocaleString() : "automatically"}.</p><Button className="w-full gap-2 rounded-xl" disabled={settingsBusy} onClick={() => void (async () => { setSettingsBusy(true); const { data, error } = await (supabase as any).rpc("resume_my_account_secure"); setSettingsBusy(false); if (error) { toast.error(error.message); return; } setAccountStatus(data?.status ?? "active"); setDeactivatedUntil(null); toast.success("Your account is active again."); })()}><PlayCircle className="size-4" /> Resume Now</Button></div> :
+              <div className="mt-3 space-y-2"><input type="datetime-local" value={resumeDate} onChange={(e) => setResumeDate(e.target.value)} min={new Date(Date.now()+60000).toISOString().slice(0,16)} className="cp-input w-full" /><Button className="w-full gap-2 rounded-xl" disabled={settingsBusy || !resumeDate} onClick={() => void (async () => { setSettingsBusy(true); const { data, error } = await (supabase as any).rpc("deactivate_my_account_secure", { p_resume_at: new Date(resumeDate).toISOString() }); setSettingsBusy(false); if (error) { toast.error(error.message); return; } setAccountStatus(data?.status ?? "deactivated"); setDeactivatedUntil(data?.deactivated_until ?? null); toast.success("Account deactivated. It will resume on your chosen date."); })()}><PauseCircle className="size-4" /> Deactivate Account</Button></div>}
+            </section>
+            <section className="rounded-2xl border border-destructive/40 bg-destructive/5 p-4"><div className="flex items-start gap-3"><span className="grid size-10 place-items-center rounded-xl bg-destructive/10"><Trash2 className="size-5 text-destructive" /></span><div className="min-w-0 flex-1"><h3 className="font-semibold text-destructive">Delete Account</h3><p className="mt-1 text-xs text-muted-foreground">Deletion is scheduled 30 days from the request. You can come back during those 30 days and cancel deletion.</p></div></div>
+              {accountStatus === "pending_deletion" ? <div className="mt-3 space-y-2"><p className="text-xs font-semibold text-destructive">Permanent deletion scheduled for {deletionScheduledFor ? new Date(deletionScheduledFor).toLocaleString() : "30 days after your request"}.</p><Button variant="outline" className="w-full rounded-xl" disabled={settingsBusy} onClick={() => void (async () => { setSettingsBusy(true); const { data, error } = await (supabase as any).rpc("cancel_account_deletion_secure"); setSettingsBusy(false); if (error) { toast.error(error.message); return; } setAccountStatus(data?.status ?? "active"); setDeletionScheduledFor(null); toast.success("Deletion cancelled. Your account is active."); })()}>Cancel Deletion</Button></div> :
+              <Button variant="destructive" className="mt-3 w-full gap-2 rounded-xl" onClick={() => setDeletionConfirmOpen(true)}><Trash2 className="size-4" /> Schedule Account Deletion</Button>}
+            </section>
+          </div>
+        </DialogContent>
+      </Dialog>
+      <Dialog open={deletionConfirmOpen} onOpenChange={setDeletionConfirmOpen}>
+        <DialogContent className="max-w-sm rounded-3xl"><DialogHeader><DialogTitle>Delete your Panda account?</DialogTitle><DialogDescription>Your account remains recoverable for 30 days. After that, it is permanently deleted. You can cancel before the deadline.</DialogDescription></DialogHeader><div className="grid grid-cols-2 gap-2"><Button variant="outline" onClick={() => setDeletionConfirmOpen(false)}>Keep Account</Button><Button variant="destructive" disabled={settingsBusy} onClick={() => void (async () => { setSettingsBusy(true); const { data, error } = await (supabase as any).rpc("request_account_deletion_secure"); setSettingsBusy(false); if (error) { toast.error(error.message); return; } setAccountStatus(data?.status ?? "pending_deletion"); setDeletionScheduledFor(data?.deletion_scheduled_for ?? null); setDeletionConfirmOpen(false); toast.success("Deletion scheduled. You have 30 days to change your mind."); })()}>Delete in 30 Days</Button></div></DialogContent>
+      </Dialog>
       <Dialog open={avatarViewOpen} onOpenChange={setAvatarViewOpen}>
         <DialogContent className="max-w-sm rounded-3xl">
           <DialogHeader><DialogTitle>Your Panda Avatar</DialogTitle><DialogDescription>Your built-in Panda avatar is private to your profile. Use Edit to change the look.</DialogDescription></DialogHeader>
