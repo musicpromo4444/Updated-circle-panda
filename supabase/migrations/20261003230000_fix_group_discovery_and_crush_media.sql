@@ -1,6 +1,8 @@
 -- Circle Panda production fixes: cross-account group discovery and public WCW/MCM media.
--- Applied directly to the production Supabase database during the 2026-10-03 fix.
+-- The production database was already updated directly; this migration keeps the fix
+-- reproducible for a fresh database or future migration run.
 
+drop policy if exists "group_members_authenticated_read" on public.group_members;
 create policy "group_members_authenticated_read"
 on public.group_members
 for select
