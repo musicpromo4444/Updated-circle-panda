@@ -1,0 +1,3 @@
+-- Return exact BC requirement/balance when an Event Blast BC purchase cannot be completed.
+-- The live Supabase function was updated by migration
+-- 20261003210000_event_blast_insufficient_bc_details.
