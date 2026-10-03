@@ -389,19 +389,21 @@ export function AppShell({
   children,
   wide = false,
   hidePageHeader = false,
+  immersive = false,
 }: {
   title: string;
   subtitle?: string;
   children: ReactNode;
   wide?: boolean;
   hidePageHeader?: boolean;
+  immersive?: boolean;
 }) {
   const { reputation, isAdmin } = useStore();
   const tier = pandaTier(reputation);
 
   return (
-    <div className="min-h-screen pb-24">
-      <header className="sticky top-0 z-30 border-b border-border/70 bg-background/85 backdrop-blur-xl">
+    <div className={cn("min-h-screen", !immersive && "pb-24")}>
+      {!immersive ? <header className="sticky top-0 z-30 border-b border-border/70 bg-background/85 backdrop-blur-xl">
         <div className="mx-auto flex w-full max-w-3xl items-center gap-3 px-4 py-3">
           <Link to="/" className="flex min-w-0 flex-1 items-center gap-2">
             <span className="min-w-0">
@@ -431,9 +433,9 @@ export function AppShell({
             <User className="size-4.5 text-muted-foreground" />
           </Link>
         </div>
-      </header>
+      </header> : null}
 
-      <main className={cn("mx-auto w-full px-4 pt-4", wide ? "max-w-6xl" : "max-w-3xl")}>
+      <main className={cn("mx-auto w-full", !immersive && "px-4 pt-4", wide ? "max-w-6xl" : "max-w-3xl")}>
         {!hidePageHeader ? (
           <div className="mb-3 flex items-center justify-between gap-3">
             <div className="min-w-0">
@@ -452,9 +454,9 @@ export function AppShell({
         {children}
       </main>
 
-      <BottomNav />
-      <ActionCelebration />
-      <DailyRewardPopup />
+      {!immersive ? <BottomNav /> : null}
+      {!immersive ? <ActionCelebration /> : null}
+      {!immersive ? <DailyRewardPopup /> : null}
     </div>
   );
 }
