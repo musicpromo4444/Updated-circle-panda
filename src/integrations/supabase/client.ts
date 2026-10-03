@@ -36,7 +36,7 @@ function createSupabaseFetch(supabaseKey: string): typeof fetch {
           const clone = response.clone();
           const payload = await clone.json();
           const message = String(payload?.message ?? payload?.error_description ?? "");
-          if (/insufficient\\s+(panda\\s+)?coins?|insufficient\\s+bc/i.test(message)) {
+          if (/insufficient\\s+(panda\\s+)?coins?|insufficient\\s+bc|no\\s+equivalent\\s+bc/i.test(message)) {
             const requiredMatch = message.match(/required\\s*[:=]\\s*(\\d+)/i);
             const balanceMatch = message.match(/(?:balance|available)\\s*[:=]\\s*(\\d+)/i);
             window.dispatchEvent(new CustomEvent("circle-panda-insufficient-bc", {
@@ -44,6 +44,7 @@ function createSupabaseFetch(supabaseKey: string): typeof fetch {
                 required: requiredMatch ? Number(requiredMatch[1]) : undefined,
                 balance: balanceMatch ? Number(balanceMatch[1]) : undefined,
                 reason: message,
+                noEquivalent: /no\\s+equivalent\\s+bc/i.test(message),
               },
             }));
           }
