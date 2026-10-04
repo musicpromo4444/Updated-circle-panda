@@ -6,12 +6,13 @@ import { GroupMediaMessage, type GroupMediaItem } from "@/components/groups/Grou
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { VipPrivateCall } from "@/components/messages/VipPrivateCall";
+import { VipGroupCallOverlay } from "@/components/groups/VipGroupCallOverlay";
 
 type VipMessage = GroupMediaItem & { mediaPath?: string };
 
 export function VipGroupChat({ open, onOpenChange }: { open: boolean; onOpenChange: (open:boolean)=>void }) {
   const [messages,setMessages]=useState<VipMessage[]>([]);
-  const bottom=useRef<HTMLDivElement>(null);\n  const [callId,setCallId]=useState<string|null>(null);\n  const [matching,setMatching]=useState(false);\n  const [callConfig,setCallConfig]=useState<{voice_enabled:boolean;video_enabled:boolean}|null>(null);
+  const bottom=useRef<HTMLDivElement>(null);\n  const [callId,setCallId]=useState<string|null>(null);\n  const [matching,setMatching]=useState(false);\n  const [callConfig,setCallConfig]=useState<{voice_enabled:boolean;video_enabled:boolean}|null>(null);\n  const [activeCall,setActiveCall]=useState<"voice"|"video"|null>(null);
 
   const mapRow=async(row:any):Promise<VipMessage>=>{
     let mediaUrl:string|undefined;
