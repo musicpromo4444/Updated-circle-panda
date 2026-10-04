@@ -5,7 +5,6 @@ import { Heart, MessageCircle, Sparkles, SlidersHorizontal, X } from "lucide-rea
 import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { PlayableVideoAd } from "@/components/ads/PlayableVideoAd";
 import { RegisterDatingModal } from "@/components/dating/RegisterDatingModal";
@@ -25,6 +24,7 @@ type Match = {
   photoPath?: string;
   blurredPhotoPath?: string;
   country?: string;
+  stateProvince?: string;
   gender?: string;
   aboutTraits?: string[];
   lookingFor?: string[];
@@ -86,6 +86,26 @@ export const Route = createFileRoute("/dating")({
   component: DatingPage,
 });
 
+const RELATIONSHIP_GOALS = [
+  "Long-distance relationship","Something casual","Long-term relationship","Something that leads to marriage",
+  "Just for fun","Just exploring","Friendship first","Dating / getting to know someone"
+];
+const LOOKING_FOR_OPTIONS = [
+  "Very fair","Fair","Light brown","Brown","Dark brown","Deep dark","Slim","Petite","Average build","Athletic",
+  "Muscular","Chubby","Curvy","Plus-size","Broad shoulders","Figure-eight","Short","Average height","Tall",
+  "Very tall","Black hair","Brown hair","Blonde hair","Red hair","Grey hair","Other","Short hair","Long hair",
+  "Dreads","Braids","Curly hair","Straight hair","Bald","Black eyes","Brown eyes","Hazel eyes","Blue eyes",
+  "Green eyes","Grey eyes","Casual","Smart","Streetwear","Glamorous","Feminine","Masculine","Sexy"
+];
+const LIFESTYLE_OPTIONS = [
+  "Playful","Adventurous","Social","Social-media person","Office type","Inside type","Romantic","Funny",
+  "Ambitious","Party person","Quiet/private","Family-oriented","Spontaneous","Jealous","Easygoing"
+];
+const SMOKING_OPTIONS = ["Non-smoker","Smoker","Occasionally","Prefer not to say"];
+const DRINKING_OPTIONS = ["Non-drinker","Drinker","Occasionally","Prefer not to say"];
+const CHILDREN_OPTIONS = ["No children","Have children","Prefer not to say"];
+const EDUCATION_OPTIONS = ["Secondary school","College / Polytechnic","University","Postgraduate","Prefer not to say"];
+
 function DatingPage() {
   const { requestDatingMatch, startDatingChat, searchDatingProfiles, refreshDatingData, datingProfile, datingMatches } = useStore();
   const navigate = useNavigate();
@@ -106,6 +126,7 @@ function DatingPage() {
   const [connections, setConnections] = useState<any[]>([]);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [countryFilter, setCountryFilter] = useState("");
+  const [stateFilter, setStateFilter] = useState("");
   const [locationFilter, setLocationFilter] = useState("");
   const [goalFilter, setGoalFilter] = useState("");
   const [lookingForFilter, setLookingForFilter] = useState("");
@@ -114,9 +135,6 @@ function DatingPage() {
   const [drinkingFilter, setDrinkingFilter] = useState("");
   const [childrenFilter, setChildrenFilter] = useState("");
   const [educationFilter, setEducationFilter] = useState("");
-  const [heightMin, setHeightMin] = useState(0);
-  const [heightMax, setHeightMax] = useState(0);
-  const [zodiacFilter, setZodiacFilter] = useState("");
   const [sameCountryOnly, setSameCountryOnly] = useState(true);
   const loadConnections = async () => {
     const [userRes, connRes] = await Promise.all([
@@ -161,35 +179,38 @@ function DatingPage() {
   const filteredMatches = allMatches.filter((m:any, idx) => {
     if (idx === 0) return true;
     if (sameCountryOnly && datingProfile?.country && String(m.country).toLowerCase() !== String(datingProfile.country).toLowerCase()) return false;
-    if (countryFilter && !String(m.country ?? "").toLowerCase().includes(countryFilter.toLowerCase())) return false;
+    if (countryFilter && String(m.country ?? "").toLowerCase() !== countryFilter.toLowerCase()) return false;
+    if (stateFilter && String(m.stateProvince ?? "").toLowerCase() !== stateFilter.toLowerCase()) return false;
+    if (locationFilter && String(m.location ?? "").toLowerCase() !== locationFilter.toLowerCase()) return false;
     if (goalFilter && !String(m.relationshipGoal ?? "").toLowerCase().includes(goalFilter.toLowerCase())) return false;
     if (lookingForFilter && !(m.lookingFor ?? []).some((v:string)=>v.toLowerCase().includes(lookingForFilter.toLowerCase()))) return false;
     if (lifestyleFilter && !(m.lifestyle ?? []).some((v:string)=>v.toLowerCase().includes(lifestyleFilter.toLowerCase()))) return false;
     if (smokingFilter && String(m.smoking ?? "").toLowerCase() !== smokingFilter.toLowerCase()) return false;
     if (drinkingFilter && String(m.drinking ?? "").toLowerCase() !== drinkingFilter.toLowerCase()) return false;
     if (childrenFilter && String(m.children ?? "").toLowerCase() !== childrenFilter.toLowerCase()) return false;
-    if (educationFilter && !String(m.education ?? "").toLowerCase().includes(educationFilter.toLowerCase())) return false;
-    if (heightMin && Number(m.heightCm ?? 0) < heightMin) return false;
-    if (heightMax && Number(m.heightCm ?? 0) > heightMax) return false;
-    if (zodiacFilter && String(m.zodiac ?? "").toLowerCase() !== zodiacFilter.toLowerCase()) return false;
+    if (educationFilter && String(m.education ?? "").toLowerCase() !== educationFilter.toLowerCase()) return false;
     return true;
   });
-  const activeFilterCount = [countryFilter, locationFilter, goalFilter, lookingForFilter, lifestyleFilter, smokingFilter, drinkingFilter, childrenFilter, educationFilter, heightMin, heightMax, zodiacFilter, !sameCountryOnly].filter(Boolean).length;
+  const activeFilterCount = [countryFilter, stateFilter, locationFilter, goalFilter, lookingForFilter, lifestyleFilter, smokingFilter, drinkingFilter, childrenFilter, educationFilter, !sameCountryOnly].filter(Boolean).length;
   const applyFilters = async () => {
     await searchDatingProfiles({
-      ageMin:18, ageMax:120, country: countryFilter, location: locationFilter, gender:"",
+      ageMin:18, ageMax:120, country: countryFilter, state: stateFilter, location: locationFilter, gender:"",
       relationshipGoal: goalFilter, lookingFor: lookingForFilter, lifestyle: lifestyleFilter,
       smoking: smokingFilter, drinking: drinkingFilter, children: childrenFilter, education: educationFilter,
-      heightMin, heightMax, zodiac: zodiacFilter, sameCountryOnly,
+      sameCountryOnly,
     });
     setFiltersOpen(false);
   };
 
   const resetFilters = () => {
-    setCountryFilter(""); setLocationFilter(""); setGoalFilter("");
+    setCountryFilter(""); setStateFilter(""); setLocationFilter(""); setGoalFilter("");
     setLookingForFilter(""); setLifestyleFilter(""); setSmokingFilter(""); setDrinkingFilter(""); setChildrenFilter("");
-    setEducationFilter(""); setHeightMin(0); setHeightMax(0); setZodiacFilter(""); setSameCountryOnly(true);
+    setEducationFilter(""); setSameCountryOnly(true);
   };
+
+  const countryOptions = Array.from(new Set(datingMatches.map((m:any) => String(m.country ?? "").trim()).filter(Boolean))).sort();
+  const stateOptions = Array.from(new Set(datingMatches.map((m:any) => String(m.stateProvince ?? "").trim()).filter(Boolean))).sort();
+  const areaOptions = Array.from(new Set(datingMatches.map((m:any) => String(m.location ?? "").trim()).filter(Boolean))).sort();
 
   return (
     <AppShell
@@ -335,18 +356,66 @@ function DatingPage() {
           <DialogDescription>Choose who appears in your Dating cards. Your filters are private.</DialogDescription>
           <div className="grid gap-4 py-2 sm:grid-cols-2">
             <label className="flex items-center gap-2 rounded-xl border border-border p-3 text-sm sm:col-span-2"><input type="checkbox" checked={sameCountryOnly} onChange={e=>setSameCountryOnly(e.target.checked)} /> Only show people in my country</label>
-            <label className="text-xs font-semibold">Country<Input value={countryFilter} onChange={e=>setCountryFilter(e.target.value)} placeholder="Any country" className="mt-1" /></label>
-            <label className="text-xs font-semibold">City / area<Input value={locationFilter} onChange={e=>setLocationFilter(e.target.value)} placeholder="Optional" className="mt-1" /></label>
-            <label className="text-xs font-semibold">Relationship goal<Input value={goalFilter} onChange={e=>setGoalFilter(e.target.value)} placeholder="e.g. serious" className="mt-1" /></label>
-            <label className="text-xs font-semibold">Looking for<Input value={lookingForFilter} onChange={e=>setLookingForFilter(e.target.value)} placeholder="e.g. Long-term relationship" className="mt-1" /></label>
-            <label className="text-xs font-semibold">Lifestyle<Input value={lifestyleFilter} onChange={e=>setLifestyleFilter(e.target.value)} placeholder="e.g. Night owl" className="mt-1" /></label>
-            <label className="text-xs font-semibold">Smoking<select value={smokingFilter} onChange={e=>setSmokingFilter(e.target.value)} className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm"><option value="">Any</option><option>Never</option><option>Sometimes</option><option>Yes</option></select></label>
-            <label className="text-xs font-semibold">Drinking<select value={drinkingFilter} onChange={e=>setDrinkingFilter(e.target.value)} className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm"><option value="">Any</option><option>Never</option><option>Sometimes</option><option>Yes</option></select></label>
-            <label className="text-xs font-semibold">Children<select value={childrenFilter} onChange={e=>setChildrenFilter(e.target.value)} className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm"><option value="">Any</option><option>No children</option><option>Have children</option><option>Want children</option><option>Don't want children</option></select></label>
-            <label className="text-xs font-semibold">Education<Input value={educationFilter} onChange={e=>setEducationFilter(e.target.value)} placeholder="Optional" className="mt-1" /></label>
-            <label className="text-xs font-semibold">Minimum height (cm)<Input type="number" min={0} value={heightMin || ""} onChange={e=>setHeightMin(Math.max(0,Number(e.target.value)||0))} className="mt-1" /></label>
-            <label className="text-xs font-semibold">Maximum height (cm)<Input type="number" min={0} value={heightMax || ""} onChange={e=>setHeightMax(Math.max(0,Number(e.target.value)||0))} className="mt-1" /></label>
-            <label className="text-xs font-semibold">Zodiac<Input value={zodiacFilter} onChange={e=>setZodiacFilter(e.target.value)} placeholder="e.g. Leo" className="mt-1" /></label>
+
+            <label className="text-xs font-semibold">Country
+              <select value={countryFilter} onChange={e=>setCountryFilter(e.target.value)} className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-3 text-sm">
+                <option value="">Any country</option>{countryOptions.map(v=><option key={v} value={v}>{v}</option>)}
+              </select>
+            </label>
+
+            <label className="text-xs font-semibold">State
+              <select value={stateFilter} onChange={e=>setStateFilter(e.target.value)} className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-3 text-sm">
+                <option value="">Any state</option>{stateOptions.map(v=><option key={v} value={v}>{v}</option>)}
+              </select>
+            </label>
+
+            <label className="text-xs font-semibold">Area
+              <select value={locationFilter} onChange={e=>setLocationFilter(e.target.value)} className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-3 text-sm">
+                <option value="">Any area</option>{areaOptions.map(v=><option key={v} value={v}>{v}</option>)}
+              </select>
+            </label>
+
+            <label className="text-xs font-semibold">Relationship goal
+              <select value={goalFilter} onChange={e=>setGoalFilter(e.target.value)} className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-3 text-sm">
+                <option value="">Any</option>{RELATIONSHIP_GOALS.map(v=><option key={v} value={v}>{v}</option>)}
+              </select>
+            </label>
+
+            <label className="text-xs font-semibold">Looking for
+              <select value={lookingForFilter} onChange={e=>setLookingForFilter(e.target.value)} className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-3 text-sm">
+                <option value="">Any</option>{LOOKING_FOR_OPTIONS.map(v=><option key={v} value={v}>{v}</option>)}
+              </select>
+            </label>
+
+            <label className="text-xs font-semibold">Lifestyle
+              <select value={lifestyleFilter} onChange={e=>setLifestyleFilter(e.target.value)} className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-3 text-sm">
+                <option value="">Any</option>{LIFESTYLE_OPTIONS.map(v=><option key={v} value={v}>{v}</option>)}
+              </select>
+            </label>
+
+            <label className="text-xs font-semibold">Smoking
+              <select value={smokingFilter} onChange={e=>setSmokingFilter(e.target.value)} className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-3 text-sm">
+                <option value="">Any</option>{SMOKING_OPTIONS.map(v=><option key={v} value={v}>{v}</option>)}
+              </select>
+            </label>
+
+            <label className="text-xs font-semibold">Drinking
+              <select value={drinkingFilter} onChange={e=>setDrinkingFilter(e.target.value)} className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-3 text-sm">
+                <option value="">Any</option>{DRINKING_OPTIONS.map(v=><option key={v} value={v}>{v}</option>)}
+              </select>
+            </label>
+
+            <label className="text-xs font-semibold">Children
+              <select value={childrenFilter} onChange={e=>setChildrenFilter(e.target.value)} className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-3 text-sm">
+                <option value="">Any</option>{CHILDREN_OPTIONS.map(v=><option key={v} value={v}>{v}</option>)}
+              </select>
+            </label>
+
+            <label className="text-xs font-semibold">Education
+              <select value={educationFilter} onChange={e=>setEducationFilter(e.target.value)} className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-3 text-sm">
+                <option value="">Any</option>{EDUCATION_OPTIONS.map(v=><option key={v} value={v}>{v}</option>)}
+              </select>
+            </label>
           </div>
           <div className="flex gap-2"><Button variant="outline" className="flex-1" onClick={resetFilters}><X className="size-4" /> Reset</Button><Button className="flex-1 bg-[var(--dating)] text-white hover:bg-[var(--dating)]/90" onClick={()=>void applyFilters()}>Show matches</Button></div>
         </DialogContent>
