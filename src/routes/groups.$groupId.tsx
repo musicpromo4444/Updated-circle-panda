@@ -122,7 +122,7 @@ function GroupRoom() {
 
   const messageMember = async (userId: string) => {
     setMemberMenuOpen(null);
-    const { error } = await (supabase as any).rpc("request_direct_message_secure", {
+    const { data, error } = await (supabase as any).rpc("request_direct_message_secure", {
       p_recipient_id: userId,
       p_message: "",
     });
@@ -131,7 +131,7 @@ function GroupRoom() {
       return;
     }
     toast.success("Message request sent");
-    void navigate({ to: "/messages" });
+    void navigate({ to: "/messages", search: { request: data?.id ?? undefined } });
   };
 
   const reportMember = async (userId: string) => {
@@ -644,8 +644,8 @@ function GroupRoom() {
                 <div className={`mt-0.5 flex items-end gap-1.5 ${m.mine ? "justify-end" : "justify-start"}`}>
                   {!m.mine ? (
                     <div className="relative shrink-0">
-                      <button type="button" className="grid size-9 place-items-center rounded-full border border-border/70 bg-card text-xl shadow-sm" onClick={()=>setMemberMenuOpen(memberMenuOpen===m.user_id?null:m.user_id)} aria-label="Open anonymous member menu">🐼</button>
-                      {memberMenuOpen===m.user_id ? <div className="absolute left-0 top-10 z-[60] w-44 rounded-2xl border border-border bg-card p-1.5 shadow-2xl">
+                      <button type="button" className="grid size-9 place-items-center rounded-full border border-border/70 bg-card text-xl shadow-sm" onClick={()=>setMemberMenuOpen(memberMenuOpen===m.id?null:m.id)} aria-label="Open anonymous member menu">🐼</button>
+                      {memberMenuOpen===m.id ? <div className="absolute left-0 top-10 z-[60] w-44 rounded-2xl border border-border bg-card p-1.5 shadow-2xl">
                         <button type="button" className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm hover:bg-secondary" onClick={()=>void messageMember(m.user_id)}><MessageCircle className="size-4"/> Message</button>
                         <button type="button" className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm hover:bg-secondary" onClick={()=>void navigate({to:"/secret/$userId",params:{userId:m.user_id}})}><Eye className="size-4"/> View secret</button>
                         <button type="button" className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm text-destructive hover:bg-destructive/10" onClick={()=>void reportMember(m.user_id)}><Flag className="size-4"/> Report</button>
