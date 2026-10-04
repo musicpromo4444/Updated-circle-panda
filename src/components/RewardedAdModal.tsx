@@ -66,10 +66,10 @@ export function RewardedAdModal({
     const perk = Math.random() < 0.5 ? "time" : "skip";
     if (perk === "time") {
       extendHotSeat(groupId, 120);
-      setReward("+3 BC and 2 extra minutes on the Hot Seat");
+      setReward("Reward unlocked + 2 extra minutes on the Hot Seat");
     } else {
       grantSkipPass();
-      setReward("+3 BC and a skip-the-queue pass");
+      setReward("Reward unlocked + a skip-the-queue pass");
     }
     void (async () => {
       const { data, error } = await (await import("@/integrations/supabase/client")).supabase.rpc("claim_rewarded_ad_secure", { p_surface: "group_message" });
