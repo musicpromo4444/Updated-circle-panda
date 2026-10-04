@@ -71,7 +71,7 @@ function CrushPage() {
   const [index, setIndex] = useState(0);
   const [commentOpen, setCommentOpen] = useState(false);
   const [comment, setComment] = useState("");
-  const [reactionOpen, setReactionOpen] = useState(true);
+  const [reactionOpen, setReactionOpen] = useState(false);
   const [reactions, setReactions] = useState<Record<string, number>>({});
   const [mineReaction, setMineReaction] = useState<string | null>(null);
   const [reportOpen, setReportOpen] = useState(false);
@@ -427,6 +427,11 @@ function CrushPage() {
                 </p>
               </div>
             </div>
+            {mineReaction ? (
+              <div className="absolute bottom-[calc(env(safe-area-inset-bottom)+5.25rem)] right-4 z-25 grid size-12 place-items-center rounded-full border border-white/20 bg-black/75 text-2xl shadow-2xl backdrop-blur-md" aria-label={`Your reaction: ${mineReaction}`}>
+                {mineReaction}
+              </div>
+            ) : null}
 
             <div className="absolute inset-x-0 bottom-0 z-30 border-t border-white/10 bg-black/80 px-3 pt-2 backdrop-blur-xl pb-[max(0.65rem,env(safe-area-inset-bottom))]">
               {reactionOpen ? (
