@@ -20,7 +20,8 @@ returns jsonb
 language sql
 stable
 security invoker
-as $$
+set search_path = ''
+as $
   select jsonb_build_object(
     'enabled', c.enabled,
     'voice_enabled', c.voice_enabled,
