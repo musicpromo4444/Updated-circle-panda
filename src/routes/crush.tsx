@@ -35,11 +35,15 @@ function crushStoragePath(value: string): string | null {
   const marker = `/storage/v1/object/public/${CRUSH_BUCKET}/`;
   const signedMarker = `/storage/v1/object/sign/${CRUSH_BUCKET}/`;
   const publicIndex = value.indexOf(marker);
-  if (publicIndex >= 0) const path = value.slice(publicIndex + marker.length).split("?")[0];
+  if (publicIndex >= 0) {
+    const path = value.slice(publicIndex + marker.length).split("?")[0];
     return path ? decodeURIComponent(path) : null;
+  }
   const signedIndex = value.indexOf(signedMarker);
-  if (signedIndex >= 0) const path = value.slice(signedIndex + signedMarker.length).split("?")[0];
+  if (signedIndex >= 0) {
+    const path = value.slice(signedIndex + signedMarker.length).split("?")[0];
     return path ? decodeURIComponent(path) : null;
+  }
   return null;
 }
 
