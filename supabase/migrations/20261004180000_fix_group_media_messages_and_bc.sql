@@ -1,10 +1,16 @@
--- Charge 1 BC for regular group media messages, matching normal group chat messages.
+-- Canonical production RPC for group media.
+-- Keeps one unambiguous signature, charges 1 BC, and stores group media as view-once by default.
+drop function if exists public.send_group_media_secure(uuid,text,text,text,integer);
+drop function if exists public.send_group_media_secure(uuid,text,text,text,integer,boolean);
+drop function if exists public.send_group_media_secure(uuid,text,text,text,integer,text);
+
 create or replace function public.send_group_media_secure(
   p_group_id uuid,
   p_message_type text,
   p_media_path text,
   p_mime_type text default null,
   p_duration_seconds integer default null,
+  p_view_once boolean default true,
   p_body text default ''
 )
 returns jsonb
@@ -40,19 +46,21 @@ begin
   end if;
 
   insert into public.cp_group_messages(
-    group_id,user_id,body,message_type,media_path,mime_type,duration_seconds
+    group_id,user_id,body,message_type,media_path,mime_type,duration_seconds,view_once
   )
   values(
     p_group_id,uid,left(coalesce(trim(p_body),''),2000),p_message_type,
-    p_media_path,p_mime_type,p_duration_seconds
+    p_media_path,p_mime_type,p_duration_seconds,coalesce(p_view_once,true)
   )
   returning id into mid;
 
   perform public.apply_bc_delta(uid,-1,'Group media message','group_media_message',mid);
 
-  return jsonb_build_object('id',mid,'created_at',now(),'bc_charged',1);
+  return jsonb_build_object(
+    'id',mid,'created_at',now(),'bc_charged',1,'view_once',coalesce(p_view_once,true)
+  );
 end
 $function$;
 
-revoke all on function public.send_group_media_secure(uuid,text,text,text,integer,text) from public,anon;
-grant execute on function public.send_group_media_secure(uuid,text,text,text,integer,text) to authenticated;
+revoke all on function public.send_group_media_secure(uuid,text,text,text,integer,boolean,text) from public,anon;
+grant execute on function public.send_group_media_secure(uuid,text,text,text,integer,boolean,text) to authenticated;
