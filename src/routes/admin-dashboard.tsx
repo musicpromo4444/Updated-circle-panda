@@ -17,6 +17,7 @@ import { AdminOperationsCenter } from "@/components/admin/AdminOperationsCenter"
 import { AdminAppDownloadPromotion } from "@/components/admin/AdminAppDownloadPromotion";
 import { AdminCampaignReports } from "@/components/admin/AdminCampaignReports";
 import { VipGroupCallSettings } from "@/components/admin/VipGroupCallSettings";
+import { VipGroupSponsorSettings } from "@/components/admin/VipGroupSponsorSettings";
 import { AdminMonetizationControl } from "@/components/admin/AdminMonetizationControl";
 import { CirclePandaMediaManager } from "@/components/admin/CirclePandaMediaManager";
 import { useAdminStore } from "@/components/admin/adminStore";
@@ -127,6 +128,7 @@ function AdminDashboardPage() {
     <main className="mx-auto max-w-4xl space-y-5 p-4 pb-24 sm:p-6">
       <AdminControlCenter />
       <VipGroupCallSettings />
+      <VipGroupSponsorSettings />
       <AdminAppDownloadPromotion />
       <AdminCampaignReports />
       <CirclePandaMediaManager />
