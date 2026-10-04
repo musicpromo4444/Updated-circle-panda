@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, ChevronLeft, ChevronRight, Flag, Heart, MessageCircle, Send, Smile, Trophy } from "lucide-react";
+import { ArrowLeft, ChevronLeft, ChevronRight, Flag, Heart, MessageCircle, Send, Share2, Smile, Trophy } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
@@ -90,6 +90,7 @@ function CrushPage() {
   const [liveNominees, setLiveNominees] = useState<any[]>([]);
   const [liveNomineesLoaded, setLiveNomineesLoaded] = useState(false);
   const [mediaError, setMediaError] = useState<string | null>(null);
+  const [sharing, setSharing] = useState(false);
 
   const AD_BLOCKS = [5, 5, 10];
   const AD_FORMATS = ["native", "interstitial", "popup", "banner", "playable"] as const;
@@ -195,10 +196,21 @@ function CrushPage() {
     const section = window.location.hash.replace("#", "").toLowerCase();
     const queryKind = new URLSearchParams(window.location.search).get("kind")?.toLowerCase();
     const requestedKind = queryKind === "mcm" || queryKind === "wcw" ? queryKind : section;
+    const requestedNominee = new URLSearchParams(window.location.search).get("nominee");
     if (requestedKind === "mcm" || requestedKind === "wcw") {
       setKind((current) => current === requestedKind ? current : requestedKind as CrushKind);
     }
     setIndex(0);
+    if (requestedNominee) {
+      const timer = window.setTimeout(() => {
+        setLiveNominees((current) => {
+          const found = current.findIndex((n: any) => n.id === requestedNominee);
+          if (found >= 0) setIndex(found);
+          return current;
+        });
+      }, 250);
+      return () => window.clearTimeout(timer);
+    }
   }, []);
 
   useEffect(() => {
@@ -252,6 +264,54 @@ function CrushPage() {
       return;
     }
     setIndex((v) => (v + direction + pool.length) % pool.length);
+  };
+
+  const shareCrush = async () => {
+    if (!card || sharing) return;
+    setSharing(true);
+    const title = card.kind === "mcm" ? "Man Crush Monday" : "Woman Crush Wednesday";
+    const expiry = card.kind === "mcm" ? "Monday" : "Wednesday";
+    const url = new URL("/crush", window.location.origin);
+    url.searchParams.set("kind", card.kind);
+    url.searchParams.set("nominee", card.id);
+    const text = `Please vote for me on the ${title}, expiring on ${expiry}. Please vote for me so I can win this contest. Thank you. Voting is free.`;
+    try {
+      let sharedFile: File | null = null;
+      if (card.mediaType === "image") {
+        try {
+          const response = await fetch(card.mediaUrl);
+          if (response.ok) {
+            const blob = await response.blob();
+            const ext = blob.type.includes("png") ? "png" : blob.type.includes("webp") ? "webp" : "jpg";
+            sharedFile = new File([blob], `circle-panda-${card.kind}.${ext}`, { type: blob.type || "image/jpeg" });
+          }
+        } catch {}
+      }
+      const navigatorWithShare = navigator as Navigator & {
+        share?: (data: ShareData) => Promise<void>;
+        canShare?: (data: ShareData) => boolean;
+      };
+      const shareData: ShareData = sharedFile && navigatorWithShare.canShare?.({ files: [sharedFile] })
+        ? { files: [sharedFile], title, text, url: url.toString() }
+        : { title, text, url: url.toString() };
+      if (navigatorWithShare.share) {
+        await navigatorWithShare.share(shareData);
+        return;
+      }
+      await navigator.clipboard.writeText(`${text} ${url.toString()}`);
+      toast.success("Share text and link copied");
+    } catch (error: any) {
+      if (error?.name !== "AbortError") {
+        try {
+          await navigator.clipboard.writeText(`${text} ${url.toString()}`);
+          toast.success("Share text and link copied");
+        } catch {
+          toast.error("Sharing is unavailable on this device");
+        }
+      }
+    } finally {
+      setSharing(false);
+    }
   };
 
   const vote = async () => {
@@ -436,6 +496,9 @@ function CrushPage() {
                   ))}
                 </div>
               </div>
+              <Button variant="ghost" size="icon" className="shrink-0 rounded-full bg-black/45 text-white hover:bg-black/60" onClick={() => void shareCrush()} disabled={sharing} aria-label="Share picture">
+                <Share2 className="size-5" />
+              </Button>
               <Button variant="ghost" size="icon" className="shrink-0 rounded-full bg-black/45 text-white hover:bg-black/60" onClick={() => setShowLeaderboard(true)}>
                 <Trophy className="size-5" />
               </Button>
