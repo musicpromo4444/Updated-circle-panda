@@ -392,8 +392,11 @@ function NotificationBell() {
         })
         .subscribe();
     })();
+    const localRefresh = () => { void refreshBadge(); };
+    window.addEventListener("circle-panda-notifications-refresh", localRefresh);
     return () => {
       cancelled = true;
+      window.removeEventListener("circle-panda-notifications-refresh", localRefresh);
       if (channel) void (supabase as any).removeChannel(channel);
     };
   }, []);
