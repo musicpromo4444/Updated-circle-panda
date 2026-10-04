@@ -174,6 +174,19 @@ function CrushPage() {
   }, []);
 
   useEffect(() => {
+    if (!liveNomineesLoaded) return;
+    const queryKind = new URLSearchParams(window.location.search).get("kind")?.toLowerCase();
+    const hasExplicitKind = queryKind === "mcm" || queryKind === "wcw";
+    if (hasExplicitKind) return;
+    // If the default WCW feed has no submissions but MCM does, open the
+    // available feed instead of presenting an apparently empty/blank screen.
+    if (!liveNominees.some((n: any) => n.kind === kind) && liveNominees.some((n: any) => n.kind === "mcm")) {
+      setKind("mcm");
+      setIndex(0);
+    }
+  }, [liveNomineesLoaded, liveNominees, kind]);
+
+  useEffect(() => {
     if (!card) return;
     setCommentOpen(false);
     setComment("");
