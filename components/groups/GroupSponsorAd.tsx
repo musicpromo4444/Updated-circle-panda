@@ -11,24 +11,16 @@ type Creative = {
   call_to_action?: string; duration_seconds?: number; format?: string;
 };
 
-export function GroupSponsorAd({ groupId, onClose }: { groupId: string; onClose: () => void }) {
+export function GroupSponsorAd({ groupId, creative: initialCreative, onClose }: { groupId: string; creative: Creative; onClose: () => void }) {
   const [state, setState] = useState<AdState>("intro");
-  const [creative, setCreative] = useState<Creative | null>(null);
+  const [creative] = useState<Creative | null>(initialCreative);
   const [progress, setProgress] = useState(0);
-  const [reward, setReward] = useState(3);
+  const [reward, setReward] = useState(Number(initialCreative.reward_bc ?? 3));
 
   useEffect(() => {
-    const intro = window.setTimeout(async () => {
-      setState("loading");
-      const { data, error } = await (supabase as any).rpc("start_group_reward_ad_secure", { p_group_id: groupId });
-      if (error) { toast.error(error.message ?? "Today's sponsor ad could not be loaded."); onClose(); return; }
-      if (!data?.show) { onClose(); return; }
-      setCreative(data as Creative);
-      setReward(Number(data.reward_bc ?? 3));
-      setState("playing");
-    }, 1600);
+    const intro = window.setTimeout(() => setState("playing"), 1600);
     return () => window.clearTimeout(intro);
-  }, [groupId, onClose]);
+  }, []);
 
   useEffect(() => {
     if (state !== "playing" || !creative) return;
