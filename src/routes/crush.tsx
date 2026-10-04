@@ -449,7 +449,7 @@ function CrushPage() {
                 className="flex items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-xs font-black text-primary-foreground shadow-xl active:scale-95"
               >
                 <Heart className="size-4 fill-current" />
-                Vote {freeVotesLeft > 0 ? "Free" : "· 1 BC"}
+                Vote {freeVotesLeft > 0 ? "Free" : ""}
               </button>
             </div>
 
@@ -557,16 +557,10 @@ function CrushPage() {
 
       <Dialog open={voteChoiceOpen} onOpenChange={setVoteChoiceOpen}>
         <DialogContent className="max-w-sm">
-          <DialogTitle>Your 3 free votes are used</DialogTitle>
-          <DialogDescription>Choose how you want to continue voting.</DialogDescription>
+          <DialogTitle>Sorry, you're out of votes.</DialogTitle>
+          <DialogDescription>Would you like to get three more votes for free?</DialogDescription>
           <div className="grid gap-2">
-            <Button onClick={() => void startVoteAd()} disabled={voteAdBusy}>Vote for free · Watch an ad</Button>
-            <Button variant="outline" onClick={async () => {
-              setVoteChoiceOpen(false);
-              if (!card) return;
-              const ok = await voteFor(card.id);
-              if (ok) { await refreshLiveNominees(); next(1); }
-            }} disabled={voteAdBusy}>Use 1 BC</Button>
+            <Button onClick={() => void startVoteAd()} disabled={voteAdBusy}>Get for free</Button>
           </div>
         </DialogContent>
       </Dialog>
@@ -611,7 +605,7 @@ function CrushPage() {
       <Dialog open={showLeaderboard} onOpenChange={setShowLeaderboard}>
         <DialogContent className="max-w-sm">
           <DialogTitle>{kind.toUpperCase()} leaderboard</DialogTitle>
-          <DialogDescription>{FREE_DAILY_VOTES} free votes reset daily. Weekly winner receives {WINNER_REWARD} BC.</DialogDescription>
+          <DialogDescription>Every user gets 3 free votes each week. Unused votes expire when the week ends. Weekly winner receives {WINNER_REWARD} BC.</DialogDescription>
           <div className="max-h-[55vh] space-y-2 overflow-y-auto">
             {ranked.map((n, i) => (
               <div key={n.id} className="flex items-center gap-3 rounded-xl bg-secondary/50 p-3">
