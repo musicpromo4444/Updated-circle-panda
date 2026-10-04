@@ -71,10 +71,10 @@ end;$function$;
 revoke all on function public.dismiss_app_download_prompt() from public,anon;
 grant execute on function public.dismiss_app_download_prompt() to authenticated;
 
-insert into public.admin_roles(user_id,role_kind,active,created_by) values('c987a9d5-86ff-41c1-b96d-f46ea45b92c9','owner',true,'c987a9d5-86ff-41c1-b96d-f46ea45b92c9') on conflict(user_id) do update set role_kind='owner',active=true,updated_at=now();
-update public.profiles set is_vip=true,vip_expires_at=null where id='c987a9d5-86ff-41c1-b96d-f46ea45b92c9';
-insert into public.bc_accounts(user_id,balance) values('c987a9d5-86ff-41c1-b96d-f46ea45b92c9',0) on conflict(user_id) do update set balance=0,updated_at=now();
-update public.cp_onboarding_rewards set claimed_at=coalesce(claimed_at,now()),download_prompt_next_at=null,updated_at=now() where user_id='c987a9d5-86ff-41c1-b96d-f46ea45b92c9';
+insert into public.admin_roles(user_id,role_kind,active,created_by) values('c987a9d5-86cb-4ffe-9dff-146b656b718b','owner',true,'c987a9d5-86cb-4ffe-9dff-146b656b718b') on conflict(user_id) do update set role_kind='owner',active=true,updated_at=now();
+update public.profiles set is_vip=true,vip_expires_at=null where id='c987a9d5-86cb-4ffe-9dff-146b656b718b';
+insert into public.bc_accounts(user_id,balance) values('c987a9d5-86cb-4ffe-9dff-146b656b718b',0) on conflict(user_id) do update set balance=0,updated_at=now();
+update public.cp_onboarding_rewards set claimed_at=coalesce(claimed_at,now()),download_prompt_next_at=null,updated_at=now() where user_id='c987a9d5-86cb-4ffe-9dff-146b656b718b';
 
 create or replace function private.apply_bc_delta(p_user_id uuid,p_amount bigint,p_reason text,p_reference_type text default null,p_reference_id uuid default null) returns bigint language plpgsql security definer set search_path='public' as $function$
 declare v_balance bigint;
