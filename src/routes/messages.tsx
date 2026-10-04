@@ -215,13 +215,17 @@ function MessagesPage() {
                 {sentRequests.map((r:any) => (
                   <div key={r.id} className="rounded-xl bg-background p-3">
                     <p className="text-[10px] font-bold text-muted-foreground">
-                      Anonymous Panda · Message Request
+                      Anonymous Panda · {r.kind === "dating" ? "Dating Message Request" : r.kind === "crush" ? "MCM/WCW Message Request" : "Message Request"}
                     </p>
                     <p className="mt-1 text-sm font-semibold">
-                      {r.status === "pending" ? "Message request sent · Waiting for acceptance" : "Message request accepted 💗"}
+                      {r.status === "pending" ? "Sent request · Waiting for acceptance" : "Request accepted 💗"}
                     </p>
-                    <p className="mt-1 text-xs text-muted-foreground">{r.message || "If this message request is accepted, you can start talking. If it is declined, this request will disappear."}</p>
-                     {r.status === "pending" ? <p className="mt-2 text-[11px] text-muted-foreground/80">Waiting for the recipient to accept or decline.</p> : null}
+                    <p className="mt-1 text-xs text-muted-foreground">{r.message || "If this request is accepted, you can start talking. If it is declined, this request will disappear."}</p>
+                    {r.status === "pending" ? (
+                      <p className="mt-2 text-[11px] text-muted-foreground/80">Waiting for the recipient to accept or decline.</p>
+                    ) : r.thread_id ? (
+                      <Button size="sm" className="mt-2" onClick={() => setActiveId(r.thread_id)}>Open {r.kind === "dating" ? "Dating Chat" : "Chat"}</Button>
+                    ) : null}
                   </div>
                 ))}
               </div>
