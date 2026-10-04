@@ -117,6 +117,10 @@ function MessagesPage() {
     try {
       const { data, error } = await (supabase as any).rpc("respond_direct_message_request_secure", { p_request_id: request.id, p_accept: accept });
       if (error) throw error;
+      // Accepting/declining directly from Messages must also clear the matching
+      // notification badge; otherwise the request looks unread forever.
+      await (supabase as any).rpc("mark_message_request_notifications_read", { p_request_id: request.id });
+      window.dispatchEvent(new CustomEvent("circle-panda-notifications-refresh"));
       setMessageRequests((current) => current.filter((r) => r.id !== request.id));
       setSentRequests((current) => current.map((r) => r.id === request.id ? { ...r, status: accept ? "accepted" : "declined", thread_id: data?.thread_id ?? r.thread_id } : r));
       setSelectedRequestId((current) => current === request.id ? null : current);
