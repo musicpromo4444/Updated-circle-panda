@@ -67,7 +67,6 @@ export function RegisterDatingModal({open,onOpenChange}:{open:boolean;onOpenChan
   const [photoPreview,setPhotoPreview]=useState<string|null>(null);
   const [uploadingPhoto,setUploadingPhoto]=useState(false);
   const [accountReady,setAccountReady]=useState(false);
-  const [traits,setTraits]=useState<string[]>([]);
 
   useEffect(()=>{
     if(!open) return;
@@ -87,10 +86,9 @@ export function RegisterDatingModal({open,onOpenChange}:{open:boolean;onOpenChan
       if(datingProfile){
         const {registeredAt:_r,userId:_u,...rest}=datingProfile;
         setP({...base,...rest,name:profile.display_name||rest.name,age:Number(profile.age),gender:profile.gender,country:profile.country,location:profile.city||profile.area||profile.country,emoji:String(profile.avatar_url||"🐼")});
-        setTraits(rest.aboutTraits??[]);
         setPhotoPreview(rest.blurredPhotoPath?supabase.storage.from("dating-photo-blur").getPublicUrl(rest.blurredPhotoPath).data.publicUrl:null);
       } else {
-        setP(base); setTraits([]); setPhotoPreview(null);
+        setP(base); setPhotoPreview(null);
       }
       setPhotoFile(null); setStep(0); setAccountReady(true);
     })();
