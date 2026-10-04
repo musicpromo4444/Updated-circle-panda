@@ -428,7 +428,7 @@ function CrushPage() {
               </div>
             </div>
             {mineReaction ? (
-              <div className="absolute bottom-[calc(env(safe-area-inset-bottom)+5.25rem)] right-4 z-25 grid size-12 place-items-center rounded-full border border-white/20 bg-black/75 text-2xl shadow-2xl backdrop-blur-md" aria-label={`Your reaction: ${mineReaction}`}>
+              <div className="absolute bottom-[calc(env(safe-area-inset-bottom)+5.25rem)] right-4 z-30 grid size-12 place-items-center rounded-full border border-white/20 bg-black/75 text-2xl shadow-2xl backdrop-blur-md" aria-label={`Your reaction: ${mineReaction}`}>
                 {mineReaction}
               </div>
             ) : null}
