@@ -638,6 +638,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let cancelled = false;
+    // Never let a slow Supabase request hold the entire app behind the global loader.
+    const hydrationFallback = window.setTimeout(() => {
+      if (!cancelled) setHydrated(true);
+    }, 7000);
     void (async () => {
       let session = (await supabase.auth.getSession()).data.session;
       if (!session) session = (await supabase.auth.signInAnonymously()).data.session ?? null;
@@ -650,7 +654,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       }
     void (supabase as any).rpc("get_my_admin_status").then(({data}: any) => setDbIsAdmin(data === true));
       const uid = session.user.id;
-      const viewerCoords = await new Promise<{latitude:number;longitude:number}|null>((resolve) => { if (typeof navigator === "undefined" || !navigator.geolocation) return resolve(null); navigator.geolocation.getCurrentPosition((pos) => resolve({ latitude:pos.coords.latitude, longitude:pos.coords.longitude }), () => resolve(null), { enableHighAccuracy:false, maximumAge:300000, timeout:5000 }); });
+      // Location is optional and must never block app hydration.
+      void new Promise<{latitude:number;longitude:number}|null>((resolve) => { if (typeof navigator === "undefined" || !navigator.geolocation) return resolve(null); navigator.geolocation.getCurrentPosition((pos) => resolve({ latitude:pos.coords.latitude, longitude:pos.coords.longitude }), () => resolve(null), { enableHighAccuracy:false, maximumAge:300000, timeout:3000 }); });
       const [st, postsRes, repliesRes, groupsRes, groupMessagesRes, threadsRes, threadMessagesRes, groupSettingsRes, eventsRes, attendeesRes, datingRes, datingOwnRes, coinsRes, xpRes, nomineesRes, crushResultsRes, winnersRes, ticketsRes, crushWinnersRes] = await Promise.all([
         (supabase as any).from("user_app_state").select("state").eq("user_id", uid).maybeSingle(),
         (supabase as any).from("cp_posts").select("id,body,created_at,author_id,author_vip_at").order("created_at", {ascending:false}).limit(100),
@@ -711,7 +716,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         setHydrated(true);
       }
     });
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+      window.clearTimeout(hydrationFallback);
+    };
   }, []);
 
   useEffect(() => {
