@@ -71,7 +71,7 @@ export function VipGroupChat({ open, onOpenChange, groupId }: { open: boolean; o
   useEffect(() => {
     if (!open) return;
     void (async () => {
-      const { data, error } = await (supabase as any).rpc("get_vip_group_call_runtime");
+      const { data, error } = await (supabase as any).rpc("get_vip_group_call_runtime", { p_group_id: groupId });
       if (error) {
         console.warn("VIP call schedule unavailable", error);
         return;
@@ -81,7 +81,7 @@ export function VipGroupChat({ open, onOpenChange, groupId }: { open: boolean; o
         video_enabled: Boolean(data.video_enabled),
       } : null);
     })();
-  }, [open]);
+  }, [open, groupId]);
 
   const sendText = async (body: string) => {
     const { data, error } = await (supabase as any).rpc("send_vip_group_message_secure", { p_group_id: groupId, p_body: body });
