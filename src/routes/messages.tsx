@@ -70,7 +70,7 @@ function MessagesPage() {
 
   useEffect(() => {
     if (search.thread) setActiveId(search.thread);
-    if (search.request) setSelectedRequestId(search.request);
+    // A request deep-link only opens the request dialog when it belongs to the recipient.\n    // Senders should land on their persistent sent-request card instead of an empty dialog.
   }, [search.thread, search.request]);
 
   useEffect(() => {
