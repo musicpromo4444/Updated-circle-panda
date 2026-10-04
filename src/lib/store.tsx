@@ -456,7 +456,7 @@ type StoreValue = State & {
   spendCoins: (amount: number, reason?: string) => boolean;
   isAdmin: boolean;
   nominate: (name: string, kind: CrushKind, blurb: string, emoji: string) => boolean;
-  voteFor: (id: string) => void;
+  voteFor: (id: string) => Promise<boolean>;
   freeVotesLeft: number;
   mySpotlight: Spotlight | null;
   toggleRsvp: (id: string) => void;
@@ -1092,18 +1092,24 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     return true;
   }, [dbUserId]);
 
-  const voteFor = useCallback((id: string) => {
-    void (async()=>{
-      const { data: authData } = await supabase.auth.getUser();
-      if (!authData.user || authData.user.is_anonymous) { requestLogin("vote"); return; }
-      const { data: voteData, error } = await (supabase as any).rpc("cast_crush_vote_secure", { p_nominee_id: id });
-      if (error) { toast.error(error.message ?? "Vote could not be counted"); return; }
-      const { data: results } = await (supabase as any).rpc("get_crush_results", { p_week_start: new Date(Date.now() - ((new Date().getDay() + 6) % 7) * 86400000).toISOString().slice(0,10) });
-      const counts = new Map<string, number>((results ?? []).map((r:any)=>[r.nominee_id,Number(r.vote_count ?? r.votes ?? 0)]));
-      void refreshCoins();
-      setState((s) => ({ ...s, coins: voteData?.charged_bc ? Math.max(0, s.coins - Number(voteData.charged_bc)) : s.coins, votesUsedToday: Number(voteData?.free_votes_used ?? s.votesUsedToday), voteDay: todayKey(), votedIds: s.votedIds.includes(id) ? s.votedIds : [...s.votedIds,id], nominees: s.nominees.map((n) => ({...n,votes:counts.get(n.id) ?? n.votes})) }));
-      toast.success(voteData?.charged_bc ? "Vote counted · 1 BC" : "Vote counted 💗");
-    })();
+  const voteFor = useCallback(async (id: string): Promise<boolean> => {
+    const { data: authData } = await supabase.auth.getUser();
+    if (!authData.user || authData.user.is_anonymous) { requestLogin("vote"); return false; }
+    const { data: voteData, error } = await (supabase as any).rpc("cast_crush_vote_secure", { p_nominee_id: id });
+    if (error) {
+      if (String(error.message ?? "").includes("FREE_VOTES_EXHAUSTED")) {
+        window.dispatchEvent(new CustomEvent("circle-panda-crush-vote-options"));
+        return false;
+      }
+      toast.error(error.message ?? "Vote could not be counted");
+      return false;
+    }
+    const { data: results } = await (supabase as any).rpc("get_crush_results", { p_week_start: new Date(Date.now() - ((new Date().getDay() + 6) % 7) * 86400000).toISOString().slice(0,10) });
+    const counts = new Map<string, number>((results ?? []).map((r:any)=>[r.nominee_id,Number(r.vote_count ?? r.votes ?? 0)]));
+    void refreshCoins();
+    setState((s) => ({ ...s, coins: voteData?.charged_bc ? Math.max(0, s.coins - Number(voteData.charged_bc)) : s.coins, votesUsedToday: Number(voteData?.free_votes_used ?? s.votesUsedToday), voteDay: todayKey(), votedIds: s.votedIds.includes(id) ? s.votedIds : [...s.votedIds,id], nominees: s.nominees.map((n) => ({...n,votes:counts.get(n.id) ?? n.votes})) }));
+    toast.success(voteData?.charged_bc ? "Vote counted · 1 BC" : voteData?.ad_vote_credits_used ? "Vote counted · free ad vote 💗" : "Vote counted 💗");
+    return true;
   }, [refreshCoins]);
 
   /** Server-authoritative WCW/MCM weekly close. */
