@@ -1,9 +1,12 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, Copy, Eye, Lock, Send, Share2, SmilePlus, MessageCircle } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { sendMessageRequest } from "@/lib/messageRequests";
 import { StandardBannerAd } from "@/components/ads/StandardBannerAd";
 import { VipIdentity } from "@/components/VipIdentity";
 import { requestLogin } from "@/components/auth/LoginRequiredDialog";
@@ -20,6 +23,7 @@ export const Route = createFileRoute("/secret/$userId")({
 
 function SecretProfilePage() {
   const { userId } = Route.useParams();
+  const navigate = useNavigate();
   const [profile, setProfile] = useState<SharedProfile | null>(null);
   const [secrets, setSecrets] = useState<Secret[]>([]);
   const [content, setContent] = useState("");
@@ -33,6 +37,9 @@ function SecretProfilePage() {
   const [composerOpen, setComposerOpen] = useState(false);
   const [commentsBySecret, setCommentsBySecret] = useState<Record<string, SecretComment[]>>({});
   const composerRef = useRef<HTMLTextAreaElement | null>(null);
+  const [messageOpen, setMessageOpen] = useState(false);
+  const [messageText, setMessageText] = useState("");
+  const [sendingMessage, setSendingMessage] = useState(false);
 
   const adAfter = (count: number) => count === 5 || count === 10 || count === 17 || count === 24 ? count : count > 24 && (count - 24) % 10 === 0 ? count : -1;
   const adSlotForCount = (count: number) => count === 5 ? "secret_profile_slot_1" : count === 10 ? "secret_profile_slot_2" : count === 17 ? "secret_profile_slot_3" : "secret_profile_slot_4";
@@ -114,6 +121,25 @@ function SecretProfilePage() {
     toast.success("Comment posted");
   };
 
+  const sendProfileMessageRequest = async () => {
+    if (!messageText.trim() || sendingMessage) return;
+    const { data: authData } = await supabase.auth.getUser();
+    if (!authData.user || authData.user.is_anonymous) { requestLogin("message this Panda"); return; }
+    if (authData.user.id === userId) { toast.error("You can't message yourself."); return; }
+    setSendingMessage(true);
+    try {
+      const result = await sendMessageRequest(userId, messageText.trim());
+      setMessageText("");
+      setMessageOpen(false);
+      toast.success("Message request sent 💌", { description: "It is now in Messages while you wait for acceptance." });
+      void navigate({ to: "/messages", search: { request: result.id } });
+    } catch (e: any) {
+      toast.error(e?.message ?? "Message request could not be sent");
+    } finally {
+      setSendingMessage(false);
+    }
+  };
+
   const shareSecret = async (secret:Secret) => {
     const url = window.location.origin + "/secret/" + userId + "#" + secret.id;
     try {
@@ -151,7 +177,10 @@ function SecretProfilePage() {
           <h1 className="mt-2 font-display text-xl font-bold">{profile.display_name}</h1>
           {profile.country ? <p className="mt-0.5 text-xs font-semibold text-muted-foreground">{profile.country}</p> : null}
           <p className="mx-auto mt-2 max-w-md text-xs font-bold leading-5 text-red-500 dark:text-red-400">Post on this secret page and they will not know it was you. Feel free.</p>
-          <Button className="mt-3 h-9 rounded-xl px-4 text-xs font-black" onClick={focusComposer}><Send className="mr-1.5 size-3.5" /> Post a Secret</Button>
+          <div className="mt-3 flex flex-wrap justify-center gap-2">
+            <Button className="h-9 rounded-xl px-4 text-xs font-black" onClick={focusComposer}><Send className="mr-1.5 size-3.5" /> Post a Secret</Button>
+            {profile.id !== (undefined as any) ? <Button variant="outline" className="h-9 rounded-xl px-4 text-xs font-black" onClick={() => setMessageOpen(true)}><MessageCircle className="mr-1.5 size-3.5" /> Message Panda</Button> : null}
+          </div>
         </section>
 
         <section className="space-y-4">
