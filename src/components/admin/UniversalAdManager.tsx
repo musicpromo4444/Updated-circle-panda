@@ -9,7 +9,7 @@ import { Switch } from "@/components/ui/switch";
 type Platform = "web" | "android" | "ios";
 type Strategy = "single" | "mediation";
 type Provider = "admob_mediation" | "admob" | "adsterra" | "direct_sponsor" | "custom_adapter";
-type Format = "banner" | "native" | "interstitial" | "rewarded" | "playable" | "sponsor" | "offerwall" | "link";
+type Format = "banner" | "native" | "interstitial" | "rewarded" | "playable" | "sponsor" | "offerwall" | "link" | "video";
 
 type Placement = { id:string; placement_key:string; label:string; default_format:Format; enabled:boolean; frequency_cap_seconds:number; targeting:Record<string,unknown> };
 type ProviderConfig = { id:string; placement_id:string; platform:Platform; strategy:Strategy; provider:Provider; format:Format; provider_label:string|null; ad_unit_id:string|null; app_id:string|null; placement_code:string|null; adapter_key:string|null; priority:number; enabled:boolean; targeting:Record<string,unknown>; schedule_start:string|null; schedule_end:string|null; frequency_cap_seconds:number };
@@ -21,7 +21,7 @@ const PROVIDERS: {value:Provider;label:string}[] = [
   {value:"direct_sponsor",label:"Direct Sponsor"},
   {value:"custom_adapter",label:"Other / Custom Adapter"},
 ];
-const FORMATS: Format[] = ["banner","native","interstitial","rewarded","playable","sponsor","offerwall","link"];
+const FORMATS: Format[] = ["banner","native","interstitial","rewarded","playable","sponsor","offerwall","link","video"];
 
 function PlatformIcon({platform}:{platform:Platform}) {
   if (platform === "web") return <Globe className="size-4"/>;
