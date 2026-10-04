@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate, useParams } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { ChevronLeft, Send, Users, Settings, Pencil, LogOut, Lock, Reply, Smile, Paperclip, Image as ImageIcon, Video, Mic, X, Play, Pause, Square } from "lucide-react";
+import { ChevronLeft, Send, Users, Settings, Pencil, LogOut, Lock, Reply, Smile, Paperclip, Image as ImageIcon, Video, Mic, X, Play, Pause, Square, Flag, MessageCircle, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useStore, type GroupChat } from "@/lib/store";
@@ -41,6 +41,7 @@ function GroupRoom() {
   const [chatMessages, setChatMessages] = useState<any[]>([]);
   const [replyTo, setReplyTo] = useState<any | null>(null);
   const [reactionOpen, setReactionOpen] = useState<string | null>(null);
+  const [memberMenuOpen, setMemberMenuOpen] = useState<string | null>(null);
   const activationShown = useRef(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [editName, setEditName] = useState("");
@@ -117,6 +118,38 @@ function GroupRoom() {
       const { error: markError } = await (supabase as any).rpc("mark_group_reward_ad_shown", { p_group_id: group.id });
       if (!markError) setAdOpen(true);
     }
+  };
+
+  const messageMember = async (userId: string) => {
+    setMemberMenuOpen(null);
+    const { error } = await (supabase as any).rpc("request_direct_message_secure", {
+      p_recipient_id: userId,
+      p_message: "",
+    });
+    if (error) {
+      toast.error(error.message ?? "Could not start messaging");
+      return;
+    }
+    toast.success("Message request sent");
+    void navigate({ to: "/messages" });
+  };
+
+  const reportMember = async (userId: string) => {
+    setMemberMenuOpen(null);
+    if (!group) return;
+    const confirmed = window.confirm("Report this anonymous member?");
+    if (!confirmed) return;
+    const { error } = await (supabase as any).rpc("report_group_user_secure", {
+      p_group_id: group.id,
+      p_target_user_id: userId,
+      p_reason: "Reported from group chat",
+      p_details: null,
+    });
+    if (error) {
+      toast.error(error.message ?? "Report could not be sent");
+      return;
+    }
+    toast.success("Report sent");
   };
 
   const addReaction = async (messageId: string, emoji: string) => {
@@ -600,7 +633,20 @@ function GroupRoom() {
               {m.reply_to_id ? <button type="button" onClick={()=>{const target=chatMessages.find(x=>x.id===m.reply_to_id); if(target) document.getElementById(`group-msg-${target.id}`)?.scrollIntoView({behavior:"smooth"});}} className="mb-1 inline-block max-w-[85%] rounded-lg border-l-2 border-primary bg-background/60 px-2 py-1 text-left text-[10px] text-muted-foreground">↩ {chatMessages.find(x=>x.id===m.reply_to_id)?.body?.slice(0,80) ?? "Reply"}</button> : null}
               <div id={`group-msg-${m.id}`} className="relative">
                 <p className={`text-[11px] text-muted-foreground ${m.mine ? "text-right" : ""}`}>{m.author}</p>
-                <div className={`mt-0.5 inline-block max-w-[85%] rounded-2xl px-3.5 py-2 text-sm ${m.mine ? "bg-primary text-primary-foreground" : "bg-card"}`}>{m.message_type && m.media_path ? (m.view_once !== false && viewedMediaIds.has(m.id) ? <div className="flex items-center gap-2 px-1 py-1 text-xs opacity-70">✓ Opened view-once {m.message_type}</div> : <button type="button" onClick={()=>void openViewOnceMedia(m)} className="flex items-center gap-3 rounded-xl px-2 py-2 text-left"><span className="grid size-10 place-items-center rounded-full bg-background/25">{m.message_type==="image" ? <ImageIcon className="size-5"/> : m.message_type==="video" ? <Video className="size-5"/> : <Mic className="size-5"/>}</span><span><span className="block font-medium">View once</span><span className="block text-[11px] opacity-70">{m.message_type==="image" ? "Photo" : m.message_type==="video" ? "Video" : "Voice note"}</span></span></button>) : <span className="whitespace-pre-wrap">{m.body}</span>}</div>
+                <div className={`mt-0.5 flex items-end gap-1.5 ${m.mine ? "justify-end" : "justify-start"}`}>
+                  {!m.mine ? (
+                    <div className="relative shrink-0">
+                      <button type="button" className="grid size-9 place-items-center rounded-full border border-border/70 bg-card text-xl shadow-sm" onClick={()=>setMemberMenuOpen(memberMenuOpen===m.user_id?null:m.user_id)} aria-label="Open anonymous member menu">🐼</button>
+                      {memberMenuOpen===m.user_id ? <div className="absolute left-0 top-10 z-[60] w-44 rounded-2xl border border-border bg-card p-1.5 shadow-2xl">
+                        <button type="button" className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm hover:bg-secondary" onClick={()=>void messageMember(m.user_id)}><MessageCircle className="size-4"/> Message</button>
+                        <button type="button" className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm hover:bg-secondary" onClick={()=>void navigate({to:"/secret/$userId",params:{userId:m.user_id}})}><Eye className="size-4"/> View secret</button>
+                        <button type="button" className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm text-destructive hover:bg-destructive/10" onClick={()=>void reportMember(m.user_id)}><Flag className="size-4"/> Report</button>
+                      </div> : null}
+                    </div>
+                  ) : null}
+                  <div className={`max-w-[85%] rounded-2xl px-3.5 py-2 text-sm ${m.mine ? "bg-primary text-primary-foreground" : "bg-card"}`}>{m.message_type && m.media_path ? (m.view_once !== false && viewedMediaIds.has(m.id) ? <div className="flex items-center gap-2 px-1 py-1 text-xs opacity-70">✓ Opened view-once {m.message_type}</div> : <button type="button" onClick={()=>void openViewOnceMedia(m)} className="flex items-center gap-3 rounded-xl px-2 py-2 text-left"><span className="grid size-10 place-items-center rounded-full bg-background/25">{m.message_type==="image" ? <ImageIcon className="size-5"/> : m.message_type==="video" ? <Video className="size-5"/> : <Mic className="size-5"/>}</span><span><span className="block font-medium">View once</span><span className="block text-[11px] opacity-70">{m.message_type==="image" ? "Photo" : m.message_type==="video" ? "Video" : "Voice note"}</span></span></button>) : <span className="whitespace-pre-wrap">{m.body}</span>}</div>
+                  {m.mine ? null : null}
+                </div>
                 <div className={`mt-1 flex items-center gap-1 ${m.mine ? "justify-end" : ""}`}>
                   <Button type="button" variant="ghost" size="icon" className="size-7" onClick={()=>setReplyTo(m)} aria-label="Reply"><Reply className="size-3.5"/></Button>
                   {(() => {
