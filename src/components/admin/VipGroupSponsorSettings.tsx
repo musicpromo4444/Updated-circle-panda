@@ -21,10 +21,11 @@ export function VipGroupSponsorSettings() {
   const [saving, setSaving] = useState(false);
 
   const load = async () => {
-    const [{ data, error }, { data: ads }] = await Promise.all([
+    const [{ data, error }, { data: ads, error: adsError }] = await Promise.all([
       (supabase as any).rpc("admin_get_vip_group_sponsor_config"),
-      (supabase as any).from("ad_creatives").select("id,sponsor,headline,status,placement").eq("placement", "vip_group_sponsor").order("updated_at", { ascending: false }),
+      (supabase as any).rpc("admin_list_vip_group_sponsor_creatives"),
     ]);
+    if (adsError) { toast.error(adsError.message ?? "Could not load VIP sponsor creatives"); return; }
     if (error) { toast.error(error.message ?? "Could not load VIP sponsor settings"); return; }
     setEnabled(Boolean(data?.enabled));
     setDisplayText(String(data?.display_text ?? ""));
