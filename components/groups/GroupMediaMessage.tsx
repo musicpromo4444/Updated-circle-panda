@@ -1,3 +1,4 @@
+import { useRef, useState } from "react";
 import { Image as ImageIcon, Play, Volume2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
