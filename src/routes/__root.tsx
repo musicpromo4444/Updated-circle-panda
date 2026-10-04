@@ -5,7 +5,6 @@ import {
   createRootRouteWithContext,
   useRouter,
   useLocation,
-  useRouterState,
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
@@ -174,14 +173,13 @@ function RootComponent() {
 function RootContent() {
   const location = useLocation();
   const { hydrated } = useStore();
-  const routerLoading = useRouterState({ select: (s) => s.status === "pending" });
   const hideHotSeatPresence = location.pathname === "/profile" || location.pathname.startsWith("/profile/");
 
   return (
     <>
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <Outlet />
-      {(routerLoading || (!hydrated && location.pathname !== "/")) ? <CirclePandaLoader /> : null}
+      {!hydrated ? <CirclePandaLoader /> : null}
       <UniversalWinnerFlow />
       <LoginRequiredDialog />
       <AppDownloadPromotion />
