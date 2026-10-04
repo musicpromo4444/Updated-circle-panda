@@ -479,7 +479,7 @@ type StoreValue = State & {
   activateVip: (days: number) => void;
   createGroup: (name: string, topic: string, country?: string, stateProvince?: string, city?: string, area?: string) => Promise<GroupChat | null>;
   createEvent: (event: Omit<PandaEvent, "id" | "rsvp">) => PandaEvent;
-  requestDatingMatch: (userId: string) => Promise<string | null>;
+  requestDatingMatch: (userId: string) => Promise<{ status: string; requestId?: string; threadId?: string } | null>;
   searchDatingProfiles: (filters: { ageMin?: number; ageMax?: number; country?: string; state?: string; location?: string; gender?: string; relationshipGoal?: string; lookingFor?: string; lifestyle?: string; smoking?: string; drinking?: string; children?: string; education?: string; heightMin?: number; heightMax?: number; zodiac?: string; sameCountryOnly?: boolean }) => Promise<boolean>;
   refreshDatingData: () => Promise<boolean>;
   registerDatingProfile: (profile: Omit<DatingProfile, "registeredAt" | "userId">) => Promise<boolean>;
@@ -1286,8 +1286,13 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     return (async () => {
       const {data,error}=await (supabase as any).rpc("request_dating_match_secure",{p_recipient_id:userId});
       if(error){toast.error(error.message??"Could not send dating request");return null;}
-      toast.success(data?.status==="matched"?"It's a mutual match 💗":"Dating request sent 💗");
-      return String(data?.status??"pending");
+      const result = {
+        status: String(data?.status ?? "pending"),
+        requestId: data?.request_id ? String(data.request_id) : undefined,
+        threadId: data?.thread_id ? String(data.thread_id) : undefined,
+      };
+      toast.success(result.status==="matched"?"It's a mutual match 💗":"Dating message request sent 💌");
+      return result;
     })();
   },[dbUserId]);
 
