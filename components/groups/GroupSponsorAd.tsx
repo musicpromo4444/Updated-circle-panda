@@ -11,7 +11,7 @@ type Creative = {
   call_to_action?: string; duration_seconds?: number; format?: string;
 };
 
-export function GroupSponsorAd({ groupId, creative: initialCreative, onClose }: { groupId: string; creative: Creative; onClose: () => void }) {
+export function GroupSponsorAd({ creative: initialCreative, onClose }: { creative: Creative; onClose: () => void }) {
   const [state, setState] = useState<AdState>("intro");
   const [creative] = useState<Creative | null>(initialCreative);
   const [progress, setProgress] = useState(0);
