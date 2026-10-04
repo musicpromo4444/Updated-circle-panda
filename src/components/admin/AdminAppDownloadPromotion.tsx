@@ -7,6 +7,8 @@ import { Switch } from "@/components/ui/switch";
 
 type AppSettings = {
   apk_url: string;
+  android_app_url: string;
+  ios_app_url: string;
   show_download_button: boolean;
   download_popup_enabled: boolean;
   download_popup_title: string;
@@ -20,6 +22,8 @@ type AppSettings = {
 
 const defaults: AppSettings = {
   apk_url: "",
+  android_app_url: "",
+  ios_app_url: "",
   show_download_button: false,
   download_popup_enabled: true,
   download_popup_title: "Download Circle Panda",
@@ -69,16 +73,14 @@ export function AdminAppDownloadPromotion() {
   return <section className="panda-panel rounded-3xl p-4 sm:p-5">
     <div className="flex items-start justify-between gap-3">
       <div>
-        <div className="flex items-center gap-2"><Smartphone className="size-5 text-primary" /><h2 className="font-display text-xl font-black">Android App Download Promotion</h2></div>
-        <p className="mt-1 text-xs text-muted-foreground">Control the web popup that sends users to the Circle Panda APK and guides them through Android installation.</p>
+        <div className="flex items-center gap-2"><Smartphone className="size-5 text-primary" /><h2 className="font-display text-xl font-black">Circle Panda App Download Promotion</h2></div>
+        <p className="mt-1 text-xs text-muted-foreground">Set the Android and iOS download links used by the new-user app prompt. The prompt returns weekly until the user follows a download link.</p>
       </div>
       <Button onClick={() => void save()} disabled={saving}>{saving ? <Loader2 className="mr-2 size-4 animate-spin" /> : <Save className="mr-2 size-4" />}Save</Button>
     </div>
 
     <div className="mt-4 grid gap-3 sm:grid-cols-2">
-      <label className="text-xs font-semibold sm:col-span-2">APK download URL
-        <input value={value.apk_url} onChange={e => set("apk_url", e.target.value)} placeholder="https://your-host.com/CirclePanda.apk" className="mt-1 h-11 w-full rounded-xl border bg-background px-3 text-sm" />
-      </label>
+      <label className="text-xs font-semibold">Android App URL<input value={value.android_app_url} onChange={e => set("android_app_url", e.target.value)} placeholder="Google Play / APK link" className="mt-1 h-11 w-full rounded-xl border bg-background px-3 text-sm" /></label><label className="text-xs font-semibold">iOS App URL<input value={value.ios_app_url} onChange={e => set("ios_app_url", e.target.value)} placeholder="Apple App Store link" className="mt-1 h-11 w-full rounded-xl border bg-background px-3 text-sm" /></label><label className="text-xs font-semibold sm:col-span-2">Legacy Android APK URL<input value={value.apk_url} onChange={e => set("apk_url", e.target.value)} placeholder="Optional direct APK link" className="mt-1 h-11 w-full rounded-xl border bg-background px-3 text-sm" /></label>
       <label className="flex items-center justify-between rounded-xl border bg-background px-3 py-3 text-sm font-semibold"><span>Show download button</span><Switch checked={value.show_download_button} onCheckedChange={v => set("show_download_button", v)} /></label>
       <label className="flex items-center justify-between rounded-xl border bg-background px-3 py-3 text-sm font-semibold"><span>Show promotional popup</span><Switch checked={value.download_popup_enabled} onCheckedChange={v => set("download_popup_enabled", v)} /></label>
       <label className="text-xs font-semibold">Popup title<input value={value.download_popup_title} onChange={e => set("download_popup_title", e.target.value)} className="mt-1 h-11 w-full rounded-xl border bg-background px-3 text-sm" /></label>
