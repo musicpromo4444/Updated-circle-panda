@@ -605,7 +605,7 @@ function CrushPage() {
       <Dialog open={showLeaderboard} onOpenChange={setShowLeaderboard}>
         <DialogContent className="max-w-sm">
           <DialogTitle>{kind.toUpperCase()} leaderboard</DialogTitle>
-          <DialogDescription>Every user gets 3 free votes each week. Unused votes expire when the week ends. Weekly winner receives {WINNER_REWARD} BC.</DialogDescription>
+          <DialogDescription>Every user gets {FREE_WEEKLY_VOTES} free votes each week. Unused votes expire when the week ends. Weekly winner receives {WINNER_REWARD} BC.</DialogDescription>
           <div className="max-h-[55vh] space-y-2 overflow-y-auto">
             {ranked.map((n, i) => (
               <div key={n.id} className="flex items-center gap-3 rounded-xl bg-secondary/50 p-3">
