@@ -71,7 +71,7 @@ function MessagesPage() {
   useEffect(() => {
     if (search.thread) setActiveId(search.thread);
     if (search.request) setSelectedRequestId(search.request);
-  }, [search.thread]);
+  }, [search.thread, search.request]);
 
   useEffect(() => {
     const refresh = () => {
@@ -90,7 +90,7 @@ function MessagesPage() {
       if (!uid || !active) return;
       const [incomingRes, outgoingRes] = await Promise.all([
         (supabase as any).from("direct_message_requests").select("id,sender_id,message,kind,created_at,status").eq("recipient_id",uid).eq("status","pending").order("created_at",{ascending:false}),
-        (supabase as any).from("direct_message_requests").select("id,recipient_id,message,kind,created_at,status,responded_at").eq("sender_id",uid).in("status",["pending","accepted"]).order("created_at",{ascending:false}).limit(50),
+        (supabase as any).from("direct_message_requests").select("id,recipient_id,message,kind,created_at,status,responded_at,thread_id").eq("sender_id",uid).in("status",["pending","accepted"]).order("created_at",{ascending:false}).limit(50),
       ]);
       if (!active) return;
       if (!incomingRes.error) {
@@ -118,11 +118,11 @@ function MessagesPage() {
       const { data, error } = await (supabase as any).rpc("respond_direct_message_request_secure", { p_request_id: request.id, p_accept: accept });
       if (error) throw error;
       setMessageRequests((current) => current.filter((r) => r.id !== request.id));
-      setSentRequests((current) => current.map((r) => r.id === request.id ? {...r, status: accept ? "accepted" : "declined"} : r));
+      setSentRequests((current) => current.map((r) => r.id === request.id ? { ...r, status: accept ? "accepted" : "declined", thread_id: data?.thread_id ?? r.thread_id } : r));
       setSelectedRequestId((current) => current === request.id ? null : current);
       if (accept && data?.thread_id) {
-        // The request becomes a real chat. Refresh the thread list before navigating
-        // so the accepted MCM/WCW conversation never disappears from Messages.
+        // Acceptance converts the request into a real thread. Refresh the shared
+        // thread store first so the chat card is present before navigation.
         await refreshThreads();
         toast.success("Request accepted 💬");
         void navigate({ to: "/messages", search: { thread: data.thread_id } });
