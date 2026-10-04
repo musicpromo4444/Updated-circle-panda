@@ -14,7 +14,6 @@ import { useStore, FREE_DAILY_VOTES, WINNER_REWARD, type CrushKind } from "@/lib
 import { cn } from "@/lib/utils";
 import { AuthModal } from "@/components/auth/AuthModal";
 import { QuickVoteSignup } from "@/components/auth/QuickVoteSignup";
-import { AppShell } from "@/components/AppShell";
 
 export const Route = createFileRoute("/crush")({
   head: () => ({
@@ -308,7 +307,7 @@ function CrushPage() {
   };
 
   return (
-    <AppShell title="MCM & WCW" immersive hidePageHeader>
+    <div className="min-h-screen bg-black text-white">
       <div className="fixed inset-0 z-50 overflow-hidden bg-black text-white">
         {showAd ? (
           (() => {
@@ -548,6 +547,6 @@ function CrushPage() {
           </div>
         </DialogContent>
       </Dialog>
-    </AppShell>
+    </div>
   );
 }
