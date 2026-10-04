@@ -40,6 +40,7 @@ declare
   v_vote_id uuid;
 begin
   if v_user is null then raise exception 'AUTH_REQUIRED'; end if;
+  perform pg_advisory_xact_lock(hashtextextended(v_user::text, 0));
 
   select c.kind, c.week_start::date into v_kind, v_week_start
   from public.crush_nominees c
@@ -110,6 +111,7 @@ declare
   v_duration integer;
   v_started timestamptz;
   v_week_start date := date_trunc('week', current_date)::date;
+  v_votes_used integer;
   v_credits integer;
 begin
   if v_user is null then raise exception 'AUTH_REQUIRED'; end if;
@@ -132,6 +134,15 @@ begin
 
   if now() < v_started + make_interval(secs => greatest(coalesce(v_duration,0),1)) then
     raise exception 'AD_NOT_FINISHED';
+  end if;
+
+  select count(*)::integer into v_votes_used
+  from public.crush_votes v
+  join public.crush_nominees n on n.id = v.nominee_id
+  where v.user_id = v_user and n.week_start::date = v_week_start;
+
+  if v_votes_used < 3 then
+    raise exception 'VOTES_NOT_EXHAUSTED';
   end if;
 
   insert into public.crush_vote_ad_credits(user_id, week_start, credits)
