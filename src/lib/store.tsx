@@ -95,6 +95,7 @@ export type DatingProfile = {
   interests: string[];
   location: string;
   country: string;
+  stateProvince: string;
   gender: string;
   relationshipGoal: string;
   lookingFor: string[];
@@ -478,7 +479,7 @@ type StoreValue = State & {
   createGroup: (name: string, topic: string, country?: string, stateProvince?: string, city?: string, area?: string) => Promise<GroupChat | null>;
   createEvent: (event: Omit<PandaEvent, "id" | "rsvp">) => PandaEvent;
   requestDatingMatch: (userId: string) => Promise<string | null>;
-  searchDatingProfiles: (filters: { ageMin?: number; ageMax?: number; country?: string; location?: string; gender?: string; relationshipGoal?: string; lookingFor?: string; lifestyle?: string; smoking?: string; drinking?: string; children?: string; education?: string; heightMin?: number; heightMax?: number; zodiac?: string; sameCountryOnly?: boolean }) => Promise<boolean>;
+  searchDatingProfiles: (filters: { ageMin?: number; ageMax?: number; country?: string; state?: string; location?: string; gender?: string; relationshipGoal?: string; lookingFor?: string; lifestyle?: string; smoking?: string; drinking?: string; children?: string; education?: string; heightMin?: number; heightMax?: number; zodiac?: string; sameCountryOnly?: boolean }) => Promise<boolean>;
   refreshDatingData: () => Promise<boolean>;
   registerDatingProfile: (profile: Omit<DatingProfile, "registeredAt" | "userId">) => Promise<boolean>;
 };
@@ -1151,24 +1152,28 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     const uid = auth.user?.id;
     if (!uid) return false;
     const [ownRes, discoveryRes] = await Promise.all([
-      (supabase as any).from("dating_profiles").select("user_id,name,age,vibe,emoji,bio,interests,location,country,gender,relationship_goal,looking_for,about_traits,lifestyle,personality,love_language,smoking,drinking,children,education,occupation,sexual_experience,intimacy_preference,relationship_status,height_cm,zodiac,favorite_date,photo_path,blurred_photo_path,updated_at").eq("user_id",uid).eq("enabled",true).maybeSingle(),
-      (supabase as any).rpc("get_dating_discovery_secure", { p_age_min:18,p_age_max:120,p_country:"",p_location:"",p_gender:"",p_relationship_goal:"",p_looking_for:"",p_lifestyle:"",p_smoking:"",p_drinking:"",p_children:"",p_education:"",p_height_min:null,p_height_max:null,p_zodiac:"",p_same_country_only:false }),
+      (supabase as any).from("dating_profiles").select("user_id,name,age,vibe,emoji,bio,interests,location,country,state_province,gender,relationship_goal,looking_for,about_traits,lifestyle,personality,love_language,smoking,drinking,children,education,occupation,sexual_experience,intimacy_preference,relationship_status,height_cm,zodiac,favorite_date,photo_path,blurred_photo_path,updated_at").eq("user_id",uid).eq("enabled",true).maybeSingle(),
+      (supabase as any).rpc("get_dating_discovery_filters_secure", {
+        p_age_min:18,p_age_max:120,p_country:"",p_state:"",p_location:"",p_gender:"",
+        p_relationship_goal:"",p_looking_for:"",p_lifestyle:"",p_smoking:"",p_drinking:"",p_children:"",p_education:"",
+      }),
     ]);
     if (ownRes.error) { toast.error(ownRes.error.message ?? "Your Dating profile could not be loaded"); return false; }
     if (discoveryRes.error) { toast.error(discoveryRes.error.message ?? "Dating discovery could not be loaded"); return false; }
     const mapProfile = (d:any): DatingProfile => ({
-      userId:d.user_id,name:d.name ?? "Anonymous Panda",age:Number(d.age ?? 18),vibe:d.vibe ?? "",emoji:d.emoji ?? "🐼",bio:d.bio ?? "",interests:d.interests ?? [],location:d.location ?? "",country:d.country ?? "",gender:d.gender ?? "",relationshipGoal:d.relationship_goal ?? "",lookingFor:d.looking_for ?? [],aboutTraits:d.about_traits ?? [],lifestyle:d.lifestyle ?? [],personality:d.personality ?? [],loveLanguage:d.love_language ?? "",smoking:d.smoking ?? "",drinking:d.drinking ?? "",children:d.children ?? "",education:d.education ?? "",occupation:d.occupation ?? "",sexualExperience:d.sexual_experience ?? "",intimacyPreference:d.intimacy_preference ?? "",relationshipStatus:d.relationship_status ?? "single",heightCm:d.height_cm ?? null,zodiac:d.zodiac ?? "",favoriteDate:d.favorite_date ?? "",photoPath:d.photo_path ?? "",blurredPhotoPath:d.blurred_photo_path ?? "",registeredAt:d.updated_at ? new Date(d.updated_at).getTime() : Date.now()
+      userId:d.user_id,name:d.name ?? "Anonymous Panda",age:Number(d.age ?? 18),vibe:d.vibe ?? "",emoji:d.emoji ?? "🐼",bio:d.bio ?? "",interests:d.interests ?? [],location:d.location ?? "",country:d.country ?? "",stateProvince:d.state_province ?? "",gender:d.gender ?? "",relationshipGoal:d.relationship_goal ?? "",lookingFor:d.looking_for ?? [],aboutTraits:d.about_traits ?? [],lifestyle:d.lifestyle ?? [],personality:d.personality ?? [],loveLanguage:d.love_language ?? "",smoking:d.smoking ?? "",drinking:d.drinking ?? "",children:d.children ?? "",education:d.education ?? "",occupation:d.occupation ?? "",sexualExperience:d.sexual_experience ?? "",intimacyPreference:d.intimacy_preference ?? "",relationshipStatus:d.relationship_status ?? "single",heightCm:d.height_cm ?? null,zodiac:d.zodiac ?? "",favoriteDate:d.favorite_date ?? "",photoPath:d.photo_path ?? "",blurredPhotoPath:d.blurred_photo_path ?? "",registeredAt:d.updated_at ? new Date(d.updated_at).getTime() : Date.now()
     });
     setState(s => ({ ...s, datingProfile: ownRes.data ? mapProfile(ownRes.data) : null, datingMatches:(discoveryRes.data ?? []).filter((d:any)=>d.user_id!==uid).map(mapProfile) }));
     return true;
   }, []);
 
-  const searchDatingProfiles = useCallback(async (filters: { ageMin?: number; ageMax?: number; country?: string; location?: string; gender?: string; relationshipGoal?: string; lookingFor?: string; lifestyle?: string; smoking?: string; drinking?: string; children?: string; education?: string; heightMin?: number; heightMax?: number; zodiac?: string; sameCountryOnly?: boolean }) => {
+  const searchDatingProfiles = useCallback(async (filters: { ageMin?: number; ageMax?: number; country?: string; state?: string; location?: string; gender?: string; relationshipGoal?: string; lookingFor?: string; lifestyle?: string; smoking?: string; drinking?: string; children?: string; education?: string; heightMin?: number; heightMax?: number; zodiac?: string; sameCountryOnly?: boolean }) => {
     if (!dbUserId) return false;
-    const { data, error } = await (supabase as any).rpc("get_dating_discovery_secure", {
+    const { data, error } = await (supabase as any).rpc("get_dating_discovery_filters_secure", {
       p_age_min: filters.ageMin ?? 18,
       p_age_max: filters.ageMax ?? 120,
       p_country: filters.country ?? "",
+      p_state: filters.state ?? "",
       p_location: filters.location ?? "",
       p_gender: filters.gender ?? "",
       p_relationship_goal: filters.relationshipGoal ?? "",
@@ -1178,16 +1183,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       p_drinking: filters.drinking ?? "",
       p_children: filters.children ?? "",
       p_education: filters.education ?? "",
-      p_height_min: filters.heightMin || null,
-      p_height_max: filters.heightMax || null,
-      p_zodiac: filters.zodiac ?? "",
-      p_same_country_only: filters.sameCountryOnly ?? false,
     });
     if (error) { toast.error(error.message ?? "Dating matches could not be loaded"); return false; }
     const rows = Array.isArray(data) ? data : [];
     const mapped = rows.map((d:any) => ({
       userId:d.user_id,name:d.name,age:d.age,vibe:d.vibe,emoji:d.emoji,bio:d.bio,interests:d.interests??[],
-      location:d.location??"",country:d.country??"",gender:d.gender??"",relationshipGoal:d.relationship_goal??"",
+      location:d.location??"",country:d.country??"",stateProvince:d.state_province??"",gender:d.gender??"",relationshipGoal:d.relationship_goal??"",
       lookingFor:d.looking_for??[],aboutTraits:d.about_traits??[],lifestyle:d.lifestyle??[],personality:d.personality??[],loveLanguage:d.love_language??"",
       smoking:d.smoking??"",drinking:d.drinking??"",children:d.children??"",education:d.education??"",occupation:d.occupation??"",
       sexualExperience:d.sexual_experience??"",intimacyPreference:d.intimacy_preference??"",relationshipStatus:d.relationship_status??"single",
