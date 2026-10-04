@@ -269,6 +269,7 @@ function GroupRoom() {
       </div>
 
       {live && group?.sendMessages !== false ? (
+        <>
         {replyTo ? <div className="border-t border-border bg-secondary/30 px-3 py-2 text-xs"><div className="flex items-center justify-between"><span className="text-muted-foreground">Replying to {replyTo.author}</span><Button type="button" variant="ghost" size="sm" onClick={()=>setReplyTo(null)}>Cancel</Button></div><p className="truncate">{replyTo.body}</p></div> : null}
         <form
           className="flex gap-2 border-t border-border bg-background px-3 py-3"
@@ -291,6 +292,7 @@ function GroupRoom() {
             <Send className="size-4" />
           </Button>
         </form>
+        </>
       ) : live ? (
         <div className="border-t border-border bg-background px-3 py-3 text-center text-xs text-muted-foreground">
           Only group admins can send messages right now.
