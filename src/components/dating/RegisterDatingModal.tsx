@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from "@/components/ui/input";
 import { useStore, type DatingProfile } from "@/lib/store";
 import { requestLogin } from "@/components/auth/LoginRequiredDialog";
+import { CirclePandaLoader } from "@/components/CirclePandaLoader";
 
 const PANDA_AVATARS = ["🐼","🎋🐼","🌙🐼","✨🐼","🎧🐼","🕶️🐼","❤️🐼","🔥🐼","🌸🐼","🎨🐼","🍫🐼","☀️🐼"];
 
@@ -67,6 +68,7 @@ export function RegisterDatingModal({open,onOpenChange}:{open:boolean;onOpenChan
   const [photoPreview,setPhotoPreview]=useState<string|null>(null);
   const [uploadingPhoto,setUploadingPhoto]=useState(false);
   const [accountReady,setAccountReady]=useState(false);
+  const [publishing,setPublishing]=useState(false);
 
   useEffect(()=>{
     if(!open) return;
@@ -92,7 +94,7 @@ export function RegisterDatingModal({open,onOpenChange}:{open:boolean;onOpenChan
       }
       setPhotoFile(null); setStep(0); setAccountReady(true);
     })();
-  },[open,datingProfile,onOpenChange]);
+  },[open,onOpenChange]);
 
   const toggle=(key:"interests"|"lookingFor"|"aboutTraits"|"lifestyle"|"personality",value:string)=>
     setP(s=>({...s,[key]:s[key].includes(value)?s[key].filter(x=>x!==value):[...s[key],value]}));
@@ -116,6 +118,7 @@ export function RegisterDatingModal({open,onOpenChange}:{open:boolean;onOpenChan
     if(!p.relationshipGoal){toast.error("Choose the type of relationship you're looking for");setStep(1);return;}
     if(!photoFile && !p.photoPath){toast.error("Upload your Dating photo");return;}
     setUploadingPhoto(true);
+    setPublishing(true);
     try{
       const {data:userRes}=await (supabase as any).auth.getUser(); const uid=userRes?.user?.id;
       if(!uid||userRes?.user?.is_anonymous){requestLogin("register for Dating");return;}
@@ -133,14 +136,19 @@ export function RegisterDatingModal({open,onOpenChange}:{open:boolean;onOpenChan
       if (!saved) return;
       toast.success(datingProfile?"Dating profile updated 💗":"🎉 Dating profile is live!");
       onOpenChange(false);
-    }catch(err:any){toast.error(err?.message??"Could not save Dating profile");}
-    finally{setUploadingPhoto(false);}
+      setPublishing(false);
+    }catch(err:any){
+      toast.error(err?.message??"Could not save Dating profile");
+      setPublishing(false);
+    }finally{setUploadingPhoto(false);}
   };
 
   if(!accountReady && open)return null;
 
   const progress=["Circle Panda","Relationship","What are you looking for?","Your details","Dating photo"];
-  return <Dialog open={open} onOpenChange={onOpenChange}>
+  return <>
+    {publishing ? <CirclePandaLoader /> : null}
+    <Dialog open={open && !publishing} onOpenChange={onOpenChange}>
     <DialogContent className="max-h-[92vh] overflow-y-auto rounded-2xl p-6 sm:max-w-2xl">
       <DialogHeader>
         <div className="flex items-center gap-2"><span className="grid size-9 place-items-center rounded-xl bg-[color-mix(in_oklab,var(--dating)_20%,transparent)] text-[var(--dating)]"><Heart className="size-5 fill-current"/></span>
@@ -232,5 +240,6 @@ export function RegisterDatingModal({open,onOpenChange}:{open:boolean;onOpenChan
         </DialogFooter>
       </form>
     </DialogContent>
-  </Dialog>;
+    </Dialog>
+  </>;
 }
