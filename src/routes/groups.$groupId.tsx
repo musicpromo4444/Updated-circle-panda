@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate, useParams } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { ChevronLeft, Send, Users, Settings, Pencil, LogOut, Lock, Reply, Smile, Paperclip, Image as ImageIcon, Video, Mic, X, Play, Pause, Square, Trash2, RotateCcw } from "lucide-react";
+import { ChevronLeft, Send, Users, Settings, Pencil, LogOut, Lock, Reply, Smile, Paperclip, Image as ImageIcon, Video, Mic, X, Play, Pause, Square } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useStore, type GroupChat } from "@/lib/store";
