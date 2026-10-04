@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Image as ImageIcon, Mic, Send, Square, Video, X, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,6 +27,7 @@ export function GroupComposer({
   const [pendingVoice, setPendingVoice] = useState<OutgoingGroupMedia | null>(null);
   const timerRef = useRef<number | null>(null);
   const recorderRef = useRef<MediaRecorder | null>(null);
+  const audioPreviewRef = useRef<HTMLAudioElement | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const streamRef = useRef<MediaStream | null>(null);
   const imageInput = useRef<HTMLInputElement>(null);
@@ -117,12 +118,12 @@ export function GroupComposer({
         </Button>
         <div className="min-w-0 flex-1 px-1">
           <div className="flex items-center gap-2">
-            {recording ? <span className="size-2 animate-pulse rounded-full bg-destructive" /> : null}
-            <span className="text-sm font-medium">{recording ? "Recording voice…" : "Voice message ready"}</span>
+            {recording ? <span className="size-2 animate-pulse rounded-full bg-destructive" /> : <span className="size-2 rounded-full bg-primary" />}
+            <span className="text-sm font-medium">{recording ? "Recording" : "Voice message"}</span>
             <span className="text-xs text-muted-foreground">00:{String(recording ? seconds : pendingVoice?.durationSeconds ?? 0).padStart(2,"0")}</span>
           </div>
-          <div className="mt-1 flex h-5 items-center gap-1">
-            {Array.from({length: 28}).map((_,i)=><span key={i} className="w-1 rounded-full bg-primary/60" style={{height:`${6 + ((i * 11 + seconds * 3) % 16)}px`}} />)}
+          <div className="mt-1 flex h-7 items-center gap-[2px] overflow-hidden">
+            {Array.from({length: 34}).map((_,i)=><span key={i} className={`w-[3px] rounded-full transition-all ${recording ? "bg-primary" : "bg-muted-foreground/60"}`} style={{height:`${recording ? 5 + ((i * 11 + seconds * 3) % 22) : 5 + ((i * 7) % 14)}px`}} />)}
           </div>
         </div>
         {recording ? (
