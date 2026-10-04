@@ -447,6 +447,7 @@ type StoreValue = State & {
   updateGroupSettings: (id: string, editGroupInfo: "admins" | "admins_members", sendMessages: boolean, approveNewMembers: boolean) => void;
   isGroupExpired: (g: GroupChat) => boolean;
   sendMessage: (threadId: string, body: string) => void;
+  refreshThreads: () => Promise<void>;
   startDatingChat: (userId: string, name: string) => Promise<string | null>;
   startDmWithAuthor: (userId: string, author: string, blurb: string) => Promise<string | null>;
   openPaidDm: (userId: string, author: string, blurb: string) => Promise<string | null>;
@@ -509,6 +510,68 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       const totalXp = Number(xpRes.data?.xp ?? s.xp);
       return { ...s, coins: Number(bcRes.data?.balance ?? s.coins), xp: totalXp, level: pandaProgress(totalXp).index + 1 };
     });
+  }, [dbUserId]);
+
+  const refreshThreads = useCallback(async () => {
+    if (!dbUserId) return;
+    const uid = dbUserId;
+    const [threadsRes, messagesRes] = await Promise.all([
+      (supabase as any).from("cp_threads")
+        .select("id,owner_id,participant_id,other_alias,kind,blurb,created_at")
+        .order("created_at", { ascending: false })
+        .limit(100),
+      (supabase as any).from("cp_thread_messages")
+        .select("id,thread_id,user_id,body,created_at,message_type,media_path")
+        .order("created_at", { ascending: true })
+        .limit(2000),
+    ]);
+    if (threadsRes.error) {
+      console.error("Circle Panda thread refresh failed", threadsRes.error);
+      return;
+    }
+    const rawThreads = threadsRes.data ?? [];
+    const rawMessages = messagesRes.data ?? [];
+    const otherIds = Array.from(new Set(
+      rawThreads
+        .map((t: any) => t.owner_id === uid ? t.participant_id : t.owner_id)
+        .filter(Boolean),
+    ));
+    const profilesRes = otherIds.length
+      ? await (supabase as any).from("profiles").select("id,display_name,is_vip,vip_expires_at").in("id", otherIds)
+      : { data: [] };
+    const profileNames = new Map(
+      (profilesRes.data ?? []).map((p: any) => [
+        p.id,
+        {
+          name: p.display_name || "Anonymous Panda",
+          vip: Boolean(p.is_vip && (!p.vip_expires_at || new Date(p.vip_expires_at).getTime() > Date.now())),
+        },
+      ]),
+    );
+    const threads = rawThreads.filter((t: any) => t.participant_id).map((t: any) => {
+      const otherId = t.owner_id === uid ? t.participant_id : t.owner_id;
+      const profile = profileNames.get(otherId);
+      return {
+        id: t.id,
+        otherUserId: otherId,
+        otherVip: Boolean(profile?.vip),
+        name: profile?.name ?? "Anonymous Panda",
+        kind: t.kind === "dating" ? "dating" : "dm",
+        blurb: t.blurb ?? "",
+        messages: rawMessages
+          .filter((m: any) => m.thread_id === t.id && !(m.message_type === "dating_photo" && m.user_id === uid))
+          .map((m: any) => ({
+            id: m.id,
+            body: m.body,
+            at: new Date(m.created_at).getTime(),
+            mine: m.user_id === uid,
+            messageType: m.message_type === "dating_photo" ? "dating_photo" : "text",
+            mediaPath: m.media_path ?? undefined,
+          })),
+        startedAt: t.kind === "dating" ? new Date(t.created_at).getTime() : undefined,
+      };
+    });
+    setState((s) => ({ ...s, threads }));
   }, [dbUserId]);
 
 
