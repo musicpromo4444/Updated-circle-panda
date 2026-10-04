@@ -12,7 +12,7 @@ create table if not exists public.cp_vip_group_call_config (
 alter table public.cp_vip_group_call_config enable row level security;
 revoke all on public.cp_vip_group_call_config from anon, authenticated, public;
 
-insert into public.cp_vip_group_call_config (id) values (1)
+insert into public.cp_vip_group_call_config (id, enabled, voice_enabled, video_enabled, popup_after_hours, repeat_every_hours) values (1, true, true, true, 0, 24)
 on conflict (id) do nothing;
 
 create or replace function public.get_vip_group_call_config()
