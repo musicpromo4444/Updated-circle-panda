@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate, useParams } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { ChevronLeft, Send, Users, Settings, Pencil, LogOut, Lock, Reply, Smile, Paperclip, Image as ImageIcon, Video, Mic, X, Play } from "lucide-react";
+import { ChevronLeft, Send, Users, Settings, Pencil, LogOut, Lock, Reply, Smile, Paperclip, Image as ImageIcon, Video, Mic, X, Play, Pause, Square, Trash2, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useStore, type GroupChat } from "@/lib/store";
@@ -54,6 +54,16 @@ function GroupRoom() {
   const [mediaMenuOpen, setMediaMenuOpen] = useState(false);
   const [mediaPreview, setMediaPreview] = useState<{url:string; type:"image"|"video"|"audio"; name:string} | null>(null);
   const [recording, setRecording] = useState(false);
+  const [recordingPaused, setRecordingPaused] = useState(false);
+  const [recordingStopped, setRecordingStopped] = useState(false);
+  const [voiceBlob, setVoiceBlob] = useState<Blob | null>(null);
+  const [voicePreviewUrl, setVoicePreviewUrl] = useState<string | null>(null);
+  const [recordingSeconds, setRecordingSeconds] = useState(0);
+  const recordingStartedAtRef = useRef<number | null>(null);
+  const recordingElapsedBeforePauseRef = useRef(0);
+  const discardRecordingRef = useRef(false);
+  const recordingTimerRef = useRef<number | null>(null);
+  const [viewedMediaIds, setViewedMediaIds] = useState<Set<string>>(new Set());
   const mediaInputRef = useRef<HTMLInputElement>(null);
   const recorderRef = useRef<MediaRecorder | null>(null);
   const recordChunksRef = useRef<Blob[]>([]);
@@ -65,7 +75,7 @@ function GroupRoom() {
     void (async () => {
       const [{ data: summaries }, { data: messages }] = await Promise.all([
         (supabase as any).rpc("get_group_summaries", { p_country:"", p_state_province:"", p_city:"", p_area:"" }),
-        (supabase as any).from("cp_group_messages").select("id,group_id,body,created_at,author_id").eq("group_id", groupId).order("created_at", { ascending: true }),
+        (supabase as any).from("cp_group_messages").select("id,group_id,body,created_at,author_id,message_type,media_path,mime_type,duration_seconds,view_once").eq("group_id", groupId).order("created_at", { ascending: true }),
       ]);
       const row = (summaries ?? []).find((g:any) => g.id === groupId);
       if (!active || !row) return;
@@ -75,7 +85,7 @@ function GroupRoom() {
         editGroupInfo:"admins",sendMessages:true,approveNewMembers:false,joinPending:Boolean(row.join_pending),
         members:Number(row.member_count ?? 0),openedAt:row.activated_at?new Date(row.activated_at).getTime():null,expiresAt:row.expires_at ?? null,
         latitude:null,longitude:null,country:row.country ?? "",stateProvince:row.state_province ?? "",city:row.city ?? "",area:row.area ?? "",
-        messages:(messages ?? []).map((m:any)=>({id:m.id,author:m.author_id===uid?"You (anonymous)":"Anonymous Panda",body:m.body,at:new Date(m.created_at).getTime(),mine:m.author_id===uid,message_type:m.message_type,media_path:m.media_path})),
+    messages:(messages ?? []).map((m:any)=>({id:m.id,author:m.author_id===uid?"You (anonymous)":"Anonymous Panda",body:m.body,at:new Date(m.created_at).getTime(),mine:m.author_id===uid,message_type:m.message_type,media_path:m.media_path,mime_type:m.mime_type,duration_seconds:m.duration_seconds,view_once:m.view_once})),
       };
       if (!fresh.memberRole) {
         toast.error("You are not a member of this group. Join again to open the room.");
@@ -131,9 +141,11 @@ function GroupRoom() {
 
     const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
     const path = `${uid}/${group.id}/${crypto.randomUUID()}-${safeName}`;
+    toast.info(messageType === "image" ? "Uploading photo…" : messageType === "video" ? "Uploading video…" : "Sending voice note…");
+
     const { error: uploadError } = await supabase.storage
       .from("group-media")
-      .upload(path, file, { contentType: file.type, upsert: false });
+      .upload(path, file, { contentType: file.type || "application/octet-stream", upsert: false });
 
     if (uploadError) {
       toast.error(uploadError.message ?? "Media upload failed");
@@ -144,11 +156,13 @@ function GroupRoom() {
       p_group_id: group.id,
       p_media_path: path,
       p_message_type: messageType,
-      p_mime_type: file.type,
+      p_mime_type: file.type || null,
       p_duration_seconds: durationSeconds ?? null,
+      p_view_once: true,
     });
 
     if (error) {
+      await supabase.storage.from("group-media").remove([path]);
       toast.error(error.message ?? "Media could not be sent");
       return;
     }
@@ -167,10 +181,13 @@ function GroupRoom() {
       media_url: mediaUrl,
       mime_type: file.type,
       duration_seconds: durationSeconds ?? null,
+      view_once: true,
       reactions: [],
+      currentUserId: uid,
     };
     setChatMessages((items) => items.some((x) => x.id === created.id) ? items : [...items, created]);
     setMediaMenuOpen(false);
+    toast.success(messageType === "image" ? "Photo sent" : messageType === "video" ? "Video sent" : "Voice note sent");
     void maybeOpenGroupRewardAd();
   };
 
@@ -181,14 +198,29 @@ function GroupRoom() {
       toast.error("Please choose an image or video");
       return;
     }
+    setMediaMenuOpen(false);
     await uploadMedia(file, type);
   };
 
-  const toggleVoiceRecording = async () => {
-    if (recording) {
-      recorderRef.current?.stop();
-      return;
+  const clearVoiceDraft = () => {
+    if (recordingTimerRef.current !== null) {
+      window.clearInterval(recordingTimerRef.current);
+      recordingTimerRef.current = null;
     }
+    recorderRef.current = null;
+    setRecording(false);
+    setRecordingPaused(false);
+    setRecordingStopped(false);
+    setVoiceBlob(null);
+    if (voicePreviewUrl) URL.revokeObjectURL(voicePreviewUrl);
+    setVoicePreviewUrl(null);
+    setRecordingSeconds(0);
+    recordingStartedAtRef.current = null;
+    recordingElapsedBeforePauseRef.current = 0;
+  };
+
+  const startVoiceRecording = async () => {
+    if (recording || voiceBlob) return;
     if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === "undefined") {
       toast.error("Voice recording is not supported on this device");
       return;
@@ -197,25 +229,131 @@ function GroupRoom() {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const recorder = new MediaRecorder(stream);
       recordChunksRef.current = [];
+      discardRecordingRef.current = false;
+
       recorder.ondataavailable = (e) => {
         if (e.data.size) recordChunksRef.current.push(e.data);
       };
-      recorder.onstop = async () => {
+
+      recorder.onstop = () => {
         stream.getTracks().forEach((t) => t.stop());
+        if (recordingTimerRef.current !== null) {
+          window.clearInterval(recordingTimerRef.current);
+          recordingTimerRef.current = null;
+        }
+        if (discardRecordingRef.current) {
+          discardRecordingRef.current = false;
+          clearVoiceDraft();
+          return;
+        }
         const blob = new Blob(recordChunksRef.current, { type: recorder.mimeType || "audio/webm" });
-        await uploadMedia(
-          new File([blob], `voice-${Date.now()}.webm`, { type: blob.type }),
-          "audio"
-        );
+        setVoiceBlob(blob);
+        if (voicePreviewUrl) URL.revokeObjectURL(voicePreviewUrl);
+        setVoicePreviewUrl(URL.createObjectURL(blob));
         setRecording(false);
+        setRecordingPaused(false);
+        setRecordingStopped(true);
+        recorderRef.current = null;
       };
+
       recorderRef.current = recorder;
-      recorder.start();
+      recorder.start(250);
+      recordingStartedAtRef.current = Date.now();
+      recordingElapsedBeforePauseRef.current = 0;
+      setRecordingSeconds(0);
       setRecording(true);
+      setRecordingPaused(false);
+      setRecordingStopped(false);
+      setMediaMenuOpen(false);
+
+      recordingTimerRef.current = window.setInterval(() => {
+        if (recordingStartedAtRef.current !== null) {
+          setRecordingSeconds(recordingElapsedBeforePauseRef.current + Math.floor((Date.now() - recordingStartedAtRef.current) / 1000));
+        }
+      }, 250);
     } catch {
       toast.error("Microphone permission is required for voice notes");
     }
   };
+
+  const pauseOrResumeVoiceRecording = () => {
+    const recorder = recorderRef.current;
+    if (!recorder) {
+      if (voicePreviewUrl && recordingStopped) {
+        const audio = new Audio(voicePreviewUrl);
+        void audio.play();
+      }
+      return;
+    }
+    if (recorder.state === "recording") {
+      recorder.pause();
+      recordingElapsedBeforePauseRef.current = recordingSeconds;
+      recordingStartedAtRef.current = null;
+      setRecordingPaused(true);
+    } else if (recorder.state === "paused") {
+      recorder.resume();
+      recordingStartedAtRef.current = Date.now();
+      setRecordingPaused(false);
+    }
+  };
+
+  const stopVoiceRecording = () => {
+    const recorder = recorderRef.current;
+    if (!recorder) return;
+    if (recorder.state === "recording") {
+      recordingElapsedBeforePauseRef.current = recordingSeconds;
+    }
+    recorder.stop();
+  };
+
+  const cancelVoiceRecording = () => {
+    discardRecordingRef.current = true;
+    const recorder = recorderRef.current;
+    if (recorder && recorder.state !== "inactive") {
+      recorder.stop();
+    } else {
+      clearVoiceDraft();
+    }
+  };
+
+  const sendVoiceRecording = async () => {
+    if (!voiceBlob) return;
+    const duration = recordingSeconds;
+    const file = new File([voiceBlob], `voice-${Date.now()}.webm`, { type: voiceBlob.type || "audio/webm" });
+    await uploadMedia(file, "audio", duration);
+    clearVoiceDraft();
+  };
+
+  const openViewOnceMedia = async (m: any) => {
+    if (!m.media_path) return;
+    const { data: allowed, error } = await (supabase as any).rpc("claim_group_media_view_once", { p_message_id: m.id });
+    if (error) {
+      toast.error(error.message ?? "This media could not be opened");
+      return;
+    }
+    if (m.view_once !== false && allowed !== true) {
+      setViewedMediaIds((old) => new Set(old).add(m.id));
+      toast.info("This view-once media has already been opened.");
+      return;
+    }
+    const url = m.media_url ?? await signedMediaUrl(m.media_path);
+    if (!url) {
+      toast.error("Media is unavailable");
+      return;
+    }
+    setViewedMediaIds((old) => new Set(old).add(m.id));
+    setMediaPreview({ url, type: m.message_type === "image" ? "image" : m.message_type === "video" ? "video" : "audio", name: "View once" });
+  };
+
+
+  useEffect(() => {
+    return () => {
+      if (recordingTimerRef.current !== null) window.clearInterval(recordingTimerRef.current);
+      if (voicePreviewUrl) URL.revokeObjectURL(voicePreviewUrl);
+      const recorder = recorderRef.current;
+      if (recorder && recorder.state !== "inactive") recorder.stop();
+    };
+  }, [voicePreviewUrl]);
 
   useEffect(() => {
     if (!group) return;
@@ -234,7 +372,7 @@ function GroupRoom() {
     let cancelled = false;
     const load = async () => {
       const [{ data: rows, error }, { data: reactions }] = await Promise.all([
-        (supabase as any).from("cp_group_messages").select("id,group_id,body,created_at,user_id,message_type,reply_to_id").eq("group_id", groupId).order("created_at", { ascending: true }).limit(1000),
+        (supabase as any).from("cp_group_messages").select("id,group_id,body,created_at,user_id,message_type,reply_to_id,media_path,mime_type,duration_seconds,view_once").eq("group_id", groupId).order("created_at", { ascending: true }).limit(1000),
         (supabase as any).from("cp_group_message_reactions").select("message_id,user_id,reaction"),
       ]);
       if (error) { toast.error(error.message ?? "Could not load group messages"); return; }
@@ -449,7 +587,7 @@ function GroupRoom() {
               {m.reply_to_id ? <button type="button" onClick={()=>{const target=chatMessages.find(x=>x.id===m.reply_to_id); if(target) document.getElementById(`group-msg-${target.id}`)?.scrollIntoView({behavior:"smooth"});}} className="mb-1 inline-block max-w-[85%] rounded-lg border-l-2 border-primary bg-background/60 px-2 py-1 text-left text-[10px] text-muted-foreground">↩ {chatMessages.find(x=>x.id===m.reply_to_id)?.body?.slice(0,80) ?? "Reply"}</button> : null}
               <div id={`group-msg-${m.id}`} className="relative">
                 <p className={`text-[11px] text-muted-foreground ${m.mine ? "text-right" : ""}`}>{m.author}</p>
-                <div className={`mt-0.5 inline-block max-w-[85%] rounded-2xl px-3.5 py-2 text-sm ${m.mine ? "bg-primary text-primary-foreground" : "bg-card"}`}>{m.message_type==="image" && m.media_path ? <button type="button" onClick={()=>m.media_url && setMediaPreview({url:m.media_url,type:"image",name:"Image"})} className="block"><img src={m.media_url ?? ""} alt="Group media" className="max-h-72 max-w-full rounded-xl object-cover" /></button> : m.message_type==="video" && m.media_path ? <button type="button" onClick={()=>m.media_url && setMediaPreview({url:m.media_url,type:"video",name:"Video"})} className="flex items-center gap-2 rounded-xl bg-black/20 px-4 py-3"><Play className="size-5" /> Video</button> : m.message_type==="audio" && m.media_path ? <button type="button" onClick={()=>m.media_url && setMediaPreview({url:m.media_url,type:"audio",name:"Voice note"})} className="flex items-center gap-2"><Mic className="size-4" /> Voice note</button> : <span className="whitespace-pre-wrap">{m.body}</span>}</div>
+                <div className={`mt-0.5 inline-block max-w-[85%] rounded-2xl px-3.5 py-2 text-sm ${m.mine ? "bg-primary text-primary-foreground" : "bg-card"}`}>{m.message_type && m.media_path ? (m.view_once !== false && viewedMediaIds.has(m.id) ? <div className="flex items-center gap-2 px-1 py-1 text-xs opacity-70">✓ Opened view-once {m.message_type}</div> : <button type="button" onClick={()=>void openViewOnceMedia(m)} className="flex items-center gap-3 rounded-xl px-2 py-2 text-left"><span className="grid size-10 place-items-center rounded-full bg-background/25">{m.message_type==="image" ? <ImageIcon className="size-5"/> : m.message_type==="video" ? <Video className="size-5"/> : <Mic className="size-5"/>}</span><span><span className="block font-medium">View once</span><span className="block text-[11px] opacity-70">{m.message_type==="image" ? "Photo" : m.message_type==="video" ? "Video" : "Voice note"}</span></span></button>) : <span className="whitespace-pre-wrap">{m.body}</span>}</div>
                 <div className={`mt-1 flex items-center gap-1 ${m.mine ? "justify-end" : ""}`}>
                   <Button type="button" variant="ghost" size="icon" className="size-7" onClick={()=>setReplyTo(m)} aria-label="Reply"><Reply className="size-3.5"/></Button>
                   {(() => {
@@ -481,6 +619,34 @@ function GroupRoom() {
       {live && group?.sendMessages !== false ? (
         <>
         {replyTo ? <div className="border-t border-border bg-secondary/30 px-3 py-2 text-xs"><div className="flex items-center justify-between"><span className="text-muted-foreground">Replying to {replyTo.author}</span><Button type="button" variant="ghost" size="sm" onClick={()=>setReplyTo(null)}>Cancel</Button></div><p className="truncate">{replyTo.body}</p></div> : null}
+        {voiceBlob || recording ? (
+          <div className="flex items-center gap-2 border-t border-border bg-background px-3 py-3">
+            <Button type="button" variant="ghost" size="icon" className="shrink-0 text-destructive" onClick={cancelVoiceRecording} aria-label="Delete voice recording">
+              <Trash2 className="size-5" />
+            </Button>
+            <div className="flex min-w-0 flex-1 items-center gap-2 rounded-2xl bg-secondary/60 px-3 py-2">
+              <Mic className="size-4 shrink-0 text-primary" />
+              <div className="flex min-w-0 flex-1 items-center gap-2">
+                <div className="flex flex-1 items-center gap-1">
+                  {Array.from({length:18}).map((_,i)=><span key={i} className={`w-1 rounded-full bg-primary/70 ${recording && !recordingPaused ? "animate-pulse" : ""}`} style={{height:`${8 + ((i * 7) % 16)}px`}} />)}
+                </div>
+                <span className="w-10 text-right text-xs tabular-nums">{String(Math.floor(recordingSeconds/60)).padStart(2,"0")}:{String(recordingSeconds%60).padStart(2,"0")}</span>
+              </div>
+            </div>
+            {voicePreviewUrl && recordingStopped ? (
+              <audio src={voicePreviewUrl} controls className="hidden" />
+            ) : null}
+            <Button type="button" variant="ghost" size="icon" className="shrink-0" onClick={pauseOrResumeVoiceRecording} aria-label={recordingPaused || recordingStopped ? "Resume or preview voice recording" : "Pause voice recording"}>
+              {recordingStopped ? <Play className="size-5" /> : recordingPaused ? <Play className="size-5" /> : <Pause className="size-5" />}
+            </Button>
+            <Button type="button" variant="ghost" size="icon" className="shrink-0" onClick={stopVoiceRecording} disabled={!recording || recordingStopped} aria-label="Stop voice recording">
+              <Square className="size-5" />
+            </Button>
+            <Button type="button" size="icon" className="shrink-0" onClick={()=>void sendVoiceRecording()} disabled={!voiceBlob} aria-label="Send voice recording">
+              <Send className="size-4" />
+            </Button>
+          </div>
+        ) : (
         <form
           className="relative flex gap-2 border-t border-border bg-background px-3 py-3"
           onSubmit={(e) => {
@@ -516,18 +682,19 @@ function GroupRoom() {
               <button type="button" className="grid size-11 place-items-center rounded-xl hover:bg-secondary" onClick={() => { if (mediaInputRef.current) { mediaInputRef.current.accept = "video/*"; mediaInputRef.current.click(); } }} aria-label="Video">
                 <Video className="size-5" />
               </button>
-              <button type="button" className={`grid size-11 place-items-center rounded-xl hover:bg-secondary ${recording ? "text-destructive" : ""}`} onClick={() => void toggleVoiceRecording()} aria-label={recording ? "Stop voice note" : "Voice note"}>
+              <button type="button" className="grid size-11 place-items-center rounded-xl hover:bg-secondary" onClick={() => void startVoiceRecording()} aria-label="Voice note">
                 <Mic className="size-5" />
               </button>
             </div>
           ) : null}
-          <input ref={mediaInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => { void handleMediaPick(e.target.files?.[0]); e.currentTarget.value = ""; }} />
+          <input ref={mediaInputRef} type="file" accept="image/*,video/*" className="hidden" onChange={(e) => { void handleMediaPick(e.target.files?.[0]); e.currentTarget.value = ""; }} />
           <Button type="button" variant="ghost" size="icon" className="shrink-0" onClick={() => setMediaMenuOpen((v) => !v)} aria-label="Add media">
             <Paperclip className="size-5" />
           </Button>
           <Input value={draft} onChange={(e) => setDraft(e.target.value)} placeholder="Message the room…" maxLength={2000} />
           <Button type="submit" className="shrink-0"><Send className="size-4" /></Button>
         </form>
+        )}
         </>
       ) : live ? (
         <div className="border-t border-border bg-background px-3 py-3 text-center text-xs text-muted-foreground">
