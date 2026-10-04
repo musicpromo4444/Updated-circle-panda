@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Eye, Upload, Crown, SmilePlus, MessageCircle, Share2, Send, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { AuthModal } from "@/components/auth/AuthModal";
 import { requestLogin } from "@/components/auth/LoginRequiredDialog";
 import { VipIdentity } from "@/components/VipIdentity";
+import { sendMessageRequest } from "@/lib/messageRequests";
 
 export const Route = createFileRoute("/confessions")({
   head: () => ({ meta: [{ title: "Confessions — Circle Panda" }] }),
@@ -60,6 +61,7 @@ export function ConfessionsPage() {
   const [reactionMenuId, setReactionMenuId] = useState<string | null>(null);
   const [reactionState, setReactionState] = useState<Record<string, ReactionState>>({});
   const [commentPost, setCommentPost] = useState<Confession | null>(null);
+  const navigate = useNavigate();
   const [commentText, setCommentText] = useState("");
   const [commentsByPost, setCommentsByPost] = useState<Record<string, ConfessionComment[]>>({});
   const [messagePost, setMessagePost] = useState<Confession | null>(null);
@@ -284,12 +286,17 @@ export function ConfessionsPage() {
   const sendMessage = async () => {
     if (!messagePost?.author_id || !messageText.trim()) return;
     setSendingMessage(true);
-    const { error } = await (supabase as any).rpc("request_direct_message_secure", { p_recipient_id:messagePost.author_id, p_message:messageText.trim() });
-    setSendingMessage(false);
-    if (error) return toast.error(error.message);
-    setMessageText("");
-    setMessagePost(null);
-    toast.success("Message request sent");
+    try {
+      const result = await sendMessageRequest(messagePost.author_id, messageText.trim());
+      setMessageText("");
+      setMessagePost(null);
+      toast.success("Message request sent 💌", { description: "It is now in Messages while you wait for acceptance." });
+      void navigate({ to: "/messages", search: { request: result.id } });
+    } catch (e: any) {
+      toast.error(e?.message ?? "Message request could not be sent");
+    } finally {
+      setSendingMessage(false);
+    }
   };
 
   const mcmCount = weekly.mcm.length;
