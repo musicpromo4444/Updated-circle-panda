@@ -157,7 +157,7 @@ function DatingPage() {
 
   useEffect(() => {
     void loadConnections();
-    void refreshDatingData({sameCountryOnly:false});
+    void refreshDatingData();
     const connectionChannel = supabase.channel("dating-connections-live")
       .on("postgres_changes", {event:"*", schema:"public", table:"dating_connections"}, () => {
         void loadConnections();
@@ -167,7 +167,7 @@ function DatingPage() {
       })
       .subscribe();
     const timer = window.setInterval(() => setClock(Date.now()), 1000);
-    const onFocus = () => { void refreshDatingData({sameCountryOnly:false}); };
+    const onFocus = () => { void refreshDatingData(); };
     window.addEventListener("focus", onFocus);
     const channel = supabase.channel("dating-discovery-live")
       .on("postgres_changes", {event:"*", schema:"public", table:"dating_profiles"}, () => {
@@ -234,12 +234,19 @@ function DatingPage() {
   const resetFilters = () => {
     setCountryFilter(""); setStateFilter(""); setLocationFilter(""); setGoalFilter("");
     setLookingForFilter(""); setLifestyleFilter(""); setSmokingFilter(""); setDrinkingFilter(""); setChildrenFilter("");
-setSameCountryOnly(true);
+setSameCountryOnly(false);
   };
 
-  const countryOptions = Array.from(new Set(datingMatches.map((m:any) => String(m.country ?? "").trim()).filter(Boolean))).sort();
-  const stateOptions = Array.from(new Set(datingMatches.map((m:any) => String(m.stateProvince ?? "").trim()).filter(Boolean))).sort();
-  const areaOptions = Array.from(new Set(datingMatches.map((m:any) => String(m.location ?? "").trim()).filter(Boolean))).sort();
+  const countryOptions = Array.from(new Set(datingMatches.map((m:any) => String(m.country ?? "").trim()).filter(Boolean))).sort((a,b)=>a.localeCompare(b));
+  const stateOptions = Array.from(new Set(datingMatches
+    .filter((m:any) => !countryFilter || String(m.country ?? "").toLowerCase() === countryFilter.toLowerCase())
+    .map((m:any) => String(m.stateProvince ?? "").trim()).filter(Boolean)
+  )).sort((a,b)=>a.localeCompare(b));
+  const areaOptions = Array.from(new Set(datingMatches
+    .filter((m:any) => (!countryFilter || String(m.country ?? "").toLowerCase() === countryFilter.toLowerCase())
+      && (!stateFilter || String(m.stateProvince ?? "").toLowerCase() === stateFilter.toLowerCase()))
+    .map((m:any) => String(m.location ?? "").trim()).filter(Boolean)
+  )).sort((a,b)=>a.localeCompare(b));
 
   return (
     <AppShell
@@ -388,13 +395,13 @@ setSameCountryOnly(true);
             <label className="flex items-center gap-2 rounded-xl border border-border p-3 text-sm sm:col-span-2"><input type="checkbox" checked={sameCountryOnly} onChange={e=>setSameCountryOnly(e.target.checked)} /> Only show people in my country</label>
 
             <label className="text-xs font-semibold">Country
-              <select value={countryFilter} onChange={e=>setCountryFilter(e.target.value)} className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-3 text-sm">
+              <select value={countryFilter} onChange={e=>{ setCountryFilter(e.target.value); setStateFilter(""); setLocationFilter(""); }} className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-3 text-sm">
                 <option value="">Any country</option>{countryOptions.map(v=><option key={v} value={v}>{v}</option>)}
               </select>
             </label>
 
             <label className="text-xs font-semibold">State
-              <select value={stateFilter} onChange={e=>setStateFilter(e.target.value)} className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-3 text-sm">
+              <select value={stateFilter} onChange={e=>{ setStateFilter(e.target.value); setLocationFilter(""); }} className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-3 text-sm">
                 <option value="">Any state</option>{stateOptions.map(v=><option key={v} value={v}>{v}</option>)}
               </select>
             </label>
