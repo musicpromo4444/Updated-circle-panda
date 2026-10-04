@@ -64,6 +64,7 @@ const PLACEMENT_OPTIONS: { id: AdPlacementTarget; label: string; tag: string }[]
   { id: "confessions_inline", label: "Secret Confessions Inline", tag: "After 4, 4, then 7" },
   { id: "events_inline", label: "Events Inline", tag: "After every 4 events" },
   { id: "groups_inline", label: "Groups Inline", tag: "After every 4 groups" },
+  { id: "group_message_rewarded", label: "Group Message — First Message Reward Ad", tag: "First message / reward ad" },
   { id: "messages_inline", label: "Messages Inline", tag: "After every 4 cards" },
   { id: "dating_inline", label: "Dating Inline", tag: "After every 5 profiles" },
   { id: "music_time_inline", label: "Music Time Inline", tag: "Music Time" },
