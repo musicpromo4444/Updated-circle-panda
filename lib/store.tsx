@@ -1281,6 +1281,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       startEventBlast,
       registerDatingProfile,
       requestDatingMatch,
+      refreshThreads,
     }),
     [
       state,
@@ -1324,6 +1325,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       startEventBlast,
       registerDatingProfile,
       requestDatingMatch,
+      refreshThreads,
     ],
   );
 
