@@ -119,7 +119,7 @@ export function AuthModal({ open, onOpenChange, defaultTab = "signin", onOpenBac
       } else {
         const result = value.includes("@")
           ? await supabase.auth.signInWithPassword({ email: value, password })
-          : await supabase.auth.signInWithPassword({ phone: value, password });
+          : await supabase.auth.signInWithPassword({ phone: normalizePhone(value), password });
         if (result.error) throw result.error;
         toast.success("Welcome back to the Circle 🐼");
         onAuthenticated?.();
