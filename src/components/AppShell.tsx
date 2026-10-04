@@ -340,6 +340,32 @@ function ProfileNavAvatar() {
 
 function NotificationBell() {
   const [unread, setUnread] = useState(0);
+  const [pendingGroupRequests, setPendingGroupRequests] = useState(0);
+
+  const refreshBadge = async () => {
+    const [{ data: count }, { data: groups }] = await Promise.all([
+      (supabase as any).rpc("get_my_notification_count"),
+      (supabase as any).rpc("get_group_summaries", { p_country:"", p_state_province:"", p_city:"", p_area:"" }),
+    ]);
+    setUnread(Number(count ?? 0));
+
+    const adminGroupIds = (groups ?? [])
+      .filter((g: any) => ["owner", "admin"].includes(g.member_role))
+      .map((g: any) => g.id);
+
+    if (!adminGroupIds.length) {
+      setPendingGroupRequests(0);
+      return;
+    }
+
+    const { count: requestCount, error } = await (supabase as any)
+      .from("group_join_requests")
+      .select("id", { count: "exact", head: true })
+      .in("group_id", adminGroupIds)
+      .eq("status", "pending");
+
+    setPendingGroupRequests(error ? 0 : Number(requestCount ?? 0));
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -348,18 +374,21 @@ function NotificationBell() {
       const { data: userData } = await supabase.auth.getUser();
       const uid = userData.user?.id;
       if (!uid) return;
-      const { data } = await (supabase as any).rpc("get_my_notification_count");
-      if (!cancelled) setUnread(Number(data ?? 0));
+      if (!cancelled) await refreshBadge();
+
       channel = (supabase as any)
         .channel(`circle-panda-notification-badge-${uid}`)
         .on("postgres_changes", { event: "INSERT", schema: "public", table: "cp_notifications", filter: `user_id=eq.${uid}` }, () => {
-          setUnread((value) => value + 1);
+          void refreshBadge();
         })
         .on("postgres_changes", { event: "UPDATE", schema: "public", table: "cp_notifications", filter: `user_id=eq.${uid}` }, () => {
-          void (async () => {
-            const { data: count } = await (supabase as any).rpc("get_my_notification_count");
-            if (!cancelled) setUnread(Number(count ?? 0));
-          })();
+          void refreshBadge();
+        })
+        .on("postgres_changes", { event: "INSERT", schema: "public", table: "group_join_requests" }, () => {
+          void refreshBadge();
+        })
+        .on("postgres_changes", { event: "UPDATE", schema: "public", table: "group_join_requests" }, () => {
+          void refreshBadge();
         })
         .subscribe();
     })();
@@ -369,17 +398,19 @@ function NotificationBell() {
     };
   }, []);
 
+  const badgeCount = Math.max(unread, pendingGroupRequests);
+
   return (
     <Link
       to="/notifications"
-      aria-label={unread > 0 ? `${unread} unread notifications` : "Notifications"}
+      aria-label={badgeCount > 0 ? `${badgeCount} unread notifications` : "Notifications"}
       title="Notifications"
       className="relative grid size-9 shrink-0 place-items-center rounded-full border border-border bg-secondary text-sm transition-colors hover:border-primary/60 data-[status=active]:border-primary"
     >
       <Bell className="size-4 text-muted-foreground" />
-      {unread > 0 ? (
-        <span className="absolute -right-1 -top-1 min-w-4 h-4 rounded-full bg-primary px-1 text-center text-[9px] font-bold leading-4 text-primary-foreground shadow-sm">
-          {unread > 99 ? "99+" : unread}
+      {badgeCount > 0 ? (
+        <span className="absolute -right-1 -top-1 min-w-4 h-4 rounded-full bg-destructive px-1 text-center text-[9px] font-bold leading-4 text-destructive-foreground shadow-sm">
+          {badgeCount > 99 ? "99+" : badgeCount}
         </span>
       ) : null}
     </Link>
