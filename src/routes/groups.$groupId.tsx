@@ -30,7 +30,6 @@ function GroupRoom() {
   const { groupId } = useParams({ from: "/groups/$groupId" });
   const navigate = useNavigate();
   const {
-    groups,
     lastAdShownAt,
     leaveGroup,
     updateGroupInfo,
@@ -53,7 +52,7 @@ function GroupRoom() {
   const [joinRequests, setJoinRequests] = useState<any[]>([]);
   const [remoteGroup, setRemoteGroup] = useState<GroupChat | null>(null);
 
-  const group = groups.find((g) => g.id === groupId) ?? remoteGroup;
+  const group = remoteGroup;
 
   useEffect(() => {
     let active = true;
