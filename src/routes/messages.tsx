@@ -208,19 +208,20 @@ function MessagesPage() {
                 <span className="text-lg">📨</span>
                 <div>
                   <p className="font-display text-sm font-bold">Sent message requests</p>
-                  <p className="text-[11px] text-muted-foreground">Your Dating requests stay here until they are accepted. Declined requests disappear.</p>
+                  <p className="text-[11px] text-muted-foreground">Your sent requests stay here until they are accepted. Declined requests disappear.</p>
                 </div>
               </div>
               <div className="mt-3 space-y-2">
                 {sentRequests.map((r:any) => (
                   <div key={r.id} className="rounded-xl bg-background p-3">
                     <p className="text-[10px] font-bold text-muted-foreground">
-                      Anonymous Panda · {r.kind === "dating" ? "Dating Message Request" : r.kind === "crush" ? "MCM/WCW Message Request" : "Message Request"}
+                      Anonymous Panda · Message Request
                     </p>
                     <p className="mt-1 text-sm font-semibold">
-                      {r.status === "pending" ? "Sent request" : "Request accepted 💗"}
+                      {r.status === "pending" ? "Message request sent · Waiting for acceptance" : "Message request accepted 💗"}
                     </p>
-                    {r.message ? <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{r.message}</p> : null}
+                    <p className="mt-1 text-xs text-muted-foreground">{r.message || "If this message request is accepted, you can start talking. If it is declined, this request will disappear."}</p>
+                     {r.status === "pending" ? <p className="mt-2 text-[11px] text-muted-foreground/80">Waiting for the recipient to accept or decline.</p> : null}
                   </div>
                 ))}
               </div>
