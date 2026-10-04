@@ -10,6 +10,8 @@ export type GroupMediaItem = {
   mine?: boolean;
   messageType: "text" | "image" | "video" | "audio";
   mediaUrl?: string;
+  durationSeconds?: number | null;
+  mimeType?: string;
 };
 
 export function GroupMediaMessage({ message }: { message: GroupMediaItem }) {
@@ -44,7 +46,7 @@ export function GroupMediaMessage({ message }: { message: GroupMediaItem }) {
                 {Array.from({length: 22}).map((_,i)=><span key={i} className="h-1 w-1 rounded-full bg-current opacity-60" style={{height:`${6 + ((i * 7) % 14)}px`}} />)}
               </div>
               <p className="mt-1 text-[10px] text-muted-foreground">{message.durationSeconds ? `${message.durationSeconds}s` : "Voice message"}</p>
-              <audio src={message.mediaUrl} controls={false} autoPlay={playing} onEnded={() => setPlaying(false)} className="hidden" />
+              <audio src={message.mediaUrl} controls={false} autoPlay={playing} onEnded={() => setPlaying(false)} className="hidden" preload="metadata" />
             </div>
           </div>
         ) : (
