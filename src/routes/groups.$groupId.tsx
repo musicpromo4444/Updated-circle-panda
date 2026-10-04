@@ -387,7 +387,7 @@ function GroupRoom() {
     if (!m.media_path) return;
 
     // Voice notes are reusable; do not consume the view-once claim for them.
-    let url = m.media_url ?? await signedMediaUrl(m.media_path);
+    let url = await signedMediaUrl(m.media_path);
     if (!url) {
       toast.error("Media is unavailable. The file may have expired or is not accessible to this group member.");
       return;
@@ -415,7 +415,7 @@ function GroupRoom() {
       // IMPORTANT: verify that the file can actually be read before consuming
       // the one-time claim. Otherwise a failed signed URL/browser load could
       // permanently burn the message for the recipient.
-      const { data: allowed, error } = await (supabase as any).rpc("claim_group_media_view_once", { p_message_id: m.id });
+      try {\n        const probe = await fetch(url, { method: "HEAD" });\n        if (!probe.ok) {\n          toast.error("This media is currently unavailable. Please try again.");\n          return;\n        }\n      } catch {\n        toast.error("This media could not be reached. Please try again.");\n        return;\n      }\n\n      const { data: allowed, error } = await (supabase as any).rpc("claim_group_media_view_once", { p_message_id: m.id });
       if (error) {
         toast.error(error.message ?? "This media could not be opened");
         return;
