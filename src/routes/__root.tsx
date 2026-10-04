@@ -5,6 +5,7 @@ import {
   createRootRouteWithContext,
   useRouter,
   useLocation,
+  useRouterState,
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
@@ -18,6 +19,8 @@ import { HotSeatFloatingPresence } from "@/components/hotseat/HotSeatFloatingPre
 import { AppDownloadPromotion } from "@/components/AppDownloadPromotion";
 import { UniversalWinnerFlow } from "@/components/UniversalWinnerFlow";
 import { LoginRequiredDialog } from "@/components/auth/LoginRequiredDialog";
+import { CirclePandaLoader } from "@/components/CirclePandaLoader";
+import { useStore } from "@/lib/store";
 
 function NotFoundComponent() {
   return (
@@ -157,6 +160,8 @@ function RootShell({ children }: { children: ReactNode }) {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const location = useLocation();
+  const { hydrated } = useStore();
+  const routerLoading = useRouterState({ select: (s) => s.status === "pending" });
   const hideHotSeatPresence = location.pathname === "/profile" || location.pathname.startsWith("/profile/");
 
   return (
@@ -165,6 +170,7 @@ function RootComponent() {
         <StoreProvider>
           {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
           <Outlet />
+          {(routerLoading || (!hydrated && location.pathname !== "/")) ? <CirclePandaLoader /> : null}
           <UniversalWinnerFlow />
           <LoginRequiredDialog />
           <AppDownloadPromotion />
