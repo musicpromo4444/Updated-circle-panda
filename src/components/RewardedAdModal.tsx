@@ -23,13 +23,20 @@ export function RewardedAdModal({
   const [phase, setPhase] = useState<Phase>("loading");
   const [progress, setProgress] = useState(0);
   const [reward, setReward] = useState<string>("");
+  const [creative, setCreative] = useState<any | null>(null);
 
   useEffect(() => {
     if (!open) return;
     setPhase("loading");
     setProgress(0);
-    const fails = Math.random() < 0.1;
-    const load = setTimeout(() => setPhase(fails ? "failed" : "playing"), 1200);
+    setCreative(null);
+    void (async () => {
+      const { data, error } = await (await import("@/integrations/supabase/client")).supabase.rpc("get_ad_runtime_config");
+      if (error) { toast.error("The group reward ad could not be loaded."); return; }
+      const selected = (Array.isArray(data?.creatives) ? data.creatives : []).find((x:any) => x.placement === "group_message_rewarded" && x.status === "active");
+      setCreative(selected ?? null);
+    })();
+    const load = setTimeout(() => setPhase("playing"), 1200);
     return () => clearTimeout(load);
   }, [open]);
 
@@ -103,7 +110,7 @@ export function RewardedAdModal({
               <div className="h-full bg-primary transition-all" style={{ width: `${progress}%` }} />
             </div>
             <p className="text-center text-xs text-muted-foreground">
-              Watch to the end to earn Panda Coins and Hot Seat perks.
+              {creative ? `${creative.sponsor ?? "Sponsored"} — ${creative.headline ?? "Sponsored message"}. Watch to the end to earn Panda Coins and Hot Seat perks.` : "No reward ad has been selected by the admin yet."}
             </p>
           </div>
         ) : null}
@@ -114,7 +121,7 @@ export function RewardedAdModal({
             <p className="text-sm text-muted-foreground">
               {reward || "Tap claim for your coins and a Hot Seat perk."}
             </p>
-            <Button className="w-full gap-2" onClick={claim}>
+            <Button className="w-full gap-2" onClick={claim} disabled={!creative}>
               <Gift className="size-4" /> Claim reward
             </Button>
           </div>
