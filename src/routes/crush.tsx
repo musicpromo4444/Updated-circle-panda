@@ -561,7 +561,12 @@ function CrushPage() {
           <DialogDescription>Choose how you want to continue voting.</DialogDescription>
           <div className="grid gap-2">
             <Button onClick={() => void startVoteAd()} disabled={voteAdBusy}>Vote for free · Watch an ad</Button>
-            <Button variant="outline" onClick={() => { setVoteChoiceOpen(false); toast("1 BC is required for an extra vote."); }} disabled={voteAdBusy}>Use 1 BC</Button>
+            <Button variant="outline" onClick={async () => {
+              setVoteChoiceOpen(false);
+              if (!card) return;
+              const ok = await voteFor(card.id);
+              if (ok) { await refreshLiveNominees(); next(1); }
+            }} disabled={voteAdBusy}>Use 1 BC</Button>
           </div>
         </DialogContent>
       </Dialog>
