@@ -104,7 +104,6 @@ const LIFESTYLE_OPTIONS = [
 const SMOKING_OPTIONS = ["Non-smoker","Smoker","Occasionally","Prefer not to say"];
 const DRINKING_OPTIONS = ["Non-drinker","Drinker","Occasionally","Prefer not to say"];
 const CHILDREN_OPTIONS = ["No children","Have children","Prefer not to say"];
-const EDUCATION_OPTIONS = ["Secondary school","College / Polytechnic","University","Postgraduate","Prefer not to say"];
 
 function DatingPage() {
   const { requestDatingMatch, startDatingChat, searchDatingProfiles, refreshDatingData, datingProfile, datingMatches } = useStore();
@@ -134,7 +133,6 @@ function DatingPage() {
   const [smokingFilter, setSmokingFilter] = useState("");
   const [drinkingFilter, setDrinkingFilter] = useState("");
   const [childrenFilter, setChildrenFilter] = useState("");
-  const [educationFilter, setEducationFilter] = useState("");
   const [sameCountryOnly, setSameCountryOnly] = useState(true);
   const loadConnections = async () => {
     const [userRes, connRes] = await Promise.all([
@@ -188,15 +186,14 @@ function DatingPage() {
     if (smokingFilter && String(m.smoking ?? "").toLowerCase() !== smokingFilter.toLowerCase()) return false;
     if (drinkingFilter && String(m.drinking ?? "").toLowerCase() !== drinkingFilter.toLowerCase()) return false;
     if (childrenFilter && String(m.children ?? "").toLowerCase() !== childrenFilter.toLowerCase()) return false;
-    if (educationFilter && String(m.education ?? "").toLowerCase() !== educationFilter.toLowerCase()) return false;
     return true;
   });
-  const activeFilterCount = [countryFilter, stateFilter, locationFilter, goalFilter, lookingForFilter, lifestyleFilter, smokingFilter, drinkingFilter, childrenFilter, educationFilter, !sameCountryOnly].filter(Boolean).length;
+  const activeFilterCount = [countryFilter, stateFilter, locationFilter, goalFilter, lookingForFilter, lifestyleFilter, smokingFilter, drinkingFilter, childrenFilter, !sameCountryOnly].filter(Boolean).length;
   const applyFilters = async () => {
     await searchDatingProfiles({
       ageMin:18, ageMax:120, country: sameCountryOnly && !countryFilter ? (datingProfile?.country ?? "") : countryFilter, state: stateFilter, location: locationFilter, gender:"",
       relationshipGoal: goalFilter, lookingFor: lookingForFilter, lifestyle: lifestyleFilter,
-      smoking: smokingFilter, drinking: drinkingFilter, children: childrenFilter, education: educationFilter,
+      smoking: smokingFilter, drinking: drinkingFilter, children: childrenFilter,
       sameCountryOnly,
     });
     setFiltersOpen(false);
@@ -205,7 +202,7 @@ function DatingPage() {
   const resetFilters = () => {
     setCountryFilter(""); setStateFilter(""); setLocationFilter(""); setGoalFilter("");
     setLookingForFilter(""); setLifestyleFilter(""); setSmokingFilter(""); setDrinkingFilter(""); setChildrenFilter("");
-    setEducationFilter(""); setSameCountryOnly(true);
+setSameCountryOnly(true);
   };
 
   const countryOptions = Array.from(new Set(datingMatches.map((m:any) => String(m.country ?? "").trim()).filter(Boolean))).sort();
@@ -411,11 +408,6 @@ function DatingPage() {
               </select>
             </label>
 
-            <label className="text-xs font-semibold">Education
-              <select value={educationFilter} onChange={e=>setEducationFilter(e.target.value)} className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-3 text-sm">
-                <option value="">Any</option>{EDUCATION_OPTIONS.map(v=><option key={v} value={v}>{v}</option>)}
-              </select>
-            </label>
           </div>
           <div className="flex gap-2"><Button variant="outline" className="flex-1" onClick={resetFilters}><X className="size-4" /> Reset</Button><Button className="flex-1 bg-[var(--dating)] text-white hover:bg-[var(--dating)]/90" onClick={()=>void applyFilters()}>Show matches</Button></div>
         </DialogContent>
