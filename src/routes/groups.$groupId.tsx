@@ -73,11 +73,11 @@ function GroupRoom() {
   useEffect(() => {
     let active = true;
     void (async () => {
-      const [{ data: summaries }, { data: messages }] = await Promise.all([
+      const [{ data: summaries, error: summariesError }, { data: messages, error: messagesError }] = await Promise.all([
         (supabase as any).rpc("get_group_summaries", { p_country:"", p_state_province:"", p_city:"", p_area:"" }),
-        (supabase as any).from("cp_group_messages").select("id,group_id,body,created_at,author_id,message_type,media_path,mime_type,duration_seconds,view_once").eq("group_id", groupId).order("created_at", { ascending: true }),
+        (supabase as any).from("cp_group_messages").select("id,group_id,body,created_at,user_id,message_type,media_path,mime_type,duration_seconds,view_once").eq("group_id", groupId).order("created_at", { ascending: true }),
       ]);
-      const row = (summaries ?? []).find((g:any) => g.id === groupId);
+      if (summariesError) { toast.error(summariesError.message ?? "Could not load the group"); return; }\n      if (messagesError) { toast.error(messagesError.message ?? "Could not load group messages"); }\n      const row = (summaries ?? []).find((g:any) => g.id === groupId);
       if (!active || !row) return;
       const uid = (await supabase.auth.getUser()).data.user?.id;
       const fresh: GroupChat = {
@@ -85,7 +85,7 @@ function GroupRoom() {
         editGroupInfo:"admins",sendMessages:true,approveNewMembers:false,joinPending:Boolean(row.join_pending),
         members:Number(row.member_count ?? 0),openedAt:row.activated_at?new Date(row.activated_at).getTime():null,expiresAt:row.expires_at ?? null,
         latitude:null,longitude:null,country:row.country ?? "",stateProvince:row.state_province ?? "",city:row.city ?? "",area:row.area ?? "",
-    messages:(messages ?? []).map((m:any)=>({id:m.id,author:m.author_id===uid?"You (anonymous)":"Anonymous Panda",body:m.body,at:new Date(m.created_at).getTime(),mine:m.author_id===uid,message_type:m.message_type,media_path:m.media_path,mime_type:m.mime_type,duration_seconds:m.duration_seconds,view_once:m.view_once})),
+    messages:(messages ?? []).map((m:any)=>({id:m.id,author:m.user_id===uid?"You (anonymous)":"Anonymous Panda",body:m.body,at:new Date(m.created_at).getTime(),mine:m.user_id===uid,message_type:m.message_type,media_path:m.media_path,mime_type:m.mime_type,duration_seconds:m.duration_seconds,view_once:m.view_once})),
       };
       if (!fresh.memberRole) {
         toast.error("You are not a member of this group. Join again to open the room.");
