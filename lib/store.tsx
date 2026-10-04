@@ -748,9 +748,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     })();
   }, [dbUserId, refreshCoins]);
 
-  const leaveGroup = useCallback((id: string) => {
-    if (!dbUserId) { toast.error("Sign in to leave this group"); return; }
-    void (async () => {
+  const leaveGroup = useCallback((id: string): Promise<boolean> => {
+    if (!dbUserId) { toast.error("Sign in to leave this group"); return Promise.resolve(false); }
+    return (async () => {
       const { data, error } = await (supabase as any).rpc("leave_group_secure", { p_group_id: id });
       if (error) { toast.error(error.message ?? "Could not leave group"); return; }
       const left = Boolean(data?.left);
@@ -758,6 +758,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       setState((s) => ({ ...s, groups: s.groups.map((g) => g.id === id ? { ...g, members: memberCount, memberRole: left ? undefined : g.memberRole, joinPending: left ? false : g.joinPending } : g) }));
       if (left) toast.success("You left the group");
       else toast.info("You are not a member of this group");
+      return left;
     })();
   }, [dbUserId]);
 
