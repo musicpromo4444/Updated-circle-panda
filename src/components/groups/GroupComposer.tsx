@@ -1,5 +1,5 @@
-import { useRef, useState } from "react";
-import { Camera, Image as ImageIcon, Mic, Paperclip, Send, Square, Video } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Image as ImageIcon, Mic, Send, Square, Video, X, Pause, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
@@ -23,19 +23,38 @@ export function GroupComposer({
 }) {
   const [draft, setDraft] = useState("");
   const [recording, setRecording] = useState(false);
+  const [paused, setPaused] = useState(false);
+  const [stopped, setStopped] = useState(false);
   const [seconds, setSeconds] = useState(0);
+  const [voiceBlob, setVoiceBlob] = useState<Blob | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const timerRef = useRef<number | null>(null);
+  const startedAtRef = useRef<number | null>(null);
+  const elapsedBeforePauseRef = useRef(0);
   const recorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
+  const streamRef = useRef<MediaStream | null>(null);
   const imageInput = useRef<HTMLInputElement>(null);
   const videoInput = useRef<HTMLInputElement>(null);
 
-  const submit = async () => {
-    const text = draft.trim();
-    if (!text || disabled) return;
-    setDraft("");
-    await onSendText(text);
+  const clearVoice = () => {
+    if (timerRef.current !== null) window.clearInterval(timerRef.current);
+    timerRef.current = null;
+    streamRef.current?.getTracks().forEach((t) => t.stop());
+    streamRef.current = null;
+    recorderRef.current = null;
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    setPreviewUrl(null);
+    setVoiceBlob(null);
+    setRecording(false);
+    setPaused(false);
+    setStopped(false);
+    setSeconds(0);
+    startedAtRef.current = null;
+    elapsedBeforePauseRef.current = 0;
   };
+
+  useEffect(() => () => clearVoice(), []);
 
   const pick = async (file: File | undefined, type: "image" | "video") => {
     if (!file) return;
@@ -46,15 +65,8 @@ export function GroupComposer({
     await onSendMedia({ type, file });
   };
 
-  const stopRecording = () => {
-    recorderRef.current?.stop();
-    if (timerRef.current) window.clearInterval(timerRef.current);
-    timerRef.current = null;
-    setRecording(false);
-  };
-
   const startRecording = async () => {
-    if (disabled || recording) return;
+    if (disabled || recording || voiceBlob) return;
     if (!navigator.mediaDevices?.getUserMedia || !window.MediaRecorder) {
       toast.error("Voice recording is not supported on this device/browser.");
       return;
@@ -64,39 +76,99 @@ export function GroupComposer({
       const mime = ["audio/webm;codecs=opus", "audio/webm", "audio/mp4"].find((x) => MediaRecorder.isTypeSupported(x));
       const recorder = new MediaRecorder(stream, mime ? { mimeType: mime } : undefined);
       chunksRef.current = [];
-      recorder.ondataavailable = (e) => e.data.size && chunksRef.current.push(e.data);
-      recorder.onstop = async () => {
+      recorder.ondataavailable = (e) => { if (e.data.size) chunksRef.current.push(e.data); };
+      recorder.onstop = () => {
         stream.getTracks().forEach((t) => t.stop());
+        streamRef.current = null;
+        if (timerRef.current !== null) window.clearInterval(timerRef.current);
+        timerRef.current = null;
         const blob = new Blob(chunksRef.current, { type: recorder.mimeType || "audio/webm" });
-        if (blob.size) {
-          const ext = recorder.mimeType.includes("mp4") ? "m4a" : "webm";
-          await onSendMedia({ type: "audio", file: new File([blob], `voice-${Date.now()}.${ext}`, { type: blob.type }), durationSeconds: seconds });
-        }
-        setSeconds(0);
+        if (!blob.size) { clearVoice(); return; }
+        setVoiceBlob(blob);
+        setPreviewUrl(URL.createObjectURL(blob));
+        setRecording(false);
+        setPaused(false);
+        setStopped(true);
+        recorderRef.current = null;
       };
-      recorder.start();
       recorderRef.current = recorder;
-      setRecording(true);
+      streamRef.current = stream;
+      recorder.start(250);
+      startedAtRef.current = Date.now();
+      elapsedBeforePauseRef.current = 0;
       setSeconds(0);
-      timerRef.current = window.setInterval(() => setSeconds((s) => s + 1), 1000);
+      setRecording(true);
+      setPaused(false);
+      setStopped(false);
+      timerRef.current = window.setInterval(() => {
+        if (startedAtRef.current !== null) {
+          setSeconds(elapsedBeforePauseRef.current + Math.floor((Date.now() - startedAtRef.current) / 1000));
+        }
+      }, 250);
     } catch {
       toast.error("Microphone permission is required for voice notes.");
     }
   };
 
+  const pauseResume = () => {
+    const recorder = recorderRef.current;
+    if (!recorder) return;
+    if (recorder.state === "recording") {
+      recorder.pause();
+      elapsedBeforePauseRef.current = seconds;
+      startedAtRef.current = null;
+      setPaused(true);
+    } else if (recorder.state === "paused") {
+      recorder.resume();
+      startedAtRef.current = Date.now();
+      setPaused(false);
+    }
+  };
+
+  const stopRecording = () => {
+    const recorder = recorderRef.current;
+    if (!recorder || recorder.state === "inactive") return;
+    if (recorder.state === "recording") elapsedBeforePauseRef.current = seconds;
+    recorder.stop();
+  };
+
+  const sendVoice = async () => {
+    if (!voiceBlob || disabled) return;
+    const file = new File([voiceBlob], `voice-${Date.now()}.${voiceBlob.type.includes("mp4") ? "m4a" : "webm"}`, { type: voiceBlob.type || "audio/webm" });
+    await onSendMedia({ type: "audio", file, durationSeconds: seconds });
+    clearVoice();
+  };
+
+  const cancelVoice = () => clearVoice();
+
   return (
-    <form onSubmit={(e) => { e.preventDefault(); void submit(); }} className="flex items-end gap-2">
+    <form onSubmit={(e) => { e.preventDefault(); const text = draft.trim(); if (!text || disabled || recording || voiceBlob) return; setDraft(""); void onSendText(text); }} className="flex items-end gap-2">
       <input ref={imageInput} type="file" accept="image/*" className="hidden" onChange={(e) => { void pick(e.target.files?.[0], "image"); e.currentTarget.value = ""; }} />
       <input ref={videoInput} type="file" accept="video/*" className="hidden" onChange={(e) => { void pick(e.target.files?.[0], "video"); e.currentTarget.value = ""; }} />
-      <div className="flex shrink-0 items-center gap-1">
-        <Button type="button" variant="ghost" size="icon" disabled={disabled} onClick={() => imageInput.current?.click()} title="Photo"><ImageIcon className="size-5" /></Button>
-        <Button type="button" variant="ghost" size="icon" disabled={disabled} onClick={() => videoInput.current?.click()} title="Video"><Video className="size-5" /></Button>
-        <Button type="button" variant={recording ? "destructive" : "ghost"} size="icon" disabled={disabled && !recording} onClick={recording ? stopRecording : () => void startRecording()} title={recording ? "Stop voice note" : "Voice note"}>
-          {recording ? <Square className="size-4 fill-current" /> : <Mic className="size-5" />}
-        </Button>
-      </div>
-      <Input value={draft} onChange={(e) => setDraft(e.target.value)} disabled={disabled || recording} placeholder={recording ? `Recording 00:${String(seconds).padStart(2,"0")}…` : placeholder} maxLength={2000} className="min-w-0 flex-1 rounded-2xl" />
-      <Button type="submit" size="icon" disabled={disabled || recording || !draft.trim()} className="shrink-0 rounded-full"><Send className="size-4" /></Button>
+
+      {recording || voiceBlob ? (
+        <div className="flex min-w-0 flex-1 items-center gap-2 rounded-2xl border border-border bg-card px-2 py-1.5">
+          <Button type="button" variant="ghost" size="icon" className="shrink-0" onClick={cancelVoice} aria-label="Delete voice recording"><X className="size-5" /></Button>
+          <div className="min-w-0 flex-1">
+            <div className="text-xs font-semibold">{recording ? (paused ? "Paused" : "Recording") : "Voice note ready"}</div>
+            <div className="text-[11px] text-muted-foreground">00:{String(seconds).padStart(2, "0")}</div>
+            {previewUrl ? <audio src={previewUrl} controls className="mt-1 h-8 w-full" /> : null}
+          </div>
+          {recording ? <Button type="button" variant="secondary" size="icon" onClick={pauseResume} aria-label={paused ? "Resume voice recording" : "Pause voice recording"}>{paused ? <Play className="size-4" /> : <Pause className="size-4" />}</Button> : null}
+          <Button type="button" variant="secondary" size="icon" onClick={stopRecording} disabled={!recording} aria-label="Stop voice recording"><Square className="size-4 fill-current" /></Button>
+          <Button type="button" size="icon" onClick={() => void sendVoice()} disabled={!voiceBlob} aria-label="Send voice note"><Send className="size-4" /></Button>
+        </div>
+      ) : (
+        <>
+          <div className="flex shrink-0 items-center gap-1">
+            <Button type="button" variant="ghost" size="icon" disabled={disabled} onClick={() => imageInput.current?.click()} title="Photo"><ImageIcon className="size-5" /></Button>
+            <Button type="button" variant="ghost" size="icon" disabled={disabled} onClick={() => videoInput.current?.click()} title="Video"><Video className="size-5" /></Button>
+            <Button type="button" variant="ghost" size="icon" disabled={disabled} onClick={() => void startRecording()} title="Voice note"><Mic className="size-5" /></Button>
+          </div>
+          <Input value={draft} onChange={(e) => setDraft(e.target.value)} disabled={disabled} placeholder={placeholder} maxLength={2000} className="min-w-0 flex-1 rounded-2xl" />
+          <Button type="submit" size="icon" disabled={disabled || !draft.trim()} className="shrink-0 rounded-full"><Send className="size-4" /></Button>
+        </>
+      )}
     </form>
   );
 }
