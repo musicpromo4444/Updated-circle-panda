@@ -270,7 +270,7 @@ export function VipGroupChat({
           </div>
         </footer>
 
-        <VipGroupSponsorGift />
+        <VipGroupSponsorGift groupId={groupId} />
       </div>
       <VipPrivateCall callId={callId} onClose={() => setCallId(null)} />
     </>
