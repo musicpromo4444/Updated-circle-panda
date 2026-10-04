@@ -135,16 +135,23 @@ function DatingPage() {
   const [childrenFilter, setChildrenFilter] = useState("");
   const [sameCountryOnly, setSameCountryOnly] = useState(false);
   const loadConnections = async () => {
-    const [userRes, connRes] = await Promise.all([
+    const [userRes, connRes, requestRes] = await Promise.all([
       (supabase as any).auth.getUser(),
       (supabase as any).from("dating_connections").select("id,requester_id,recipient_id,status,requester_confirmed,recipient_confirmed,matched_at,reveal_at"),
+      (supabase as any).from("direct_message_requests").select("id,sender_id,recipient_id,status,created_at").eq("kind","dating"),
     ]);
     const uid = userRes?.data?.user?.id;
     const rows = connRes?.data ?? [];
-    if (!connRes?.error) {
+    const requests = requestRes?.data ?? [];
+    if (!connRes?.error || !requestRes?.error) {
       setConnections(rows);
       setIncoming(rows.filter((x:any) => x.status === "pending" && x.recipient_id === uid));
-      setSent(Object.fromEntries(rows.filter((x:any) => x.requester_id === uid).map((x:any) => [x.recipient_id, x.status])));
+      const sent: Record<string,string> = {};
+      rows.filter((x:any) => x.requester_id === uid).forEach((x:any) => { sent[x.recipient_id] = x.status; });
+      requests.filter((x:any) => x.sender_id === uid).forEach((x:any) => {
+        sent[x.recipient_id] = x.status === "accepted" ? "matched" : x.status;
+      });
+      setSent(sent);
     }
   };
 
@@ -153,6 +160,9 @@ function DatingPage() {
     void refreshDatingData({sameCountryOnly:false});
     const connectionChannel = supabase.channel("dating-connections-live")
       .on("postgres_changes", {event:"*", schema:"public", table:"dating_connections"}, () => {
+        void loadConnections();
+      })
+      .on("postgres_changes", {event:"*", schema:"public", table:"direct_message_requests"}, () => {
         void loadConnections();
       })
       .subscribe();
@@ -349,7 +359,7 @@ setSameCountryOnly(true);
                     className="w-full gap-2 bg-[var(--dating)] text-[var(--dating-foreground)] hover:bg-[var(--dating)]/90"
                     onClick={() => match(m)}
                   >
-                    <Heart className="size-4 fill-current" /> {m.userId && sent[m.userId] === "matched" ? "Mutual match 💗" : m.userId && sent[m.userId] === "pending" ? "Request sent" : "Send dating request"}
+                    <Heart className="size-4 fill-current" /> {m.userId && sent[m.userId] === "matched" ? "Mutual match 💗" : m.userId && sent[m.userId] === "pending" ? "Request sent" : "Send message request"}
                   </Button>
                 )}
               </div>
