@@ -641,13 +641,18 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     // Never let a slow Supabase request hold the entire app behind the global loader.
     const hydrationFallback = window.setTimeout(() => {
       if (!cancelled) setHydrated(true);
-    }, 7000);
+    }, 3000);
     void (async () => {
       let session = (await supabase.auth.getSession()).data.session;
       if (!session) session = (await supabase.auth.signInAnonymously()).data.session ?? null;
       if (!session?.user || cancelled) return;
       setDbUserId(session.user.id);
       setDbIsAnonymous(Boolean(session.user.is_anonymous));
+
+      // Never block the entire app behind the full Supabase data graph.
+      // Authentication is enough to open the UI; remaining data hydrates in background.
+      setHydrated(true);
+
       await (supabase as any).rpc("award_daily_login_xp");
       if (!session.user.is_anonymous) {
         void (supabase as any).rpc("ensure_my_circle_panda_profile").catch(() => {});
