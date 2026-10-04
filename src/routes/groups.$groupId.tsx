@@ -51,6 +51,7 @@ function GroupRoom() {
   const [approveMembers, setApproveMembers] = useState(false);
   const [joinRequests, setJoinRequests] = useState<any[]>([]);
   const [remoteGroup, setRemoteGroup] = useState<GroupChat | null>(null);
+  const [leaveConfirmOpen, setLeaveConfirmOpen] = useState(false);
 
   const group = remoteGroup;
 
@@ -255,12 +256,34 @@ function GroupRoom() {
                   </div>
                 ) : null}
                 <div className="border-t border-border/70 pt-3">
-                  <Button type="button" variant="ghost" className="w-full justify-start text-destructive" onClick={async () => { const left = await leaveGroup(group.id); setSettingsOpen(false); if (left) void navigate({ to: "/groups" }); }}>
+                  <Button type="button" variant="ghost" className="w-full justify-start text-destructive" onClick={() => setLeaveConfirmOpen(true)}>
                     <LogOut className="mr-2 size-4" /> Leave group
                   </Button>
                 </div>
               </>
             )}
+          </div>
+        </div>
+      ) : null}
+
+      {leaveConfirmOpen ? (
+        <div className="fixed inset-0 z-[70] grid place-items-center bg-black/60 px-5 backdrop-blur-sm">
+          <div className="w-full max-w-sm rounded-3xl border border-border/70 bg-card p-6 text-center shadow-2xl">
+            <div className="mx-auto mb-3 grid size-14 place-items-center rounded-full bg-destructive/10 text-2xl">🚪</div>
+            <p className="font-display text-lg font-bold">Are you sure you want to exit this group?</p>
+            <p className="mt-2 text-xs text-muted-foreground">You will leave the group and must join again before you can enter or send messages.</p>
+            <div className="mt-5 grid grid-cols-2 gap-3">
+              <Button type="button" variant="outline" onClick={() => setLeaveConfirmOpen(false)}>No</Button>
+              <Button type="button" variant="destructive" onClick={async () => {
+                const left = await leaveGroup(group?.id ?? "");
+                setLeaveConfirmOpen(false);
+                setSettingsOpen(false);
+                if (left) {
+                  setRemoteGroup(null);
+                  void navigate({ to: "/groups" });
+                }
+              }}>Yes</Button>
+            </div>
           </div>
         </div>
       ) : null}
