@@ -15,7 +15,7 @@ export function VipGroupCallOverlay({type,onClose}:Props){
   const localStream=useRef<MediaStream|null>(null);
   const peers=useRef(new Map<string,RTCPeerConnection>());
   const channel=useRef<any>(null);
-  const pendingCandidates=useRef(new Map<string,RTCIceCandidateInit[]>());
+  const pendingCandidates=useRef(new Map<string,RTCIceCandidateInit[]>());\n\n  useEffect(()=>{\n    if(!userId)return;\n    const timer=window.setInterval(()=>{void (supabase as any).rpc("consume_vip_group_call_time",{p_call_type:type,p_seconds:30}).then(({data,error}:any)=>{if(error||data?.[0]?.consume_vip_group_call_time===false){toast.error("Your daily VIP call time has ended");onClose();}});},30000);\n    return()=>window.clearInterval(timer);\n  },[userId,type,onClose]);
 
   useEffect(()=>{
     let cancelled=false;
