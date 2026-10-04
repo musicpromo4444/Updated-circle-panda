@@ -84,6 +84,9 @@ function CrushPage() {
   const [showAuth, setShowAuth] = useState(false);
   const [showQuickSignup, setShowQuickSignup] = useState(false);
   const [pendingVote, setPendingVote] = useState(false);
+  const [voteChoiceOpen, setVoteChoiceOpen] = useState(false);
+  const [voteAd, setVoteAd] = useState<any>(null);
+  const [voteAdBusy, setVoteAdBusy] = useState(false);
   const [liveNominees, setLiveNominees] = useState<any[]>([]);
   const [liveNomineesLoaded, setLiveNomineesLoaded] = useState(false);
   const [mediaError, setMediaError] = useState<string | null>(null);
@@ -254,9 +257,11 @@ function CrushPage() {
       toast("Quick signup to vote.", { description: "Use your phone or email and password. Your vote will continue automatically." });
       return;
     }
-    voteFor(card.id);
-    void refreshLiveNominees();
-    next(1);
+    const ok = await voteFor(card.id);
+    if (ok) {
+      await refreshLiveNominees();
+      next(1);
+    }
   };
 
   const react = async (emoji: string) => {
@@ -272,6 +277,36 @@ function CrushPage() {
     setReactionOpen(false);
     setMineReaction(emoji);
     await loadCardData(card.id);
+  };
+
+  const startVoteAd = async () => {
+    if (voteAdBusy) return;
+    setVoteAdBusy(true);
+    try {
+      const { data, error } = await (supabase as any).rpc("start_crush_vote_ad_secure");
+      if (error) throw error;
+      setVoteAd(data);
+      setVoteChoiceOpen(false);
+    } catch (e:any) {
+      toast.error(e?.message ?? "Sponsored vote ad is unavailable");
+    } finally {
+      setVoteAdBusy(false);
+    }
+  };
+
+  const completeVoteAd = async () => {
+    if (!voteAd?.session_id) return;
+    setVoteAdBusy(true);
+    try {
+      const { data, error } = await (supabase as any).rpc("complete_crush_vote_ad_secure", { p_session_id: voteAd.session_id });
+      if (error) throw error;
+      setVoteAd(null);
+      toast.success("3 free votes added 💗");
+    } catch (e:any) {
+      toast.error(e?.message ?? "Watch the full sponsored video to receive your votes");
+    } finally {
+      setVoteAdBusy(false);
+    }
   };
 
   const sendComment = async () => {
@@ -513,6 +548,26 @@ function CrushPage() {
         )}
       </div>
 
+
+      <Dialog open={voteChoiceOpen} onOpenChange={setVoteChoiceOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogTitle>Your 3 free votes are used</DialogTitle>
+          <DialogDescription>Choose how you want to continue voting.</DialogDescription>
+          <div className="grid gap-2">
+            <Button onClick={() => void startVoteAd()} disabled={voteAdBusy}>Vote for free · Watch an ad</Button>
+            <Button variant="outline" onClick={() => { setVoteChoiceOpen(false); toast("1 BC is required for an extra vote."); }} disabled={voteAdBusy}>Use 1 BC</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={Boolean(voteAd)} onOpenChange={(open) => { if (!open && !voteAdBusy) setVoteAd(null); }}>
+        <DialogContent className="max-w-lg">
+          <DialogTitle>{voteAd?.headline ?? "Sponsored video"}</DialogTitle>
+          <DialogDescription>{voteAd?.description ?? "Watch the sponsored video to unlock 3 more free votes."}</DialogDescription>
+          {voteAd?.video_url ? <video src={voteAd.video_url} poster={voteAd.poster_url ?? undefined} controls autoPlay className="w-full rounded-2xl" onEnded={() => void completeVoteAd()} /> : null}
+          <p className="text-xs text-muted-foreground">Watch to the end to receive 3 more votes.</p>
+        </DialogContent>
+      </Dialog>
 
       <QuickVoteSignup
         open={showQuickSignup}
