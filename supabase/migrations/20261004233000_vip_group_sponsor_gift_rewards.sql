@@ -148,3 +148,16 @@ begin
  on conflict(id) do update set sponsor=excluded.sponsor,headline=excluded.headline,description=excluded.description,tagline=excluded.tagline,image_url=excluded.image_url,destination_url=excluded.destination_url,video_url=excluded.video_url,poster_url=excluded.poster_url,placement=excluded.placement,format=excluded.format,category=excluded.category,call_to_action=excluded.call_to_action,duration_seconds=excluded.duration_seconds,skip_after_seconds=excluded.skip_after_seconds,status=excluded.status,updated_at=now()
  returning id into rid; return rid;
 end $function$;
+
+create or replace function public.admin_list_vip_group_sponsor_creatives()
+returns setof jsonb language plpgsql security definer set search_path='' as $$
+begin
+ if not public.is_admin() then raise exception 'Admin access required'; end if;
+ return query
+ select jsonb_build_object('id',id,'sponsor',sponsor,'headline',headline,'status',status,'placement',placement)
+ from public.ad_creatives
+ where placement='vip_group_sponsor'
+ order by updated_at desc;
+end $$;
+revoke execute on function public.admin_list_vip_group_sponsor_creatives() from public,anon;
+grant execute on function public.admin_list_vip_group_sponsor_creatives() to authenticated;
