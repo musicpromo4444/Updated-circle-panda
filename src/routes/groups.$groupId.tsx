@@ -73,18 +73,20 @@ function GroupRoom() {
   useEffect(() => {
     let active = true;
     void (async () => {
-      const [{ data: summaries, error: summariesError }, { data: messages, error: messagesError }] = await Promise.all([
+      const [{ data: summaries, error: summariesError }, { data: messages, error: messagesError }, { data: settingsRow, error: settingsError }] = await Promise.all([
         (supabase as any).rpc("get_group_summaries", { p_country:"", p_state_province:"", p_city:"", p_area:"" }),
         (supabase as any).from("cp_group_messages").select("id,group_id,body,created_at,user_id,message_type,media_path,mime_type,duration_seconds,view_once").eq("group_id", groupId).order("created_at", { ascending: true }),
+        (supabase as any).from("group_settings").select("edit_group_info,send_messages,approve_new_members").eq("group_id", groupId).maybeSingle(),
       ]);
       if (summariesError) { toast.error(summariesError.message ?? "Could not load the group"); return; }
       if (messagesError) { toast.error(messagesError.message ?? "Could not load group messages"); }
+      if (settingsError) { toast.error(settingsError.message ?? "Could not load group settings"); }
       const row = (summaries ?? []).find((g:any) => g.id === groupId);
       if (!active || !row) return;
       const uid = (await supabase.auth.getUser()).data.user?.id;
       const fresh: GroupChat = {
         id:row.id,name:row.name,topic:row.topic,ownerId:row.owner_id,memberRole:row.member_role,
-        editGroupInfo:"admins",sendMessages:true,approveNewMembers:false,joinPending:Boolean(row.join_pending),
+        editGroupInfo:settingsRow?.edit_group_info === "admins_members" ? "admins_members" : "admins",sendMessages:settingsRow?.send_messages !== false,approveNewMembers:Boolean(settingsRow?.approve_new_members),joinPending:Boolean(row.join_pending),
         members:Number(row.member_count ?? 0),openedAt:row.activated_at?new Date(row.activated_at).getTime():null,expiresAt:row.expires_at ?? null,
         latitude:null,longitude:null,country:row.country ?? "",stateProvince:row.state_province ?? "",city:row.city ?? "",area:row.area ?? "",
     messages:(messages ?? []).map((m:any)=>({id:m.id,author:m.user_id===uid?"You (anonymous)":"Anonymous Panda",body:m.body,at:new Date(m.created_at).getTime(),mine:m.user_id===uid,message_type:m.message_type,media_path:m.media_path,mime_type:m.mime_type,duration_seconds:m.duration_seconds,view_once:m.view_once})),
@@ -405,8 +407,11 @@ function GroupRoom() {
 
   useEffect(() => {
     if (!group || !["owner", "admin"].includes(group.memberRole ?? "")) { setJoinRequests([]); return; }
-    void (supabase as any).from("group_join_requests").select("id,user_id,created_at,status").eq("group_id", group.id).eq("status", "pending").order("created_at", { ascending: true }).then(({ data }: any) => setJoinRequests(data ?? []));
-  }, [group?.id, group?.memberRole, group?.approveNewMembers]);
+    void (supabase as any).from("group_join_requests").select("id,user_id,created_at,status").eq("group_id", group.id).eq("status", "pending").order("created_at", { ascending: true }).then(({ data, error }: any) => {
+      if (error) { toast.error(error.message ?? "Could not load pending join requests"); return; }
+      setJoinRequests(data ?? []);
+    });
+  }, [group?.id, group?.memberRole]);
 
   useEffect(() => {
     if (!live || activationShown.current) return;
@@ -481,9 +486,9 @@ function GroupRoom() {
                   <label className="flex items-center gap-2"><input type="checkbox" checked={sendMessages} onChange={(e) => setSendMessages(e.target.checked)} /> Members can send messages</label>
                   <label className="flex items-center gap-2"><input type="checkbox" checked={approveMembers} onChange={(e) => setApproveMembers(e.target.checked)} /> Approve new members</label>
                 </div>
-                {approveMembers && joinRequests.length > 0 ? (
+                {joinRequests.length > 0 ? (
                   <div className="rounded-xl border border-border/70 bg-secondary/30 p-3">
-                    <p className="text-xs font-semibold">Pending join requests</p>
+                    <p className="text-xs font-semibold">Pending join requests <span className="ml-1 rounded-full bg-destructive px-1.5 py-0.5 text-[10px] text-destructive-foreground">{joinRequests.length}</span></p>
                     <div className="mt-2 space-y-2">
                       {joinRequests.map((request) => (
                         <div key={request.id} className="flex items-center gap-2 rounded-lg bg-background/60 px-3 py-2">
@@ -495,7 +500,12 @@ function GroupRoom() {
                     </div>
                   </div>
                 ) : null}
-                <Button type="button" className="w-full gap-1.5" onClick={() => { updateGroupInfo(group.id, editName.trim(), editTopic.trim()); updateGroupSettings(group.id, editPolicy, sendMessages, approveMembers); setSettingsOpen(false); }}>
+                <Button type="button" className="w-full gap-1.5" onClick={() => {
+                    updateGroupInfo(group.id, editName.trim(), editTopic.trim());
+                    updateGroupSettings(group.id, editPolicy, sendMessages, approveMembers);
+                    setRemoteGroup((current) => current ? { ...current, name: editName.trim(), topic: editTopic.trim(), editGroupInfo: editPolicy, sendMessages, approveNewMembers: approveMembers } : current);
+                    setSettingsOpen(false);
+                  }}>
                   <Pencil className="size-3.5" /> Save changes
                 </Button>
               </>
