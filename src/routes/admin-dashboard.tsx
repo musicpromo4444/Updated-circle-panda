@@ -16,6 +16,7 @@ import { UniversalFloatingIconManager } from "@/components/admin/UniversalFloati
 import { AdminOperationsCenter } from "@/components/admin/AdminOperationsCenter";
 import { AdminAppDownloadPromotion } from "@/components/admin/AdminAppDownloadPromotion";
 import { AdminCampaignReports } from "@/components/admin/AdminCampaignReports";
+import { VipGroupCallSettings } from "@/components/admin/VipGroupCallSettings";
 import { AdminMonetizationControl } from "@/components/admin/AdminMonetizationControl";
 import { CirclePandaMediaManager } from "@/components/admin/CirclePandaMediaManager";
 import { useAdminStore } from "@/components/admin/adminStore";
@@ -125,6 +126,7 @@ function AdminDashboardPage() {
   return <AppShell title="Admin Dashboard" hidePageHeader>
     <main className="mx-auto max-w-4xl space-y-5 p-4 pb-24 sm:p-6">
       <AdminControlCenter />
+      <VipGroupCallSettings />
       <AdminAppDownloadPromotion />
       <AdminCampaignReports />
       <CirclePandaMediaManager />
