@@ -201,17 +201,15 @@ function CrushPage() {
       setKind((current) => current === requestedKind ? current : requestedKind as CrushKind);
     }
     setIndex(0);
-    if (requestedNominee) {
-      const timer = window.setTimeout(() => {
-        setLiveNominees((current) => {
-          const found = current.findIndex((n: any) => n.id === requestedNominee);
-          if (found >= 0) setIndex(found);
-          return current;
-        });
-      }, 250);
-      return () => window.clearTimeout(timer);
-    }
   }, []);
+
+  useEffect(() => {
+    if (!liveNomineesLoaded) return;
+    const requestedNominee = new URLSearchParams(window.location.search).get("nominee");
+    if (!requestedNominee) return;
+    const found = liveNominees.findIndex((n: any) => n.id === requestedNominee);
+    if (found >= 0) setIndex(found);
+  }, [liveNomineesLoaded, liveNominees]);
 
   useEffect(() => {
     if (!liveNomineesLoaded) return;
