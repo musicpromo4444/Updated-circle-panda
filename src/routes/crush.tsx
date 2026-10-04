@@ -14,6 +14,7 @@ import { useStore, FREE_DAILY_VOTES, WINNER_REWARD, type CrushKind } from "@/lib
 import { cn } from "@/lib/utils";
 import { AuthModal } from "@/components/auth/AuthModal";
 import { QuickVoteSignup } from "@/components/auth/QuickVoteSignup";
+import { AppShell } from "@/components/AppShell";
 
 export const Route = createFileRoute("/crush")({
   head: () => ({
@@ -35,9 +36,11 @@ function crushStoragePath(value: string): string | null {
   const marker = `/storage/v1/object/public/${CRUSH_BUCKET}/`;
   const signedMarker = `/storage/v1/object/sign/${CRUSH_BUCKET}/`;
   const publicIndex = value.indexOf(marker);
-  if (publicIndex >= 0) return decodeURIComponent(value.slice(publicIndex + marker.length).split("?")[0]);
+  if (publicIndex >= 0) const path = value.slice(publicIndex + marker.length).split("?")[0];
+    return path ? decodeURIComponent(path) : null;
   const signedIndex = value.indexOf(signedMarker);
-  if (signedIndex >= 0) return decodeURIComponent(value.slice(signedIndex + signedMarker.length).split("?")[0]);
+  if (signedIndex >= 0) const path = value.slice(signedIndex + signedMarker.length).split("?")[0];
+    return path ? decodeURIComponent(path) : null;
   return null;
 }
 
@@ -88,7 +91,7 @@ function CrushPage() {
     let boundary = 0;
     let blockIndex = 0;
     while (boundary <= swipeCount) {
-      boundary += AD_BLOCKS[Math.min(blockIndex, 2)];
+      boundary += AD_BLOCKS[Math.min(blockIndex, 2)] ?? 10;
       blockIndex += 1;
     }
     return boundary;
