@@ -194,7 +194,7 @@ function DatingPage() {
   const activeFilterCount = [countryFilter, stateFilter, locationFilter, goalFilter, lookingForFilter, lifestyleFilter, smokingFilter, drinkingFilter, childrenFilter, educationFilter, !sameCountryOnly].filter(Boolean).length;
   const applyFilters = async () => {
     await searchDatingProfiles({
-      ageMin:18, ageMax:120, country: countryFilter, state: stateFilter, location: locationFilter, gender:"",
+      ageMin:18, ageMax:120, country: sameCountryOnly && !countryFilter ? (datingProfile?.country ?? "") : countryFilter, state: stateFilter, location: locationFilter, gender:"",
       relationshipGoal: goalFilter, lookingFor: lookingForFilter, lifestyle: lifestyleFilter,
       smoking: smokingFilter, drinking: drinkingFilter, children: childrenFilter, education: educationFilter,
       sameCountryOnly,
