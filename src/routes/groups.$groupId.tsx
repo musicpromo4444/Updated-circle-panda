@@ -30,7 +30,6 @@ function GroupRoom() {
   const { groupId } = useParams({ from: "/groups/$groupId" });
   const {
     groups,
-    sendGroupMessage,
     lastAdShownAt,
     leaveGroup,
     updateGroupInfo,
@@ -51,7 +50,6 @@ function GroupRoom() {
   const [sendMessages, setSendMessages] = useState(true);
   const [approveMembers, setApproveMembers] = useState(false);
   const [joinRequests, setJoinRequests] = useState<any[]>([]);
-  const [memberEditOpen, setMemberEditOpen] = useState(false);
   const [remoteGroup, setRemoteGroup] = useState<GroupChat | null>(null);
 
   const group = groups.find((g) => g.id === groupId) ?? remoteGroup;
@@ -147,87 +145,116 @@ function GroupRoom() {
             <Users className="size-3" /> {group?.members ?? 0} anonymous members
           </p>
         </div>
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon"
+        className="shrink-0"
+        aria-label="Group settings"
+        onClick={() => setSettingsOpen((v) => !v)}
+      >
+        <Settings className="size-5" />
+      </Button>
       </header>
 
-{group && group.memberRole ? (
-        <div className="border-b border-border/60 bg-background/80 px-3 py-2">
-          <div className="mx-auto mb-2 max-w-3xl rounded-xl border border-primary/20 bg-primary/5 px-3 py-2 text-center">
-            <p className="text-sm font-semibold">Welcome to the group 🐼</p>
-            <p className="mt-0.5 text-[11px] text-muted-foreground">Feel free to chat and enjoy the conversation.</p>
-          </div>
-          <div className="mx-auto flex max-w-3xl items-center gap-2">
-            <span className="text-[11px] text-muted-foreground">
-              {group.memberRole === "owner" ? "Group owner" : group.memberRole === "admin" ? "Group admin" : "Member"}
-            </span>
-            <span className="flex-1" />
-            {group.memberRole === "owner" || group.memberRole === "admin" ? (
-              <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs" onClick={() => setSettingsOpen((v) => !v)}>
-                <Settings className="size-3.5" /> {settingsOpen ? "Close settings" : "Group settings"}
-              </Button>
-            ) : (
-              <div className="flex items-center gap-1">
-                {group.editGroupInfo === "admins_members" ? (
-                  <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs" onClick={() => setMemberEditOpen((v) => !v)}>
-                    <Pencil className="size-3.5" /> Edit info
-                  </Button>
-                ) : null}
-                <Button variant="ghost" size="sm" className="h-8 gap-1.5 text-xs text-destructive" onClick={() => leaveGroup(group.id)}>
-                  <LogOut className="size-3.5" /> Leave
-                </Button>
-              </div>
-            )}
-          </div>
-          {memberEditOpen && group.memberRole === "member" && group.editGroupInfo === "admins_members" ? (
-            <div className="mx-auto mt-3 max-w-3xl rounded-2xl border border-border/70 bg-secondary/30 p-4">
-              <div className="grid gap-3 md:grid-cols-2">
-                <label className="text-xs font-medium">Group name<input value={editName} onChange={(e) => setEditName(e.target.value)} className="mt-1 h-10 w-full rounded-xl border bg-background px-3 text-sm" /></label>
-                <label className="text-xs font-medium">Topic<textarea value={editTopic} onChange={(e) => setEditTopic(e.target.value)} rows={2} className="mt-1 w-full rounded-xl border bg-background px-3 py-2 text-sm" /></label>
-              </div>
-              <div className="mt-3 flex justify-end">
-                <Button size="sm" className="gap-1.5" onClick={() => { updateGroupInfo(group.id, editName.trim(), editTopic.trim()); setMemberEditOpen(false); }}>
-                  <Pencil className="size-3.5" /> Save info
-                </Button>
-              </div>
+
+
+      {settingsOpen && group ? (
+        <div className="absolute inset-x-0 top-[65px] z-40 mx-auto max-w-lg rounded-b-2xl border border-border/70 bg-background/98 p-4 shadow-2xl backdrop-blur-xl">
+          <div className="mb-3 flex items-center justify-between">
+            <div>
+              <p className="font-display font-bold">Group settings</p>
+              <p className="text-[11px] text-muted-foreground">
+                {group.memberRole === "owner" ? "Owner" : group.memberRole === "admin" ? "Admin" : "Member"}
+              </p>
             </div>
-          ) : null}
-          {settingsOpen ? (
-            <div className="mx-auto mt-3 max-w-3xl rounded-2xl border border-border/70 bg-secondary/30 p-4">
-              <div className="grid gap-3 md:grid-cols-2">
-                <label className="text-xs font-medium">Group name<input value={editName} onChange={(e) => setEditName(e.target.value)} className="mt-1 h-10 w-full rounded-xl border bg-background px-3 text-sm" /></label>
-                <label className="text-xs font-medium">Topic<textarea value={editTopic} onChange={(e) => setEditTopic(e.target.value)} rows={2} className="mt-1 w-full rounded-xl border bg-background px-3 py-2 text-sm" /></label>
-                <label className="text-xs font-medium">Who can edit group info<select value={editPolicy} onChange={(e) => setEditPolicy(e.target.value as "admins" | "admins_members")} className="mt-1 h-10 w-full rounded-xl border bg-background px-3 text-sm"><option value="admins">Admins only</option><option value="admins_members">All members</option></select></label>
+            <Button type="button" variant="ghost" size="sm" onClick={() => setSettingsOpen(false)}>Close</Button>
+          </div>
+
+          <div className="space-y-3">
+            {(group.memberRole === "owner" || group.memberRole === "admin") ? (
+              <>
+                <label className="block text-xs font-medium">
+                  Group name
+                  <input value={editName} onChange={(e) => setEditName(e.target.value)} className="mt-1 h-10 w-full rounded-xl border bg-background px-3 text-sm" />
+                </label>
+                <label className="block text-xs font-medium">
+                  Topic
+                  <textarea value={editTopic} onChange={(e) => setEditTopic(e.target.value)} rows={2} className="mt-1 w-full rounded-xl border bg-background px-3 py-2 text-sm" />
+                </label>
+                <label className="block text-xs font-medium">
+                  Who can edit group info
+                  <select value={editPolicy} onChange={(e) => setEditPolicy(e.target.value as "admins" | "admins_members")} className="mt-1 h-10 w-full rounded-xl border bg-background px-3 text-sm">
+                    <option value="admins">Admins only</option>
+                    <option value="admins_members">All members</option>
+                  </select>
+                </label>
                 <div className="space-y-2 text-xs">
                   <label className="flex items-center gap-2"><input type="checkbox" checked={sendMessages} onChange={(e) => setSendMessages(e.target.checked)} /> Members can send messages</label>
                   <label className="flex items-center gap-2"><input type="checkbox" checked={approveMembers} onChange={(e) => setApproveMembers(e.target.checked)} /> Approve new members</label>
                 </div>
-              </div>
-              {approveMembers && joinRequests.length > 0 ? (
-                <div className="mt-4 rounded-xl border border-border/70 bg-background/60 p-3">
-                  <p className="text-xs font-semibold">Pending join requests</p>
-                  <div className="mt-2 space-y-2">
-                    {joinRequests.map((request) => (
-                      <div key={request.id} className="flex items-center gap-2 rounded-lg bg-secondary/50 px-3 py-2">
-                        <span className="flex-1 text-xs text-muted-foreground">Anonymous Panda · {new Date(request.created_at).toLocaleString()}</span>
-                        <Button size="sm" onClick={() => void (supabase as any).rpc("review_group_join_request", { p_request_id: request.id, p_approve: true }).then(({ error }: any) => { if (error) throw error; setJoinRequests((r) => r.filter((x) => x.id !== request.id)); toast.success("Member approved"); }).catch((e: any) => toast.error(e?.message ?? "Could not approve request"))}>Approve</Button>
-                        <Button size="sm" variant="outline" onClick={() => void (supabase as any).rpc("review_group_join_request", { p_request_id: request.id, p_approve: false }).then(({ error }: any) => { if (error) throw error; setJoinRequests((r) => r.filter((x) => x.id !== request.id)); toast.success("Request declined"); }).catch((e: any) => toast.error(e?.message ?? "Could not decline request"))}>Decline</Button>
-                      </div>
-                    ))}
+                {approveMembers && joinRequests.length > 0 ? (
+                  <div className="rounded-xl border border-border/70 bg-secondary/30 p-3">
+                    <p className="text-xs font-semibold">Pending join requests</p>
+                    <div className="mt-2 space-y-2">
+                      {joinRequests.map((request) => (
+                        <div key={request.id} className="flex items-center gap-2 rounded-lg bg-background/60 px-3 py-2">
+                          <span className="flex-1 text-xs text-muted-foreground">Anonymous Panda · {new Date(request.created_at).toLocaleString()}</span>
+                          <Button type="button" size="sm" onClick={() => void (supabase as any).rpc("review_group_join_request", { p_request_id: request.id, p_approve: true }).then(({ error }: any) => { if (error) throw error; setJoinRequests((items) => items.filter((x) => x.id !== request.id)); toast.success("Member approved"); }).catch((e: any) => toast.error(e?.message ?? "Could not approve request"))}>Approve</Button>
+                          <Button type="button" size="sm" variant="outline" onClick={() => void (supabase as any).rpc("review_group_join_request", { p_request_id: request.id, p_approve: false }).then(({ error }: any) => { if (error) throw error; setJoinRequests((items) => items.filter((x) => x.id !== request.id)); toast.success("Request declined"); }).catch((e: any) => toast.error(e?.message ?? "Could not decline request"))}>Decline</Button>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              ) : null}
-              <div className="mt-3 flex justify-end">
-                <Button size="sm" className="gap-1.5" onClick={() => { updateGroupInfo(group.id, editName.trim(), editTopic.trim()); updateGroupSettings(group.id, editPolicy, sendMessages, approveMembers); setSettingsOpen(false); }}>
+                ) : null}
+                <Button type="button" className="w-full gap-1.5" onClick={() => { updateGroupInfo(group.id, editName.trim(), editTopic.trim()); updateGroupSettings(group.id, editPolicy, sendMessages, approveMembers); setSettingsOpen(false); }}>
                   <Pencil className="size-3.5" /> Save changes
                 </Button>
-              </div>
-            </div>
-          ) : null}
+              </>
+            ) : (
+              <>
+                <div>
+                  <p className="text-xs text-muted-foreground">Group name</p>
+                  <p className="text-sm font-semibold">{group.name}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Topic</p>
+                  <p className="text-sm font-semibold">{group.topic || "No topic set"}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Who can edit group info</p>
+                  <p className="text-sm font-semibold">{group.editGroupInfo === "admins_members" ? "All members" : "Admins only"}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Who can send messages</p>
+                  <p className="text-sm font-semibold">{group.sendMessages === false ? "Admins only" : "All members"}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">New member approval</p>
+                  <p className="text-sm font-semibold">{group.approveNewMembers ? "Required" : "Not required"}</p>
+                </div>
+                {group.editGroupInfo === "admins_members" ? (
+                  <div className="border-t border-border/70 pt-3">
+                    <p className="mb-2 text-xs font-semibold">Edit group info</p>
+                    <input value={editName} onChange={(e) => setEditName(e.target.value)} className="mb-2 h-10 w-full rounded-xl border bg-background px-3 text-sm" />
+                    <textarea value={editTopic} onChange={(e) => setEditTopic(e.target.value)} rows={2} className="w-full rounded-xl border bg-background px-3 py-2 text-sm" />
+                    <Button type="button" size="sm" className="mt-2 w-full" onClick={() => { updateGroupInfo(group.id, editName.trim(), editTopic.trim()); setSettingsOpen(false); }}>Save info</Button>
+                  </div>
+                ) : null}
+                <div className="border-t border-border/70 pt-3">
+                  <Button type="button" variant="ghost" className="w-full justify-start text-destructive" onClick={() => { leaveGroup(group.id); setSettingsOpen(false); }}>
+                    <LogOut className="mr-2 size-4" /> Leave group
+                  </Button>
+                </div>
+              </>
+            )}
+          </div>
         </div>
       ) : null}
 
       {showActivation ? (
         <div className="pointer-events-none fixed inset-0 z-50 grid place-items-center bg-background/40 backdrop-blur-[2px]" aria-live="polite">
-          <div className="animate-in zoom-in-75 rounded-3xl border border-primary/40 bg-card/95 px-8 py-7 text-center shadow-2xl duration-500">
+          <div className="animate-in zoom-in-75 rounded-3xl border border-primary/40 bg-card/95 px-7 py-6 text-center shadow-2xl duration-500">
             <div className="mx-auto mb-2 grid size-20 place-items-center rounded-full bg-primary/15 text-5xl">🐼</div>
             <p className="font-display text-xl font-bold">Welcome to the group!</p>
             <p className="mt-1 text-sm text-muted-foreground">Feel free to chat and enjoy the conversation.</p>
@@ -253,7 +280,7 @@ function GroupRoom() {
               {m.reply_to_id ? <button type="button" onClick={()=>{const target=chatMessages.find(x=>x.id===m.reply_to_id); if(target) document.getElementById(`group-msg-${target.id}`)?.scrollIntoView({behavior:"smooth"});}} className="mb-1 inline-block max-w-[85%] rounded-lg border-l-2 border-primary bg-background/60 px-2 py-1 text-left text-[10px] text-muted-foreground">↩ {chatMessages.find(x=>x.id===m.reply_to_id)?.body?.slice(0,80) ?? "Reply"}</button> : null}
               <div id={`group-msg-${m.id}`} className="relative">
                 <p className={`text-[11px] text-muted-foreground ${m.mine ? "text-right" : ""}`}>{m.author}</p>
-                <p className={`mt-0.5 inline-block max-w-[85%] rounded-2xl px-3.5 py-2 text-sm ${m.mine ? "bg-primary text-primary-foreground" : "bg-card"}`}>{m.body}</p>
+                <p className={`mt-0.5 inline-block max-w-[85%] rounded-2xl px-3.5 py-2 whitespace-pre-wrap text-sm ${m.mine ? "bg-primary text-primary-foreground" : "bg-card"}`}>{m.body}</p>
                 <div className={`mt-1 flex items-center gap-1 ${m.mine ? "justify-end" : ""}`}>
                   <Button type="button" variant="ghost" size="icon" className="size-7" onClick={()=>setReplyTo(m)} aria-label="Reply"><Reply className="size-3.5"/></Button>
                   <Button type="button" variant="ghost" size="icon" className="size-7" onClick={()=>setReactionOpen(reactionOpen===m.id?null:m.id)} aria-label="React"><Smile className="size-3.5"/></Button>
