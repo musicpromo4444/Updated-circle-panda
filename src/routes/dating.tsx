@@ -357,9 +357,10 @@ setSameCountryOnly(true);
                 ) : (
                   <Button
                     className="w-full gap-2 bg-[var(--dating)] text-[var(--dating-foreground)] hover:bg-[var(--dating)]/90"
-                    onClick={() => match(m)}
+                    onClick={() => void match(m)}
+                    disabled={Boolean(m.userId && (sent[m.userId] === "pending" || sent[m.userId] === "matched"))}
                   >
-                    <Heart className="size-4 fill-current" /> {m.userId && sent[m.userId] === "matched" ? "Mutual match 💗" : m.userId && sent[m.userId] === "pending" ? "Request sent" : "Send message request"}
+                    <Heart className="size-4 fill-current" /> {m.userId && sent[m.userId] === "matched" ? "Request accepted 💗" : m.userId && sent[m.userId] === "pending" ? "Sent request" : "Send message request"}
                   </Button>
                 )}
               </div>
@@ -524,8 +525,13 @@ setSameCountryOnly(true);
                 <div className="flex gap-2">
                   {profilePage > 0 ? <Button variant="outline" className="flex-1" onClick={() => setProfilePage(0)}>Previous</Button> : null}
                   {profilePage === 0 ? <Button className="flex-1 bg-[var(--dating)] text-[var(--dating-foreground)] hover:bg-[var(--dating)]/90" onClick={() => setProfilePage(1)}>Next</Button> : (
-                    <Button className="flex-1 bg-[var(--dating)] text-[var(--dating-foreground)] hover:bg-[var(--dating)]/90" onClick={() => match(openMatch)}>
-                      <Heart className="mr-2 size-4 fill-current" /> Send dating request
+                    <Button
+                      className="flex-1 bg-[var(--dating)] text-[var(--dating-foreground)] hover:bg-[var(--dating)]/90"
+                      onClick={() => void match(openMatch)}
+                      disabled={Boolean(openMatch.userId && (sent[openMatch.userId] === "pending" || sent[openMatch.userId] === "matched"))}
+                    >
+                      <Heart className="mr-2 size-4 fill-current" />
+                      {openMatch.userId && sent[openMatch.userId] === "matched" ? "Request accepted 💗" : openMatch.userId && sent[openMatch.userId] === "pending" ? "Sent request" : "Send dating request"}
                     </Button>
                   )}
                 </div>
