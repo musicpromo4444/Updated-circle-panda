@@ -4,12 +4,13 @@ import { Button } from "@/components/ui/button";
 import { GroupComposer, type OutgoingGroupMedia } from "@/components/groups/GroupComposer";
 import { GroupMediaMessage, type GroupMediaItem } from "@/components/groups/GroupMediaMessage";
 import { VipGroupCallOverlay } from "@/components/groups/VipGroupCallOverlay";
+import { VipGroupSponsorGift } from "@/components/groups/VipGroupSponsorGift";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 type VipMessage = GroupMediaItem & { mediaPath?: string };
 
-export function VipGroupChat({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
+export function VipGroupChat({ open, onOpenChange, groupId }: { open: boolean; onOpenChange: (open: boolean) => void; groupId: string }) {
   const [messages, setMessages] = useState<VipMessage[]>([]);
   const [callConfig, setCallConfig] = useState<{ voice_enabled: boolean; video_enabled: boolean } | null>(null);
   const [activeCall, setActiveCall] = useState<"voice" | "video" | null>(null);
@@ -39,10 +40,7 @@ export function VipGroupChat({ open, onOpenChange }: { open: boolean; onOpenChan
     let cancelled = false;
     void (async () => {
       const { data, error } = await (supabase as any)
-        .from("cp_vip_group_messages")
-        .select("id,user_id,body,created_at,message_type,media_path,mime_type,duration_seconds")
-        .order("created_at", { ascending: true })
-        .limit(1000);
+        .rpc("get_vip_group_messages", { p_group_id: groupId });
       if (error) {
         toast.error(error.message ?? "VIP group could not be loaded");
         return;
@@ -52,8 +50,8 @@ export function VipGroupChat({ open, onOpenChange }: { open: boolean; onOpenChan
     })();
 
     const channel = supabase
-      .channel("vip-group:messages")
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "cp_vip_group_messages" }, (payload: any) => {
+      .channel("vip-group:messages:" + groupId)
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "cp_vip_group_messages", filter: "group_id=eq." + groupId }, (payload: any) => {
         void mapRow(payload.new).then(msg => {
           if (!cancelled) setMessages(current => current.some(m => m.id === msg.id) ? current : [...current, msg]);
         });
@@ -64,7 +62,7 @@ export function VipGroupChat({ open, onOpenChange }: { open: boolean; onOpenChan
       cancelled = true;
       void supabase.removeChannel(channel);
     };
-  }, [open]);
+  }, [open, groupId]);
 
   useEffect(() => {
     if (open) bottom.current?.scrollIntoView({ behavior: "smooth" });
@@ -86,7 +84,7 @@ export function VipGroupChat({ open, onOpenChange }: { open: boolean; onOpenChan
   }, [open]);
 
   const sendText = async (body: string) => {
-    const { data, error } = await (supabase as any).rpc("send_vip_group_message_secure", { p_body: body });
+    const { data, error } = await (supabase as any).rpc("send_vip_group_message_secure", { p_group_id: groupId, p_body: body });
     if (error) {
       toast.error(error.message ?? "VIP message could not be sent");
       return;
@@ -115,6 +113,7 @@ export function VipGroupChat({ open, onOpenChange }: { open: boolean; onOpenChan
       return;
     }
     const { data, error } = await (supabase as any).rpc("send_vip_group_media_secure", {
+      p_group_id: groupId,
       p_message_type: type,
       p_media_path: path,
       p_mime_type: file.type,
@@ -160,6 +159,6 @@ export function VipGroupChat({ open, onOpenChange }: { open: boolean; onOpenChan
     <footer className="shrink-0 border-t border-amber-400/20 bg-background px-2 py-2 sm:px-3">
       <div className="mx-auto max-w-4xl"><GroupComposer placeholder="Message the VIP group…" onSendText={sendText} onSendMedia={sendMedia} /></div>
     </footer>
-    {activeCall ? <VipGroupCallOverlay type={activeCall} onClose={() => setActiveCall(null)} /> : null}
+    <VipGroupSponsorGift groupId={groupId} />{activeCall ? <VipGroupCallOverlay type={activeCall} groupId={groupId} onClose={() => setActiveCall(null)} /> : null}
   </div>;
 }
