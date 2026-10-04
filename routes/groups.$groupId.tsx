@@ -120,6 +120,6 @@ function GroupRoom() {
     </main>
 
     <footer className="shrink-0 border-t border-border bg-background px-2 py-2 sm:px-3"><div className="mx-auto max-w-4xl">{live&&group.sendMessages!==false?<GroupComposer disabled={!live} placeholder="Message the group…" onSendText={sendText} onSendMedia={sendMedia}/>:live?<p className="py-2 text-center text-xs text-muted-foreground">Only group admins can send messages right now.</p>:null}</div></footer>
-    {sponsorAdCreative ? <GroupSponsorAd groupId={groupId} creative={sponsorAdCreative} onClose={()=>setSponsorAdCreative(null)} /> : null}
+    {sponsorAdCreative ? <GroupSponsorAd creative={sponsorAdCreative} onClose={()=>setSponsorAdCreative(null)} /> : null}
   </div>;>;
 }
