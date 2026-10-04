@@ -58,7 +58,7 @@ function MessagesPage() {
   const navigate = useNavigate();
   const [activeId, setActiveId] = useState<string | null>(search.thread ?? null);
   const [draft, setDraft] = useState("");
-  const [selectedRequestId, setSelectedRequestId] = useState<string | null>(search.request ?? null);
+  const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null);
   const [messageRequests, setMessageRequests] = useState<any[]>([]);
   const [sentRequests, setSentRequests] = useState<any[]>([]);
   const [pendingDating, setPendingDating] = useState<PendingDatingDecision | null>(null);
