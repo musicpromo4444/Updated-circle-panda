@@ -45,16 +45,19 @@ function crushStoragePath(value: string): string | null {
 async function resolveCrushMediaUrl(value: string): Promise<string> {
   const path = crushStoragePath(value);
   if (!path) return value;
+
+  // Do not HEAD the image here. Browser CORS/CDN behavior can reject a HEAD
+  // request even when the actual <img> download is perfectly valid, which
+  // previously caused WCW/MCM images to resolve to an unusable URL.
   const publicUrl = supabase.storage.from(CRUSH_BUCKET).getPublicUrl(path).data.publicUrl;
-  try {
-    const response = await fetch(publicUrl, { method: "HEAD" });
-    if (response.ok) return publicUrl;
-  } catch {
-    // Fall through to a signed URL for projects/CDN paths that require auth.
-  }
+  return publicUrl || value;
+}
+
+async function resolveCrushMediaFallback(value: string): Promise<string | null> {
+  const path = crushStoragePath(value);
+  if (!path) return null;
   const { data, error } = await supabase.storage.from(CRUSH_BUCKET).createSignedUrl(path, 60 * 60);
-  if (!error && data?.signedUrl) return data.signedUrl;
-  return publicUrl;
+  return !error && data?.signedUrl ? data.signedUrl : null;
 }
 
 function CrushPage() {
@@ -99,6 +102,21 @@ function CrushPage() {
     const weekStart = monday.toISOString().slice(0, 10);
     const { data, error } = await (supabase as any).rpc("get_crush_results", { p_week_start: weekStart });
     let rows = Array.isArray(data) ? data : [];
+
+    // Always have a direct public-data path. This is important for anonymous
+    // viewers and also protects the feed if the result RPC is temporarily empty.
+    if (!rows.length) {
+      const { data: directRows, error: directError } = await (supabase as any)
+        .from("crush_nominees")
+        .select("id,display_name,kind,emoji,blurb,media_url,media_type,week_start,created_at")
+        .eq("week_start", weekStart)
+        .in("kind", ["wcw", "mcm"])
+        .not("media_url", "is", null)
+        .order("created_at", { ascending: false });
+      if (!directError && Array.isArray(directRows)) {
+        rows = directRows.map((n: any) => ({ ...n, nominee_id: n.id, vote_count: 0, mine: false }));
+      }
+    }
     if (error || !rows.length) {
       // Fallback to the public feed rows when the RPC is temporarily unavailable.
       // This keeps already-uploaded media visible instead of reverting to stale local state.
@@ -107,6 +125,7 @@ function CrushPage() {
         .select("id,display_name,kind,emoji,blurb,media_url,media_type,week_start,created_at")
         .eq("week_start", weekStart)
         .in("kind", ["wcw", "mcm"])
+        .not("media_url", "is", null)
         .order("created_at", { ascending: false });
       if (!directError && Array.isArray(directRows)) {
         rows = directRows.map((n: any) => ({ ...n, nominee_id: n.id, vote_count: 0, mine: false }));
@@ -148,9 +167,11 @@ function CrushPage() {
     const section = window.location.hash.replace("#", "").toLowerCase();
     const queryKind = new URLSearchParams(window.location.search).get("kind")?.toLowerCase();
     const requestedKind = queryKind === "mcm" || queryKind === "wcw" ? queryKind : section;
-    if (requestedKind === "mcm" || requestedKind === "wcw") setKind(requestedKind as CrushKind);
+    if (requestedKind === "mcm" || requestedKind === "wcw") {
+      setKind((current) => current === requestedKind ? current : requestedKind as CrushKind);
+    }
     setIndex(0);
-  }, [kind]);
+  }, []);
 
   useEffect(() => {
     if (!card) return;
@@ -309,12 +330,12 @@ function CrushPage() {
                 alt="Circle Panda Crush submission"
                 className="absolute inset-0 size-full object-cover"
                 onError={async (event) => {
-                  const fallback = await resolveCrushMediaUrl(card.mediaUrl);
+                  const fallback = await resolveCrushMediaFallback(card.mediaUrl);
                   if (fallback && fallback !== card.mediaUrl) {
                     event.currentTarget.src = fallback;
-                  } else {
-                    toast.error("This picture could not be loaded from Circle Panda storage.");
+                    return;
                   }
+                  toast.error("This picture could not be loaded from Circle Panda storage.");
                 }}
               />
             )}
