@@ -14,6 +14,7 @@ import { useStore, FREE_WEEKLY_VOTES, WINNER_REWARD, type CrushKind } from "@/li
 import { cn } from "@/lib/utils";
 import { AuthModal } from "@/components/auth/AuthModal";
 import { QuickVoteSignup } from "@/components/auth/QuickVoteSignup";
+import { AppShell } from "@/components/AppShell";
 
 export const Route = createFileRoute("/crush")({
   head: () => ({
