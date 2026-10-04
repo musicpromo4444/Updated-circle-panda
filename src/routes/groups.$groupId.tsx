@@ -174,7 +174,10 @@ function GroupRoom() {
   const uploadMedia = async (file: File, messageType: "image" | "video" | "audio", durationSeconds?: number) => {
     if (!group) return;
     const uid = (await supabase.auth.getUser()).data.user?.id;
-    if (!uid) return;
+    if (!uid) {
+      toast.error("Please sign in again before sending media.");
+      return;
+    }
 
     const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
     const path = `${uid}/${group.id}/${crypto.randomUUID()}-${safeName}`;
