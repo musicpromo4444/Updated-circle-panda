@@ -204,7 +204,12 @@ function GroupRoom() {
 
     if (error) {
       await supabase.storage.from("group-media").remove([path]);
-      toast.error(error.message ?? "Media could not be sent");
+      const message = error.message ?? "Media could not be sent";
+      if (/insufficient\s*bc|not enough|balance/i.test(message)) {
+        window.dispatchEvent(new CustomEvent("circle-panda-insufficient-bc", { detail: { required: 1, reason: "Group media message" } }));
+      } else {
+        toast.error(message);
+      }
       return;
     }
 
