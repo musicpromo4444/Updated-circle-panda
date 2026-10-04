@@ -27,7 +27,6 @@ export function GroupComposer({
   const [pendingVoice, setPendingVoice] = useState<OutgoingGroupMedia | null>(null);
   const timerRef = useRef<number | null>(null);
   const recorderRef = useRef<MediaRecorder | null>(null);
-  const audioPreviewRef = useRef<HTMLAudioElement | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const streamRef = useRef<MediaStream | null>(null);
   const imageInput = useRef<HTMLInputElement>(null);
@@ -112,18 +111,15 @@ export function GroupComposer({
 
   if (recording || pendingVoice) {
     return (
-      <div className="flex items-center gap-2 rounded-[28px] border border-border bg-card px-2 py-2 shadow-sm">
+      <div className="flex items-center gap-2 rounded-[28px] border border-border bg-card px-2.5 py-2 shadow-sm">
         <Button type="button" variant="ghost" size="icon" className="shrink-0 rounded-full" onClick={cancelRecording} aria-label="Cancel voice recording">
           {pendingVoice ? <Trash2 className="size-5 text-destructive" /> : <X className="size-5" />}
         </Button>
         <div className="min-w-0 flex-1 px-1">
           <div className="flex items-center gap-2">
-            {recording ? <span className="size-2 animate-pulse rounded-full bg-destructive" /> : <span className="size-2 rounded-full bg-primary" />}
-            <span className="text-sm font-medium">{recording ? "Recording" : "Voice message"}</span>
-            <span className="text-xs text-muted-foreground">00:{String(recording ? seconds : pendingVoice?.durationSeconds ?? 0).padStart(2,"0")}</span>
           </div>
-          <div className="mt-1 flex h-7 items-center gap-[2px] overflow-hidden">
-            {Array.from({length: 34}).map((_,i)=><span key={i} className={`w-[3px] rounded-full transition-all ${recording ? "bg-primary" : "bg-muted-foreground/60"}`} style={{height:`${recording ? 5 + ((i * 11 + seconds * 3) % 22) : 5 + ((i * 7) % 14)}px`}} />)}
+          <div className="flex h-10 items-center gap-[2px] overflow-hidden">
+            {Array.from({length: 38}).map((_,i)=><span key={i} className={`w-[3px] rounded-full transition-all ${recording ? "bg-muted-foreground" : "bg-muted-foreground/70"}`} style={{height:`${recording ? 7 + ((i * 17 + seconds * 5) % 28) : 7 + ((i * 13) % 24)}px`}} />)}
           </div>
         </div>
         {recording ? (
