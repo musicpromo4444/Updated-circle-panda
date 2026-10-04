@@ -30,7 +30,7 @@ export function AppDownloadPromotion() {
 
   const load = async () => {
     const [{ data: app }, { data: state }] = await Promise.all([
-      supabase.from("app_settings").select("android_app_url,ios_app_url,download_popup_enabled,download_popup_title,download_popup_message,download_popup_cooldown_hours").eq("id",1).maybeSingle(),
+      (supabase as any).from("app_settings").select("android_app_url,ios_app_url,download_popup_enabled,download_popup_title,download_popup_message,download_popup_cooldown_hours").eq("id",1).maybeSingle(),
       (supabase as any).rpc("get_onboarding_reward_state"),
     ]);
     if (app) setSettings(app as Settings);
