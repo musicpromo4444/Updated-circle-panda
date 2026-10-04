@@ -63,7 +63,7 @@ function CrushPage() {
   const [index, setIndex] = useState(0);
   const [commentOpen, setCommentOpen] = useState(false);
   const [comment, setComment] = useState("");
-  const [reactionOpen, setReactionOpen] = useState(false);
+  const [reactionOpen, setReactionOpen] = useState(true);
   const [reactions, setReactions] = useState<Record<string, number>>({});
   const [mineReaction, setMineReaction] = useState<string | null>(null);
   const [reportOpen, setReportOpen] = useState(false);
@@ -156,7 +156,7 @@ function CrushPage() {
     if (!card) return;
     setCommentOpen(false);
     setComment("");
-    setReactionOpen(false);
+    setReactionOpen(true);
     void loadCardData(card.id);
   }, [card?.id]);
 
