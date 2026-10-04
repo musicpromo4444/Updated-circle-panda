@@ -78,7 +78,8 @@ function GroupRoom() {
         (supabase as any).from("cp_group_messages").select("id,group_id,body,created_at,user_id,message_type,media_path,mime_type,duration_seconds,view_once").eq("group_id", groupId).order("created_at", { ascending: true }),
       ]);
       if (summariesError) { toast.error(summariesError.message ?? "Could not load the group"); return; }
-      if (messagesError) { toast.error(messagesError.message ?? "Could not load group messages"); }\n      const row = (summaries ?? []).find((g:any) => g.id === groupId);
+      if (messagesError) { toast.error(messagesError.message ?? "Could not load group messages"); }
+      const row = (summaries ?? []).find((g:any) => g.id === groupId);
       if (!active || !row) return;
       const uid = (await supabase.auth.getUser()).data.user?.id;
       const fresh: GroupChat = {
