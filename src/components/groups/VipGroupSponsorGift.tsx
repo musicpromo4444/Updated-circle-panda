@@ -4,8 +4,6 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-const VIP_GROUP_SPONSOR_SCOPE = "00000000-0000-0000-0000-000000000001";
-
 type Offer = {
   session_id?: string;
   display_text: string;
@@ -21,7 +19,7 @@ type Offer = {
   duration_seconds: number;
 };
 
-export function VipGroupSponsorGift() {
+export function VipGroupSponsorGift({ groupId }: { groupId: string }) {
   const [offer, setOffer] = useState<Offer | null>(null);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -33,7 +31,7 @@ export function VipGroupSponsorGift() {
   const start = async () => {
     if (loading || open) return;
     setLoading(true);
-    const { data, error } = await (supabase as any).rpc("start_vip_group_sponsor_secure", { p_group_id: VIP_GROUP_SPONSOR_SCOPE });
+    const { data, error } = await (supabase as any).rpc("start_vip_group_sponsor_secure", { p_group_id: groupId });
     setLoading(false);
     if (error) { toast.error(error.message ?? "Sponsor could not be opened"); return; }
     if (!data?.show) {
