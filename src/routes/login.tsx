@@ -1,8 +1,10 @@
 import { useState } from "react";
-import { useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { AuthModal } from "@/components/auth/AuthModal";
 
-export default function LoginPage() {
+export const Route = createFileRoute("/login")({ component: LoginPage });
+
+function LoginPage() {
   const navigate = useNavigate();
   const [open, setOpen] = useState(true);
 
