@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Crown, Image as ImageIcon, Phone, Video, X } from "lucide-react";
+import { Crown, Phone, Video, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { GroupComposer, type OutgoingGroupMedia } from "@/components/groups/GroupComposer";
 import { GroupMediaMessage, type GroupMediaItem } from "@/components/groups/GroupMediaMessage";
@@ -11,7 +11,7 @@ type VipMessage = GroupMediaItem & { mediaPath?: string };
 
 export function VipGroupChat({ open, onOpenChange }: { open: boolean; onOpenChange: (open:boolean)=>void }) {
   const [messages,setMessages]=useState<VipMessage[]>([]);
-  const bottom=useRef<HTMLDivElement>(null);\n  const [callId,setCallId]=useState<string|null>(null);\n  const [matching,setMatching]=useState(false);
+  const bottom=useRef<HTMLDivElement>(null);\n  const [callId,setCallId]=useState<string|null>(null);\n  const [matching,setMatching]=useState(false);\n  const [callConfig,setCallConfig]=useState<{voice_enabled:boolean;video_enabled:boolean}|null>(null);
 
   const mapRow=async(row:any):Promise<VipMessage>=>{
     let mediaUrl:string|undefined;
@@ -33,7 +33,7 @@ export function VipGroupChat({ open, onOpenChange }: { open: boolean; onOpenChan
     return()=>{cancelled=true;void supabase.removeChannel(channel);};
   },[open]);
 
-  useEffect(()=>{if(open)bottom.current?.scrollIntoView({behavior:"smooth"});},[messages.length,open]);
+  useEffect(()=>{if(open)bottom.current?.scrollIntoView({behavior:"smooth"});},[messages.length,open]);\n\n  useEffect(()=>{\n    if(!open)return;\n    void (async()=>{\n      const {data,error}=await (supabase as any).rpc("get_vip_group_call_runtime");\n      if(error){console.warn("VIP call schedule unavailable",error);return;}\n      if(data?.show) setCallConfig({voice_enabled:Boolean(data.voice_enabled),video_enabled:Boolean(data.video_enabled)});\n      else setCallConfig(null);\n    })();\n  },[open]);
 
   const sendText=async(body:string)=>{
     const {data,error}=await (supabase as any).rpc("send_vip_group_message_secure",{p_body:body});
