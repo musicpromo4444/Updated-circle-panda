@@ -144,12 +144,18 @@ function DatingPage() {
     if (!connRes?.error) {
       setConnections(rows);
       setIncoming(rows.filter((x:any) => x.status === "pending" && x.recipient_id === uid));
+      setSent(Object.fromEntries(rows.filter((x:any) => x.requester_id === uid).map((x:any) => [x.recipient_id, x.status])));
     }
   };
 
   useEffect(() => {
     void loadConnections();
     void refreshDatingData({sameCountryOnly:false});
+    const connectionChannel = supabase.channel("dating-connections-live")
+      .on("postgres_changes", {event:"*", schema:"public", table:"dating_connections"}, () => {
+        void loadConnections();
+      })
+      .subscribe();
     const timer = window.setInterval(() => setClock(Date.now()), 1000);
     const onFocus = () => { void refreshDatingData({sameCountryOnly:false}); };
     window.addEventListener("focus", onFocus);
@@ -162,16 +168,21 @@ function DatingPage() {
       window.clearInterval(timer);
       window.removeEventListener("focus", onFocus);
       void supabase.removeChannel(channel);
+      void supabase.removeChannel(connectionChannel);
     };
   }, [refreshDatingData, loadConnections]);
 
   // Pre-cache video ad units
 
   const match = async (m: Match) => {
-    if (!m.userId) return;
+    if (!m.userId || m.userId === datingProfile?.userId) {
+      toast.error("That Dating card cannot receive a request.");
+      return;
+    }
     const status = await requestDatingMatch(m.userId);
     if (!status) return;
     setSent((s) => ({...s,[m.userId!]:status}));
+    await loadConnections();
     setOpenMatch(null);
     if (status === "matched") {
       const threadId = await startDatingChat(m.userId, m.name);
