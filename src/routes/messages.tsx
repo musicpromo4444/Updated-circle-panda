@@ -90,7 +90,7 @@ function MessagesPage() {
       if (!uid || !active) return;
       const [incomingRes, outgoingRes] = await Promise.all([
         (supabase as any).from("direct_message_requests").select("id,sender_id,message,kind,created_at,status").eq("recipient_id",uid).eq("status","pending").order("created_at",{ascending:false}),
-        (supabase as any).from("direct_message_requests").select("id,recipient_id,message,kind,created_at,status,responded_at").eq("sender_id",uid).in("status",["pending","accepted","declined"]).order("created_at",{ascending:false}).limit(50),
+        (supabase as any).from("direct_message_requests").select("id,recipient_id,message,kind,created_at,status,responded_at").eq("sender_id",uid).in("status",["pending","accepted"]).order("created_at",{ascending:false}).limit(50),
       ]);
       if (!active) return;
       if (!incomingRes.error) {
@@ -208,7 +208,7 @@ function MessagesPage() {
                 <span className="text-lg">📨</span>
                 <div>
                   <p className="font-display text-sm font-bold">Sent message requests</p>
-                  <p className="text-[11px] text-muted-foreground">Requests stay here until the other Panda responds.</p>
+                  <p className="text-[11px] text-muted-foreground">Your Dating requests stay here until they are accepted. Declined requests disappear.</p>
                 </div>
               </div>
               <div className="mt-3 space-y-2">
@@ -218,7 +218,7 @@ function MessagesPage() {
                       Anonymous Panda · {r.kind === "dating" ? "Dating Message Request" : r.kind === "crush" ? "MCM/WCW Message Request" : "Message Request"}
                     </p>
                     <p className="mt-1 text-sm font-semibold">
-                      {r.status === "pending" ? "Message request sent" : r.status === "accepted" ? "Request accepted" : "Request declined"}
+                      {r.status === "pending" ? "Sent request" : "Request accepted 💗"}
                     </p>
                     {r.message ? <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{r.message}</p> : null}
                   </div>
