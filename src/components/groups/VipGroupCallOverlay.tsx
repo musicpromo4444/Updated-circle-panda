@@ -4,9 +4,9 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-type Props={type:"voice"|"video";onClose:()=>void};
+type Props={type:"voice"|"video";groupId:string;onClose:()=>void};
 
-export function VipGroupCallOverlay({type,onClose}:Props){
+export function VipGroupCallOverlay({type,groupId,onClose}:Props){
   const [userId,setUserId]=useState<string|null>(null);
   const [muted,setMuted]=useState(false);
   const [cameraOff,setCameraOff]=useState(type==="voice");
@@ -15,7 +15,7 @@ export function VipGroupCallOverlay({type,onClose}:Props){
   const localStream=useRef<MediaStream|null>(null);
   const peers=useRef(new Map<string,RTCPeerConnection>());
   const channel=useRef<any>(null);
-  const pendingCandidates=useRef(new Map<string,RTCIceCandidateInit[]>());\n\n  useEffect(()=>{\n    if(!userId)return;\n    const timer=window.setInterval(()=>{void (supabase as any).rpc("consume_vip_group_call_time",{p_call_type:type,p_seconds:30}).then(({data,error}:any)=>{if(error||data?.[0]?.consume_vip_group_call_time===false){toast.error("Your daily VIP call time has ended");onClose();}});},30000);\n    return()=>window.clearInterval(timer);\n  },[userId,type,onClose]);
+  const pendingCandidates=useRef(new Map<string,RTCIceCandidateInit[]>());
 
   useEffect(()=>{
     let cancelled=false;
@@ -27,7 +27,7 @@ export function VipGroupCallOverlay({type,onClose}:Props){
         const stream=await navigator.mediaDevices.getUserMedia({audio:true,video:type==="video"});
         localStream.current=stream;
         if(localRef.current){localRef.current.srcObject=stream;localRef.current.muted=true;}
-        const ch=supabase.channel("vip-group-call",{config:{broadcast:{self:false},presence:{key:uid}}});
+        const ch=supabase.channel("vip-group-call:"+groupId,{config:{broadcast:{self:false},presence:{key:uid}}});
         channel.current=ch;
         const send=(event:string,payload:any)=>void ch.send({type:"broadcast",event,payload:{...payload,from:uid}});
         const makePeer=async(peerId:string,offer:boolean)=>{
@@ -60,7 +60,7 @@ export function VipGroupCallOverlay({type,onClose}:Props){
       }catch(e:any){toast.error(e?.message??"Could not open the call");onClose();}
     })();
     return()=>{cancelled=true;localStream.current?.getTracks().forEach(t=>t.stop());peers.current.forEach(p=>p.close());peers.current.clear();if(channel.current)void supabase.removeChannel(channel.current);};
-  },[type]);
+  },[type,groupId]);
 
   return <div className="fixed inset-0 z-[120] flex flex-col bg-black">
     <div className="flex items-center justify-between border-b border-white/10 px-4 py-3 text-white"><div><p className="font-bold">VIP {type==="video"?"Video":"Voice"} Call</p><p className="text-xs text-white/60">Private VIP group call</p></div><span className="text-xs text-white/60">{Object.keys(remote).length+1} connected</span></div>
