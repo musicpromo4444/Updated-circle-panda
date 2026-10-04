@@ -88,6 +88,7 @@ export type DatingProfile = {
   interests: string[];
   location: string;
   country: string;
+  stateProvince?: string;
   gender: string;
   relationshipGoal: string;
   lookingFor: string[];
@@ -470,7 +471,7 @@ type StoreValue = State & {
   createGroup: (name: string, topic: string, country?: string, stateProvince?: string, city?: string, area?: string) => Promise<GroupChat | null>;
   createEvent: (event: Omit<PandaEvent, "id" | "rsvp">) => Promise<PandaEvent | null>;
   requestDatingMatch: (userId: string) => Promise<string | null>;
-  searchDatingProfiles: (filters: { ageMin?: number; ageMax?: number; country?: string; location?: string; gender?: string; relationshipGoal?: string; lookingFor?: string; lifestyle?: string; smoking?: string; drinking?: string; children?: string; education?: string; heightMin?: number; heightMax?: number; zodiac?: string; sameCountryOnly?: boolean }) => Promise<boolean>;
+  searchDatingProfiles: (filters: { ageMin?: number; ageMax?: number; country?: string; state?: string; location?: string; gender?: string; relationshipGoal?: string; lookingFor?: string; lifestyle?: string; smoking?: string; drinking?: string; children?: string; education?: string; heightMin?: number; heightMax?: number; zodiac?: string; sameCountryOnly?: boolean }) => Promise<boolean>;
   registerDatingProfile: (profile: Omit<DatingProfile, "registeredAt" | "userId">) => Promise<boolean>;
   refreshDatingData: (filters?: { sameCountryOnly?: boolean }) => Promise<boolean>;
   refreshThreads: () => Promise<boolean>;
@@ -568,7 +569,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         (supabase as any).from("events").select("id,title,description,location,starts_at,ends_at,category,entry_fee_bc,entry_fee_amount,entry_fee_currency,duration_minutes,reach_scope,reach_country,reach_state,reach_city,reach_area,cover_url,venue_name,address_line,country,state_province,city,area,latitude,longitude,is_published,owner_id").eq("is_published",true).order("starts_at", {ascending:true}),
         (supabase as any).from("event_attendees").select("event_id,user_id"),
         (supabase as any).rpc("get_dating_discovery_secure", { p_age_min:18,p_age_max:99,p_same_country_only:true }),
-        (supabase as any).from("dating_profiles").select("user_id,name,age,vibe,emoji,bio,interests,location,country,gender,relationship_goal,looking_for,lifestyle,personality,love_language,smoking,drinking,children,education,occupation,sexual_experience,intimacy_preference,relationship_status,height_cm,zodiac,favorite_date,photo_path,blurred_photo_path,updated_at").eq("user_id",uid).maybeSingle(),
+        (supabase as any).from("dating_profiles").select("user_id,name,age,vibe,emoji,bio,interests,location,country,state_province,gender,relationship_goal,looking_for,lifestyle,personality,love_language,smoking,drinking,children,education,occupation,sexual_experience,intimacy_preference,relationship_status,height_cm,zodiac,favorite_date,photo_path,blurred_photo_path,updated_at").eq("user_id",uid).maybeSingle(),
         (supabase as any).from("bc_accounts").select("balance").eq("user_id",uid).maybeSingle(),
         (supabase as any).from("user_xp").select("xp").eq("user_id",uid).maybeSingle(),
         Promise.resolve({ data: [] as any[] }),
@@ -611,7 +612,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         messages:rawThreadMessages.filter((m:any)=>m.thread_id===t.id && !(m.message_type==="dating_photo" && m.user_id===uid)).map((m:any)=>({id:m.id,body:m.body,at:new Date(m.created_at).getTime(),mine:m.user_id===uid,messageType:m.message_type==="dating_photo"?"dating_photo":"text",mediaPath:m.media_path ?? undefined})), startedAt:t.kind === "dating" ? new Date(t.created_at).getTime() : undefined
       }));
       const totalXp = Number(xpRes.data?.xp ?? 0);
-      setState((prev)=>({...prev,...stData,coins:Number(coinsRes.data?.balance ?? prev.coins),reputation:stData.reputation??0,level:pandaProgress(totalXp).index+1,xp:totalXp,posts,groups,threads,events,nominees,sweepWinners:(winnersRes.data??[]).map((w:any)=>({draw:w.draw,name:w.name,prize:w.prize,wonAt:new Date(w.won_at).getTime()})),sweepTickets:(ticketsRes.data??[]).map((t:any)=>({id:t.id,draw:t.draw,at:new Date(t.created_at).getTime()})),spotlights:(crushWinnersRes.data??[]).map((w:any)=>({kind:w.kind,name:w.display_name,wonAt:new Date(w.created_at).getTime()})),datingProfile:dating?{userId:dating.user_id,name:dating.name,age:dating.age,vibe:dating.vibe,emoji:dating.emoji,bio:dating.bio,interests:dating.interests??[],location:dating.location,country:dating.country??dating.location??"",gender:dating.gender??"",relationshipGoal:dating.relationship_goal??"",lookingFor:dating.looking_for??[],lifestyle:dating.lifestyle??[],personality:dating.personality??[],loveLanguage:dating.love_language??"",smoking:dating.smoking??"",drinking:dating.drinking??"",children:dating.children??"",education:dating.education??"",occupation:dating.occupation??"",sexualExperience:dating.sexual_experience??"",intimacyPreference:dating.intimacy_preference??"",relationshipStatus:dating.relationship_status??"single",heightCm:dating.height_cm??null,zodiac:dating.zodiac??"",favoriteDate:dating.favorite_date??"",photoPath:dating.photo_path??"",blurredPhotoPath:dating.blurred_photo_path??"",registeredAt:new Date(dating.updated_at).getTime()}:null,datingMatches:(datingRes.data??[]).filter((d:any)=>d.user_id!==uid).map((d:any)=>({userId:d.user_id,name:d.name,age:d.age,vibe:d.vibe,emoji:d.emoji,bio:d.bio,interests:d.interests??[],location:d.location,country:d.country??d.location??"",gender:d.gender??"",relationshipGoal:d.relationship_goal??"",lookingFor:d.looking_for??[],lifestyle:d.lifestyle??[],personality:d.personality??[],loveLanguage:d.love_language??"",smoking:d.smoking??"",drinking:d.drinking??"",children:d.children??"",education:d.education??"",occupation:d.occupation??"",sexualExperience:d.sexual_experience??"",intimacyPreference:d.intimacy_preference??"",relationshipStatus:d.relationship_status??"single",heightCm:d.height_cm??null,zodiac:d.zodiac??"",favoriteDate:d.favorite_date??"",photoPath:d.photo_path??"",blurredPhotoPath:d.blurred_photo_path??"",registeredAt:new Date(d.updated_at).getTime()}))}));
+      setState((prev)=>({...prev,...stData,coins:Number(coinsRes.data?.balance ?? prev.coins),reputation:stData.reputation??0,level:pandaProgress(totalXp).index+1,xp:totalXp,posts,groups,threads,events,nominees,sweepWinners:(winnersRes.data??[]).map((w:any)=>({draw:w.draw,name:w.name,prize:w.prize,wonAt:new Date(w.won_at).getTime()})),sweepTickets:(ticketsRes.data??[]).map((t:any)=>({id:t.id,draw:t.draw,at:new Date(t.created_at).getTime()})),spotlights:(crushWinnersRes.data??[]).map((w:any)=>({kind:w.kind,name:w.display_name,wonAt:new Date(w.created_at).getTime()})),datingProfile:dating?{userId:dating.user_id,name:dating.name,age:dating.age,vibe:dating.vibe,emoji:dating.emoji,bio:dating.bio,interests:dating.interests??[],location:dating.location,country:dating.country??dating.location??"",stateProvince:dating.state_province??"",gender:dating.gender??"",relationshipGoal:dating.relationship_goal??"",lookingFor:dating.looking_for??[],lifestyle:dating.lifestyle??[],personality:dating.personality??[],loveLanguage:dating.love_language??"",smoking:dating.smoking??"",drinking:dating.drinking??"",children:dating.children??"",education:dating.education??"",occupation:dating.occupation??"",sexualExperience:dating.sexual_experience??"",intimacyPreference:dating.intimacy_preference??"",relationshipStatus:dating.relationship_status??"single",heightCm:dating.height_cm??null,zodiac:dating.zodiac??"",favoriteDate:dating.favorite_date??"",photoPath:dating.photo_path??"",blurredPhotoPath:dating.blurred_photo_path??"",registeredAt:new Date(dating.updated_at).getTime()}:null,datingMatches:(datingRes.data??[]).filter((d:any)=>d.user_id!==uid).map((d:any)=>({userId:d.user_id,name:d.name,age:d.age,vibe:d.vibe,emoji:d.emoji,bio:d.bio,interests:d.interests??[],location:d.location,country:d.country??d.location??"",stateProvince:d.state_province??"",gender:d.gender??"",relationshipGoal:d.relationship_goal??"",lookingFor:d.looking_for??[],lifestyle:d.lifestyle??[],personality:d.personality??[],loveLanguage:d.love_language??"",smoking:d.smoking??"",drinking:d.drinking??"",children:d.children??"",education:d.education??"",occupation:d.occupation??"",sexualExperience:d.sexual_experience??"",intimacyPreference:d.intimacy_preference??"",relationshipStatus:d.relationship_status??"single",heightCm:d.height_cm??null,zodiac:d.zodiac??"",favoriteDate:d.favorite_date??"",photoPath:d.photo_path??"",blurredPhotoPath:d.blurred_photo_path??"",registeredAt:new Date(d.updated_at).getTime()}))}));
     })().catch(() => {
       if (!cancelled) setHydrated(true);
     });
@@ -1034,7 +1035,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     const sameCountryOnly = filters.sameCountryOnly ?? false;
     const [discoveryRes, ownRes] = await Promise.all([
       (supabase as any).rpc("get_dating_discovery_secure", {
-        p_age_min:18,p_age_max:120,p_country:"",p_location:"",p_gender:"",
+        p_age_min:18,p_age_max:120,p_country:"",p_state:"",p_location:"",p_gender:"",
         p_relationship_goal:"",p_looking_for:"",p_lifestyle:"",p_smoking:"",
         p_drinking:"",p_children:"",p_education:"",p_height_min:null,p_height_max:null,
         p_zodiac:"",p_same_country_only:sameCountryOnly,
@@ -1049,7 +1050,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     }
     const mapProfile = (d:any): DatingProfile => ({
       userId:d.user_id,name:d.name,age:Number(d.age),vibe:d.vibe??"",emoji:d.emoji??"🐼",bio:d.bio??"",
-      interests:d.interests??[],location:d.location??"",country:d.country??"",gender:d.gender??"",
+      interests:d.interests??[],location:d.location??"",country:d.country??"",stateProvince:d.state_province??"",gender:d.gender??"",
       relationshipGoal:d.relationship_goal??"",lookingFor:d.looking_for??[],lifestyle:d.lifestyle??[],
       personality:d.personality??[],loveLanguage:d.love_language??"",smoking:d.smoking??"",drinking:d.drinking??"",
       children:d.children??"",education:d.education??"",occupation:d.occupation??"",sexualExperience:d.sexual_experience??"",
@@ -1072,6 +1073,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       p_age_min: filters.ageMin ?? 18,
       p_age_max: filters.ageMax ?? 99,
       p_country: filters.country ?? "",
+      p_state: filters.state ?? "",
       p_location: filters.location ?? "",
       p_gender: filters.gender ?? "",
       p_relationship_goal: filters.relationshipGoal ?? "",
@@ -1090,7 +1092,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     const rows = Array.isArray(data) ? data : [];
     const mapped = rows.map((d:any) => ({
       userId:d.user_id,name:d.name,age:d.age,vibe:d.vibe,emoji:d.emoji,bio:d.bio,interests:d.interests??[],
-      location:d.location??"",country:d.country??"",gender:d.gender??"",relationshipGoal:d.relationship_goal??"",
+      location:d.location??"",country:d.country??"",stateProvince:d.state_province??"",gender:d.gender??"",relationshipGoal:d.relationship_goal??"",
       lookingFor:d.looking_for??[],lifestyle:d.lifestyle??[],personality:d.personality??[],loveLanguage:d.love_language??"",
       smoking:d.smoking??"",drinking:d.drinking??"",children:d.children??"",education:d.education??"",occupation:d.occupation??"",
       sexualExperience:d.sexual_experience??"",intimacyPreference:d.intimacy_preference??"",relationshipStatus:d.relationship_status??"single",
