@@ -139,7 +139,7 @@ export type Nominee = {
 export type Spotlight = { kind: CrushKind; name: string; wonAt: number };
 
 export const NOMINATION_COST = 5;
-export const FREE_DAILY_VOTES = 3;
+export const FREE_WEEKLY_VOTES = 3;
 export const EXTRA_VOTE_COST = 1;
 export const WINNER_REWARD = 100;
 export const WEEK_MS = 7 * DAY_MS;
@@ -1425,7 +1425,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       voteFor,
       freeVotesLeft: Math.max(
         0,
-        FREE_DAILY_VOTES - (state.voteDay === todayKey() ? state.votesUsedToday : 0),
+        FREE_WEEKLY_VOTES - (state.voteDay === todayKey() ? state.votesUsedToday : 0),
       ),
       mySpotlight: state.spotlights.find((w) => w.name === "You (anonymous)") ?? null,
       toggleRsvp,
