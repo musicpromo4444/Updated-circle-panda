@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useParams } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate, useParams } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { ChevronLeft, Send, Users, Settings, Pencil, LogOut, Lock, Reply, Smile } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -28,6 +28,7 @@ export const Route = createFileRoute("/groups/$groupId")({
 
 function GroupRoom() {
   const { groupId } = useParams({ from: "/groups/$groupId" });
+  const navigate = useNavigate();
   const {
     groups,
     lastAdShownAt,
@@ -77,6 +78,14 @@ function GroupRoom() {
   }, [groupId, groups]);
   const expired = !!group?.expiresAt && new Date(group.expiresAt).getTime() <= Date.now();
   const live = !!group && group.openedAt !== null;
+
+  useEffect(() => {
+    if (!group) return;
+    if (!group.memberRole) {
+      toast.error("You are not a member of this group. Join again to open the room.");
+      void navigate({ to: "/groups" });
+    }
+  }, [group, navigate]);
 
   useEffect(() => {
     bottom.current?.scrollIntoView({ behavior: "smooth" });
