@@ -34,7 +34,8 @@ export function RewardedAdModal({
       const { data, error } = await (await import("@/integrations/supabase/client")).supabase.rpc("get_ad_runtime_config");
       if (error) { toast.error("The group reward ad could not be loaded."); return; }
       const selected = (Array.isArray(data?.creatives) ? data.creatives : []).find((x:any) => x.placement === "group_message_rewarded" && x.status === "active");
-      setCreative(selected ?? null);
+      if (!selected) { setPhase("failed"); return; }
+      setCreative(selected);
     })();
     const load = setTimeout(() => setPhase("playing"), 1200);
     return () => clearTimeout(load);
@@ -43,8 +44,9 @@ export function RewardedAdModal({
   useEffect(() => {
     if (phase !== "playing") return;
     const started = Date.now();
+    const duration = Math.max(1000, Number(creative?.duration_seconds ?? 5) * 1000);
     const i = setInterval(() => {
-      const pct = Math.min(100, ((Date.now() - started) / AD_LENGTH_MS) * 100);
+      const pct = Math.min(100, ((Date.now() - started) / duration) * 100);
       setProgress(pct);
       if (pct >= 100) {
         clearInterval(i);
@@ -103,9 +105,13 @@ export function RewardedAdModal({
 
         {phase === "playing" ? (
           <div className="space-y-3 py-2">
-            <div className="grid h-36 place-items-center rounded-xl bg-secondary/40 text-4xl">
-              🎬
-            </div>
+            {creative?.video_url ? (
+              <video className="h-36 w-full rounded-xl object-cover bg-black" src={creative.video_url} poster={creative.poster_url ?? creative.image_url ?? undefined} autoPlay muted playsInline onEnded={() => setPhase("done")} />
+            ) : creative?.image_url ? (
+              <img className="h-36 w-full rounded-xl object-cover" src={creative.image_url} alt={creative.headline ?? creative.sponsor ?? "Sponsored ad"} />
+            ) : (
+              <div className="grid h-36 place-items-center rounded-xl bg-secondary/40 text-4xl">🎬</div>
+            )}
             <div className="h-2 overflow-hidden rounded-full bg-secondary">
               <div className="h-full bg-primary transition-all" style={{ width: `${progress}%` }} />
             </div>
