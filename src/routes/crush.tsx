@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, ChevronLeft, ChevronRight, Flag, Heart, MessageCircle, Send, Smile, Trophy } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { requestLogin } from "@/components/auth/LoginRequiredDialog";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { CrushAdFrame } from "@/components/ads/CrushAdFrame";
@@ -80,6 +81,8 @@ function CrushPage() {
   const [swipeCount, setSwipeCount] = useState(0);
   const [adSlotIndex, setAdSlotIndex] = useState(0);
   const [sending, setSending] = useState(false);
+  const [messageOpen, setMessageOpen] = useState(false);
+  const [messageText, setMessageText] = useState("");
   const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [showAuth, setShowAuth] = useState(false);
   const [showQuickSignup, setShowQuickSignup] = useState(false);
@@ -295,6 +298,31 @@ function CrushPage() {
     }
   };
 
+  const sendMessageRequest = async () => {
+    if (!card || !messageText.trim() || sending) return;
+    const { data: authData } = await supabase.auth.getUser();
+    if (!authData.user || authData.user.is_anonymous) {
+      requestLogin("message a Crush Panda");
+      return;
+    }
+    setSending(true);
+    try {
+      const { data, error } = await (supabase as any).rpc("request_crush_message_secure", {
+        p_nominee_id: card.id,
+        p_message: messageText.trim(),
+      });
+      if (error) throw error;
+      setMessageText("");
+      setMessageOpen(false);
+      toast.success("Message request sent 💌", { description: "It is now in Messages while you wait for acceptance." });
+      void navigate({ to: "/messages", search: { request: data?.id ?? undefined } });
+    } catch (e: any) {
+      toast.error(e?.message ?? "Message request could not be sent");
+    } finally {
+      setSending(false);
+    }
+  };
+
   const report = async () => {
     if (!card) return;
     const { error } = await (supabase as any).rpc("report_crush_secure", {
@@ -485,6 +513,14 @@ function CrushPage() {
                   </button>
                   <button
                     type="button"
+                    onClick={() => setMessageOpen(true)}
+                    aria-label="Message this Panda"
+                    className="grid size-12 shrink-0 place-items-center rounded-full border border-white/15 bg-[#20262a] text-white/90"
+                  >
+                    <Send className="size-5" />
+                  </button>
+                  <button
+                    type="button"
                     onClick={() => setReactionOpen((value) => !value)}
                     aria-label="Choose emoji reaction"
                     className="grid size-12 shrink-0 place-items-center rounded-full border border-white/15 bg-[#20262a] text-white/90"
@@ -511,6 +547,17 @@ function CrushPage() {
           </div>
         )}
       </div>
+
+      <Dialog open={messageOpen} onOpenChange={setMessageOpen}>
+        <DialogContent className="max-w-md rounded-3xl">
+          <DialogTitle>Message this Panda</DialogTitle>
+          <DialogDescription>Send a message request. It will stay in Messages until the recipient accepts or declines.</DialogDescription>
+          <Input value={messageText} onChange={(e) => setMessageText(e.target.value)} maxLength={1000} placeholder="Write your message..." />
+          <Button onClick={() => void sendMessageRequest()} disabled={sending || !messageText.trim()} className="w-full rounded-2xl">
+            {sending ? "Sending…" : "Send message request"}
+          </Button>
+        </DialogContent>
+      </Dialog>
 
       <QuickVoteSignup
         open={showQuickSignup}
