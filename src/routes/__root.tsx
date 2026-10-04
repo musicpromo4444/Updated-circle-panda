@@ -159,24 +159,33 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider>
+        <StoreProvider>
+          <RootContent />
+        </StoreProvider>
+      </ThemeProvider>
+    </QueryClientProvider>
+  );
+}
+
+function RootContent() {
   const location = useLocation();
   const { hydrated } = useStore();
   const routerLoading = useRouterState({ select: (s) => s.status === "pending" });
   const hideHotSeatPresence = location.pathname === "/profile" || location.pathname.startsWith("/profile/");
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider>
-        <StoreProvider>
-          {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-          <Outlet />
-          {(routerLoading || (!hydrated && location.pathname !== "/")) ? <CirclePandaLoader /> : null}
-          <UniversalWinnerFlow />
-          <LoginRequiredDialog />
-          <AppDownloadPromotion />
-          {!hideHotSeatPresence ? <HotSeatFloatingPresence /> : null}
-        </StoreProvider>
-      </ThemeProvider>
-    </QueryClientProvider>
+    <>
+      {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+      <Outlet />
+      {(routerLoading || (!hydrated && location.pathname !== "/")) ? <CirclePandaLoader /> : null}
+      <UniversalWinnerFlow />
+      <LoginRequiredDialog />
+      <AppDownloadPromotion />
+      {!hideHotSeatPresence ? <HotSeatFloatingPresence /> : null}
+    </>
   );
 }
