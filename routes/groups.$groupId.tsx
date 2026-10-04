@@ -40,7 +40,7 @@ function GroupRoom() {
   const [sendMessages, setSendMessages] = useState(group?.sendMessages ?? true);
   const [approveMembers, setApproveMembers] = useState(group?.approveNewMembers ?? false);
   const [joinRequests, setJoinRequests] = useState<any[]>([]);
-  const [sponsorAdOpen, setSponsorAdOpen] = useState(false);
+  const [sponsorAdCreative, setSponsorAdCreative] = useState<any | null>(null);
   const bottom = useRef<HTMLDivElement>(null);
   const expired = group ? isGroupExpired(group) : false;
   const live = !!group && group.openedAt !== null && !expired;
@@ -70,7 +70,7 @@ function GroupRoom() {
 
   useEffect(()=>{bottom.current?.scrollIntoView({behavior:"smooth"});},[messages.length]);
 
-  const maybeShowSponsorAd=async()=>{ if(!groupId) return; const {data,error}=await (supabase as any).rpc("should_show_group_reward_ad",{p_group_id:groupId}); if(error){console.warn("Group sponsor ad check unavailable:",error.message);return;} if(data===true)setSponsorAdOpen(true); };
+  const maybeShowSponsorAd=async()=>{ if(!groupId || sponsorAdCreative) return; const {data,error}=await (supabase as any).rpc("start_group_reward_ad_secure",{p_group_id:groupId}); if(error){console.warn("Group sponsor ad unavailable:",error.message);return;} if(data?.show)setSponsorAdCreative(data); };
   const sendText=async(body:string)=>{const {data,error}=await (supabase as any).rpc("send_group_message_secure",{p_group_id:groupId,p_body:body});if(error){toast.error(error.message??"Message could not be sent");return;}setMessages(current=>[...current,{id:data.id,author:"You (anonymous)",body,at:new Date(data.created_at).getTime(),mine:true,messageType:"text"}]);void maybeShowSponsorAd();};
   const sendMedia=async({type,file,durationSeconds}:OutgoingGroupMedia)=>{const user=(await supabase.auth.getUser()).data.user;if(!user){toast.error("Sign in to send media");return;}const ext=file.name.split(".").pop()?.toLowerCase()||(type==="image"?"jpg":type==="video"?"mp4":"webm");const path=`${groupId}/${user.id}/${crypto.randomUUID()}.${ext}`;const {error:uploadError}=await (supabase as any).storage.from("circle-panda-group-media").upload(path,file,{contentType:file.type,upsert:false});if(uploadError){toast.error(uploadError.message??"Media upload failed");return;}const {data,error}=await (supabase as any).rpc("send_group_media_secure",{p_group_id:groupId,p_message_type:type,p_media_path:path,p_mime_type:file.type,p_duration_seconds:durationSeconds??null,p_view_once:true,p_body:""});if(error){await (supabase as any).storage.from("circle-panda-group-media").remove([path]);toast.error(error.message??"Media message could not be sent");return;}const {data:signed}=await (supabase as any).storage.from("circle-panda-group-media").createSignedUrl(path,3600);setMessages(current=>[...current,{id:data.id,author:"You (anonymous)",body:"",at:new Date(data.created_at).getTime(),mine:true,messageType:type,mediaPath:path,mimeType:file.type,durationSeconds:durationSeconds??null,mediaUrl:signed?.signedUrl}]);void maybeShowSponsorAd();};
 
@@ -120,6 +120,6 @@ function GroupRoom() {
     </main>
 
     <footer className="shrink-0 border-t border-border bg-background px-2 py-2 sm:px-3"><div className="mx-auto max-w-4xl">{live&&group.sendMessages!==false?<GroupComposer disabled={!live} placeholder="Message the group…" onSendText={sendText} onSendMedia={sendMedia}/>:live?<p className="py-2 text-center text-xs text-muted-foreground">Only group admins can send messages right now.</p>:null}</div></footer>
-    {sponsorAdOpen ? <GroupSponsorAd groupId={groupId} onClose={()=>setSponsorAdOpen(false)} /> : null}
+    {sponsorAdCreative ? <GroupSponsorAd groupId={groupId} creative={sponsorAdCreative} onClose={()=>setSponsorAdCreative(null)} /> : null}
   </div>;>;
 }
