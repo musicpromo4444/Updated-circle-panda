@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, ChevronLeft, ChevronRight, Flag, Heart, MessageCircle, Send, Smile, Trophy } from "lucide-react";
 import { toast } from "sonner";
@@ -67,6 +67,7 @@ async function resolveCrushMediaFallback(value: string): Promise<string | null> 
 }
 
 function CrushPage() {
+  const navigate = useNavigate();
   const { nominees, voteFor, freeVotesLeft, spotlights } = useStore();
   const [kind, setKind] = useState<CrushKind>("wcw");
   const [index, setIndex] = useState(0);
