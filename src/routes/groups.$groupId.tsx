@@ -371,23 +371,36 @@ function GroupRoom() {
 
   const openViewOnceMedia = async (m: any) => {
     if (!m.media_path) return;
-    const { data: allowed, error } = await (supabase as any).rpc("claim_group_media_view_once", { p_message_id: m.id });
-    if (error) {
-      toast.error(error.message ?? "This media could not be opened");
-      return;
-    }
-    if (m.view_once !== false && allowed !== true) {
-      setViewedMediaIds((old) => new Set(old).add(m.id));
-      toast.info("This view-once media has already been opened.");
-      return;
-    }
+
+    // Voice notes are reusable; do not consume the view-once claim for them.
     const url = m.media_url ?? await signedMediaUrl(m.media_path);
     if (!url) {
-      toast.error("Media is unavailable");
+      toast.error("Media is unavailable. The file may have expired or is not accessible to this group member.");
       return;
     }
+
+    if (m.view_once !== false) {
+      // IMPORTANT: verify that the file can actually be read before consuming
+      // the one-time claim. Otherwise a failed signed URL/browser load could
+      // permanently burn the message for the recipient.
+      const { data: allowed, error } = await (supabase as any).rpc("claim_group_media_view_once", { p_message_id: m.id });
+      if (error) {
+        toast.error(error.message ?? "This media could not be opened");
+        return;
+      }
+      if (allowed !== true) {
+        setViewedMediaIds((old) => new Set(old).add(m.id));
+        toast.info("This view-once media has already been opened.");
+        return;
+      }
+    }
+
     setViewedMediaIds((old) => new Set(old).add(m.id));
-    setMediaPreview({ url, type: m.message_type === "image" ? "image" : m.message_type === "video" ? "video" : "audio", name: "View once" });
+    setMediaPreview({
+      url,
+      type: m.message_type === "image" ? "image" : m.message_type === "video" ? "video" : "audio",
+      name: m.view_once === false ? (m.message_type === "audio" ? "Voice note" : "Media") : "View once",
+    });
   };
 
 
