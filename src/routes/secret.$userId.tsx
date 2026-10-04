@@ -179,7 +179,7 @@ function SecretProfilePage() {
           <p className="mx-auto mt-2 max-w-md text-xs font-bold leading-5 text-red-500 dark:text-red-400">Post on this secret page and they will not know it was you. Feel free.</p>
           <div className="mt-3 flex flex-wrap justify-center gap-2">
             <Button className="h-9 rounded-xl px-4 text-xs font-black" onClick={focusComposer}><Send className="mr-1.5 size-3.5" /> Post a Secret</Button>
-            {profile.id !== (undefined as any) ? <Button variant="outline" className="h-9 rounded-xl px-4 text-xs font-black" onClick={() => setMessageOpen(true)}><MessageCircle className="mr-1.5 size-3.5" /> Message Panda</Button> : null}
+            <Button variant="outline" className="h-9 rounded-xl px-4 text-xs font-black" onClick={() => setMessageOpen(true)}><MessageCircle className="mr-1.5 size-3.5" /> Message Panda</Button>
           </div>
         </section>
 
@@ -245,6 +245,14 @@ function SecretProfilePage() {
         </div>
       </div>
 
+      <Dialog open={messageOpen} onOpenChange={setMessageOpen}>
+        <DialogContent className="max-w-md rounded-3xl">
+          <DialogTitle>Message Panda</DialogTitle>
+          <DialogDescription>Send a message request. It will stay in Messages until the recipient accepts or declines.</DialogDescription>
+          <Textarea value={messageText} onChange={(e) => setMessageText(e.target.value)} maxLength={1000} placeholder="Write your message..." className="min-h-28 rounded-2xl" />
+          <Button onClick={() => void sendProfileMessageRequest()} disabled={sendingMessage || !messageText.trim()} className="w-full rounded-2xl">{sendingMessage ? "Sending…" : "Send message request"}</Button>
+        </DialogContent>
+      </Dialog>
       <DialogPlaceholder commentPost={commentPost} setCommentPost={setCommentPost} commentText={commentText} setCommentText={setCommentText} submitComment={submitComment} />
     </main>
   );
