@@ -522,3 +522,7 @@ html.light .coin-chip {
 .cp-neon-wheel-stage:after{content:"🐼";position:absolute;display:grid;place-items:center;width:58px;height:58px;border-radius:50%;background:radial-gradient(circle,#7d3cff,#26105f);border:2px solid #d6a5ff;box-shadow:0 0 20px #9d5cff;color:#fff;font-size:28px;z-index:8}
 .cp-sweep-activity{position:relative;overflow:hidden;border:1px solid #8055ff;border-radius:24px;padding:18px;background:linear-gradient(135deg,#16184e,#0b0e31);box-shadow:0 0 30px rgba(115,61,255,.24),inset 0 1px rgba(255,255,255,.07)}
 .cp-sweep-activity-glow{position:absolute;width:190px;height:190px;right:-70px;top:-90px;border-radius:50%;background:#28d9ff;filter:blur(70px);opacity:.16}
+
+
+@keyframes circle-panda-loader-spin { to { transform: rotate(360deg); } }
+@keyframes circle-panda-loader-pulse { 0%,100% { transform: scale(.96); } 50% { transform: scale(1.04); } }
