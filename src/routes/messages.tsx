@@ -60,6 +60,7 @@ function MessagesPage() {
   const [draft, setDraft] = useState("");
   const [selectedRequestId, setSelectedRequestId] = useState<string | null>(search.request ?? null);
   const [messageRequests, setMessageRequests] = useState<any[]>([]);
+  const [sentRequests, setSentRequests] = useState<any[]>([]);
   const [pendingDating, setPendingDating] = useState<PendingDatingDecision | null>(null);
   const [decisionBusy, setDecisionBusy] = useState(false);
   const [photoPreviewUrl, setPhotoPreviewUrl] = useState<string | null>(null);
@@ -83,25 +84,41 @@ function MessagesPage() {
   }, []);
 
   useEffect(() => {
-    void (async () => {
+    let active = true;
+    const loadRequests = async () => {
       const uid = (await supabase.auth.getUser()).data.user?.id;
-      if (!uid) return;
-      const { data, error } = await (supabase as any).from("direct_message_requests").select("id,sender_id,message,kind,created_at").eq("recipient_id",uid).eq("status","pending").order("created_at",{ascending:false});
-      if (!error) {
-        setMessageRequests(data ?? []);
-        if (search.request && (data ?? []).some((r:any) => r.id === search.request)) setSelectedRequestId(search.request);
+      if (!uid || !active) return;
+      const [incomingRes, outgoingRes] = await Promise.all([
+        (supabase as any).from("direct_message_requests").select("id,sender_id,message,kind,created_at,status").eq("recipient_id",uid).eq("status","pending").order("created_at",{ascending:false}),
+        (supabase as any).from("direct_message_requests").select("id,recipient_id,message,kind,created_at,status,responded_at").eq("sender_id",uid).in("status",["pending","accepted","declined"]).order("created_at",{ascending:false}).limit(50),
+      ]);
+      if (!active) return;
+      if (!incomingRes.error) {
+        const rows = incomingRes.data ?? [];
+        setMessageRequests(rows);
+        if (search.request && rows.some((r:any) => r.id === search.request)) setSelectedRequestId(search.request);
       }
-    })();
+      if (!outgoingRes.error) setSentRequests(outgoingRes.data ?? []);
+    };
+    void loadRequests();
+    const requestChannel = supabase.channel("message-requests-live")
+      .on("postgres_changes", {event:"*", schema:"public", table:"direct_message_requests"}, () => void loadRequests())
+      .subscribe();
     void (supabase as any).rpc("get_pending_dating_decisions_secure").then(({data,error}:any)=>{
       if (!error && Array.isArray(data) && data.length) setPendingDating(data[0]);
     });
-  }, []);
+    return () => {
+      active = false;
+      void supabase.removeChannel(requestChannel);
+    };
+  }, [search.request]);
 
   const respondRequest = async (request: any, accept: boolean) => {
     try {
       const { data, error } = await (supabase as any).rpc("respond_direct_message_request_secure", { p_request_id: request.id, p_accept: accept });
       if (error) throw error;
       setMessageRequests((current) => current.filter((r) => r.id !== request.id));
+      setSentRequests((current) => current.map((r) => r.id === request.id ? {...r, status: accept ? "accepted" : "declined"} : r));
       setSelectedRequestId((current) => current === request.id ? null : current);
       if (accept && data?.thread_id) {
         // The request becomes a real chat. Refresh the thread list before navigating
@@ -185,6 +202,30 @@ function MessagesPage() {
               </div>
             </section>
           ) : null}
+          {sentRequests.length ? (
+            <section className="panda-panel rounded-2xl border border-[var(--dating)]/20 bg-[var(--dating)]/5 p-4">
+              <div className="flex items-center gap-2">
+                <span className="text-lg">📨</span>
+                <div>
+                  <p className="font-display text-sm font-bold">Sent message requests</p>
+                  <p className="text-[11px] text-muted-foreground">Requests stay here until the other Panda responds.</p>
+                </div>
+              </div>
+              <div className="mt-3 space-y-2">
+                {sentRequests.map((r:any) => (
+                  <div key={r.id} className="rounded-xl bg-background p-3">
+                    <p className="text-[10px] font-bold text-muted-foreground">
+                      Anonymous Panda · {r.kind === "dating" ? "Dating Message Request" : r.kind === "crush" ? "MCM/WCW Message Request" : "Message Request"}
+                    </p>
+                    <p className="mt-1 text-sm font-semibold">
+                      {r.status === "pending" ? "Message request sent" : r.status === "accepted" ? "Request accepted" : "Request declined"}
+                    </p>
+                    {r.message ? <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{r.message}</p> : null}
+                  </div>
+                ))}
+              </div>
+            </section>
+          ) : null}
           {threads.map((t, idx) => (
             <div key={t.id} className="space-y-3">
               <button
@@ -233,7 +274,7 @@ function MessagesPage() {
               <div className="flex items-center gap-3 border-b border-border bg-card px-3 py-3">
                 <Button variant="ghost" size="icon" onClick={() => setSelectedRequestId(null)}><ChevronLeft className="size-5"/></Button>
                 <span className="grid size-10 place-items-center rounded-full bg-secondary text-xl">🐼</span>
-                <div className="min-w-0 flex-1"><p className="font-semibold">Anonymous Panda</p><p className="text-[11px] text-muted-foreground">{request.kind === "crush" ? "MCM/WCW Message Request" : "Message Request"}</p></div>
+                <div className="min-w-0 flex-1"><p className="font-semibold">Anonymous Panda</p><p className="text-[11px] text-muted-foreground">{request.kind === "crush" ? "MCM/WCW Message Request" : request.kind === "dating" ? "Dating Message Request" : "Message Request"}</p></div>
               </div>
               <div className="flex-1 overflow-y-auto bg-secondary/20 p-4">
                 <div className="max-w-[82%] rounded-2xl rounded-tl-md bg-card px-4 py-3 text-sm shadow-sm">{request.message || "This Panda sent you a message request."}</div>
