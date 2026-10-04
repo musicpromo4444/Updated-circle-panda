@@ -53,7 +53,7 @@ function DatingPhotoBubble({ path, onOpen }: { path?: string; onOpen: (url: stri
 }
 
 function MessagesPage() {
-  const { threads, sendMessage, coins, isVip } = useStore();
+  const { threads, sendMessage, coins, isVip, refreshThreads } = useStore();
   const search = useSearch({ from: "/messages" });
   const navigate = useNavigate();
   const [activeId, setActiveId] = useState<string | null>(search.thread ?? null);
@@ -104,6 +104,9 @@ function MessagesPage() {
       setMessageRequests((current) => current.filter((r) => r.id !== request.id));
       setSelectedRequestId((current) => current === request.id ? null : current);
       if (accept && data?.thread_id) {
+        // The request becomes a real chat. Refresh the thread list before navigating
+        // so the accepted MCM/WCW conversation never disappears from Messages.
+        await refreshThreads();
         toast.success("Request accepted 💬");
         void navigate({ to: "/messages", search: { thread: data.thread_id } });
       } else if (!accept) {
