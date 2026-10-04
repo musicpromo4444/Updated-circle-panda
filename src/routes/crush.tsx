@@ -2,7 +2,6 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, ChevronLeft, ChevronRight, Flag, Heart, MessageCircle, Send, Smile, Trophy } from "lucide-react";
 import { toast } from "sonner";
-import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -81,6 +80,7 @@ function CrushPage() {
   const [pendingVote, setPendingVote] = useState(false);
   const [liveNominees, setLiveNominees] = useState<any[]>([]);
   const [liveNomineesLoaded, setLiveNomineesLoaded] = useState(false);
+  const [mediaError, setMediaError] = useState<string | null>(null);
 
   const AD_BLOCKS = [5, 5, 10];
   const AD_FORMATS = ["native", "interstitial", "popup", "banner", "playable"] as const;
@@ -149,9 +149,22 @@ function CrushPage() {
         mine: Boolean(n.mine),
       }));
     const resolvedRows = await Promise.all(
-      mediaRows.map(async (row: any) => ({ ...row, mediaUrl: await resolveCrushMediaUrl(row.mediaUrl) })),
+      mediaRows.map(async (row: any) => {
+        try {
+          const path = crushStoragePath(row.mediaUrl);
+          if (path) {
+            const { data: blob, error: downloadError } = await supabase.storage.from(CRUSH_BUCKET).download(path);
+            if (!downloadError && blob) {
+              const objectUrl = URL.createObjectURL(blob);
+              return { ...row, mediaUrl: objectUrl, originalMediaUrl: row.mediaUrl };
+            }
+          }
+        } catch {}
+        return { ...row, mediaUrl: await resolveCrushMediaUrl(row.mediaUrl), originalMediaUrl: row.mediaUrl };
+      }),
     );
     setLiveNominees(resolvedRows);
+    setMediaError(resolvedRows.length ? null : "No uploaded pictures are available for this round.");
     setLiveNomineesLoaded(true);
   };
 
