@@ -159,6 +159,7 @@ function GroupRoom() {
       p_mime_type: file.type || null,
       p_duration_seconds: durationSeconds ?? null,
       p_view_once: true,
+      p_body: "",
     });
 
     if (error) {
@@ -620,29 +621,20 @@ function GroupRoom() {
         <>
         {replyTo ? <div className="border-t border-border bg-secondary/30 px-3 py-2 text-xs"><div className="flex items-center justify-between"><span className="text-muted-foreground">Replying to {replyTo.author}</span><Button type="button" variant="ghost" size="sm" onClick={()=>setReplyTo(null)}>Cancel</Button></div><p className="truncate">{replyTo.body}</p></div> : null}
         {voiceBlob || recording ? (
-          <div className="flex items-center gap-2 border-t border-border bg-background px-3 py-3">
-            <Button type="button" variant="ghost" size="icon" className="shrink-0 text-destructive" onClick={cancelVoiceRecording} aria-label="Delete voice recording">
-              <Trash2 className="size-5" />
+          <div className="flex items-center gap-2 rounded-[28px] border border-border bg-card px-2 py-2 shadow-sm">
+            <Button type="button" variant="ghost" size="icon" className="size-11 shrink-0 rounded-full" onClick={cancelVoiceRecording} aria-label="Cancel voice recording">
+              <X className="size-5" />
             </Button>
-            <div className="flex min-w-0 flex-1 items-center gap-2 rounded-2xl bg-secondary/60 px-3 py-2">
-              <Mic className="size-4 shrink-0 text-primary" />
-              <div className="flex min-w-0 flex-1 items-center gap-2">
-                <div className="flex flex-1 items-center gap-1">
-                  {Array.from({length:18}).map((_,i)=><span key={i} className={`w-1 rounded-full bg-primary/70 ${recording && !recordingPaused ? "animate-pulse" : ""}`} style={{height:`${8 + ((i * 7) % 16)}px`}} />)}
-                </div>
-                <span className="w-10 text-right text-xs tabular-nums">{String(Math.floor(recordingSeconds/60)).padStart(2,"0")}:{String(recordingSeconds%60).padStart(2,"0")}</span>
+            <div className="min-w-0 flex-1 px-1">
+              <div className="flex h-10 items-center gap-[2px] overflow-hidden">
+                {Array.from({length:38}).map((_,i)=><span key={i} className={`w-[3px] rounded-full bg-muted-foreground transition-all ${recording && !recordingPaused ? "animate-pulse" : ""}`} style={{height:`${7 + ((i * 17 + recordingSeconds * 5) % 28)}px`}} />)}
               </div>
             </div>
-            {voicePreviewUrl && recordingStopped ? (
-              <audio src={voicePreviewUrl} controls className="hidden" />
-            ) : null}
-            <Button type="button" variant="ghost" size="icon" className="shrink-0" onClick={pauseOrResumeVoiceRecording} aria-label={recordingPaused || recordingStopped ? "Resume or preview voice recording" : "Pause voice recording"}>
-              {recordingStopped ? <Play className="size-5" /> : recordingPaused ? <Play className="size-5" /> : <Pause className="size-5" />}
+            {voicePreviewUrl && recordingStopped ? <audio src={voicePreviewUrl} controls={false} className="hidden" /> : null}
+            <Button type="button" variant="secondary" size="icon" className="size-11 shrink-0 rounded-full" onClick={stopVoiceRecording} disabled={!recording || recordingStopped} aria-label="Stop voice recording">
+              <Square className="size-4 fill-current" />
             </Button>
-            <Button type="button" variant="ghost" size="icon" className="shrink-0" onClick={stopVoiceRecording} disabled={!recording || recordingStopped} aria-label="Stop voice recording">
-              <Square className="size-5" />
-            </Button>
-            <Button type="button" size="icon" className="shrink-0" onClick={()=>void sendVoiceRecording()} disabled={!voiceBlob} aria-label="Send voice recording">
+            <Button type="button" size="icon" className="size-11 shrink-0 rounded-full bg-blue-500 text-white hover:bg-blue-500/90" onClick={()=>void sendVoiceRecording()} disabled={!voiceBlob} aria-label="Send voice recording">
               <Send className="size-4" />
             </Button>
           </div>
