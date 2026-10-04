@@ -133,7 +133,7 @@ function DatingPage() {
   const [smokingFilter, setSmokingFilter] = useState("");
   const [drinkingFilter, setDrinkingFilter] = useState("");
   const [childrenFilter, setChildrenFilter] = useState("");
-  const [sameCountryOnly, setSameCountryOnly] = useState(true);
+  const [sameCountryOnly, setSameCountryOnly] = useState(false);
   const loadConnections = async () => {
     const [userRes, connRes] = await Promise.all([
       (supabase as any).auth.getUser(),
@@ -149,10 +149,21 @@ function DatingPage() {
 
   useEffect(() => {
     void loadConnections();
-    void refreshDatingData();
+    void refreshDatingData({sameCountryOnly:false});
     const timer = window.setInterval(() => setClock(Date.now()), 1000);
-    return () => window.clearInterval(timer);
-  }, [refreshDatingData]);
+    const onFocus = () => { void refreshDatingData({sameCountryOnly:false}); };
+    window.addEventListener("focus", onFocus);
+    const channel = supabase.channel("dating-discovery-live")
+      .on("postgres_changes", {event:"*", schema:"public", table:"dating_profiles"}, () => {
+        void refreshDatingData({sameCountryOnly:false});
+      })
+      .subscribe();
+    return () => {
+      window.clearInterval(timer);
+      window.removeEventListener("focus", onFocus);
+      void supabase.removeChannel(channel);
+    };
+  }, [refreshDatingData, loadConnections]);
 
   // Pre-cache video ad units
 
@@ -188,7 +199,7 @@ function DatingPage() {
     if (childrenFilter && String(m.children ?? "").toLowerCase() !== childrenFilter.toLowerCase()) return false;
     return true;
   });
-  const activeFilterCount = [countryFilter, stateFilter, locationFilter, goalFilter, lookingForFilter, lifestyleFilter, smokingFilter, drinkingFilter, childrenFilter, !sameCountryOnly].filter(Boolean).length;
+  const activeFilterCount = [countryFilter, stateFilter, locationFilter, goalFilter, lookingForFilter, lifestyleFilter, smokingFilter, drinkingFilter, childrenFilter, sameCountryOnly].filter(Boolean).length;
   const applyFilters = async () => {
     await searchDatingProfiles({
       ageMin:18, ageMax:120, country: sameCountryOnly && !countryFilter ? (datingProfile?.country ?? "") : countryFilter, state: stateFilter, location: locationFilter, gender:"",
