@@ -1,6 +1,6 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ArrowLeft, CalendarDays, CalendarPlus, Clock, MapPin, Rocket, Share2, Users } from "lucide-react";
+import { ArrowLeft, CalendarDays, CalendarPlus, Clock, MapPin, MessageCircle, Rocket, Share2, Users } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
 import { StandardBannerAd } from "@/components/ads/StandardBannerAd";
@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { CreateEventModal } from "@/components/events/CreateEventModal";
 import { useStore, type PandaEvent } from "@/lib/store";
 import { supabase } from "@/integrations/supabase/client";
+import { sendMessageRequest } from "@/lib/messageRequests";
 
 export const Route = createFileRoute("/events")({
   head: () => ({
@@ -33,6 +34,7 @@ type BlastPlan = {
 
 function EventsPage() {
   const { events, startEventBlast, toggleRsvp } = useStore();
+  const navigate = useNavigate();
   const [openEvent, setOpenEvent] = useState<PandaEvent | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
   const [blastOpen, setBlastOpen] = useState(false);
@@ -57,6 +59,20 @@ function EventsPage() {
       setPlans((data ?? []) as BlastPlan[]);
     })();
   }, []);
+
+  const messageEventCreator = async () => {
+    if (!current?.ownerId || current.ownerId === currentUserId) return;
+    try {
+      const result = await sendMessageRequest(
+        current.ownerId,
+        'I\'d like to know more about your event, "' + current.title + '".',
+      );
+      toast.success("Message request sent 💌", { description: "The event creator can accept it from Messages." });
+      void navigate({ to: "/messages", search: { request: result.id } });
+    } catch (e: any) {
+      toast.error(e?.message ?? "Could not message the event creator");
+    }
+  };
 
   const openBlast = () => { if (!current) return; setTargetScope("worldwide"); setTargetCountry(""); setTargetState(""); setTargetCity(""); setTargetArea(""); setBlastOpen(true); };
   useEffect(() => { void fetch("https://countriesnow.space/api/v0.1/countries/positions").then(r=>r.json()).then(j=>setTargetCountries((j.data ?? []).map((x:any)=>({name:x.name,iso2:x.iso2})).sort((a:any,b:any)=>a.name.localeCompare(b.name)))).catch(()=>setTargetCountries([])); }, []);
@@ -162,13 +178,18 @@ function EventsPage() {
             <p className="text-sm leading-relaxed text-muted-foreground">{current.details}</p>
             <div className="grid gap-2 sm:grid-cols-2">
               {current.ownerId !== currentUserId ? (
-                <Button
-                  type="button"
-                  variant={current.rsvp ? "secondary" : "default"}
-                  onClick={() => toggleRsvp(current.id)}
-                >
-                  {current.rsvp ? "You’re going 🐼" : "I will attend"}
-                </Button>
+                <>
+                  <Button
+                    type="button"
+                    variant={current.rsvp ? "secondary" : "default"}
+                    onClick={() => toggleRsvp(current.id)}
+                  >
+                    {current.rsvp ? "You’re going 🐼" : "I will attend"}
+                  </Button>
+                  <Button type="button" variant="outline" onClick={() => void messageEventCreator()} className="gap-2">
+                    <MessageCircle className="size-4" /> Message creator
+                  </Button>
+                </>
               ) : null}
               {current.ownerId === currentUserId ? <Button type="button" variant="outline" onClick={openBlast} className="gap-2"><Rocket className="size-4" /> Event Blast</Button> : null}
             </div>
