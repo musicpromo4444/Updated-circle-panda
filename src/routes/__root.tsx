@@ -8,7 +8,7 @@ import {
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
@@ -173,13 +173,19 @@ function RootComponent() {
 function RootContent() {
   const location = useLocation();
   const { hydrated } = useStore();
+  const [loaderTimedOut, setLoaderTimedOut] = useState(false);
+  useEffect(() => {
+    if (hydrated) return;
+    const timeoutId = window.setTimeout(() => setLoaderTimedOut(true), 8000);
+    return () => window.clearTimeout(timeoutId);
+  }, [hydrated]);
   const hideHotSeatPresence = location.pathname === "/profile" || location.pathname.startsWith("/profile/");
 
   return (
     <>
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <Outlet />
-      {!hydrated ? <CirclePandaLoader /> : null}
+      {!hydrated && !loaderTimedOut ? <CirclePandaLoader /> : null}
       <UniversalWinnerFlow />
       <LoginRequiredDialog />
       <AppDownloadPromotion />
