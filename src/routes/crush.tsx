@@ -185,6 +185,12 @@ function CrushPage() {
   const ranked = useMemo(() => [...pool].sort((a, b) => b.votes - a.votes), [pool]);
 
   useEffect(() => {
+    const onVoteOptions = () => setVoteChoiceOpen(true);
+    window.addEventListener("circle-panda-crush-vote-options", onVoteOptions);
+    return () => window.removeEventListener("circle-panda-crush-vote-options", onVoteOptions);
+  }, []);
+
+  useEffect(() => {
     void refreshLiveNominees();
     const section = window.location.hash.replace("#", "").toLowerCase();
     const queryKind = new URLSearchParams(window.location.search).get("kind")?.toLowerCase();
