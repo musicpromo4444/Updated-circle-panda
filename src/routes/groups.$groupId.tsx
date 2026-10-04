@@ -8,6 +8,7 @@ import { RewardedAdModal } from "@/components/RewardedAdModal";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { sendMessageRequest } from "@/lib/messageRequests";
+import heic2any from "heic2any";
 
 export const Route = createFileRoute("/groups/$groupId")({
   head: () => ({
@@ -177,13 +178,26 @@ function GroupRoom() {
       return;
     }
 
-    const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+    let uploadFile = file;
+    if (messageType === "image" && /(^image\\/(heic|heif)$)|\\.(heic|heif)$/i.test(file.type || file.name)) {
+      toast.info("Converting HEIC photo to a compatible image…");
+      try {
+        const converted = await heic2any({ blob: file, toType: "image/jpeg", quality: 0.9 });
+        const blob = Array.isArray(converted) ? converted[0] : converted;
+        uploadFile = new File([blob], file.name.replace(/\\.(heic|heif)$/i, ".jpg"), { type: "image/jpeg" });
+      } catch {
+        toast.error("This HEIC photo could not be converted. Please choose another photo.");
+        return;
+      }
+    }
+
+    const safeName = uploadFile.name.replace(/[^a-zA-Z0-9._-]/g, "_");
     const path = `${uid}/${group.id}/${crypto.randomUUID()}-${safeName}`;
     toast.info(messageType === "image" ? "Uploading photo…" : messageType === "video" ? "Uploading video…" : "Sending voice note…");
 
     const { error: uploadError } = await supabase.storage
       .from("group-media")
-      .upload(path, file, { contentType: file.type || "application/octet-stream", upsert: false });
+      .upload(path, uploadFile, { contentType: uploadFile.type || "application/octet-stream", upsert: false });
 
     if (uploadError) {
       toast.error(uploadError.message ?? "Media upload failed");
@@ -194,7 +208,7 @@ function GroupRoom() {
       p_group_id: group.id,
       p_media_path: path,
       p_message_type: messageType,
-      p_mime_type: file.type || null,
+      p_mime_type: uploadFile.type || null,
       p_duration_seconds: durationSeconds ?? null,
       // Photos/videos are view-once; voice notes are normal reusable messages.
       p_view_once: messageType !== "audio",
@@ -224,7 +238,7 @@ function GroupRoom() {
       message_type: messageType,
       media_path: path,
       media_url: mediaUrl,
-      mime_type: file.type,
+      mime_type: uploadFile.type,
       duration_seconds: durationSeconds ?? null,
       view_once: messageType !== "audio",
       reactions: [],
@@ -373,10 +387,28 @@ function GroupRoom() {
     if (!m.media_path) return;
 
     // Voice notes are reusable; do not consume the view-once claim for them.
-    const url = m.media_url ?? await signedMediaUrl(m.media_path);
+    let url = m.media_url ?? await signedMediaUrl(m.media_path);
     if (!url) {
       toast.error("Media is unavailable. The file may have expired or is not accessible to this group member.");
       return;
+    }
+
+    // Browsers do not natively display HEIC/HEIF. Convert the private file
+    // to a browser-safe JPEG before consuming the one-time claim.
+    const isHeic = m.message_type === "image" && /(^image\\/(heic|heif)$)|\\.(heic|heif)$/i.test(m.mime_type || m.media_path || "");
+    if (isHeic) {
+      try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error("HEIC download failed");
+        const source = await response.blob();
+        const converted = await heic2any({ blob: source, toType: "image/jpeg", quality: 0.9 });
+        const blob = Array.isArray(converted) ? converted[0] : converted;
+        if (url === m.media_url) URL.revokeObjectURL(url);
+        url = URL.createObjectURL(blob);
+      } catch {
+        toast.error("This HEIC photo could not be displayed on this device.");
+        return;
+      }
     }
 
     if (m.view_once !== false) {
