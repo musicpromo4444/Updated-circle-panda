@@ -23,6 +23,7 @@ type Activity = {
   activity_type: string;
   reward_bc: number;
   requires_ad: boolean;
+  attempts_left?: number;
   completed: boolean;
   last_completed_at: string | null;
 };
@@ -65,7 +66,7 @@ function iconFor(type: string) {
 }
 
 function SponsorCard({ compact = false }: { compact?: boolean }) {
-  return <StandardBannerAd placement="home_inline" variant={compact ? "compact" : "card"} className={compact ? "mb-2" : "mb-3"} />;
+  return <StandardBannerAd placement="activities" variant={compact ? "compact" : "card"} className={compact ? "mb-2" : "mb-3"} />;
 }
 
 export function GameModal({ activity, onClose, onDone }: { activity: Activity; onClose: () => void; onDone: () => void }) {
@@ -346,6 +347,7 @@ function ActivitiesPage() {
         activity_type: String(today.slug),
         reward_bc: 0,
         requires_ad: true,
+        attempts_left: Number(today.attempts_left ?? 0),
         completed: Boolean(today.completed),
         last_completed_at: null,
       }] : []);
@@ -369,7 +371,7 @@ function ActivitiesPage() {
         <div className="cp-activity-progress"><Trophy className="size-4" /><b>{completed}/{total}</b><span>done</span></div>
       </section>
       <section className="cp-activity-list">
-        <div className="cp-activity-section-head"><div><p className="cp-eyebrow">YOUR GAMES</p><h2>Today’s Activity</h2></div><span>Server verified</span></div>
+        <div className="cp-activity-section-head"><div><p className="cp-eyebrow">YOUR GAMES</p><h2>Today’s Activity</h2></div><span>{activities[0]?.attempts_left ?? 0} attempt{(activities[0]?.attempts_left ?? 0) === 1 ? "" : "s"} left</span></div>
         {loading ? <div className="cp-activity-loading"><Loader2 className="size-6 animate-spin" />Loading…</div> : null}
         {!loading && activities.length === 0 ? <div className="cp-activity-loading">No activities are enabled right now.</div> : null}
         {!loading ? activities.map(activity => {
@@ -381,7 +383,7 @@ function ActivitiesPage() {
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-2"><h3>{activity.title}</h3>{activity.completed ? <span className="cp-done-pill"><CheckCircle2 className="size-3" /> Completed</span> : null}</div>
               <p>{activity.description}</p>
-              <div className="cp-reward-row"><span><Coins className="size-3.5" /> Reward varies by game</span><span>+5 XP</span></div>
+              <div className="cp-reward-row"><span><Coins className="size-3.5" /> Reward varies by game</span><span>{activity.attempts_left ?? 0} attempt{(activity.attempts_left ?? 0) === 1 ? "" : "s"} left</span></div>
             </div>
             <div className="shrink-0">
               {activity.completed ? <Button className="cp-secondary-button" size="sm" disabled>Done</Button> : game ? <GameButton activity={activity} onOpen={() => setSelectedGame(activity)} /> : action ? <Link to={action.to}><Button className="cp-neon-button" size="sm">{action.label}<ArrowRight className="size-3.5" /></Button></Link> : <Button className="cp-neon-button" size="sm" onClick={async () => { const { error } = await (supabase as any).rpc("claim_activity", { p_activity_id: activity.id }); if (error) toast.error(error.message); else { await syncCoins(); void load(); } }}>Play Now</Button>}
