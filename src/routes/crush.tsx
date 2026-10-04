@@ -10,7 +10,7 @@ import { CrushPopupAd } from "@/components/ads/CrushPopupAd";
 import { StandardBannerAd } from "@/components/ads/StandardBannerAd";
 import { PlayableVideoAd } from "@/components/ads/PlayableVideoAd";
 import { supabase } from "@/integrations/supabase/client";
-import { useStore, FREE_DAILY_VOTES, WINNER_REWARD, type CrushKind } from "@/lib/store";
+import { useStore, FREE_WEEKLY_VOTES, WINNER_REWARD, type CrushKind } from "@/lib/store";
 import { cn } from "@/lib/utils";
 import { AuthModal } from "@/components/auth/AuthModal";
 import { QuickVoteSignup } from "@/components/auth/QuickVoteSignup";
