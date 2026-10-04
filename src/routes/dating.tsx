@@ -191,14 +191,22 @@ function DatingPage() {
       toast.error("That Dating card cannot receive a request.");
       return;
     }
-    const status = await requestDatingMatch(m.userId);
-    if (!status) return;
-    setSent((s) => ({...s,[m.userId!]:status}));
+    const result = await requestDatingMatch(m.userId);
+    if (!result) return;
+    setSent((s) => ({...s,[m.userId!]:result.status}));
     await loadConnections();
     setOpenMatch(null);
-    if (status === "matched") {
-      const threadId = await startDatingChat(m.userId, m.name);
-      if (threadId) navigate({ to: "/messages", search: { thread: threadId } });
+
+    // Every Dating request enters the same Messages request-card pipeline.
+    // Pending: show the sender their own request immediately.
+    if (result.status === "pending" && result.requestId) {
+      navigate({ to: "/messages", search: { request: result.requestId } });
+      return;
+    }
+
+    // Already matched: open the existing Dating thread.
+    if ((result.status === "matched" || result.status === "accepted") && result.threadId) {
+      navigate({ to: "/messages", search: { thread: result.threadId } });
     }
   };
 
