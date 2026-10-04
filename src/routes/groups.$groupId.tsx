@@ -7,6 +7,7 @@ import { useStore, type GroupChat } from "@/lib/store";
 import { RewardedAdModal } from "@/components/RewardedAdModal";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { sendMessageRequest } from "@/lib/messageRequests";
 
 export const Route = createFileRoute("/groups/$groupId")({
   head: () => ({
@@ -122,16 +123,13 @@ function GroupRoom() {
 
   const messageMember = async (userId: string) => {
     setMemberMenuOpen(null);
-    const { data, error } = await (supabase as any).rpc("request_direct_message_secure", {
-      p_recipient_id: userId,
-      p_message: "",
-    });
-    if (error) {
-      toast.error(error.message ?? "Could not start messaging");
-      return;
+    try {
+      const result = await sendMessageRequest(userId, "");
+      toast.success("Message request sent 💌", { description: "It is now in Messages while you wait for acceptance." });
+      void navigate({ to: "/messages", search: { request: result.id } });
+    } catch (e: any) {
+      toast.error(e?.message ?? "Could not start messaging");
     }
-    toast.success("Message request sent");
-    void navigate({ to: "/messages", search: { request: data?.id ?? undefined } });
   };
 
   const reportMember = async (userId: string) => {
