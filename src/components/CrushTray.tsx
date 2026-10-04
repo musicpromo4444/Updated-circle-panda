@@ -23,7 +23,7 @@ export function CrushTray() {
         <div className="mb-2 flex items-center gap-2 px-1">
           <Crown className="size-4 text-[var(--coin)]" />
           <h2 className="font-display text-sm font-bold">MCM & WCW</h2>
-          <Link to="/crush" className="ml-auto text-[11px] font-semibold text-primary">Open</Link>
+          <Link to="/crush" search={{ kind: ranked[0]?.kind ?? "wcw" }} className="ml-auto text-[11px] font-semibold text-primary">Open</Link>
         </div>
         <div className="-mx-1 flex gap-4 overflow-x-auto px-1 pb-1">
           <button type="button" onClick={() => setComposeOpen(true)} className="flex w-[72px] shrink-0 flex-col items-center gap-1.5">
