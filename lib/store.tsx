@@ -1041,7 +1041,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         p_zodiac:"",p_same_country_only:sameCountryOnly,
       }),
       (supabase as any).from("dating_profiles")
-        .select("user_id,name,age,vibe,emoji,bio,interests,location,country,gender,relationship_goal,looking_for,lifestyle,personality,love_language,smoking,drinking,children,education,occupation,sexual_experience,intimacy_preference,relationship_status,height_cm,zodiac,favorite_date,photo_path,blurred_photo_path,updated_at")
+        .select("user_id,name,age,vibe,emoji,bio,interests,location,country,state_province,gender,relationship_goal,looking_for,lifestyle,personality,love_language,smoking,drinking,children,education,occupation,sexual_experience,intimacy_preference,relationship_status,height_cm,zodiac,favorite_date,photo_path,blurred_photo_path,updated_at")
         .eq("user_id",dbUserId).maybeSingle(),
     ]);
     if (discoveryRes.error) {
@@ -1067,7 +1067,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     return true;
   }, [dbUserId]);
 
-  const searchDatingProfiles = useCallback(async (filters: { ageMin?: number; ageMax?: number; country?: string; location?: string; gender?: string; relationshipGoal?: string; lookingFor?: string; lifestyle?: string; smoking?: string; drinking?: string; children?: string; education?: string; heightMin?: number; heightMax?: number; zodiac?: string; sameCountryOnly?: boolean }) => {
+  const searchDatingProfiles = useCallback(async (filters: { ageMin?: number; ageMax?: number; country?: string; state?: string; location?: string; gender?: string; relationshipGoal?: string; lookingFor?: string; lifestyle?: string; smoking?: string; drinking?: string; children?: string; education?: string; heightMin?: number; heightMax?: number; zodiac?: string; sameCountryOnly?: boolean }) => {
     if (!dbUserId) return false;
     const { data, error } = await (supabase as any).rpc("get_dating_discovery_secure", {
       p_age_min: filters.ageMin ?? 18,
