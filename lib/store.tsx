@@ -538,8 +538,15 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     void (async () => {
       let session = (await supabase.auth.getSession()).data.session;
       if (!session) session = (await supabase.auth.signInAnonymously()).data.session ?? null;
-      if (!session?.user || cancelled) return;
+      if (cancelled) return;
+      if (!session?.user) {
+        setHydrated(true);
+        return;
+      }
       setDbUserId(session.user.id);
+      // Do not block the entire application on secondary data loading.
+      // The UI can render while posts/groups/events/etc. finish loading below.
+      setHydrated(true);
       await (supabase as any).rpc("award_xp_secure", { p_action:"daily_login" });
       if (!session.user.is_anonymous) {
         void (supabase as any).rpc("ensure_my_circle_panda_profile").catch(() => {});
@@ -604,7 +611,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       }));
       const totalXp = Number(xpRes.data?.xp ?? 0);
       setState((prev)=>({...prev,...stData,coins:Number(coinsRes.data?.balance ?? prev.coins),reputation:stData.reputation??0,level:pandaProgress(totalXp).index+1,xp:totalXp,posts,groups,threads,events,nominees,sweepWinners:(winnersRes.data??[]).map((w:any)=>({draw:w.draw,name:w.name,prize:w.prize,wonAt:new Date(w.won_at).getTime()})),sweepTickets:(ticketsRes.data??[]).map((t:any)=>({id:t.id,draw:t.draw,at:new Date(t.created_at).getTime()})),spotlights:(crushWinnersRes.data??[]).map((w:any)=>({kind:w.kind,name:w.display_name,wonAt:new Date(w.created_at).getTime()})),datingProfile:dating?{userId:dating.user_id,name:dating.name,age:dating.age,vibe:dating.vibe,emoji:dating.emoji,bio:dating.bio,interests:dating.interests??[],location:dating.location,country:dating.country??dating.location??"",gender:dating.gender??"",relationshipGoal:dating.relationship_goal??"",lookingFor:dating.looking_for??[],lifestyle:dating.lifestyle??[],personality:dating.personality??[],loveLanguage:dating.love_language??"",smoking:dating.smoking??"",drinking:dating.drinking??"",children:dating.children??"",education:dating.education??"",occupation:dating.occupation??"",sexualExperience:dating.sexual_experience??"",intimacyPreference:dating.intimacy_preference??"",relationshipStatus:dating.relationship_status??"single",heightCm:dating.height_cm??null,zodiac:dating.zodiac??"",favoriteDate:dating.favorite_date??"",photoPath:dating.photo_path??"",blurredPhotoPath:dating.blurred_photo_path??"",registeredAt:new Date(dating.updated_at).getTime()}:null,datingMatches:(datingRes.data??[]).filter((d:any)=>d.user_id!==uid).map((d:any)=>({userId:d.user_id,name:d.name,age:d.age,vibe:d.vibe,emoji:d.emoji,bio:d.bio,interests:d.interests??[],location:d.location,country:d.country??d.location??"",gender:d.gender??"",relationshipGoal:d.relationship_goal??"",lookingFor:d.looking_for??[],lifestyle:d.lifestyle??[],personality:d.personality??[],loveLanguage:d.love_language??"",smoking:d.smoking??"",drinking:d.drinking??"",children:d.children??"",education:d.education??"",occupation:d.occupation??"",sexualExperience:d.sexual_experience??"",intimacyPreference:d.intimacy_preference??"",relationshipStatus:d.relationship_status??"single",heightCm:d.height_cm??null,zodiac:d.zodiac??"",favoriteDate:d.favorite_date??"",photoPath:d.photo_path??"",blurredPhotoPath:d.blurred_photo_path??"",registeredAt:new Date(d.updated_at).getTime()}))}));
-    })().catch(()=>{}).finally(() => { if (!cancelled) setHydrated(true); });
+    })().catch(() => {
+      if (!cancelled) setHydrated(true);
+    });
     return () => { cancelled = true; };
   }, []);
 
