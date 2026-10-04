@@ -473,6 +473,7 @@ type StoreValue = State & {
   searchDatingProfiles: (filters: { ageMin?: number; ageMax?: number; country?: string; location?: string; gender?: string; relationshipGoal?: string; lookingFor?: string; lifestyle?: string; smoking?: string; drinking?: string; children?: string; education?: string; heightMin?: number; heightMax?: number; zodiac?: string; sameCountryOnly?: boolean }) => Promise<boolean>;
   registerDatingProfile: (profile: Omit<DatingProfile, "registeredAt" | "userId">) => Promise<boolean>;
   refreshDatingData: (filters?: { sameCountryOnly?: boolean }) => Promise<boolean>;
+  refreshThreads: () => Promise<boolean>;
   hydrated: boolean;
 };
 
@@ -995,6 +996,36 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     const charged = Number(data?.bc_cost ?? 0);
     if (charged > 0) setState(s=>({...s,coins:Math.max(0,s.coins-charged)}));
     toast.success("Event Blast is live 🚀",{description:`${Number(data?.unique_reach??500).toLocaleString()} people + 20% extra notifications.`});
+    return true;
+  }, [dbUserId]);
+
+  const refreshThreads = useCallback(async () => {
+    if (!dbUserId) return false;
+    const [threadsRes, messagesRes] = await Promise.all([
+      (supabase as any).from("cp_threads").select("id,owner_id,participant_id,other_alias,kind,blurb,created_at").order("created_at", {ascending:false}).limit(100),
+      (supabase as any).from("cp_thread_messages").select("id,thread_id,user_id,body,created_at,message_type,media_path").order("created_at", {ascending:true}).limit(2000),
+    ]);
+    if (threadsRes.error || messagesRes.error) return false;
+    const rawThreads = (threadsRes.data ?? []).filter((t:any) => t.participant_id);
+    const rawMessages = messagesRes.data ?? [];
+    const otherIds = Array.from(new Set(rawThreads.map((t:any) => t.owner_id === dbUserId ? t.participant_id : t.owner_id).filter(Boolean)));
+    const profileRows = otherIds.length ? (await Promise.all(otherIds.map(async (id:string) => {
+      const { data } = await (supabase as any).rpc("get_shared_profile_public", { p_user_id:id });
+      return Array.isArray(data) ? data[0] : data;
+    }))).filter(Boolean) : [];
+    const names = new Map(profileRows.map((p:any) => [p.id, p.display_name || "Anonymous Panda"]));
+    const threads = rawThreads.map((t:any) => ({
+      id:t.id,
+      name:names.get(t.owner_id === dbUserId ? t.participant_id : t.owner_id) ?? t.other_alias ?? "Anonymous Panda",
+      kind:t.kind === "dating" ? "dating" : "dm",
+      blurb:t.blurb ?? "",
+      messages:rawMessages.filter((m:any) => m.thread_id === t.id && !(m.message_type === "dating_photo" && m.user_id === dbUserId)).map((m:any) => ({
+        id:m.id, body:m.body, at:new Date(m.created_at).getTime(), mine:m.user_id === dbUserId,
+        messageType:m.message_type === "dating_photo" ? "dating_photo" : "text", mediaPath:m.media_path ?? undefined
+      })),
+      startedAt:t.kind === "dating" ? new Date(t.created_at).getTime() : undefined
+    }));
+    setState(s => ({...s, threads}));
     return true;
   }, [dbUserId]);
 
