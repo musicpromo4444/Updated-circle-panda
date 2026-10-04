@@ -752,7 +752,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     if (!dbUserId) { toast.error("Sign in to leave this group"); return Promise.resolve(false); }
     return (async () => {
       const { data, error } = await (supabase as any).rpc("leave_group_secure", { p_group_id: id });
-      if (error) { toast.error(error.message ?? "Could not leave group"); return; }
+      if (error) { toast.error(error.message ?? "Could not leave group"); return false; }
       const left = Boolean(data?.left);
       const memberCount = Number(data?.member_count ?? 0);
       setState((s) => ({ ...s, groups: s.groups.map((g) => g.id === id ? { ...g, members: memberCount, memberRole: left ? undefined : g.memberRole, joinPending: left ? false : g.joinPending } : g) }));
