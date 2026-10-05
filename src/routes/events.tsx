@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { CreateEventModal } from "@/components/events/CreateEventModal";
 import { useStore, type PandaEvent } from "@/lib/store";
 import { supabase } from "@/integrations/supabase/client";
-import { sendMessageRequest } from "@/lib/messageRequests";
+import { sendMessageRequest, isSelfMessageError } from "@/lib/messageRequests";
 
 export const Route = createFileRoute("/events")({
   head: () => ({
@@ -70,6 +70,7 @@ function EventsPage() {
       toast.success("Message request sent 💌", { description: "The event creator can accept it from Messages." });
       void navigate({ to: "/messages", search: { request: result.id } });
     } catch (e: any) {
+      if (isSelfMessageError(e)) return;
       toast.error(e?.message ?? "Could not message the event creator");
     }
   };
