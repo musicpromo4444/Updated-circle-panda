@@ -212,7 +212,7 @@ function GroupRoom() {
     }
 
     const safeName = uploadFile.name.replace(/[^a-zA-Z0-9._-]/g, "_");
-    const path = `${uid}/${group.id}/${crypto.randomUUID()}-${safeName}`;
+    const path = `${group.id}/${uid}/${crypto.randomUUID()}-${safeName}`;
     toast.info(messageType === "image" ? "Uploading photo…" : messageType === "video" ? "Uploading video…" : "Sending voice note…");
 
     const { error: uploadError } = await supabase.storage
@@ -298,7 +298,6 @@ function GroupRoom() {
     recordingStartedAtRef.current = null;
     recordingElapsedBeforePauseRef.current = 0;
   };
-
   const startVoiceRecording = async () => {
     if (recording || voiceBlob) return;
     if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === "undefined") {
@@ -597,8 +596,7 @@ function GroupRoom() {
                     <option value="admins">Admins only</option>
                     <option value="admins_members">All members</option>
                   </select>
-                </label>
-                <div className="space-y-2 text-xs">
+                </label>                <div className="space-y-2 text-xs">
                   <label className="flex items-center gap-2"><input type="checkbox" checked={sendMessages} onChange={(e) => setSendMessages(e.target.checked)} /> Members can send messages</label>
                   <label className="flex items-center gap-2"><input type="checkbox" checked={approveMembers} onChange={(e) => setApproveMembers(e.target.checked)} /> Approve new members</label>
                 </div>
