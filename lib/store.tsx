@@ -722,10 +722,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     })();
   }, [dbUserId]);
 
-  const isGroupExpired = useCallback(
-    (g: GroupChat) => g.openedAt !== null && Date.now() - g.openedAt >= DAY_MS,
-    [],
-  );
+  // Normal Circle Panda groups are permanent once activated. The legacy
+  // 24-hour expiry is no longer part of the product rules.
+  const isGroupExpired = useCallback((_g: GroupChat) => false, []);
 
   const sendGroupMessage = useCallback((id: string, body: string) => {
     if (!dbUserId) { toast.error("Sign in to message this group"); return; }
