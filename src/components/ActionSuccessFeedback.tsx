@@ -38,6 +38,12 @@ const META: Record<CirclePandaActivity, { title: string; icon: ReactNode; motion
   sweepstakes: { title: "Contest action complete", icon: <Trophy />, motion: "cp-success-crown" },
 };
 
+export function useActionSuccess() {
+  const value = useContext(ActivityContext);
+  if (!value) throw new Error("useActionSuccess must be used inside ActionSuccessProvider");
+  return value;
+}
+
 export function ActionSuccessProvider({ children }: { children: ReactNode }) {
   const [feedback, setFeedback] = useState<Feedback>(null);
 
@@ -78,3 +84,20 @@ export function ActionSuccessProvider({ children }: { children: ReactNode }) {
   );
 }
 
+
+
+function ActionSuccessOverlay({ feedback, onClose }: { feedback: NonNullable<Feedback>; onClose: () => void }) {
+  const meta = META[feedback.activity];
+  return (
+    <div className="pointer-events-none fixed inset-0 z-[300] grid place-items-center px-5" aria-live="polite">
+      <div className="cp-action-success pointer-events-auto" onAnimationEnd={onClose}>
+        <div className={`cp-action-success-icon ${meta.motion}`}>{meta.icon}</div>
+        <div className="min-w-0">
+          <p className="text-sm font-black">{meta.title}</p>
+          {feedback.firstTime ? <p className="mt-0.5 text-xs font-bold text-primary">First time · +2 BC</p> : <p className="mt-0.5 text-xs text-muted-foreground">Completed successfully</p>}
+        </div>
+        {feedback.firstTime ? <div className="cp-bc-reward" aria-label="2 BC reward">+2 BC</div> : null}
+      </div>
+    </div>
+  );
+}
