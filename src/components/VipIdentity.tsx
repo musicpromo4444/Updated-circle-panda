@@ -43,11 +43,18 @@ export function VipIdentity({
 
   useEffect(() => {
     if (!isVip) return;
+    const today = new Date();
+    const dayKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+    const hashText = `${seed}:${dayKey}`;
     let hash = 0;
-    for (const ch of seed) hash = (hash * 31 + ch.charCodeAt(0)) >>> 0;
-    const seededIndex = hash % VIP_EFFECTS.length;
-    const randomOffset = Math.floor(Math.random() * VIP_EFFECTS.length);
-    setEffect(VIP_EFFECTS[(seededIndex + randomOffset) % VIP_EFFECTS.length]);
+    for (const ch of hashText) hash = (hash * 31 + ch.charCodeAt(0)) >>> 0;
+    const todayIndex = hash % VIP_EFFECTS.length;
+    let previousHash = 0;
+    const previous = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 1);
+    const previousKey = `${previous.getFullYear()}-${String(previous.getMonth() + 1).padStart(2, "0")}-${String(previous.getDate()).padStart(2, "0")}`;
+    for (const ch of `${seed}:${previousKey}`) previousHash = (previousHash * 31 + ch.charCodeAt(0)) >>> 0;
+    const previousIndex = previousHash % VIP_EFFECTS.length;
+    setEffect(VIP_EFFECTS[todayIndex === previousIndex ? (todayIndex + 1) % VIP_EFFECTS.length : todayIndex]);
   }, [isVip, seed]);
 
   const size = compact ? "size-8 text-base" : "size-11 text-xl";
