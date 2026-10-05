@@ -83,7 +83,8 @@ export function VipGroupCallOverlay({type,groupId,onClose}:Props){
   useEffect(()=>{
     if(extensionOpen&&allAccepted){setExtensionOpen(false);setAdOpen(true);}
   },[extensionOpen,allAccepted]);
-\n  return <div className="fixed inset-0 z-[120] flex flex-col bg-black">
+
+  return <div className="fixed inset-0 z-[120] flex flex-col bg-black">
     <div className="flex items-center justify-between border-b border-white/10 px-4 py-3 text-white"><div><p className="font-bold">VIP {type==="video"?"Video":"Voice"} Call</p><p className="text-xs text-white/60">Private VIP group call</p></div><span className="text-xs text-white/60">{Object.keys(remote).length+1} connected</span></div>
     {extensionOpen?<div className="absolute inset-0 z-[140] grid place-items-center bg-black/80 p-5"><div className="w-full max-w-sm rounded-3xl border border-amber-400/40 bg-zinc-950 p-5 text-center text-white shadow-2xl"><div className="mx-auto grid size-14 place-items-center rounded-full bg-amber-500/15 text-2xl">👑</div><h2 className="mt-3 font-bold">Continue VIP call?</h2><p className="mt-2 text-sm text-white/65">The first 20 minutes are complete. All connected VIP members must accept the sponsored continuation.</p><p className="mt-3 text-xs text-amber-300">{accepted?"Waiting for the other VIP member…":"You have not accepted yet."}</p><Button className="mt-4 w-full bg-amber-500 text-black hover:bg-amber-400" disabled={accepted} onClick={acceptContinuation}>{accepted?"Accepted":"Accept & continue"}</Button></div></div>:null}
     {adOpen?<div className="absolute inset-0 z-[150] grid place-items-center bg-black p-4"><div className="w-full max-w-md"><p className="mb-3 text-center text-xs font-semibold text-white/70">Sponsored continuation</p><PlayableVideoAd placement="vip_group_call_continuation" variant="card" onComplete={()=>setAdOpen(false)}/></div></div>:null}
