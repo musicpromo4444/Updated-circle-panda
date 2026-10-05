@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { ChevronRight, Lock, PlusCircle, Share2, Users } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
@@ -29,6 +30,19 @@ export const Route = createFileRoute("/groups/")({
 
 function GroupCard({ group }: { group: GroupChat }) {
   const { joinGroup, isGroupExpired } = useStore();
+  const [unread, setUnread] = useState(0);
+  useEffect(() => {
+    let active = true;
+    const refresh = async () => {
+      const { data, error } = await (supabase as any).rpc("get_group_unread_count", { p_group_id: group.id });
+      if (active && !error) setUnread(Number(data ?? 0));
+    };
+    void refresh();
+    const channel = (supabase as any).channel(`group-unread-${group.id}`)
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "group_messages", filter: `group_id=eq.${group.id}` }, () => void refresh())
+      .subscribe();
+    return () => { active = false; void (supabase as any).removeChannel(channel); };
+  }, [group.id]);
   const navigate = useNavigate();
   const expired = isGroupExpired(group);
   const live = group.openedAt !== null && !expired;
@@ -54,6 +68,7 @@ function GroupCard({ group }: { group: GroupChat }) {
         <span className="min-w-0 flex-1">
           <span className="block font-display text-lg leading-tight font-semibold">{group.name}</span>
           <span className="block text-sm text-muted-foreground">{group.topic}</span>
+          {unread > 0 ? <span className="mt-1 inline-flex items-center gap-1 rounded-full bg-destructive px-2 py-0.5 text-[10px] font-bold text-destructive-foreground shadow-sm">{unread > 99 ? "99+" : unread} unread</span> : null}
           <span className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
             <Users className="size-3.5" /> {group.members} anonymous members
           </span>
