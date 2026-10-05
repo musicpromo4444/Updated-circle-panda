@@ -129,9 +129,9 @@ function GroupRoom() {
   // Normal Circle Panda groups are permanent after activation. The legacy expires_at field is ignored.
   const live = !!group && group.openedAt !== null;
 
-  const signedMediaUrl = async (path?: string | null) => {
+  const signedMediaUrl = async (path?: string | null, expiresIn = 3600) => {
     if (!path) return null;
-    const { data } = await supabase.storage.from("group-media").createSignedUrl(path, 3600);
+    const { data } = await supabase.storage.from("circle-panda-group-media").createSignedUrl(path, expiresIn);
     return data?.signedUrl ?? null;
   };
 
@@ -215,11 +215,11 @@ function GroupRoom() {
     }
 
     const safeName = uploadFile.name.replace(/[^a-zA-Z0-9._-]/g, "_");
-    const path = `${group.id}/${uid}/${crypto.randomUUID()}-${safeName}`;
+    const path = `${uid}/${group.id}/${crypto.randomUUID()}-${safeName}`;
     toast.info(messageType === "image" ? "Uploading photo…" : messageType === "video" ? "Uploading video…" : "Sending voice note…");
 
     const { error: uploadError } = await supabase.storage
-      .from("group-media")
+      .from("circle-panda-group-media")
       .upload(path, uploadFile, { contentType: uploadFile.type || "application/octet-stream", upsert: false });
 
     if (uploadError) {
@@ -239,7 +239,7 @@ function GroupRoom() {
     });
 
     if (error) {
-      await supabase.storage.from("group-media").remove([path]);
+      await supabase.storage.from("circle-panda-group-media").remove([path]);
       const message = error.message ?? "Media could not be sent";
       if (/insufficient\s*bc|not enough|balance/i.test(message)) {
         window.dispatchEvent(new CustomEvent("circle-panda-insufficient-bc", { detail: { required: 1, reason: "Group media message" } }));
@@ -249,7 +249,7 @@ function GroupRoom() {
       return;
     }
 
-    const mediaUrl = await signedMediaUrl(path);
+    const mediaUrl = messageType === "audio" ? await signedMediaUrl(path, 3600) : null;
     const created = {
       id: data.id,
       group_id: group.id,
@@ -407,7 +407,7 @@ function GroupRoom() {
     if (!m.media_path) return;
 
     // Voice notes are reusable; do not consume the view-once claim for them.
-    let url = await signedMediaUrl(m.media_path);
+    let url: string | null = null;
     if (!url) {
       toast.error("Media is unavailable. The file may have expired or is not accessible to this group member.");
       return;
@@ -431,20 +431,6 @@ function GroupRoom() {
     }
 
     if (m.view_once !== false) {
-      // IMPORTANT: verify that the file can actually be read before consuming
-      // the one-time claim. Otherwise a failed signed URL/browser load could
-      // permanently burn the message for the recipient.
-      try {
-        const probe = await fetch(url, { method: "HEAD" });
-        if (!probe.ok) {
-          toast.error("This media is currently unavailable. Please try again.");
-          return;
-        }
-      } catch {
-        toast.error("This media could not be reached. Please try again.");
-        return;
-      }
-
       const { data: allowed, error } = await (supabase as any).rpc("claim_group_media_view_once", { p_message_id: m.id });
       if (error) {
         toast.error(error.message ?? "This media could not be opened");
@@ -455,6 +441,13 @@ function GroupRoom() {
         toast.info("This view-once media has already been opened.");
         return;
       }
+      url = await signedMediaUrl(m.media_path, 60);
+    } else {
+      url = await signedMediaUrl(m.media_path, 3600);
+    }
+    if (!url) {
+      toast.error("Media is unavailable. Please try again.");
+      return;
     }
 
     setViewedMediaIds((old) => new Set(old).add(m.id));
@@ -499,12 +492,12 @@ function GroupRoom() {
       const uid = (await supabase.auth.getUser()).data.user?.id;
       const reactionMap = new Map<string, any[]>();
       (reactions ?? []).forEach((r:any) => reactionMap.set(r.message_id, [...(reactionMap.get(r.message_id) ?? []), r]));
-      if (!cancelled) { const mapped = await Promise.all((rows ?? []).map(async (m:any) => ({ ...m, author:m.user_id===uid?"You (anonymous)":"Anonymous Panda", mine:m.user_id===uid, media_url:await signedMediaUrl(m.media_path), reactions:reactionMap.get(m.id) ?? [], currentUserId:uid }))); setChatMessages(mapped); }
+      if (!cancelled) { const mapped = await Promise.all((rows ?? []).map(async (m:any) => ({ ...m, author:m.user_id===uid?"You (anonymous)":"Anonymous Panda", mine:m.user_id===uid, media_url:m.view_once ? null : await signedMediaUrl(m.media_path,3600), reactions:reactionMap.get(m.id) ?? [], currentUserId:uid }))); setChatMessages(mapped); }
     };
     void load();
     const channel=supabase.channel(`group:${groupId}:whatsapp`)
       .on("postgres_changes",{event:"INSERT",schema:"public",table:"cp_group_messages",filter:`group_id=eq.${groupId}`},(payload:any)=>{
-        void (async()=>{ const uid=(await supabase.auth.getUser()).data.user?.id; const m=payload.new; const mediaUrl=await signedMediaUrl(m.media_path); setChatMessages(x=>x.some(v=>v.id===m.id)?x:[...x,{...m,author:m.user_id===uid?"You (anonymous)":"Anonymous Panda",mine:m.user_id===uid,media_url:mediaUrl,reactions:[],currentUserId:uid}]); })();
+        void (async()=>{ const uid=(await supabase.auth.getUser()).data.user?.id; const m=payload.new; const mediaUrl=m.view_once ? null : await signedMediaUrl(m.media_path,3600); setChatMessages(x=>x.some(v=>v.id===m.id)?x:[...x,{...m,author:m.user_id===uid?"You (anonymous)":"Anonymous Panda",mine:m.user_id===uid,media_url:mediaUrl,reactions:[],currentUserId:uid}]); })();
       })
       .on("postgres_changes",{event:"*",schema:"public",table:"cp_group_message_reactions"},()=>void load())
       .subscribe();
@@ -833,7 +826,7 @@ function GroupRoom() {
         </div>
       ) : null}
 
-      {mediaPreview ? <div className="fixed inset-0 z-[80] grid place-items-center bg-black/80 p-4" onClick={()=>setMediaPreview(null)}><div className="relative max-h-[90vh] max-w-3xl" onClick={e=>e.stopPropagation()}><Button type="button" variant="secondary" size="icon" className="absolute -right-2 -top-2 z-10 rounded-full" onClick={()=>setMediaPreview(null)}><X className="size-4"/></Button>{mediaPreview.type==="image" ? <img src={mediaPreview.url} alt={mediaPreview.name} className="max-h-[85vh] max-w-full rounded-2xl object-contain"/> : mediaPreview.type==="video" ? <video src={mediaPreview.url} controls autoPlay className="max-h-[85vh] max-w-full rounded-2xl"/> : <audio src={mediaPreview.url} controls autoPlay className="w-[min(90vw,420px)]"/>}</div></div> : null}
+      {mediaPreview ? <div className="fixed inset-0 z-[80] grid place-items-center bg-black/80 p-4" onClick={()=>setMediaPreview(null)}><div className="relative max-h-[90vh] max-w-3xl" onClick={e=>e.stopPropagation()}><Button type="button" variant="secondary" size="icon" className="absolute -right-2 -top-2 z-10 rounded-full" onClick={()=>setMediaPreview(null)}><X className="size-4"/></Button>{mediaPreview.type==="image" ? <img src={mediaPreview.url} alt={mediaPreview.name} className="max-h-[85vh] max-w-full rounded-2xl object-contain"/> : mediaPreview.type==="video" ? <video src={mediaPreview.url} controls controlsList="nodownload" autoPlay playsInline onContextMenu={(e)=>e.preventDefault()} className="max-h-[85vh] max-w-full rounded-2xl"/> : <audio src={mediaPreview.url} controls autoPlay className="w-[min(90vw,420px)]"/>}</div></div> : null}
       <RewardedAdModal open={adOpen} groupId={groupId} sessionId={groupRewardSessionId} onClose={() => {
         setAdOpen(false);
         setGroupRewardSessionId(null);
