@@ -169,10 +169,8 @@ function MessagesPage() {
     if (error) { toast.error(error.message ?? "Message could not be deleted"); return; }
     // Refresh the canonical thread list so the deleted message cannot reappear from stale state.
     await refreshThreads();
-    if ((data as any)?.media_path) {
-      const { error: storageError } = await supabase.storage.from("circle-panda-dm-media").remove([(data as any).media_path]);
-      if (storageError) toast.warning("The message was deleted, but its stored media could not be cleaned up automatically.");
-    }
+    // Canonical DM media storage is handled by the media-owner record/storage
+    // when media messaging is enabled. The message itself is removed here first.
     toast.success("Message deleted");
   };
 
