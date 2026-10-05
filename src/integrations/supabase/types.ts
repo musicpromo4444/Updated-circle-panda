@@ -6031,6 +6031,10 @@ export type Database = {
         Args: { p_activity_id: string }
         Returns: number
       }
+      complete_first_activity: {
+        Args: { p_activity_key: string; p_reward_bc?: number }
+        Returns: Json
+      }
       claim_crush_vip_secure: { Args: { p_kind: string }; Returns: Json }
       claim_daily_reward_secure: { Args: never; Returns: Json }
       claim_rewarded_ad_secure: { Args: { p_surface: string }; Returns: Json }
