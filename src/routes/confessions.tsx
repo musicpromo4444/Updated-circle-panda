@@ -11,7 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { AuthModal } from "@/components/auth/AuthModal";
 import { requestLogin } from "@/components/auth/LoginRequiredDialog";
 import { VipIdentity } from "@/components/VipIdentity";
-import { sendMessageRequest } from "@/lib/messageRequests";
+import { sendMessageRequest, isSelfMessageError } from "@/lib/messageRequests";
 
 export const Route = createFileRoute("/confessions")({
   head: () => ({ meta: [{ title: "Confessions — Circle Panda" }] }),
@@ -278,7 +278,7 @@ export function ConfessionsPage() {
   const openMessage = async (item: Confession) => {
     const { data: authData } = await supabase.auth.getUser();
     if (!authData.user || authData.user.is_anonymous) return requestLogin("message a Panda");
-    if (!item.author_id || item.author_id === authData.user.id) return toast.error("You can't message yourself.");
+    if (!item.author_id || item.author_id === authData.user.id) { window.dispatchEvent(new CustomEvent("circle-panda-self-message-blocked")); return; }
     setMessagePost(item);
     setMessageText("");
   };
@@ -293,6 +293,7 @@ export function ConfessionsPage() {
       toast.success("Message request sent 💌", { description: "It is now in Messages while you wait for acceptance." });
       void navigate({ to: "/messages", search: { request: result.id } });
     } catch (e: any) {
+      if (isSelfMessageError(e)) return;
       toast.error(e?.message ?? "Message request could not be sent");
     } finally {
       setSendingMessage(false);
