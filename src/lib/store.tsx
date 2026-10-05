@@ -1160,6 +1160,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     if (!authData.user || authData.user.is_anonymous) { requestLogin("vote"); return false; }
     const { data: voteData, error } = await (supabase as any).rpc("cast_crush_vote_paid_secure", { p_nominee_id: id });
     if (error) { toast.error(error.message ?? "Vote could not be counted"); return false; }
+    setState((state) => ({
+      ...state,
+      coins: Math.max(0, state.coins - Number(voteData?.charged_bc ?? 1)),
+      votedIds: state.votedIds.includes(id) ? state.votedIds : [...state.votedIds, id],
+    }));
     void refreshCoins();
     toast.success("Vote counted · 1 BC");
     return true;
