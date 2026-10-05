@@ -1151,7 +1151,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     const counts = new Map<string, number>((results ?? []).map((r:any)=>[r.nominee_id,Number(r.vote_count ?? r.votes ?? 0)]));
     void refreshCoins();
     setState((s) => ({ ...s, coins: voteData?.charged_bc ? Math.max(0, s.coins - Number(voteData.charged_bc)) : s.coins, votesUsedToday: Number(voteData?.free_votes_used ?? s.votesUsedToday), voteDay: todayKey(), votedIds: s.votedIds.includes(id) ? s.votedIds : [...s.votedIds,id], nominees: s.nominees.map((n) => ({...n,votes:counts.get(n.id) ?? n.votes})) }));
-    toast.success(voteData?.charged_bc ? "Vote counted · 1 BC" : voteData?.ad_vote_credits_used ? "Vote counted · free ad vote 💗" : "Vote counted 💗");
+    toast.success(voteData?.charged_bc ? `Vote counted · ${Number(voteData.charged_bc)} BC` : voteData?.ad_vote_credits_used ? "Vote counted · free ad vote 💗" : "Vote counted 💗");
     return true;
   }, [refreshCoins]);
 
