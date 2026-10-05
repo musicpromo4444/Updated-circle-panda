@@ -2,7 +2,6 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Share2, Trophy } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { AuthModal } from "@/components/auth/AuthModal";
 import { NewMemberOnboarding } from "@/components/NewMemberOnboarding";
 import { supabase } from "@/integrations/supabase/client";
@@ -19,7 +18,6 @@ function PlayPage() {
   const [campaign,setCampaign]=useState<Campaign|null>(null);
   const [loading,setLoading]=useState(true);
   const [authOpen,setAuthOpen]=useState(false);
-  const [onboardingOpen,setOnboardingOpen]=useState(false);
   const [loggedIn,setLoggedIn]=useState(false);
 
   useEffect(()=>{ void (async()=>{
@@ -73,14 +71,8 @@ function PlayPage() {
           <p className="mt-3 text-center text-[11px] text-white/45">A Circle Panda account is required to compete or claim a challenge.</p>
         </div>
       </section>
-      <NewMemberOnboarding onFinished={(choice)=>{ setOnboardingOpen(false); if(choice==="explore") void navigate({to:"/home"}); else target(); }} />
-      <Dialog open={authOpen} onOpenChange={setAuthOpen}>
-        <DialogContent className="p-0 max-w-md rounded-3xl overflow-hidden">
-          <DialogTitle className="sr-only">Create your Circle Panda account</DialogTitle>
-          <DialogDescription className="sr-only">Quick sign up to enter this challenge.</DialogDescription>
-          <AuthModal open={authOpen} onOpenChange={setAuthOpen} defaultTab="signup" onAuthenticated={()=>{setLoggedIn(true);setAuthOpen(false);setOnboardingOpen(true);}} />
-        </DialogContent>
-      </Dialog>
+      <NewMemberOnboarding onFinished={(choice)=>{ if(choice==="explore") void navigate({to:"/home"}); else target(); }} />
+      <AuthModal open={authOpen} onOpenChange={setAuthOpen} defaultTab="signup" onAuthenticated={()=>{setLoggedIn(true);setAuthOpen(false);}} />
     </div>
   </main>;
 }
