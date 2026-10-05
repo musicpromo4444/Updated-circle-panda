@@ -547,3 +547,27 @@ html.light .vip-content-card::after{background:rgb(15 23 42 / 0)}
 
 @keyframes circle-panda-loader-spin { to { transform: rotate(360deg); } }
 @keyframes circle-panda-loader-pulse { 0%,100% { transform: scale(.96); } 50% { transform: scale(1.04); } }
+
+
+/* Circle Panda: shared action completion + first-activity reward */
+.cp-action-success{display:flex;align-items:center;gap:.7rem;min-width:260px;max-width:min(92vw,420px);padding:.8rem 1rem;border:1px solid color-mix(in srgb,var(--primary) 45%,transparent);border-radius:1.25rem;background:color-mix(in srgb,var(--card) 94%,transparent);box-shadow:0 20px 60px rgb(0 0 0 / .45);backdrop-filter:blur(18px);animation:cp-success-card .22s ease-out,cp-success-out .35s ease-in 1.95s forwards}
+.cp-action-success-icon{display:grid;place-items:center;size:2.9rem;width:2.9rem;height:2.9rem;flex:none;border-radius:999px;background:color-mix(in srgb,var(--primary) 18%,transparent);color:var(--primary)}
+.cp-action-success-icon svg{width:1.35rem;height:1.35rem}
+.cp-bc-reward{margin-left:auto;border-radius:999px;padding:.35rem .6rem;background:color-mix(in srgb,var(--primary) 18%,transparent);color:var(--primary);font-size:.75rem;font-weight:900;white-space:nowrap}
+.cp-success-send{animation:cp-success-send .7s ease-out}
+.cp-success-message{animation:cp-success-message .7s ease-out}
+.cp-success-image{animation:cp-success-image .7s ease-out}
+.cp-success-heart{animation:cp-success-heart .7s ease-out}
+.cp-success-crown{animation:cp-success-crown .7s ease-out}
+.cp-success-pop{animation:cp-success-pop .7s ease-out}
+.cp-success-reveal{animation:cp-success-reveal .8s ease-out}
+@keyframes cp-success-card{from{opacity:0;transform:translateY(18px) scale(.92)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes cp-success-out{to{opacity:0;transform:translateY(-10px) scale(.98)}}
+@keyframes cp-success-send{50%{transform:translateX(7px) rotate(-7deg)}}
+@keyframes cp-success-message{50%{transform:scale(1.16) rotate(4deg)}}
+@keyframes cp-success-image{50%{transform:scale(1.16) rotate(-5deg)}}
+@keyframes cp-success-heart{50%{transform:scale(1.25)}}
+@keyframes cp-success-crown{50%{transform:translateY(-7px) scale(1.12)}}
+@keyframes cp-success-pop{50%{transform:scale(1.18)}}
+@keyframes cp-success-reveal{0%{transform:scale(.7) rotate(-10deg);opacity:.2}60%{transform:scale(1.18) rotate(4deg)}}
+@media(prefers-reduced-motion:reduce){.cp-action-success,.cp-action-success-icon{animation:none!important}}
