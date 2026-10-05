@@ -393,11 +393,11 @@ function MessagesPage() {
 
         <form
           className="sticky bottom-0 flex gap-2 border-t border-border bg-card p-3 sm:p-4"
-          onSubmit={(e) => {
+          onSubmit={async (e) => {
             e.preventDefault();
             if (!draft.trim()) return;
-            sendMessage(active.id, draft.trim());
-            setDraft("");
+            const sent = await sendMessage(active.id, draft.trim());
+            if (sent) setDraft("");
           }}
         >
           <Input
