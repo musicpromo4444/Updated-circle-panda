@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { ChevronRight, Lock, PlusCircle, Share2, Users } from "lucide-react";
+import { ChevronRight, Lock, PlusCircle, Share2, Users, Trash2 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { StandardBannerAd } from "@/components/ads/StandardBannerAd";
@@ -29,6 +29,7 @@ export const Route = createFileRoute("/groups/")({
 });
 
 function GroupCard({ group }: { group: GroupChat }) {
+  const [deleted, setDeleted] = useState(false);
   const { joinGroup, isGroupExpired } = useStore();
   const [unread, setUnread] = useState(0);
   useEffect(() => {
@@ -57,6 +58,23 @@ function GroupCard({ group }: { group: GroupChat }) {
   };
 
   const openRoom = () => void navigate({ to: "/groups/$groupId", params: { groupId: group.id } });
+
+  const deleteGroup = async () => {
+    if (!window.confirm("Delete this group and its messages for everyone?")) return;
+    const { data, error } = await (supabase as any).rpc("delete_group", { p_group_id: group.id });
+    if (error) { toast.error(error.message ?? "Group could not be deleted"); return; }
+    const paths = Array.isArray((data as any)?.media_paths) ? (data as any).media_paths.filter(Boolean) : [];
+    if (paths.length) {
+      const { error: storageError } = await supabase.storage.from("circle-panda-group-media").remove(paths);
+      if (storageError) toast.warning("The group was deleted, but some stored media could not be cleaned up automatically.");
+    }
+    setDeleted(true);
+    toast.success("Group deleted");
+  };
+
+
+
+  if (deleted) return null;
 
   return (
     <section className={`panda-panel rounded-2xl p-4 transition-all duration-300 ${live ? "" : "opacity-75"}`}>
@@ -107,6 +125,11 @@ function GroupCard({ group }: { group: GroupChat }) {
           <Button variant="outline" className="gap-2" onClick={shareGroup}>
             <Share2 className="size-4" /> Share
           </Button>
+          {group.ownerId && group.memberRole === "owner" ? (
+            <Button variant="outline" className="col-span-2 gap-2 text-destructive hover:bg-destructive/10" onClick={(e)=>{e.stopPropagation();void deleteGroup();}}>
+              <Trash2 className="size-4" /> Delete Group
+            </Button>
+          ) : null}
         </div>
       </div>
     </section>
