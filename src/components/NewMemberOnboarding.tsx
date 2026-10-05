@@ -4,7 +4,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 
 export function NewMemberOnboarding({ onFinished, challengeMode = false }: { onFinished?: (choice: "explore" | "continue") => void; challengeMode?: boolean }) {
-  const [stage, setStage] = useState<"idle" | "welcome" | "intro">("idle");
+  const [stage, setStage] = useState<"idle" | "welcome" | "intro">("idle");\n  const challengeFlow = challengeMode || window.location.pathname.startsWith("/play/");
   const [busy, setBusy] = useState(true);
 
   useEffect(() => {
