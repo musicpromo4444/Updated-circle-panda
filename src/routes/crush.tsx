@@ -15,6 +15,7 @@ import { cn } from "@/lib/utils";
 import { AuthModal } from "@/components/auth/AuthModal";
 import { QuickVoteSignup } from "@/components/auth/QuickVoteSignup";
 import { AppShell } from "@/components/AppShell";
+import { useActionSuccess } from "@/components/ActionSuccessFeedback";
 
 export const Route = createFileRoute("/crush")({
   head: () => ({
@@ -68,6 +69,7 @@ async function resolveCrushMediaFallback(value: string): Promise<string | null> 
 
 function CrushPage() {
   const { nominees, voteFor, freeVotesLeft, spotlights } = useStore();
+  const { complete } = useActionSuccess();
   const [kind, setKind] = useState<CrushKind>("wcw");
   const [index, setIndex] = useState(0);
   const [commentOpen, setCommentOpen] = useState(false);
@@ -229,7 +231,7 @@ function CrushPage() {
     if (!card) return;
     setCommentOpen(false);
     setComment("");
-    setReactionOpen(true);
+    setReactionOpen(false);
     void loadCardData(card.id);
   }, [card?.id]);
 
@@ -324,6 +326,7 @@ function CrushPage() {
     }
     const ok = await voteFor(card.id);
     if (ok) {
+      complete(card.kind === "mcm" ? "mcm_vote" : "wcw_vote");
       await refreshLiveNominees();
       next(1);
     }
@@ -341,6 +344,7 @@ function CrushPage() {
     }
     setReactionOpen(false);
     setMineReaction(emoji);
+    complete("reaction");
     await loadCardData(card.id);
   };
 
@@ -387,6 +391,7 @@ function CrushPage() {
       if (error) throw error;
       setComment("");
       setCommentOpen(false);
+      complete("private_message");
       toast.success("Comment sent 💌", { description: "It has been sent to the post owner as a message request." });
     } catch (e: any) {
       toast.error(e?.message ?? "Comment could not be sent");
