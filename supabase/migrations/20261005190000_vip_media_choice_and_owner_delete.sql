@@ -50,7 +50,9 @@ begin
     insert into public.group_message_idempotency(sender_id,idempotency_key,message_id)
     values(v_uid,p_idempotency_key,v_id) on conflict(sender_id,idempotency_key) do nothing;
   end if;
-  perform public.award_xp('group_message',null,'group_message:'||v_id::text);
+  if not v_vip then
+    perform public.award_xp('group_message',null,'group_message:'||v_id::text);
+  end if;
   return v_id;
 end
 $function$;
