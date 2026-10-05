@@ -68,7 +68,7 @@ async function resolveCrushMediaFallback(value: string): Promise<string | null> 
 }
 
 function CrushPage() {
-  const { nominees, voteFor, freeVotesLeft, spotlights } = useStore();
+  const { nominees, voteFor, payCrushVote, freeVotesLeft, spotlights } = useStore();
   const { complete } = useActionSuccess();
   const [kind, setKind] = useState<CrushKind>("wcw");
   const [index, setIndex] = useState(0);
@@ -87,6 +87,7 @@ function CrushPage() {
   const [showAuth, setShowAuth] = useState(false);
   const [showQuickSignup, setShowQuickSignup] = useState(false);
   const [pendingVote, setPendingVote] = useState(false);
+  const [pendingVoteId, setPendingVoteId] = useState<string | null>(null);
   const [voteChoiceOpen, setVoteChoiceOpen] = useState(false);
   const [voteAd, setVoteAd] = useState<any>(null);
   const [voteAdBusy, setVoteAdBusy] = useState(false);
@@ -325,8 +326,10 @@ function CrushPage() {
       toast("Quick signup to vote.", { description: "Use your phone or email and password. Your vote will continue automatically." });
       return;
     }
+    setPendingVoteId(card.id);
     const ok = await voteFor(card.id);
     if (ok) {
+      setPendingVoteId(null);
       complete(card.kind === "mcm" ? "mcm_vote" : "wcw_vote");
       await refreshLiveNominees();
       next(1);
@@ -372,6 +375,17 @@ function CrushPage() {
       if (error) throw error;
       setVoteAd(null);
       toast.success("3 free votes added 💗");
+      if (pendingVoteId) {
+        const voteId = pendingVoteId;
+        setPendingVoteId(null);
+        const ok = await voteFor(voteId);
+        if (ok) {
+          setPendingVote(false);
+          complete(card?.kind === "mcm" ? "mcm_vote" : "wcw_vote");
+          await refreshLiveNominees();
+          next(1);
+        }
+      }
     } catch (e:any) {
       toast.error(e?.message ?? "Watch the full sponsored video to receive your votes");
     } finally {
@@ -628,7 +642,20 @@ function CrushPage() {
           <DialogTitle>Sorry, you're out of votes.</DialogTitle>
           <DialogDescription>Would you like to get three more votes for free?</DialogDescription>
           <div className="grid gap-2">
-            <Button onClick={() => void startVoteAd()} disabled={voteAdBusy}>Get for free</Button>
+            <Button onClick={() => void startVoteAd()} disabled={voteAdBusy}>Watch an ad · Get 3 more free votes</Button>
+            <Button variant="outline" onClick={async () => {
+              if (!pendingVoteId) return;
+              const voteId = pendingVoteId;
+              setVoteChoiceOpen(false);
+              const ok = await payCrushVote(voteId);
+              if (ok) {
+                setPendingVoteId(null);
+                setPendingVote(false);
+                complete(card?.kind === "mcm" ? "mcm_vote" : "wcw_vote");
+                await refreshLiveNominees();
+                next(1);
+              }
+            }} disabled={voteAdBusy}>Vote now · 1 BC</Button>
           </div>
         </DialogContent>
       </Dialog>
