@@ -99,14 +99,15 @@ export function VipGroupChat({open,groupId,onOpenChange}:{open:boolean;groupId:s
     })();
   },[open,groupId]);
 
-  const sendText=async(body:string)=>{
+  const sendText=async(body:string):Promise<boolean>=>{
     const user=(await supabase.auth.getUser()).data.user;
-    if(!user){toast.error("Sign in to send messages");return}
+    if(!user){toast.error("Sign in to send messages");return false}
     const {data,error}=await (supabase as any).rpc("send_group_message",{
       p_group_id:groupId,p_body:body,p_media_type:null,p_media_path:null,p_reply_to_id:null,p_view_once:false,p_idempotency_key:crypto.randomUUID()
     });
-    if(error){toast.error(error.message??"VIP message could not be sent");return}
+    if(error){toast.error(error.message??"VIP message could not be sent");return false}
     setMessages(items=>[...items,{id:String(data),userId:user.id,author:"You",body,at:Date.now(),mine:true,messageType:"text"}]);
+    return true;
   };
 
   const sendMedia=async({type,file,durationSeconds,viewOnce}:OutgoingGroupMedia)=>{
