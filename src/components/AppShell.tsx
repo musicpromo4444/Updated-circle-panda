@@ -361,7 +361,7 @@ function NotificationBell() {
 
   const refreshBadge = async () => {
     const [{ data: count }, { data: groups }] = await Promise.all([
-      (supabase as any).rpc("get_my_notification_count"),
+      (supabase as any).rpc("get_unread_notification_count"),
       (supabase as any).rpc("get_group_summaries", { p_country:"", p_state_province:"", p_city:"", p_area:"" }),
     ]);
     setUnread(Number(count ?? 0));
@@ -395,7 +395,7 @@ function NotificationBell() {
 
       channel = (supabase as any)
         .channel(`circle-panda-notification-badge-${uid}`)
-        .on("postgres_changes", { event: "INSERT", schema: "public", table: "cp_notifications", filter: `user_id=eq.${uid}` }, () => {
+        .on("postgres_changes", { event: "INSERT", schema: "public", table: "notifications", filter: `user_id=eq.${uid}` }, () => {
           void refreshBadge();
         })
         .on("postgres_changes", { event: "UPDATE", schema: "public", table: "cp_notifications", filter: `user_id=eq.${uid}` }, () => {
