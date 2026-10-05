@@ -35,7 +35,7 @@ interface VipLoungeSpaceProps {
   onOpenChange: (open: boolean) => void;
 }
 
-type TabKey = "events" | "giveaways" | "polls" | "notes";
+type TabKey = "events" | "polls" | "notes";
 
 export function VipLoungeSpace({ open, onOpenChange }: VipLoungeSpaceProps) {
   const [data, setData] = useState({ events: [], giveaways: [], polls: [], notes: [] } as any);
@@ -175,7 +175,7 @@ export function VipLoungeSpace({ open, onOpenChange }: VipLoungeSpaceProps) {
                     </span>
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    Private creator hub • Events, giveaways, polls & media drops
+                    Private creator hub • Events, polls & media drops
                   </p>
                 </div>
               </div>
@@ -199,17 +199,7 @@ export function VipLoungeSpace({ open, onOpenChange }: VipLoungeSpaceProps) {
               >
                 <Calendar className="size-3.5" /> Events ({data.events.length})
               </button>
-              <button
-                type="button"
-                onClick={() => setActiveTab("giveaways")}
-                className={`flex-1 flex items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-semibold transition-all ${
-                  activeTab === "giveaways"
-                    ? "bg-gradient-to-r from-amber-500/20 to-yellow-500/20 text-amber-500 border border-amber-400/40 shadow-sm"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                <Gift className="size-3.5" /> Giveaways ({data.giveaways.length})
-              </button>
+
               <button
                 type="button"
                 onClick={() => setActiveTab("polls")}
