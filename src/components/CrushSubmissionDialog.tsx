@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ImagePlus, Loader2, Video } from "lucide-react";
+import { ImagePlus, Loader2, Video, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -14,14 +14,26 @@ export function CrushSubmissionDialog({ open, onOpenChange }: { open: boolean; o
   const [caption, setCaption] = useState("");
   const [emoji, setEmoji] = useState("🐼");
   const [saving, setSaving] = useState(false);
-  const [stage, setStage] = useState<"uploading" | "publishing" | null>(null);
+  const [stage, setStage] = useState<"uploading" | "publishing" | "deleting" | null>(null);
+  const [mySubmission, setMySubmission] = useState<any | null>(null);
 
   useEffect(() => {
     if (!open) return;
     void (supabase as any).rpc("get_my_profile_gender").then(({ data }: any) => {
       setGender(data === "male" || data === "female" ? data : null);
     });
+    void loadMySubmission();
   }, [open]);
+
+  const loadMySubmission = async () => {
+    const uid = (await supabase.auth.getUser()).data.user?.id;
+    if (!uid) return;
+    const weekStart = new Date();
+    const day = weekStart.getDay();
+    weekStart.setDate(weekStart.getDate() + (day === 0 ? -6 : 1 - day));
+    const { data } = await (supabase as any).from("crush_nominees").select("id,media_url,media_type,kind,display_name,blurb").eq("user_id",uid).eq("week_start",weekStart.toISOString().slice(0,10)).maybeSingle();
+    setMySubmission(data ?? null);
+  };
 
   const kind: CrushKind = gender === "male" ? "mcm" : "wcw";
 
@@ -29,6 +41,34 @@ export function CrushSubmissionDialog({ open, onOpenChange }: { open: boolean; o
     const { data, error } = await (supabase as any).rpc("set_profile_gender_secure", { p_gender: pendingGender });
     if (error) { toast.error(error.message ?? "Gender could not be saved"); return; }
     setGender(data === "male" ? "male" : "female");
+  };
+
+  const deleteSubmission = async () => {
+    if (!mySubmission || saving) return;
+    if (!window.confirm("Delete your MCM/WCW submission and its uploaded media?")) return;
+    setSaving(true); setStage("deleting");
+    try {
+      const { data, error } = await (supabase as any).rpc("delete_crush_submission", { p_nominee_id: mySubmission.id });
+      if (error) throw error;
+      const mediaUrl = String(data?.media_url ?? mySubmission.media_url ?? "");
+      const marker = "/storage/v1/object/public/circle-panda-crush/";
+      const at = mediaUrl.indexOf(marker);
+      if (at >= 0) {
+        const path = decodeURIComponent(mediaUrl.slice(at + marker.length).split("?")[0]);
+        if (path) {
+          const { error: storageError } = await supabase.storage.from("circle-panda-crush").remove([path]);
+          if (storageError) toast.warning("Submission deleted, but its stored media could not be cleaned up automatically.");
+        }
+      }
+      setMySubmission(null);
+      toast.success("MCM/WCW submission deleted");
+      onOpenChange(false);
+      window.dispatchEvent(new Event("circle-panda-crush-refresh"));
+    } catch (e:any) {
+      toast.error(e?.message ?? "Submission could not be deleted");
+    } finally {
+      setSaving(false); setStage(null);
+    }
   };
 
   const submit = async () => {
@@ -147,8 +187,17 @@ export function CrushSubmissionDialog({ open, onOpenChange }: { open: boolean; o
                 ))}
               </div>
             </div>
+            {mySubmission ? (
+              <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-3">
+                <p className="text-xs font-semibold">Your current {mySubmission.kind === "mcm" ? "MCM" : "WCW"} submission</p>
+                <p className="mt-1 truncate text-xs text-muted-foreground">{mySubmission.display_name}</p>
+                <Button type="button" variant="outline" disabled={saving} className="mt-2 w-full gap-2 text-destructive hover:bg-destructive/10" onClick={() => void deleteSubmission()}>
+                  <Trash2 className="size-4" /> Delete my submission
+                </Button>
+              </div>
+            ) : null}
             <Button disabled={saving || !file} className="w-full" onClick={() => void submit()}>
-              {saving ? <><Loader2 className="mr-2 size-4 animate-spin" /> {stage === "uploading" ? "Uploading…" : "Publishing…"}</> : <><Video className="mr-2 size-4" /> Publish to {kind.toUpperCase()}</>}
+              {saving ? <><Loader2 className="mr-2 size-4 animate-spin" /> {stage === "uploading" ? "Uploading…" : stage === "deleting" ? "Deleting…" : "Publishing…"}</> : <><Video className="mr-2 size-4" /> Publish to {kind.toUpperCase()}</>}
             </Button>
           </>
         )}
