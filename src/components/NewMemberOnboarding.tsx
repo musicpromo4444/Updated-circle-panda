@@ -48,7 +48,7 @@ export function NewMemberOnboarding({ onFinished, challengeMode = false }: { onF
           <p className="mt-1 text-xs text-muted-foreground">Use your Panda Coins across Circle Panda.</p>
         </div>
         <Button className="mt-5 w-full" onClick={() => {
-          if (challengeMode) { setStage("idle"); onFinished?.("continue"); }
+          if (challengeFlow) { setStage("idle"); onFinished?.("continue"); }
           else setStage("intro");
         }}>Continue</Button>
       </> : <>
