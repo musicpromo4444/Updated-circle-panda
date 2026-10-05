@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 import type { ReactNode } from "react";
-import { useMemo } from "react";
+import { useEffect, useState } from "react";
 import { PandaAvatar } from "@/components/PandaAvatar";
 
 type VipIdentityProps = {
@@ -39,11 +39,16 @@ export function VipIdentity({
   compact = false,
   className,
 }: VipIdentityProps) {
-  const effect = useMemo(() => {
+  const [effect, setEffect] = useState<(typeof VIP_EFFECTS)[number]>("sparkles");
+
+  useEffect(() => {
+    if (!isVip) return;
     let hash = 0;
     for (const ch of seed) hash = (hash * 31 + ch.charCodeAt(0)) >>> 0;
-    return VIP_EFFECTS[hash % VIP_EFFECTS.length];
-  }, [seed]);
+    const seededIndex = hash % VIP_EFFECTS.length;
+    const randomOffset = Math.floor(Math.random() * VIP_EFFECTS.length);
+    setEffect(VIP_EFFECTS[(seededIndex + randomOffset) % VIP_EFFECTS.length]);
+  }, [isVip, seed]);
 
   const size = compact ? "size-8 text-base" : "size-11 text-xl";
 
