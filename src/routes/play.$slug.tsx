@@ -33,6 +33,7 @@ function PlayPage() {
   const target = () => {
     if(!campaign) return;
     const route=campaign.target_route || "/activities";
+    if (route === "/activities") sessionStorage.setItem("circle-panda-play-campaign", campaign.id);
     const url=new URL(route,window.location.origin);
     if(campaign.target_param) url.searchParams.set("play",campaign.target_param);
     window.location.assign(url.pathname+url.search);
