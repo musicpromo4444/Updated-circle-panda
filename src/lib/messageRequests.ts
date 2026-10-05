@@ -16,9 +16,13 @@ export async function sendMessageRequest(recipientId: string, message: string): 
     showSelfMessageBlocked();
     throw new Error(SELF_MESSAGE_ERROR);
   }
-  const { data, error } = await (supabase as any).rpc("request_direct_message_secure", {
+  const { data, error } = await (supabase as any).rpc("start_dm_request", {
     p_recipient_id: recipientId,
-    p_message: message,
+    p_body: message,
+    p_media_path: null,
+    p_media_type: null,
+    p_context_type: "direct",
+    p_context_id: null,
   });
   if (error) {
     if (/invalid recipient|yourself/i.test(error.message ?? "")) {
