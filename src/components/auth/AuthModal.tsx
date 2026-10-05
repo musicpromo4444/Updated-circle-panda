@@ -21,6 +21,10 @@ export function AuthModal({ open, onOpenChange, defaultTab = "signin", onOpenBac
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [name, setName] = useState("");
+  const [country, setCountry] = useState("Nigeria");
+  const [state, setState] = useState("Rivers");
+  const [area, setArea] = useState("Port Harcourt");
+  const [address, setAddress] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [busy, setBusy] = useState(false);
   const [platform, setPlatform] = useState<"ios" | "android" | "other">("other");
@@ -41,6 +45,7 @@ export function AuthModal({ open, onOpenChange, defaultTab = "signin", onOpenBac
     setPassword("");
     setConfirmPassword("");
     setName("");
+    setCountry("Nigeria"); setState("Rivers"); setArea("Port Harcourt"); setAddress("");
     setBusy(false);
     setMode("auth");
     setResetSent(false);
@@ -85,6 +90,10 @@ export function AuthModal({ open, onOpenChange, defaultTab = "signin", onOpenBac
         toast.error("Passwords do not match.");
         return;
       }
+      if (!country || !state || !area) {
+        toast.error("Select your country, state and area.");
+        return;
+      }
     }
 
     setBusy(true);
@@ -113,6 +122,10 @@ export function AuthModal({ open, onOpenChange, defaultTab = "signin", onOpenBac
           ? await supabase.auth.signInWithPassword({ email: value, password })
           : await supabase.auth.signInWithPassword({ phone: normalizePhone(value), password });
         if (result.error) throw result.error;
+        const { error: profileError } = await (supabase as any).rpc("complete_signup_profile", {
+          p_display_name: name.trim(), p_country: country, p_state: state, p_area: area, p_address_line: address.trim() || null,
+        });
+        if (profileError) throw profileError;
 
         toast.success("Account created. Welcome to Circle Panda 🐼");
         onAuthenticated?.();
@@ -239,6 +252,14 @@ export function AuthModal({ open, onOpenChange, defaultTab = "signin", onOpenBac
               <Input value={identifier} onChange={(e) => setIdentifier(e.target.value)} placeholder="Phone number or email" autoComplete="username" />
               <Input value={password} onChange={(e) => setPassword(e.target.value)} type={showPassword ? "text" : "password"} placeholder="Password (8+ characters)" autoComplete="new-password" />
               <Input value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} type={showPassword ? "text" : "password"} placeholder="Re-enter password" autoComplete="new-password" />
+              <div className="grid grid-cols-2 gap-2">
+                <select value={country} onChange={(e) => setCountry(e.target.value)} className="h-10 rounded-xl border bg-background px-3 text-sm"><option>Nigeria</option><option>Ghana</option><option>Kenya</option><option>South Africa</option><option>United Kingdom</option><option>United States</option><option>Canada</option><option>Other</option></select>
+                <select value={state} onChange={(e) => setState(e.target.value)} className="h-10 rounded-xl border bg-background px-3 text-sm"><option value="">State / Province</option><option>Abia</option><option>Adamawa</option><option>Akwa Ibom</option><option>Anambra</option><option>Bauchi</option><option>Bayelsa</option><option>Benue</option><option>Borno</option><option>Cross River</option><option>Delta</option><option>Ebonyi</option><option>Edo</option><option>Ekiti</option><option>Enugu</option><option>Gombe</option><option>Imo</option><option>Jigawa</option><option>Kaduna</option><option>Kano</option><option> Katsina</option><option>Kebbi</option><option>Kogi</option><option>Kwara</option><option>Lagos</option><option>Nasarawa</option><option>Niger</option><option>Ogun</option><option>Ondo</option><option>Osun</option><option>Oyo</option><option>Plateau</option><option>Rivers</option><option>Sokoto</option><option>Taraba</option><option>Yobe</option><option>Zamfara</option><option>FCT</option><option>Other</option></select>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <select value={area} onChange={(e) => setArea(e.target.value)} className="h-10 rounded-xl border bg-background px-3 text-sm"><option value="">Area</option><option>Port Harcourt</option><option>Obio-Akpor</option><option>Bonny</option><option>Ikwerre</option><option>Other</option></select>
+                <Input value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Address (optional)" autoComplete="street-address" />
+              </div>
               <Button type="submit" disabled={busy} className="w-full">{busy ? "Creating account…" : "Create your Panda"}</Button>
               <div className="relative py-1"><div className="border-t border-border" /><span className="absolute left-1/2 top-1/2 -translate-x-1/2 bg-card px-2 text-[10px] text-muted-foreground">OR</span></div>
               {social}
