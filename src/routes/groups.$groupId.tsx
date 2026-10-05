@@ -415,7 +415,18 @@ function GroupRoom() {
       // IMPORTANT: verify that the file can actually be read before consuming
       // the one-time claim. Otherwise a failed signed URL/browser load could
       // permanently burn the message for the recipient.
-      try {\n        const probe = await fetch(url, { method: "HEAD" });\n        if (!probe.ok) {\n          toast.error("This media is currently unavailable. Please try again.");\n          return;\n        }\n      } catch {\n        toast.error("This media could not be reached. Please try again.");\n        return;\n      }\n\n      const { data: allowed, error } = await (supabase as any).rpc("claim_group_media_view_once", { p_message_id: m.id });
+      try {
+        const probe = await fetch(url, { method: "HEAD" });
+        if (!probe.ok) {
+          toast.error("This media is currently unavailable. Please try again.");
+          return;
+        }
+      } catch {
+        toast.error("This media could not be reached. Please try again.");
+        return;
+      }
+
+      const { data: allowed, error } = await (supabase as any).rpc("claim_group_media_view_once", { p_message_id: m.id });
       if (error) {
         toast.error(error.message ?? "This media could not be opened");
         return;
