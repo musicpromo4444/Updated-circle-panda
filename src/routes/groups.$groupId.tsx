@@ -546,7 +546,7 @@ function GroupRoom() {
           🎍
         </span>
         <div className="min-w-0 flex-1 leading-tight">
-          <p className="truncate font-display font-semibold">{group?.name ?? "Room not found"}</p>
+          <p className="truncate font-display font-semibold">{group?.name ?? (groupLoading ? "Loading group…" : "Room not found")}</p>
           <p className="flex items-center gap-1 truncate text-[11px] text-muted-foreground">
             <Users className="size-3" /> {group?.members ?? 0} anonymous members
           </p>
