@@ -402,12 +402,12 @@ function GroupRoom() {
     await maybeOpenGroupRewardAd(async () => { await uploadMedia(file, "audio", duration); clearVoiceDraft(); });
   };
 
-  const deleteGroupMedia = async (m: any) => {
-    if (!m?.mine || !m?.media_path) return;
-    if (!window.confirm("Delete this media for everyone?")) return;
+  const deleteGroupMessage = async (m: any) => {
+    if (!m?.mine) return;
+    if (!window.confirm(m?.media_path ? "Delete this media for everyone?" : "Delete this message for everyone?")) return;
     const { data, error } = await (supabase as any).rpc("delete_group_message", { p_message_id: m.id });
     if (error) {
-      toast.error(error.message ?? "Media could not be deleted");
+      toast.error(error.message ?? "Message could not be deleted");
       return;
     }
     setChatMessages((items) => items.filter((item) => item.id !== m.id));
@@ -415,7 +415,7 @@ function GroupRoom() {
       const { error: storageError } = await supabase.storage.from("circle-panda-group-media").remove([(data as any).media_path]);
       if (storageError) toast.warning("The message was deleted, but the stored media could not be cleaned up automatically.");
     }
-    toast.success("Media deleted");
+    toast.success(m?.media_path ? "Media deleted" : "Message deleted");
   };
 
   const openViewOnceMedia = async (m: any) => {
@@ -697,7 +697,7 @@ function GroupRoom() {
                     </div>
                   ) : null}
                   <div className={`max-w-[85%] rounded-2xl px-3.5 py-2 text-sm ${m.mine ? "bg-primary text-primary-foreground" : "bg-card"}`}>{m.media_type && m.media_path ? (m.view_once !== false && viewedMediaIds.has(m.id) ? <div className="flex items-center gap-2 px-1 py-1 text-xs opacity-70">✓ Opened view-once {m.media_type}</div> : <button type="button" onClick={()=>void openViewOnceMedia(m)} className="flex items-center gap-3 rounded-xl px-2 py-2 text-left"><span className="grid size-10 place-items-center rounded-full bg-background/25">{m.media_type==="image" ? <ImageIcon className="size-5"/> : m.media_type==="video" ? <Video className="size-5"/> : <Mic className="size-5"/>}</span><span><span className="block font-medium">{m.view_once === false ? (m.media_type === "audio" ? "Voice note" : "Media") : "View once"}</span><span className="block text-[11px] opacity-70">{m.view_once === false ? (m.media_type==="image" ? "Photo" : m.media_type==="video" ? "Video" : "Voice note") : (m.media_type==="image" ? "View once photo" : m.media_type==="video" ? "View once video" : "Voice note")}</span></span></button>) : <span className="whitespace-pre-wrap">{m.body}</span>}</div>
-                  {m.mine && m.media_path ? <Button type="button" variant="ghost" size="sm" className="text-destructive hover:bg-destructive/10" onClick={()=>void deleteGroupMedia(m)}><Trash2 className="mr-1.5 size-3.5"/>Delete</Button> : null}
+                  {m.mine ? <Button type="button" variant="ghost" size="sm" className="text-destructive hover:bg-destructive/10" onClick={()=>void deleteGroupMessage(m)}><Trash2 className="mr-1.5 size-3.5"/>Delete</Button> : null}
                 </div>
                 <div className={`mt-1 flex items-center gap-1 ${m.mine ? "justify-end" : ""}`}>
                   <Button type="button" variant="ghost" size="icon" className="size-7" onClick={()=>setReplyTo(m)} aria-label="Reply"><Reply className="size-3.5"/></Button>
