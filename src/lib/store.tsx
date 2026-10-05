@@ -1328,12 +1328,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     if (!dbUserId) { requestLogin("use Dating"); return Promise.resolve(null); }
     if (!userId) return Promise.resolve(null);
     return (async () => {
-      const {data,error}=await (supabase as any).rpc("request_dating_match_secure",{p_recipient_id:userId});
+      const {data,error}=await (supabase as any).rpc("start_dm_request",{p_recipient_id:userId,p_body:null,p_media_path:null,p_media_type:null,p_context_type:"dating",p_context_id:null});
       if(error){toast.error(error.message??"Could not send dating request");return null;}
       const result = {
         status: String(data?.status ?? "pending"),
         requestId: data?.request_id ? String(data.request_id) : undefined,
-        threadId: data?.thread_id ? String(data.thread_id) : undefined,
+        threadId: undefined,
       };
       toast.success(result.status==="matched"?"It's a mutual match 💗":"Dating message request sent 💌");
       return result;
