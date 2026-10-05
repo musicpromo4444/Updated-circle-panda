@@ -696,7 +696,11 @@ function GroupRoom() {
       ) : null}
 
       <div className="flex-1 space-y-3 overflow-y-auto bg-secondary/10 px-4 py-4">
-        {!group ? (
+        {groupLoading ? (
+          <div className="grid min-h-48 place-items-center py-12 text-center text-sm text-muted-foreground">
+            <div><div className="mx-auto mb-3 size-7 animate-spin rounded-full border-2 border-primary/25 border-t-primary" aria-hidden="true" /><p>Loading group…</p></div>
+          </div>
+        ) : !group ? (
           <p className="py-12 text-center text-sm text-muted-foreground">
             This room doesn't exist.
           </p>
