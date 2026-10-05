@@ -118,6 +118,7 @@ function GroupRoom() {
         return;
       }
       setRemoteGroup(fresh);
+      setGroupLoading(false);
     })();
     return () => { active = false; };
   }, [groupId, navigate]);
