@@ -89,8 +89,8 @@ function MessagesPage() {
       const uid = (await supabase.auth.getUser()).data.user?.id;
       if (!uid || !active) return;
       const [incomingRes, outgoingRes] = await Promise.all([
-        (supabase as any).from("direct_message_requests").select("id,sender_id,message,kind,created_at,status").eq("recipient_id",uid).eq("status","pending").order("created_at",{ascending:false}),
-        (supabase as any).from("direct_message_requests").select("id,recipient_id,message,kind,created_at,status,responded_at,thread_id").eq("sender_id",uid).in("status",["pending","accepted"]).order("created_at",{ascending:false}).limit(50),
+        (supabase as any).from("dm_requests") .select("id,sender_id,context_type,source_label,created_at,status,thread_id").eq("recipient_id",uid).eq("status","pending").order("created_at",{ascending:false}),
+        (supabase as any).from("dm_requests") .select("id,recipient_id,context_type,source_label,created_at,status,responded_at,thread_id").eq("sender_id",uid).in("status",["pending","accepted"]).order("created_at",{ascending:false}).limit(50),
       ]);
       if (!active) return;
       if (!incomingRes.error) {
@@ -102,7 +102,7 @@ function MessagesPage() {
     };
     void loadRequests();
     const requestChannel = supabase.channel("message-requests-live")
-      .on("postgres_changes", {event:"*", schema:"public", table:"direct_message_requests"}, () => void loadRequests())
+      .on("postgres_changes", {event:"*", schema:"public", table:"dm_requests"}, () => void loadRequests())
       .subscribe();
     void (supabase as any).rpc("get_pending_dating_decisions_secure").then(({data,error}:any)=>{
       if (!error && Array.isArray(data) && data.length) setPendingDating(data[0]);
@@ -115,11 +115,11 @@ function MessagesPage() {
 
   const respondRequest = async (request: any, accept: boolean) => {
     try {
-      const { data, error } = await (supabase as any).rpc("respond_direct_message_request_secure", { p_request_id: request.id, p_accept: accept });
+      const { data, error } = await (supabase as any).rpc("respond_dm_request", { p_request_id: request.id, p_accept: accept });
       if (error) throw error;
       // Accepting/declining directly from Messages must also clear the matching
       // notification badge; otherwise the request looks unread forever.
-      await (supabase as any).rpc("mark_message_request_notifications_read", { p_request_id: request.id });
+      await (supabase as any).rpc("mark_all_notifications_read");
       window.dispatchEvent(new CustomEvent("circle-panda-notifications-refresh"));
       setMessageRequests((current) => current.filter((r) => r.id !== request.id));
       setSentRequests((current) => current.map((r) => r.id === request.id ? { ...r, status: accept ? "accepted" : "declined", thread_id: data?.thread_id ?? r.thread_id } : r));
@@ -179,7 +179,7 @@ function MessagesPage() {
 
   useEffect(() => {
     bottom.current?.scrollIntoView({ behavior: "smooth" });
-    if (activeId) void (supabase as any).rpc("mark_direct_thread_read", { p_thread_id: activeId });
+    if (activeId) void (supabase as any).rpc("mark_dm_read", { p_thread_id: activeId });
   }, [activeId, active?.messages.length]);
 
   if (!active) {
@@ -193,7 +193,7 @@ function MessagesPage() {
                 {messageRequests.map((r:any)=>(
                   <div key={r.id} className="rounded-xl bg-background p-3">
                     <button type="button" className="w-full text-left" onClick={() => setSelectedRequestId(r.id)}>
-                      <p className="text-[10px] font-bold text-muted-foreground">Anonymous Panda · {r.kind === "crush" ? "MCM/WCW Message Request" : r.kind === "dating" ? "Dating request" : "Message request"}</p>
+                      <p className="text-[10px] font-bold text-muted-foreground">Anonymous Panda · {r.source_label ?? (r.context_type === "dating" ? "Dating" : r.context_type === "group" ? "Group" : r.context_type === "mcm" ? "Man Crush Monday" : r.context_type === "wcw" ? "Woman Crush Monday" : r.context_type === "event" ? "Events" : "Direct message")}</p>
                       {r.message ? <p className="mt-1 line-clamp-2 text-sm">{r.message}</p> : null}
                     </button>
                     <div className="mt-2 flex gap-2">
