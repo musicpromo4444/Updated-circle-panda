@@ -57,7 +57,7 @@ begin
 end
 $function$;
 
-create or replace function public.delete_group_message(p_message_id uuid)
+create or replace function private.delete_group_message(p_message_id uuid)
 returns jsonb
 language plpgsql
 security definer
@@ -84,7 +84,20 @@ begin
 end
 $function$;
 
+revoke all on function private.delete_group_message(uuid) from public,anon,authenticated;
+grant execute on function private.delete_group_message(uuid) to authenticated;
+
+create or replace function public.delete_group_message(p_message_id uuid)
+returns jsonb
+language sql
+security invoker
+set search_path=public,pg_temp
+as $function$
+  select private.delete_group_message($1);
+$function$;
+
 revoke all on function public.delete_group_message(uuid) from public,anon;
 grant execute on function public.delete_group_message(uuid) to authenticated;
+
 
 alter table public.group_messages replica identity full;
