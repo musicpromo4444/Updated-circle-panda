@@ -75,6 +75,6 @@ export function RewardedAdModal({
       toast.error(error.message ?? "Reward could not be claimed");
       return;
     }
-    setReward(`+${Number(data?.reward_bc ?? 3)} BC`);
+    setReward(`+${Number((data as any)?.reward_bc ?? 3)} BC`);
     onClose();
   }
