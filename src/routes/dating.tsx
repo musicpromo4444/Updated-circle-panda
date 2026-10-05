@@ -135,13 +135,23 @@ function DatingPage() {
   const [childrenFilter, setChildrenFilter] = useState("");
   const [sameCountryOnly, setSameCountryOnly] = useState(false);
   const loadConnections = async () => {
-    const [userRes, connRes, requestRes] = await Promise.all([
+    const [userRes, connRes, unlockRes, requestRes] = await Promise.all([
       (supabase as any).auth.getUser(),
-      (supabase as any).from("dating_connections").select("id,requester_id,recipient_id,status,requester_confirmed,recipient_confirmed,matched_at,reveal_at"),
+      (supabase as any).from("dating_matches").select("id,user_a,user_b,matched_at,free_until"),
+      (supabase as any).from("dating_media_unlocks").select("match_id,user_id,unlocked_at"),
       (supabase as any).from("dm_requests").select("id,sender_id,recipient_id,status,created_at,thread_id,context_type,source_label").eq("context_type","dating"),
     ]);
     const uid = userRes?.data?.user?.id;
-    const rows = connRes?.data ?? [];
+    const unlocks = unlockRes?.data ?? [];
+    const rows = (connRes?.data ?? []).map((x:any) => ({
+      ...x,
+      requester_id: x.user_a,
+      recipient_id: x.user_b,
+      status: "matched",
+      reveal_at: x.free_until,
+      requester_confirmed: unlocks.some((u:any)=>u.match_id===x.id && u.user_id===x.user_a),
+      recipient_confirmed: unlocks.some((u:any)=>u.match_id===x.id && u.user_id===x.user_b),
+    }));
     const requests = requestRes?.data ?? [];
     if (!connRes?.error || !requestRes?.error) {
       setConnections(rows);
@@ -161,7 +171,7 @@ function DatingPage() {
     void loadConnections();
     void refreshDatingData();
     const connectionChannel = supabase.channel("dating-connections-live")
-      .on("postgres_changes", {event:"*", schema:"public", table:"dating_connections"}, () => {
+      .on("postgres_changes", {event:"*", schema:"public", table:"dating_matches"}, () => {
         void loadConnections();
       })
       .on("postgres_changes", {event:"*", schema:"public", table:"dm_requests"}, () => {
