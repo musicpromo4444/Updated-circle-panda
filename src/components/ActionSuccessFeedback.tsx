@@ -61,6 +61,7 @@ export function ActionSuccessProvider({ children }: { children: ReactNode }) {
         id: Date.now(),
       };
       setFeedback(next);
+      window.dispatchEvent(new CustomEvent("circle-panda-action-complete", { detail: { activity, firstTime: Boolean((data as any)?.awarded) } }));
       window.setTimeout(() => {
         setFeedback(current => current?.id === next.id ? null : current);
       }, 2300);
@@ -68,6 +69,7 @@ export function ActionSuccessProvider({ children }: { children: ReactNode }) {
       // Never claim a BC reward unless Supabase confirms it.
       const next = { activity, firstTime: false, id: Date.now() };
       setFeedback(next);
+      window.dispatchEvent(new CustomEvent("circle-panda-action-complete", { detail: { activity, firstTime: false } }));
       window.setTimeout(() => {
         setFeedback(current => current?.id === next.id ? null : current);
       }, 2300);
