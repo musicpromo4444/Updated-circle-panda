@@ -91,11 +91,19 @@ function GroupRoom() {
         (supabase as any).from("cp_group_messages").select("id,group_id,body,created_at,user_id,message_type,media_path,mime_type,duration_seconds,view_once").eq("group_id", groupId).order("created_at", { ascending: true }),
         (supabase as any).from("group_settings").select("edit_group_info,send_messages,approve_new_members").eq("group_id", groupId).maybeSingle(),
       ]);
-      if (summariesError) { toast.error(summariesError.message ?? "Could not load the group"); return; }
-      if (messagesError) { toast.error(messagesError.message ?? "Could not load group messages"); }
-      if (settingsError) { toast.error(settingsError.message ?? "Could not load group settings"); }
+      if (summariesError) {
+        if (active) setGroupLoading(false);
+        toast.error(summariesError.message ?? "Could not load the group");
+        return;
+      }
+      if (messagesError) toast.error(messagesError.message ?? "Could not load group messages");
+      if (settingsError) toast.error(settingsError.message ?? "Could not load group settings");
       const row = (summaries ?? []).find((g:any) => g.id === groupId);
-      if (!active || !row) return;
+      if (!active) return;
+      if (!row) {
+        setGroupLoading(false);
+        return;
+      }
       const uid = (await supabase.auth.getUser()).data.user?.id;
       const fresh: GroupChat = {
         id:row.id,name:row.name,topic:row.topic,ownerId:row.owner_id,memberRole:row.member_role,
