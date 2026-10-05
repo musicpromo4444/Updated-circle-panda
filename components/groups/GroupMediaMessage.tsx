@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { Image as ImageIcon, Play, Volume2, X } from "lucide-react";
+import { Image as ImageIcon, Play, Reply, Volume2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export type GroupMediaItem = {
@@ -14,7 +14,7 @@ export type GroupMediaItem = {
   mimeType?: string;
 };
 
-export function GroupMediaMessage({ message }: { message: GroupMediaItem }) {
+export function GroupMediaMessage({ message, onReply }: { message: GroupMediaItem; onReply?: () => void }) {
   const [viewerOpen, setViewerOpen] = useState(false);
   const [playing, setPlaying] = useState(false);
 
@@ -54,6 +54,7 @@ export function GroupMediaMessage({ message }: { message: GroupMediaItem }) {
         )}
         {message.body ? <p className="px-3 py-2 text-xs text-muted-foreground">{message.body}</p> : null}
       </button>
+      {onReply ? <button type="button" onClick={onReply} className="mt-1 inline-flex items-center gap-1 px-2 text-[11px] font-medium text-muted-foreground hover:text-foreground"><Reply className="size-3" /> Reply</button> : null}
 
       {viewerOpen && message.mediaUrl ? (
         <div className="fixed inset-0 z-[100] grid place-items-center bg-black/95 p-3" onClick={() => setViewerOpen(false)}>
