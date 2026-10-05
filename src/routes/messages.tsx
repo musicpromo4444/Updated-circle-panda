@@ -240,26 +240,23 @@ function MessagesPage() {
               <button
                 type="button"
                 onClick={() => setActiveId(t.id)}
-                className={`panda-panel flex min-h-[84px] w-full items-center gap-4 rounded-2xl p-4 text-left transition-colors hover:bg-accent/40 ${t.kind === "dating" ? "border-2 border-red-500/30 bg-red-500/5" : ""}`}
+                className="panda-panel flex min-h-[84px] w-full items-center gap-4 rounded-2xl p-4 text-left transition-colors hover:bg-accent/40"
               >
-                {t.kind === "dating" ? (
-                  <span className="grid size-14 shrink-0 place-items-center rounded-full bg-red-500/15 text-red-500 shadow-sm">
-                    <Heart className="size-8 fill-current" />
-                  </span>
-                ) : (
-                  <span className="grid size-14 shrink-0 place-items-center rounded-full bg-secondary text-xl">🐼</span>
-                )}
+                <span className="grid size-14 shrink-0 place-items-center rounded-full bg-secondary text-xl">🐼</span>
                 <span className="min-w-0 flex-1">
-                  {t.kind === "dating" ? (
-                    <span className="mb-1 flex items-center gap-2 text-red-500">
-                      <Heart className="size-4 fill-current" />
-                      <span className="font-display text-xs font-black tracking-[0.16em] uppercase">Dating Message</span>
-                    </span>
-                  ) : null}
                   <span className="flex items-center gap-2">
                     <span className="truncate font-semibold">{t.name}</span>
                   </span>
-                  <span className="mt-0.5 block truncate text-sm text-muted-foreground">
+                  {t.sourceType === "dating" ? (
+                    <span className="mt-1 inline-flex items-center rounded-full border border-[var(--dating)]/30 bg-[var(--dating)]/10 px-2 py-0.5 text-[10px] font-bold text-[var(--dating)]">
+                      🏷 Dating 💌
+                    </span>
+                  ) : t.sourceType === "event" ? (
+                    <span className="mt-1 inline-flex items-center rounded-full border border-primary/20 bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary">
+                      🏷 Event 🎟️
+                    </span>
+                  ) : null}
+                  <span className="mt-1 block truncate text-sm text-muted-foreground">
                     {t.messages.at(-1)?.body ?? t.blurb}
                   </span>
                 </span>
@@ -335,12 +332,6 @@ function MessagesPage() {
   return (
     <AppShell title="Chat" subtitle={`Balance: ${coins} BC · normal messages 1 BC · VIP free · dating free for 72h`}>
       <div className="panda-panel flex min-h-[calc(100dvh-8.5rem)] flex-col overflow-hidden rounded-2xl">
-        {active.kind === "dating" ? (
-          <div className="flex items-center justify-center gap-2 bg-[var(--dating)] px-4 py-2 font-display text-sm font-bold tracking-[0.18em] text-[var(--dating-foreground)] uppercase">
-            <Heart className="size-4 fill-current" /> Dating Chat
-          </div>
-        ) : null}
-
         <div className="flex items-center gap-3 border-b border-border bg-card px-3 py-3 sm:px-4">
           <Button
             variant="ghost"
@@ -350,12 +341,10 @@ function MessagesPage() {
           >
             <ChevronLeft className="size-4" /> All
           </Button>
-          <span className={`grid size-11 place-items-center rounded-full ${active.kind === "dating" ? "bg-red-500/15 text-red-500" : "bg-secondary text-lg"}`}>
-            {active.kind === "dating" ? <Heart className="size-6 fill-current" /> : "🐼"}
-          </span>
+          <span className="grid size-11 place-items-center rounded-full bg-secondary text-lg">🐼</span>
           <div className="min-w-0 flex-1 leading-tight">
             <p className="truncate text-sm font-bold">{active.name}</p>
-            <p className={active.kind === "dating" ? "text-[11px] font-bold text-red-500" : "text-[11px] text-muted-foreground"}>{active.kind === "dating" ? "DATING MESSAGE · FREE FOR 72 HOURS" : active.otherVip ? "VIP private chat · calls free" : "Direct message · 1 BC per message"}</p>
+            <p className="text-[11px] text-muted-foreground">{active.otherVip ? "VIP private chat · calls free" : "Direct message"}</p>
           </div>
           {active.kind === "dm" && active.otherVip && isVip ? (
             <div className="flex gap-1">
@@ -382,11 +371,7 @@ function MessagesPage() {
                     <DatingPhotoBubble path={m.mediaPath} onOpen={setPhotoPreviewUrl} />
                   ) : (
                     <p className={`inline-block max-w-[80%] rounded-2xl px-3.5 py-2 text-sm ${
-                      m.mine
-                        ? active.kind === "dating"
-                          ? "bg-[var(--dating)] text-[var(--dating-foreground)]"
-                          : "bg-primary text-primary-foreground"
-                        : "bg-card"
+                      m.mine ? "bg-primary text-primary-foreground" : "bg-card"
                     }`}>
                       {m.body}
                     </p>
