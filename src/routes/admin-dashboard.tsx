@@ -18,6 +18,7 @@ import { AdminAppDownloadPromotion } from "@/components/admin/AdminAppDownloadPr
 import { AdminCampaignReports } from "@/components/admin/AdminCampaignReports";
 import { VipGroupCallSettings } from "@/components/admin/VipGroupCallSettings";
 import { VipGroupSponsorSettings } from "@/components/admin/VipGroupSponsorSettings";
+import { VipGroupWallpaperManager } from "@/components/admin/VipGroupWallpaperManager";
 import { AdminMonetizationControl } from "@/components/admin/AdminMonetizationControl";
 import { CirclePandaMediaManager } from "@/components/admin/CirclePandaMediaManager";
 import { useAdminStore } from "@/components/admin/adminStore";
@@ -129,6 +130,7 @@ function AdminDashboardPage() {
       <AdminControlCenter />
       <VipGroupCallSettings />
       <VipGroupSponsorSettings />
+      <VipGroupWallpaperManager />
       <AdminAppDownloadPromotion />
       <AdminCampaignReports />
       <CirclePandaMediaManager />
