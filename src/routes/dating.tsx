@@ -177,6 +177,9 @@ function DatingPage() {
       .on("postgres_changes", {event:"*", schema:"public", table:"dm_requests"}, () => {
         void loadConnections();
       })
+      .on("postgres_changes", {event:"*", schema:"public", table:"dating_media_unlocks"}, () => {
+        void loadConnections();
+      })
       .subscribe();
     const timer = window.setInterval(() => setClock(Date.now()), 1000);
     const onFocus = () => { void refreshDatingData(); };
