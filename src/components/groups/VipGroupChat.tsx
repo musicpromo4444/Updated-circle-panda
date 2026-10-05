@@ -132,6 +132,8 @@ export function VipGroupChat({open,groupId,onOpenChange}:{open:boolean;groupId:s
 
   const sendMemberRequest=async()=>{
     if(!memberMenu)return;
+    const currentUserId=(await supabase.auth.getUser()).data.user?.id;
+    if(currentUserId===memberMenu.userId){window.dispatchEvent(new CustomEvent("circle-panda-self-message-blocked"));setDmOpen(false);setMemberMenu(null);return;}
     setBusy(true);
     const {error}=await (supabase as any).rpc("request_direct_message_secure",{p_recipient_id:memberMenu.userId,p_message:dmText.trim()||"Hi, I’d like to chat with you."});
     setBusy(false);
