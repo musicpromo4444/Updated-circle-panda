@@ -47,7 +47,8 @@ function GroupRoom() {
     updateGroupInfo,
     updateGroupSettings,
   } = useStore();
-  const [adOpen, setAdOpen] = useState(false);\n  const [groupRewardSessionId, setGroupRewardSessionId] = useState<string | null>(null);
+  const [adOpen, setAdOpen] = useState(false);
+  const [groupRewardSessionId, setGroupRewardSessionId] = useState<string | null>(null);
   const pendingRewardActionRef = useRef<(() => Promise<void>) | null>(null);
   const [draft, setDraft] = useState("");
   const bottom = useRef<HTMLDivElement>(null);
@@ -297,8 +298,7 @@ function GroupRoom() {
     setRecordingSeconds(0);
     recordingStartedAtRef.current = null;
     recordingElapsedBeforePauseRef.current = 0;
-  };  const startVoiceRecording = async () => {
-    if (recording || voiceBlob) return;
+  };  const startVoiceRecording = async () => {    if (recording || voiceBlob) return;
     if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === "undefined") {
       toast.error("Voice recording is not supported on this device");
       return;
@@ -597,8 +597,7 @@ function GroupRoom() {
                 </label>                <div className="space-y-2 text-xs">
                   <label className="flex items-center gap-2"><input type="checkbox" checked={sendMessages} onChange={(e) => setSendMessages(e.target.checked)} /> Members can send messages</label>                  <label className="flex items-center gap-2"><input type="checkbox" checked={approveMembers} onChange={(e) => setApproveMembers(e.target.checked)} /> Approve new members</label>
                 </div>
-                {joinRequests.length > 0 ? (
-                  <div className="rounded-xl border border-border/70 bg-secondary/30 p-3">
+                {joinRequests.length > 0 ? (                  <div className="rounded-xl border border-border/70 bg-secondary/30 p-3">
                     <p className="text-xs font-semibold">Pending join requests <span className="ml-1 rounded-full bg-destructive px-1.5 py-0.5 text-[10px] text-destructive-foreground">{joinRequests.length}</span></p>
                     <div className="mt-2 space-y-2">
                       {joinRequests.map((request) => (
