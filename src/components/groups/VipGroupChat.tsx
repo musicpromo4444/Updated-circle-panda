@@ -39,7 +39,8 @@ export function VipGroupChat({open,groupId,onOpenChange}:{open:boolean;groupId:s
 
   const mapRow = async(row:any):Promise<VipMessage> => {
     let mediaUrl:string|undefined;
-    if(row.media_path){
+    // View-once media must not receive a reusable URL during message loading.
+    if(row.media_path && !Boolean(row.view_once)){
       const {data}=await supabase.storage.from("circle-panda-group-media").createSignedUrl(row.media_path,3600);
       mediaUrl=data?.signedUrl;
     }
