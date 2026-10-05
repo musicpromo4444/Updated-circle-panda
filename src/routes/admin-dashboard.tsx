@@ -23,6 +23,7 @@ import { AdminMonetizationControl } from "@/components/admin/AdminMonetizationCo
 import { AdminGroupMediaManager } from "@/components/admin/AdminGroupMediaManager";
 import { CirclePandaMediaManager } from "@/components/admin/CirclePandaMediaManager";
 import { useAdminStore } from "@/components/admin/adminStore";
+import { AdminPlayCampaignManager } from "@/components/admin/AdminPlayCampaignManager";
 
 export const Route = createFileRoute("/admin-dashboard")({ component: AdminDashboardPage });
 
@@ -129,6 +130,7 @@ function AdminDashboardPage() {
   return <AppShell title="Admin Dashboard" hidePageHeader>
     <main className="mx-auto max-w-4xl space-y-5 p-4 pb-24 sm:p-6">
       <AdminControlCenter />
+      <AdminPlayCampaignManager />
       <AdminGroupMediaManager />
       <VipGroupCallSettings />
       <VipGroupSponsorSettings />
