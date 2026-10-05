@@ -1,0 +1,33 @@
+import { useEffect, useState } from "react";
+import { Copy, Loader2, Plus, Save, Trash2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+
+type Campaign={id:string;slug:string;title:string;description:string;creative_url:string|null;creative_type:string;fallback_icon:string;target_route:string;target_param:string|null;target_label:string;reward_text:string;is_published:boolean;starts_at:string|null;closes_at:string|null};
+const blank={id:"",slug:"",title:"",description:"",creative_url:"",creative_type:"icon",fallback_icon:"🎁",target_route:"/activities",target_param:"",target_label:"Challenge",reward_text:"",is_published:false,starts_at:null,closes_at:null};
+
+export function AdminPlayCampaignManager(){
+ const [rows,setRows]=useState<Campaign[]>([]); const [draft,setDraft]=useState<any>(blank); const [loading,setLoading]=useState(true); const [saving,setSaving]=useState(false);
+ const load=async()=>{setLoading(true);const {data,error}=await (supabase as any).rpc("admin_list_play_campaigns");setLoading(false);if(error)return toast.error(error.message);setRows(data??[]);};
+ useEffect(()=>{void load()},[]);
+ const save=async()=>{if(!draft.slug.trim()||!draft.title.trim()||!draft.target_route.trim())return toast.error("Slug, title and target are required.");setSaving(true);const {data,error}=await (supabase as any).rpc("admin_upsert_play_campaign",{p_id:draft.id||null,p_slug:draft.slug,p_title:draft.title,p_description:draft.description,p_creative_url:draft.creative_url,p_creative_type:draft.creative_type,p_fallback_icon:draft.fallback_icon,p_target_route:draft.target_route,p_target_param:draft.target_param,p_target_label:draft.target_label,p_reward_text:draft.reward_text,p_is_published:draft.is_published,p_starts_at:draft.starts_at,p_closes_at:draft.closes_at});setSaving(false);if(error)return toast.error(error.message);toast.success("Play Page campaign saved");setDraft(blank);void load();};
+ const remove=async(id:string)=>{if(!confirm("Delete this Play Page campaign?"))return;const {error}=await (supabase as any).rpc("admin_delete_play_campaign",{p_id:id});if(error)return toast.error(error.message);setRows(x=>x.filter(r=>r.id!==id));};
+ const share=(slug:string)=>{const url=location.origin+"/play/"+slug;navigator.clipboard.writeText(url).then(()=>toast.success("Universal share link copied"));};
+ return <section className="panda-panel rounded-3xl p-4 sm:p-5"><div className="flex items-center justify-between gap-3"><div><h2 className="font-display text-xl font-black">Marketing Play Pages</h2><p className="mt-1 text-xs text-muted-foreground">Choose an existing Circle Panda game/activity and publish a shareable challenge page. Participation still requires an account.</p></div><Button size="sm" variant="outline" onClick={()=>setDraft(blank)}><Plus className="mr-1 size-4"/>New</Button></div>
+ <div className="mt-4 grid gap-3 rounded-2xl border p-4 sm:grid-cols-2">
+  <label className="text-xs font-semibold">Slug<input value={draft.slug} onChange={e=>setDraft({...draft,slug:e.target.value})} placeholder="500mb-giveaway" className="mt-1 h-10 w-full rounded-xl border bg-background px-3 text-sm"/></label>
+  <label className="text-xs font-semibold">Title<input value={draft.title} onChange={e=>setDraft({...draft,title:e.target.value})} placeholder="Win 500 MB Data" className="mt-1 h-10 w-full rounded-xl border bg-background px-3 text-sm"/></label>
+  <label className="text-xs font-semibold sm:col-span-2">Description<textarea value={draft.description} onChange={e=>setDraft({...draft,description:e.target.value})} className="mt-1 min-h-20 w-full rounded-xl border bg-background p-3 text-sm"/></label>
+  <label className="text-xs font-semibold">Target route<input value={draft.target_route} onChange={e=>setDraft({...draft,target_route:e.target.value})} placeholder="/activities" className="mt-1 h-10 w-full rounded-xl border bg-background px-3 text-sm"/></label>
+  <label className="text-xs font-semibold">Activity/game slug (optional)<input value={draft.target_param} onChange={e=>setDraft({...draft,target_param:e.target.value})} placeholder="wheel_spin" className="mt-1 h-10 w-full rounded-xl border bg-background px-3 text-sm"/></label>
+  <label className="text-xs font-semibold">Label<input value={draft.target_label} onChange={e=>setDraft({...draft,target_label:e.target.value})} className="mt-1 h-10 w-full rounded-xl border bg-background px-3 text-sm"/></label>
+  <label className="text-xs font-semibold">Reward text<input value={draft.reward_text} onChange={e=>setDraft({...draft,reward_text:e.target.value})} placeholder="Win 500 MB" className="mt-1 h-10 w-full rounded-xl border bg-background px-3 text-sm"/></label>
+  <label className="text-xs font-semibold">Creative URL<input value={draft.creative_url??""} onChange={e=>setDraft({...draft,creative_url:e.target.value})} className="mt-1 h-10 w-full rounded-xl border bg-background px-3 text-sm"/></label>
+  <label className="text-xs font-semibold">Fallback icon<input value={draft.fallback_icon} onChange={e=>setDraft({...draft,fallback_icon:e.target.value})} className="mt-1 h-10 w-full rounded-xl border bg-background px-3 text-sm"/></label>
+  <label className="flex items-center gap-2 text-xs font-semibold sm:col-span-2"><input type="checkbox" checked={draft.is_published} onChange={e=>setDraft({...draft,is_published:e.target.checked})}/> Publish this Play Page</label>
+  <Button disabled={saving} onClick={()=>void save()} className="sm:col-span-2">{saving?<Loader2 className="mr-2 size-4 animate-spin"/>:<Save className="mr-2 size-4"/>}Save campaign</Button>
+ </div>
+ <div className="mt-5 space-y-2">{loading?<Loader2 className="mx-auto size-5 animate-spin"/>:rows.map(row=><div key={row.id} className="flex flex-col gap-2 rounded-2xl border bg-card p-3 sm:flex-row sm:items-center"><div className="min-w-0 flex-1"><p className="font-bold">{row.title}</p><p className="text-[11px] text-muted-foreground">{"/play/"+row.slug+" · "+row.target_route+(row.target_param?"?play="+row.target_param:"")+" · "+(row.is_published?"Published":"Draft")}</p></div><div className="flex gap-2"><Button size="sm" variant="outline" onClick={()=>setDraft({...row})}>Edit</Button><Button size="sm" variant="outline" onClick={()=>share(row.slug)}><Copy className="size-3.5"/></Button><Button size="sm" variant="destructive" onClick={()=>void remove(row.id)}><Trash2 className="size-3.5"/></Button></div></div>)}</div>
+ </section>;
+}
