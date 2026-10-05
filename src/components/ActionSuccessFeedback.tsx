@@ -51,7 +51,7 @@ export function ActionSuccessProvider({ children }: { children: ReactNode }) {
 
       const next = {
         activity,
-        firstTime: Boolean(data?.awarded),
+        firstTime: Boolean((data as any)?.awarded),
         id: Date.now(),
       };
       setFeedback(next);
