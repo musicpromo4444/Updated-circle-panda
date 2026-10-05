@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ArrowLeft, CalendarDays, CalendarPlus, Clock, MapPin, MessageCircle, Rocket, Share2, Users } from "lucide-react";
+import { ArrowLeft, CalendarDays, CalendarPlus, Clock, MapPin, MessageCircle, Rocket, Share2, Users, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
 import { StandardBannerAd } from "@/components/ads/StandardBannerAd";
@@ -47,6 +47,7 @@ function EventsPage() {
   const [bcProcessing, setBcProcessing] = useState<string | null>(null);
   const [targetScope, setTargetScope] = useState<"worldwide"|"country"|"state"|"city"|"area">("worldwide");
   const [targetCountry, setTargetCountry] = useState(""); const [targetState, setTargetState] = useState(""); const [targetCity, setTargetCity] = useState(""); const [targetArea, setTargetArea] = useState("");
+  const [deletedEventIds, setDeletedEventIds] = useState<string[]>([]);
   const [targetCountries, setTargetCountries] = useState<Array<{name:string;iso2:string}>>([]);
   const [targetStates, setTargetStates] = useState<string[]>([]); const [targetCities, setTargetCities] = useState<string[]>([]);
   const current = openEvent ? (events.find((e) => e.id === openEvent.id) ?? null) : null;
@@ -59,6 +60,17 @@ function EventsPage() {
       setPlans((data ?? []) as BlastPlan[]);
     })();
   }, []);
+
+  const deleteEvent = async (eventId:string) => {
+    if (!window.confirm("Delete this event for everyone?")) return;
+    const { error } = await (supabase as any).rpc("delete_event", { p_event_id:eventId });
+    if (error) { toast.error(error.message ?? "Event could not be deleted"); return; }
+    setDeletedEventIds((ids)=>ids.includes(eventId)?ids:[...ids,eventId]);
+    setOpenEvent(null);
+    setBlastOpen(false);
+    setCreatedEvent((current)=>current?.id===eventId?null:current);
+    toast.success("Event deleted");
+  };
 
   const messageEventCreator = async () => {
     if (!current?.ownerId || current.ownerId === currentUserId) return;
@@ -133,7 +145,7 @@ function EventsPage() {
         <div className="panda-panel rounded-2xl p-8 text-center text-sm text-muted-foreground">No published events yet. Be the first Panda to create one.</div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2">
-          {events.map((e, idx) => (
+          {events.filter((e)=>!deletedEventIds.includes(e.id)).map((e, idx) => (
             <>
             <div key={e.id} role="button" tabIndex={0} onClick={() => setOpenEvent(e)} onKeyDown={(ev) => { if (ev.key === "Enter" || ev.key === " ") setOpenEvent(e); }} className="panda-panel rounded-2xl p-4 text-left transition-all duration-300 hover:-translate-y-0.5">
               <div className="flex items-center justify-between gap-2">
@@ -192,7 +204,10 @@ function EventsPage() {
                   </Button>
                 </>
               ) : null}
-              {current.ownerId === currentUserId ? <Button type="button" variant="outline" onClick={openBlast} className="gap-2"><Rocket className="size-4" /> Event Blast</Button> : null}
+              {current.ownerId === currentUserId ? <div className="grid grid-cols-2 gap-2">
+                <Button type="button" variant="outline" onClick={openBlast} className="gap-2"><Rocket className="size-4" /> Event Blast</Button>
+                <Button type="button" variant="outline" onClick={()=>void deleteEvent(current.id)} className="gap-2 text-destructive hover:bg-destructive/10"><Trash2 className="size-4" /> Delete Event</Button>
+              </div> : null}
             </div>
             </div>
           </> : null}
