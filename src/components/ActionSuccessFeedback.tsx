@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from "react";
 import { CalendarDays, Check, Crown, Gift, Heart, Image as ImageIcon, MessageCircle, Send, Sparkles, Trophy, Users } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 export type CirclePandaActivity =
   | "private_message" | "group_message" | "group_media" | "group_voice"
@@ -9,7 +10,7 @@ export type CirclePandaActivity =
   | "gift_purchase" | "reward_wheel" | "profile_completion" | "sweepstakes";
 
 type Feedback = { activity: CirclePandaActivity; firstTime: boolean; id: number } | null;
-type Api = { complete: (activity: CirclePandaActivity) => void };
+type Api = { complete: (activity: CirclePandaActivity) => Promise<void> };
 
 const ActivityContext = createContext<Api | null>(null);
 
@@ -43,45 +44,22 @@ function rewardKey(activity: CirclePandaActivity) {
 
 export function ActionSuccessProvider({ children }: { children: ReactNode }) {
   const [feedback, setFeedback] = useState<Feedback>(null);
-  const complete = useCallback((activity: CirclePandaActivity) => {
-    const key = rewardKey(activity);
+  const complete = useCallback(async (activity: CirclePandaActivity) => {
+    // The server is authoritative for the one-time +2 BC reward.
+    // localStorage is intentionally no longer used to decide whether a reward
+    // was earned; it may only be used by the UI for cosmetic state if needed.
     let firstTime = false;
     try {
-      firstTime = localStorage.getItem(key) !== "1";
-      if (firstTime) localStorage.setItem(key, "1");
-    } catch {}
-    setFeedback({ activity, firstTime, id: Date.now() });
-    window.setTimeout(() => setFeedback(current => current?.id === feedback?.id ? null : current), 2300);
-  }, [feedback?.id]);
+      const { data, error } = await supabase.rpc("complete_first_activity", {
+        p_activity_key: activity,
+        p_reward_bc: 2,
+      });
 
-  const value = useMemo(() => ({ complete }), [complete]);
-
-  return (
-    <ActivityContext.Provider value={value}>
-      {children}
-      {feedback ? <ActionSuccessOverlay feedback={feedback} onClose={() => setFeedback(null)} /> : null}
-    </ActivityContext.Provider>
-  );
-}
-
-export function useActionSuccess() {
-  const value = useContext(ActivityContext);
-  if (!value) throw new Error("useActionSuccess must be used inside ActionSuccessProvider");
-  return value;
-}
-
-function ActionSuccessOverlay({ feedback, onClose }: { feedback: NonNullable<Feedback>; onClose: () => void }) {
-  const meta = META[feedback.activity];
-  return (
-    <div className="pointer-events-none fixed inset-0 z-[300] grid place-items-center px-5" aria-live="polite">
-      <div className="cp-action-success pointer-events-auto" onAnimationEnd={onClose}>
-        <div className={`cp-action-success-icon ${meta.motion}`}>{meta.icon}</div>
-        <div className="min-w-0">
-          <p className="text-sm font-black">{meta.title}</p>
-          {feedback.firstTime ? <p className="mt-0.5 text-xs font-bold text-primary">First time · +2 BC</p> : <p className="mt-0.5 text-xs text-muted-foreground">Completed successfully</p>}
-        </div>
-        {feedback.firstTime ? <div className="cp-bc-reward" aria-label="2 BC reward">+2 BC</div> : null}
-      </div>
-    </div>
-  );
-}
+      if (error) throw error;
+      firstTime = Boolean(data?.awarded);
+      setFeedback({ activity, firstTime, id: Date.now() });
+    } catch {
+      // Never claim a BC reward when the server did not confirm it.
+      setFeedback({ activity, firstTime: false, id: Date.now() });
+    }
+  }, []);
