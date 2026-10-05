@@ -179,12 +179,12 @@ function GroupRoom() {
     }
 
     let uploadFile = file;
-    if (messageType === "image" && /(^image\\/(heic|heif)$)|\\.(heic|heif)$/i.test(file.type || file.name)) {
+    if (messageType === "image" && /(^image\/(heic|heif)$)|\.(heic|heif)$/i.test(file.type || file.name)) {
       toast.info("Converting HEIC photo to a compatible image…");
       try {
         const converted = await heic2any({ blob: file, toType: "image/jpeg", quality: 0.9 });
         const blob = Array.isArray(converted) ? converted[0] : converted;
-        uploadFile = new File([blob], file.name.replace(/\\.(heic|heif)$/i, ".jpg"), { type: "image/jpeg" });
+        uploadFile = new File([blob], file.name.replace(/\.(heic|heif)$/i, ".jpg"), { type: "image/jpeg" });
       } catch {
         toast.error("This HEIC photo could not be converted. Please choose another photo.");
         return;
@@ -395,7 +395,7 @@ function GroupRoom() {
 
     // Browsers do not natively display HEIC/HEIF. Convert the private file
     // to a browser-safe JPEG before consuming the one-time claim.
-    const isHeic = m.message_type === "image" && /(^image\\/(heic|heif)$)|\\.(heic|heif)$/i.test(m.mime_type || m.media_path || "");
+    const isHeic = m.message_type === "image" && /(^image\/(heic|heif)$)|\.(heic|heif)$/i.test(m.mime_type || m.media_path || "");
     if (isHeic) {
       try {
         const response = await fetch(url);
