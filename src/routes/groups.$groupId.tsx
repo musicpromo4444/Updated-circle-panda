@@ -92,7 +92,7 @@ function GroupRoom() {
     void (async () => {
       const [{ data: summaries, error: summariesError }, { data: messages, error: messagesError }, { data: settingsRow, error: settingsError }] = await Promise.all([
         (supabase as any).rpc("get_group_summaries", { p_country:"", p_state_province:"", p_city:"", p_area:"" }),
-        (supabase as any).from("cp_group_messages").select("id,group_id,body,created_at,user_id,message_type,media_path,mime_type,duration_seconds,view_once").eq("group_id", groupId).order("created_at", { ascending: true }),
+        (supabase as any).from("group_messages").select("id,group_id,body,created_at,sender_id,media_type,media_path,view_once,reply_to_id").eq("group_id", groupId).order("created_at", { ascending: true }),
         (supabase as any).from("group_settings").select("edit_group_info,send_messages,approve_new_members").eq("group_id", groupId).maybeSingle(),
       ]);
       if (summariesError) {
@@ -114,7 +114,7 @@ function GroupRoom() {
         editGroupInfo:settingsRow?.edit_group_info === "admins_members" ? "admins_members" : "admins",sendMessages:settingsRow?.send_messages !== false,approveNewMembers:Boolean(settingsRow?.approve_new_members),joinPending:Boolean(row.join_pending),
         members:Number(row.member_count ?? 0),openedAt:row.activated_at?new Date(row.activated_at).getTime():null,expiresAt:row.expires_at ?? null,
         latitude:null,longitude:null,country:row.country ?? "",stateProvince:row.state_province ?? "",city:row.city ?? "",area:row.area ?? "",
-    messages:(messages ?? []).map((m:any)=>({id:m.id,author:m.user_id===uid?"You (anonymous)":"Anonymous Panda",body:m.body,at:new Date(m.created_at).getTime(),mine:m.user_id===uid,message_type:m.message_type,media_path:m.media_path,mime_type:m.mime_type,duration_seconds:m.duration_seconds,view_once:m.view_once})),
+    messages:(messages ?? []).map((m:any)=>({id:m.id,author:m.sender_id===uid?"You (anonymous)":"Anonymous Panda",body:m.body,at:new Date(m.created_at).getTime(),mine:m.sender_id===uid,message_type:m.media_type,media_path:m.media_path,mime_type:m.mime_type,duration_seconds:m.duration_seconds,view_once:m.view_once})),
       };
       if (!fresh.memberRole) {
         toast.error("You are not a member of this group. Join again to open the room.");
@@ -186,7 +186,7 @@ function GroupRoom() {
     }
     setReactionOpen(null);
     const { data: reactions } = await (supabase as any)
-      .from("cp_group_message_reactions")
+      .from("group_message_reactions")
       .select("message_id,user_id,reaction")
       .eq("message_id", messageId);
     setChatMessages((items) =>
@@ -230,9 +230,8 @@ function GroupRoom() {
     const { data, error } = await (supabase as any).rpc("send_group_media_secure", {
       p_group_id: group.id,
       p_media_path: path,
-      p_message_type: messageType,
-      p_mime_type: uploadFile.type || null,
-      p_duration_seconds: durationSeconds ?? null,
+      p_media_type: messageType,
+      p_idempotency_key: crypto.randomUUID(),
       // Photos/videos are view-once; voice notes are normal reusable messages.
       p_view_once: messageType !== "audio",
       p_body: "",
@@ -251,10 +250,10 @@ function GroupRoom() {
 
     const mediaUrl = messageType === "audio" ? await signedMediaUrl(path, 3600) : null;
     const created = {
-      id: data.id,
+      id: String(data),
       group_id: group.id,
       body: "",
-      created_at: data.created_at,
+      created_at: new Date().toISOString(),
       user_id: uid,
       author: "You (anonymous)",
       mine: true,
@@ -405,17 +404,24 @@ function GroupRoom() {
 
   const openViewOnceMedia = async (m: any) => {
     if (!m.media_path) return;
-
-    // Voice notes are reusable; do not consume the view-once claim for them.
-    let url: string | null = null;
-    if (!url) {
-      toast.error("Media is unavailable. The file may have expired or is not accessible to this group member.");
+    if (m.view_once !== false && viewedMediaIds.has(m.id)) {
+      toast.info("This view-once media has already been opened.");
       return;
     }
+    const url = await signedMediaUrl(m.media_path, m.view_once === false ? 3600 : 60);
+    if (!url) { toast.error("Media is unavailable. Please try again."); return; }
+    if (m.view_once !== false) {
+      const { data: allowed, error } = await (supabase as any).rpc("claim_group_media_view_once", { p_message_id:m.id });
+      if (error || allowed !== true) {
+        toast.info(error?.message ?? "This view-once media has already been opened.");
+        return;
+      }
+    }
+    setViewedMediaIds((old) => m.view_once !== false ? new Set(old).add(m.id) : old);
+    setMediaPreview({url,type:m.message_type === "audio" ? "audio" : m.message_type === "video" ? "video" : "image",name:m.message_type === "audio" ? "Voice note" : "Group media"});
+  };
 
-    // Browsers do not natively display HEIC/HEIF. Convert the private file
-    // to a browser-safe JPEG before consuming the one-time claim.
-    const isHeic = m.message_type === "image" && /(^image\/(heic|heif)$)|\.(heic|heif)$/i.test(m.mime_type || m.media_path || "");
+  const isHeic = m.media_type === "image" && /(^image\/(heic|heif)$)|\.(heic|heif)$/i.test(m.mime_type || m.media_path || "");
     if (isHeic) {
       try {
         const response = await fetch(url);
@@ -453,8 +459,8 @@ function GroupRoom() {
     setViewedMediaIds((old) => new Set(old).add(m.id));
     setMediaPreview({
       url,
-      type: m.message_type === "image" ? "image" : m.message_type === "video" ? "video" : "audio",
-      name: m.view_once === false ? (m.message_type === "audio" ? "Voice note" : "Media") : "View once",
+      type: m.media_type === "image" ? "image" : m.media_type === "video" ? "video" : "audio",
+      name: m.view_once === false ? (m.media_type === "audio" ? "Voice note" : "Media") : "View once",
     });
   };
 
@@ -486,18 +492,18 @@ function GroupRoom() {
     const load = async () => {
       const [{ data: rows, error }, { data: reactions }] = await Promise.all([
         (supabase as any).from("cp_group_messages").select("id,group_id,body,created_at,user_id,message_type,reply_to_id,media_path,mime_type,duration_seconds,view_once").eq("group_id", groupId).order("created_at", { ascending: true }).limit(1000),
-        (supabase as any).from("cp_group_message_reactions").select("message_id,user_id,reaction"),
+        (supabase as any).from("group_message_reactions").select("message_id,user_id,reaction"),
       ]);
       if (error) { toast.error(error.message ?? "Could not load group messages"); return; }
       const uid = (await supabase.auth.getUser()).data.user?.id;
       const reactionMap = new Map<string, any[]>();
       (reactions ?? []).forEach((r:any) => reactionMap.set(r.message_id, [...(reactionMap.get(r.message_id) ?? []), r]));
-      if (!cancelled) { const mapped = await Promise.all((rows ?? []).map(async (m:any) => ({ ...m, author:m.user_id===uid?"You (anonymous)":"Anonymous Panda", mine:m.user_id===uid, media_url:m.view_once ? null : await signedMediaUrl(m.media_path,3600), reactions:reactionMap.get(m.id) ?? [], currentUserId:uid }))); setChatMessages(mapped); }
+      if (!cancelled) { const mapped = await Promise.all((rows ?? []).map(async (m:any) => ({ ...m, author:m.sender_id===uid?"You (anonymous)":"Anonymous Panda", mine:m.sender_id===uid, media_url:m.view_once ? null : await signedMediaUrl(m.media_path,3600), reactions:reactionMap.get(m.id) ?? [], currentUserId:uid }))); setChatMessages(mapped); }
     };
     void load();
     const channel=supabase.channel(`group:${groupId}:whatsapp`)
       .on("postgres_changes",{event:"INSERT",schema:"public",table:"cp_group_messages",filter:`group_id=eq.${groupId}`},(payload:any)=>{
-        void (async()=>{ const uid=(await supabase.auth.getUser()).data.user?.id; const m=payload.new; const mediaUrl=m.view_once ? null : await signedMediaUrl(m.media_path,3600); setChatMessages(x=>x.some(v=>v.id===m.id)?x:[...x,{...m,author:m.user_id===uid?"You (anonymous)":"Anonymous Panda",mine:m.user_id===uid,media_url:mediaUrl,reactions:[],currentUserId:uid}]); })();
+        void (async()=>{ const uid=(await supabase.auth.getUser()).data.user?.id; const m=payload.new; const mediaUrl=m.view_once ? null : await signedMediaUrl(m.media_path,3600); setChatMessages(x=>x.some(v=>v.id===m.id)?x:[...x,{...m,author:m.sender_id===uid?"You (anonymous)":"Anonymous Panda",mine:m.sender_id===uid,media_url:mediaUrl,reactions:[],currentUserId:uid}]); })();
       })
       .on("postgres_changes",{event:"*",schema:"public",table:"cp_group_message_reactions"},()=>void load())
       .subscribe();
@@ -718,7 +724,7 @@ function GroupRoom() {
                       </div> : null}
                     </div>
                   ) : null}
-                  <div className={`max-w-[85%] rounded-2xl px-3.5 py-2 text-sm ${m.mine ? "bg-primary text-primary-foreground" : "bg-card"}`}>{m.message_type && m.media_path ? (m.view_once !== false && viewedMediaIds.has(m.id) ? <div className="flex items-center gap-2 px-1 py-1 text-xs opacity-70">✓ Opened view-once {m.message_type}</div> : <button type="button" onClick={()=>void openViewOnceMedia(m)} className="flex items-center gap-3 rounded-xl px-2 py-2 text-left"><span className="grid size-10 place-items-center rounded-full bg-background/25">{m.message_type==="image" ? <ImageIcon className="size-5"/> : m.message_type==="video" ? <Video className="size-5"/> : <Mic className="size-5"/>}</span><span><span className="block font-medium">{m.view_once === false ? (m.message_type === "audio" ? "Voice note" : "Media") : "View once"}</span><span className="block text-[11px] opacity-70">{m.view_once === false ? (m.message_type==="image" ? "Photo" : m.message_type==="video" ? "Video" : "Voice note") : (m.message_type==="image" ? "View once photo" : m.message_type==="video" ? "View once video" : "Voice note")}</span></span></button>) : <span className="whitespace-pre-wrap">{m.body}</span>}</div>
+                  <div className={`max-w-[85%] rounded-2xl px-3.5 py-2 text-sm ${m.mine ? "bg-primary text-primary-foreground" : "bg-card"}`}>{m.media_type && m.media_path ? (m.view_once !== false && viewedMediaIds.has(m.id) ? <div className="flex items-center gap-2 px-1 py-1 text-xs opacity-70">✓ Opened view-once {m.media_type}</div> : <button type="button" onClick={()=>void openViewOnceMedia(m)} className="flex items-center gap-3 rounded-xl px-2 py-2 text-left"><span className="grid size-10 place-items-center rounded-full bg-background/25">{m.media_type==="image" ? <ImageIcon className="size-5"/> : m.media_type==="video" ? <Video className="size-5"/> : <Mic className="size-5"/>}</span><span><span className="block font-medium">{m.view_once === false ? (m.media_type === "audio" ? "Voice note" : "Media") : "View once"}</span><span className="block text-[11px] opacity-70">{m.view_once === false ? (m.media_type==="image" ? "Photo" : m.media_type==="video" ? "Video" : "Voice note") : (m.media_type==="image" ? "View once photo" : m.media_type==="video" ? "View once video" : "Voice note")}</span></span></button>) : <span className="whitespace-pre-wrap">{m.body}</span>}</div>
                   {m.mine ? null : null}
                 </div>
                 <div className={`mt-1 flex items-center gap-1 ${m.mine ? "justify-end" : ""}`}>
@@ -781,7 +787,11 @@ function GroupRoom() {
               const { data, error } = await (supabase as any).rpc("send_group_message_secure", {
                 p_group_id: group.id,
                 p_body: body,
+                p_media_type: null,
+                p_media_path: null,
                 p_reply_to_id: replyTo?.id ?? null,
+                p_view_once: false,
+                p_idempotency_key: crypto.randomUUID(),
               });
               if (error) {
                 toast.error(error.message ?? "Message could not be sent");
@@ -790,7 +800,7 @@ function GroupRoom() {
               const userId = (await supabase.auth.getUser()).data.user?.id;
               complete("group_message");
               setChatMessages((x) => [...x, {
-                id:data.id, group_id:group.id, body, created_at:data.created_at, user_id:userId,
+                id:String(data), group_id:group.id, body, created_at:new Date().toISOString(), user_id:userId,
                 author:"You (anonymous)", mine:true, reply_to_id:replyTo?.id ?? null, reactions:[], currentUserId:userId,
               }]);
               setReplyTo(null);
