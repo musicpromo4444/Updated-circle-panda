@@ -655,7 +655,7 @@ function CrushPage() {
                 await refreshLiveNominees();
                 next(1);
               }
-            }} disabled={voteAdBusy}>Vote now · 1 BC</Button>
+            }} disabled={voteAdBusy}>Vote now · 50 BC</Button>
           </div>
         </DialogContent>
       </Dialog>
