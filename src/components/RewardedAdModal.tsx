@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Clapperboard, Gift, Loader2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { useStore } from "@/lib/store";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 export const AD_COOLDOWN_MS = 60_000;
@@ -13,13 +13,14 @@ type Phase = "loading" | "playing" | "done" | "failed";
 export function RewardedAdModal({
   open,
   groupId,
+  sessionId,
   onClose,
 }: {
   open: boolean;
   groupId: string;
+  sessionId: string | null;
   onClose: () => void;
 }) {
-  const { syncCoins, extendHotSeat, grantSkipPass, markAdShown } = useStore();
   const [phase, setPhase] = useState<Phase>("loading");
   const [progress, setProgress] = useState(0);
   const [reward, setReward] = useState<string>("");
@@ -62,83 +63,18 @@ export function RewardedAdModal({
     return () => clearTimeout(t);
   }, [phase, onClose]);
 
-  function claim() {
-    const perk = Math.random() < 0.5 ? "time" : "skip";
-    if (perk === "time") {
-      extendHotSeat(groupId, 120);
-      setReward("Reward unlocked + 2 extra minutes on the Hot Seat");
-    } else {
-      grantSkipPass();
-      setReward("Reward unlocked + a skip-the-queue pass");
+  async function claim() {
+    if (!sessionId) {
+      toast.error("Reward session is missing.");
+      return;
     }
-    void (async () => {
-      const { data, error } = await (await import("@/integrations/supabase/client")).supabase.rpc("claim_rewarded_ad_secure", { p_surface: "group_message" });
-      if (error) { setReward(""); toast.error(error.message ?? "Reward could not be claimed"); return; }
-      await syncCoins();
-      markAdShown();
-      setReward(`+${Number(data?.reward ?? 3)} BC and ${perk === "time" ? "2 extra minutes on the Hot Seat" : "a skip-the-queue pass"}`);
-      onClose();
-    })();
+    const { data, error } = await supabase.rpc("complete_group_reward_ad_secure", {
+      p_session_id: sessionId,
+    });
+    if (error) {
+      toast.error(error.message ?? "Reward could not be claimed");
+      return;
+    }
+    setReward(`+${Number(data?.reward_bc ?? 3)} BC`);
+    onClose();
   }
-
-  return (
-    <Dialog open={open} onOpenChange={(o) => (!o ? onClose() : null)}>
-      <DialogContent className="max-w-sm">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 font-display">
-            <Clapperboard className="size-4 text-primary" />
-            {phase === "done" ? "Reward unlocked" : "Message sent!"}
-          </DialogTitle>
-        </DialogHeader>
-
-        {phase === "loading" ? (
-          <p className="flex items-center gap-2 py-6 text-sm text-muted-foreground">
-            <Loader2 className="size-4 animate-spin" /> Message sent! Loading reward ad…
-          </p>
-        ) : null}
-
-        {phase === "failed" ? (
-          <p className="flex items-center gap-2 py-6 text-sm text-muted-foreground">
-            <X className="size-4" /> Ad unavailable — carrying on, your message is already live.
-          </p>
-        ) : null}
-
-        {phase === "playing" ? (
-          <div className="space-y-3 py-2">
-            {creative?.video_url ? (
-              <video className="h-36 w-full rounded-xl object-cover bg-black" src={creative.video_url} poster={creative.poster_url ?? creative.image_url ?? undefined} autoPlay muted playsInline onEnded={() => setPhase("done")} />
-            ) : creative?.image_url ? (
-              <img className="h-36 w-full rounded-xl object-cover" src={creative.image_url} alt={creative.headline ?? creative.sponsor ?? "Sponsored ad"} />
-            ) : (
-              <div className="grid h-36 place-items-center rounded-xl bg-secondary/40 text-4xl">🎬</div>
-            )}
-            <div className="h-2 overflow-hidden rounded-full bg-secondary">
-              <div className="h-full bg-primary transition-all" style={{ width: `${progress}%` }} />
-            </div>
-            <p className="text-center text-xs text-muted-foreground">
-              {creative ? `${creative.sponsor ?? "Sponsored"} — ${creative.headline ?? "Sponsored message"}. Watch to the end to earn Panda Coins and Hot Seat perks.` : "No reward ad has been selected by the admin yet."}
-            </p>
-          </div>
-        ) : null}
-
-        {phase === "done" ? (
-          <div className="space-y-3 py-2 text-center">
-            <div className="grid h-28 place-items-center rounded-xl bg-primary/15 text-4xl">🎁</div>
-            <p className="text-sm text-muted-foreground">
-              {reward || "Tap claim for your coins and a Hot Seat perk."}
-            </p>
-            <Button className="w-full gap-2" onClick={claim} disabled={!creative}>
-              <Gift className="size-4" /> Claim reward
-            </Button>
-          </div>
-        ) : null}
-
-        {phase === "playing" ? (
-          <Button variant="ghost" size="sm" onClick={onClose}>
-            Skip ad
-          </Button>
-        ) : null}
-      </DialogContent>
-    </Dialog>
-  );
-}
