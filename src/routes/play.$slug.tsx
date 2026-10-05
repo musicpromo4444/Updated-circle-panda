@@ -72,7 +72,7 @@ function PlayPage() {
           <p className="mt-3 text-center text-[11px] text-white/45">A Circle Panda account is required to compete or claim a challenge.</p>
         </div>
       </section>
-      <NewMemberOnboarding onFinished={(choice)=>{ if(choice==="explore") void navigate({to:"/home"}); else target(); }} />
+      <NewMemberOnboarding challengeMode onFinished={(choice)=>{ if(choice==="explore") void navigate({to:"/home"}); else target(); }} />
       <AuthModal open={authOpen} onOpenChange={setAuthOpen} defaultTab="signup" onAuthenticated={()=>{setLoggedIn(true);setAuthOpen(false);}} />
     </div>
   </main>;
