@@ -62,6 +62,7 @@ function GroupRoom() {
   const [approveMembers, setApproveMembers] = useState(false);
   const [joinRequests, setJoinRequests] = useState<any[]>([]);
   const [remoteGroup, setRemoteGroup] = useState<GroupChat | null>(null);
+  const [groupLoading, setGroupLoading] = useState(true);
   const [leaveConfirmOpen, setLeaveConfirmOpen] = useState(false);
   const [mediaMenuOpen, setMediaMenuOpen] = useState(false);
   const [mediaPreview, setMediaPreview] = useState<{url:string; type:"image"|"video"|"audio"; name:string} | null>(null);
