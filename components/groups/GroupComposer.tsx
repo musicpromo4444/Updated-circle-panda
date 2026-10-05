@@ -15,11 +15,15 @@ export function GroupComposer({
   placeholder = "Message…",
   onSendText,
   onSendMedia,
+  replyPreview,
+  onCancelReply,
 }: {
   disabled?: boolean;
   placeholder?: string;
   onSendText: (body: string) => Promise<void> | void;
   onSendMedia: (media: OutgoingGroupMedia) => Promise<void>;
+  replyPreview?: { author: string; body: string } | null;
+  onCancelReply?: () => void;
 }) {
   const [draft, setDraft] = useState("");
   const [recording, setRecording] = useState(false);
@@ -136,6 +140,13 @@ export function GroupComposer({
   }
 
   return (
+    <>
+    {replyPreview ? (
+      <div className="mb-2 flex items-center gap-2 rounded-xl border border-primary/20 bg-primary/5 px-3 py-2">
+        <div className="min-w-0 flex-1"><p className="text-[11px] font-semibold text-primary">Replying to {replyPreview.author}</p><p className="truncate text-xs text-muted-foreground">{replyPreview.body || "Media message"}</p></div>
+        <Button type="button" variant="ghost" size="icon" className="shrink-0" onClick={onCancelReply} aria-label="Cancel reply"><X className="size-4" /></Button>
+      </div>
+    ) : null}
     <form onSubmit={e => { e.preventDefault(); void (async () => { const text = draft.trim(); if (!text || disabled) return; setDraft(""); await onSendText(text); })(); }} className="flex items-end gap-2">
       <input ref={imageInput} type="file" accept="image/*" className="hidden" onChange={e => { void pick(e.target.files?.[0], "image"); e.currentTarget.value = ""; }} />
       <input ref={videoInput} type="file" accept="video/*" className="hidden" onChange={e => { void pick(e.target.files?.[0], "video"); e.currentTarget.value = ""; }} />
@@ -147,5 +158,6 @@ export function GroupComposer({
       <Input value={draft} onChange={e => setDraft(e.target.value)} disabled={disabled} placeholder={placeholder} maxLength={2000} className="min-w-0 flex-1 rounded-2xl" />
       <Button type="submit" size="icon" disabled={disabled || !draft.trim()} className="shrink-0 rounded-full"><Send className="size-4" /></Button>
     </form>
+    </>
   );
 }
