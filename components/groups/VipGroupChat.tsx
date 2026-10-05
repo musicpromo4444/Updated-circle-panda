@@ -8,7 +8,7 @@ import { VipGroupSponsorGift } from "@/components/groups/VipGroupSponsorGift";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-type VipMessage = GroupMediaItem & { mediaPath?: string };
+type VipMessage = GroupMediaItem & { mediaPath?: string; viewOnce?: boolean };
 
 export function VipGroupChat({ open, onOpenChange, groupId }: { open: boolean; onOpenChange: (open: boolean) => void; groupId: string }) {
   const [messages, setMessages] = useState<VipMessage[]>([]);
@@ -18,7 +18,7 @@ export function VipGroupChat({ open, onOpenChange, groupId }: { open: boolean; o
 
   const mapRow = async (row: any): Promise<VipMessage> => {
     let mediaUrl: string | undefined;
-    if (row.media_path) {
+    if (row.media_path && !row.view_once) {
       const { data } = await (supabase as any).storage.from("circle-panda-group-media").createSignedUrl(row.media_path, 3600);
       mediaUrl = data?.signedUrl;
     }
@@ -32,6 +32,7 @@ export function VipGroupChat({ open, onOpenChange, groupId }: { open: boolean; o
       messageType: row.message_type ?? "text",
       mediaPath: row.media_path,
       mediaUrl,
+      viewOnce: Boolean(row.view_once),
     };
   };
 
@@ -106,7 +107,7 @@ export function VipGroupChat({ open, onOpenChange, groupId }: { open: boolean; o
       return;
     }
     const ext = file.name.split(".").pop()?.toLowerCase() || (type === "image" ? "jpg" : type === "video" ? "mp4" : "webm");
-    const path = `vip/${user.id}/${crypto.randomUUID()}.${ext}`;
+    const path = `vip/${user.id}/${groupId}/${crypto.randomUUID()}.${ext}`;
     const { error: uploadError } = await (supabase as any).storage.from("circle-panda-group-media").upload(path, file, { contentType: file.type, upsert: false });
     if (uploadError) {
       toast.error(uploadError.message ?? "Media upload failed");
@@ -118,6 +119,7 @@ export function VipGroupChat({ open, onOpenChange, groupId }: { open: boolean; o
       p_media_path: path,
       p_mime_type: file.type,
       p_duration_seconds: durationSeconds ?? null,
+      p_view_once: type !== "audio" ? true : false,
       p_body: "",
     });
     if (error) {
@@ -134,7 +136,8 @@ export function VipGroupChat({ open, onOpenChange, groupId }: { open: boolean; o
       mine: true,
       messageType: type,
       mediaPath: path,
-      mediaUrl: signed?.signedUrl,
+      mediaUrl: type === "audio" ? signed?.signedUrl : undefined,
+      viewOnce: type !== "audio",
     }]);
   };
 
@@ -151,13 +154,13 @@ export function VipGroupChat({ open, onOpenChange, groupId }: { open: boolean; o
 
     <main className="min-h-0 flex-1 overflow-y-auto bg-secondary/10 px-3 py-4 sm:px-5">
       <div className="mx-auto max-w-4xl space-y-3">
-        {messages.map(m => <div key={m.id} className={m.mine ? "text-right" : ""}><p className="px-2 text-[11px] text-amber-400/70">{m.author}</p><GroupMediaMessage message={m} /></div>)}
+        {messages.map(m => <div key={m.id} className={m.mine ? "text-right" : ""}><p className="px-2 text-[11px] text-amber-400/70">{m.author}</p><GroupMediaMessage message={m} viewOnce={Boolean(m.viewOnce)} onViewOnceOpen={async()=>{ if(!m.mediaPath) return null; const {data:allowed,error}=await (supabase as any).rpc("claim_vip_group_media_view_once",{p_message_id:m.id}); if(error){toast.error(error.message ?? "This media could not be opened");return null;} if(allowed!==true){toast.info("This view-once media has already been opened.");return null;} const {data,error:signError}=await (supabase as any).storage.from("circle-panda-group-media").createSignedUrl(m.mediaPath,60); if(signError||!data?.signedUrl){toast.error(signError?.message ?? "Media unavailable");return null;} return data.signedUrl;}} /></div>)}
         <div ref={bottom} />
       </div>
     </main>
 
     <footer className="shrink-0 border-t border-amber-400/20 bg-background px-2 py-2 sm:px-3">
-      <div className="mx-auto max-w-4xl"><GroupComposer placeholder="Message the VIP group…" onSendText={sendText} onSendMedia={sendMedia} /></div>
+      <div className="mx-auto max-w-4xl"><GroupComposer placeholder="Message the VIP group…" onSendText={sendText} onSendMedia={sendMedia} allowViewOnce={true} /></div>
     </footer>
     <VipGroupSponsorGift groupId={groupId} />{activeCall ? <VipGroupCallOverlay type={activeCall} groupId={groupId} onClose={() => setActiveCall(null)} /> : null}
   </div>;
