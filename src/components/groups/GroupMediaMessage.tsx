@@ -3,7 +3,7 @@ import { Image as ImageIcon, Play, Volume2, X, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 
-export type GroupMediaItem = { id:string; author:string; body:string; at:number; mine?:boolean; messageType:"text"|"image"|"video"|"audio"; mediaUrl?:string; mediaPath?:string };
+export type GroupMediaItem = { id:string; author:string; body:string; at:number; mine?:boolean; messageType:"text"|"image"|"video"|"audio"; mediaUrl?:string; mediaPath?:string; durationSeconds?:number };
 export function GroupMediaMessage({ message, viewOnce = false, onDelete }: { message: GroupMediaItem; viewOnce?: boolean; onDelete?: (message: GroupMediaItem) => Promise<void> | void }) {
   const [viewerOpen,setViewerOpen]=useState(false);
   const [opened,setOpened]=useState(false);
