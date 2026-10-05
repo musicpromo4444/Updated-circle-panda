@@ -9,6 +9,7 @@ import { VipGroupSponsorGift } from "@/components/groups/VipGroupSponsorGift";
 import { supabase } from "@/integrations/supabase/client";
 import heic2any from "heic2any";
 import { toast } from "sonner";
+import { DEFAULT_VIP_WALLPAPER } from "./vipWallpaper";
 
 type VipMessage = GroupMediaItem & { mediaPath?: string; userId?: string };
 type CallConfig = { enabled: boolean; voice_enabled: boolean; video_enabled: boolean };
@@ -25,6 +26,7 @@ export function VipGroupChat({open,groupId,onOpenChange}:{open:boolean;groupId:s
   const [reportOpen,setReportOpen]=useState(false);
   const [reportReason,setReportReason]=useState("");
   const [busy,setBusy]=useState(false);
+  const [wallpaperUrl,setWallpaperUrl]=useState(DEFAULT_VIP_WALLPAPER);
   const bottom=useRef<HTMLDivElement>(null);
 
   const loadProfiles = async (ids:string[]) => {
@@ -61,6 +63,11 @@ export function VipGroupChat({open,groupId,onOpenChange}:{open:boolean;groupId:s
     if(!open||!groupId)return;
     let cancelled=false;
     void (async()=>{
+      const wallpaperRes=await (supabase as any).rpc("get_vip_group_wallpaper");
+      if(!wallpaperRes.error && wallpaperRes.data?.path && wallpaperRes.data.path!=="__DEFAULT__"){
+        const signed=await supabase.storage.from("circle-panda-group-media").createSignedUrl(String(wallpaperRes.data.path),3600);
+        if(signed.data?.signedUrl)setWallpaperUrl(signed.data.signedUrl);
+      } else setWallpaperUrl(DEFAULT_VIP_WALLPAPER);
       const {data,error}=await (supabase as any).rpc("get_vip_group_messages",{p_group_id:groupId});
       if(error){toast.error(error.message??"VIP group could not be loaded");return;}
       const rows=data??[];
@@ -108,13 +115,13 @@ export function VipGroupChat({open,groupId,onOpenChange}:{open:boolean;groupId:s
     const path=`vip/${user.id}/${groupId}/${crypto.randomUUID()}.${ext}`;
     const {error:uploadError}=await supabase.storage.from("circle-panda-group-media").upload(path,uploadFile,{contentType:uploadFile.type||"application/octet-stream",upsert:false});
     if(uploadError){toast.error(uploadError.message??"Media upload failed");return}
-    const {data,error}=await (supabase as any).rpc("send_vip_group_media_secure",{p_group_id:groupId,p_message_type:type,p_media_path:path,p_mime_type:uploadFile.type||null,p_duration_seconds:durationSeconds??null,p_body:"",p_view_once:Boolean(viewOnce&&type!=="audio")});
+    const {data,error}=await (supabase as any).rpc("send_vip_group_media_secure",{p_group_id:groupId,p_message_type:type,p_media_path:path,p_mime_type:uploadFile.type||null,p_duration_seconds:durationSeconds??null,p_body:"",p_view_once:false});
     if(error){
       await supabase.storage.from("circle-panda-group-media").remove([path]);
       toast.error(error.message??"VIP media could not be sent");return
     }
     const {data:signed}=await supabase.storage.from("circle-panda-group-media").createSignedUrl(path,3600);
-    setMessages(items=>[...items,{id:data.id,userId:user.id,author:"You",body:"",at:new Date(data.created_at).getTime(),mine:true,messageType:type,mediaPath:path,mediaUrl:signed?.signedUrl,durationSeconds,viewOnce:Boolean(viewOnce&&type!=="audio")}]);
+    setMessages(items=>[...items,{id:data.id,userId:user.id,author:"You",body:"",at:new Date(data.created_at).getTime(),mine:true,messageType:type,mediaPath:path,mediaUrl:signed?.signedUrl,durationSeconds,viewOnce:false}]);
   };
 
   const openMember=(userId:string,name:string)=>{
@@ -157,7 +164,7 @@ export function VipGroupChat({open,groupId,onOpenChange}:{open:boolean;groupId:s
         {callConfig?.enabled&&callConfig.video_enabled?<Button variant="ghost" size="icon" title="VIP group video call" onClick={()=>setActiveCall("video")}><Video className="size-5 text-amber-400"/></Button>:null}
       </header>
 
-      <main className="min-h-0 flex-1 overflow-y-auto bg-secondary/10 px-3 py-4 sm:px-5">
+      <main className="relative min-h-0 flex-1 overflow-y-auto px-3 py-4 sm:px-5" style={{backgroundImage:`linear-gradient(rgba(5,12,10,.72),rgba(5,12,10,.82)),url(${wallpaperUrl})`,backgroundSize:"cover",backgroundPosition:"center",backgroundAttachment:"fixed"}}>
         <div className="mx-auto max-w-4xl space-y-3">
           {messages.map(m=>{
             const displayName=m.mine?"You":(profiles[m.userId||""]?.display_name||m.author||"VIP Member");
@@ -172,7 +179,7 @@ export function VipGroupChat({open,groupId,onOpenChange}:{open:boolean;groupId:s
         </div>
       </main>
 
-      <footer className="shrink-0 border-t border-amber-400/20 bg-background px-2 py-2 sm:px-3"><div className="mx-auto max-w-4xl"><GroupComposer placeholder="Message the VIP group…" onSendText={sendText} onSendMedia={sendMedia} allowViewOnce/></div></footer>
+      <footer className="shrink-0 border-t border-amber-400/20 bg-background px-2 py-2 sm:px-3"><div className="mx-auto max-w-4xl"><GroupComposer placeholder="Message the VIP group…" onSendText={sendText} onSendMedia={sendMedia} allowViewOnce={false}/></div></footer>
       <VipGroupSponsorGift groupId={groupId}/>
       {activeCall?<VipGroupCallOverlay type={activeCall} groupId={groupId} onClose={()=>setActiveCall(null)}/>:null}
     </div>
