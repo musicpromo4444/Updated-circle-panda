@@ -1155,6 +1155,16 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     return true;
   }, [refreshCoins]);
 
+  const payCrushVote = useCallback(async (id: string): Promise<boolean> => {
+    const { data: authData } = await supabase.auth.getUser();
+    if (!authData.user || authData.user.is_anonymous) { requestLogin("vote"); return false; }
+    const { data: voteData, error } = await (supabase as any).rpc("cast_crush_vote_paid_secure", { p_nominee_id: id });
+    if (error) { toast.error(error.message ?? "Vote could not be counted"); return false; }
+    void refreshCoins();
+    toast.success("Vote counted · 1 BC");
+    return true;
+  }, [refreshCoins]);
+
   /** Server-authoritative WCW/MCM weekly close. */
   useEffect(() => {
     const check = async () => {
@@ -1473,7 +1483,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       syncCoins: refreshCoins,
       syncAccountEntitlements,
       nominate,
-      voteFor,
+      voteFor, payCrushVote,
       freeVotesLeft: Math.max(
         0,
         FREE_WEEKLY_VOTES - (state.voteDay === todayKey() ? state.votesUsedToday : 0),
