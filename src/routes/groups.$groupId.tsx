@@ -753,7 +753,7 @@ function GroupRoom() {
         <div ref={bottom} />
       </div>
 
-      {live && group?.sendMessages !== false ? (
+      {!groupLoading && live && group?.sendMessages !== false ? (
         <>
         {replyTo ? <div className="border-t border-border bg-secondary/30 px-3 py-2 text-xs"><div className="flex items-center justify-between"><span className="text-muted-foreground">Replying to {replyTo.author}</span><Button type="button" variant="ghost" size="sm" onClick={()=>setReplyTo(null)}>Cancel</Button></div><p className="truncate">{replyTo.body}</p></div> : null}
         {voiceBlob || recording ? (
