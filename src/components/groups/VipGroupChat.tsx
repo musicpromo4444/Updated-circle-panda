@@ -46,11 +46,11 @@ export function VipGroupChat({open,groupId,onOpenChange}:{open:boolean;groupId:s
     const uid=(await supabase.auth.getUser()).data.user?.id;
     return {
       id:row.id,
-      userId:row.user_id,
-      author:row.user_id===uid?"You":profiles[row.user_id]?.display_name||"VIP Member",
+      userId:row.sender_id,
+      author:row.sender_id===uid?"You":profiles[row.sender_id]?.display_name||"VIP Member",
       body:row.body??"",
       at:new Date(row.created_at).getTime(),
-      mine:row.user_id===uid,
+      mine:row.sender_id===uid,
       messageType:row.message_type??"text",
       mediaPath:row.media_path??undefined,
       mediaUrl,
@@ -94,34 +94,53 @@ export function VipGroupChat({open,groupId,onOpenChange}:{open:boolean;groupId:s
   },[open,groupId]);
 
   const sendText=async(body:string)=>{
-    const {data,error}=await (supabase as any).rpc("send_vip_group_message_secure",{p_group_id:groupId,p_body:body});
+    const user=(await supabase.auth.getUser()).data.user;
+    if(!user){toast.error("Sign in to send messages");return}
+    const {data,error}=await (supabase as any).rpc("send_group_message",{
+      p_group_id:groupId,p_body:body,p_media_type:null,p_media_path:null,p_reply_to_id:null,p_view_once:false,p_idempotency_key:crypto.randomUUID()
+    });
     if(error){toast.error(error.message??"VIP message could not be sent");return}
-    setMessages(items=>[...items,{id:data.id,userId:data.user_id,author:"You",body,at:new Date(data.created_at).getTime(),mine:true,messageType:"text"}]);
+    setMessages(items=>[...items,{id:String(data),userId:user.id,author:"You",body,at:Date.now(),mine:true,messageType:"text"}]);
   };
 
   const sendMedia=async({type,file,durationSeconds,viewOnce}:OutgoingGroupMedia)=>{
     const user=(await supabase.auth.getUser()).data.user;
-    if(!user){toast.error("Sign in to send media");return}
-    if(file.size>25*1024*1024){toast.error("Media must be 25 MB or smaller.");return}
+    if(!user) throw new Error("Sign in to send media");
+    if(file.size>25*1024*1024) throw new Error("Media must be 25 MB or smaller.");
     let uploadFile=file;
     if(type==="image"&&/(^image\/(heic|heif)$)|\.(heic|heif)$/i.test(file.type||file.name)){
       try{
         const converted=await heic2any({blob:file,toType:"image/jpeg",quality:0.9});
         const blob=Array.isArray(converted)?converted[0]:converted;
         uploadFile=new File([blob],file.name.replace(/\.(heic|heif)$/i,".jpg"),{type:"image/jpeg"});
-      }catch{toast.error("This HEIC photo could not be converted.");return}
+      }catch{throw new Error("This HEIC photo could not be converted.")}
     }
     const ext=uploadFile.name.split(".").pop()?.toLowerCase()??(type==="image"?"jpg":type==="video"?"mp4":"webm");
-    const path=`vip/${user.id}/${groupId}/${crypto.randomUUID()}.${ext}`;
+    const path=user.id+"/"+groupId+"/"+crypto.randomUUID()+"."+ext;
     const {error:uploadError}=await supabase.storage.from("circle-panda-group-media").upload(path,uploadFile,{contentType:uploadFile.type||"application/octet-stream",upsert:false});
-    if(uploadError){toast.error(uploadError.message??"Media upload failed");return}
-    const {data,error}=await (supabase as any).rpc("send_vip_group_media_secure",{p_group_id:groupId,p_message_type:type,p_media_path:path,p_mime_type:uploadFile.type||null,p_duration_seconds:durationSeconds??null,p_body:"",p_view_once:false});
+    if(uploadError) throw new Error(uploadError.message??"Media upload failed");
+    const selectedViewOnce=type==="audio"?false:Boolean(viewOnce);
+    const {data,error}=await (supabase as any).rpc("send_group_message",{
+      p_group_id:groupId,p_body:"",p_media_type:type,p_media_path:path,p_reply_to_id:null,p_view_once:selectedViewOnce,p_idempotency_key:crypto.randomUUID()
+    });
     if(error){
       await supabase.storage.from("circle-panda-group-media").remove([path]);
-      toast.error(error.message??"VIP media could not be sent");return
+      throw new Error(error.message??"VIP media could not be sent");
     }
     const {data:signed}=await supabase.storage.from("circle-panda-group-media").createSignedUrl(path,3600);
-    setMessages(items=>[...items,{id:data.id,userId:user.id,author:"You",body:"",at:new Date(data.created_at).getTime(),mine:true,messageType:type,mediaPath:path,mediaUrl:signed?.signedUrl,durationSeconds,viewOnce:false}]);
+    setMessages(items=>[...items,{id:String(data),userId:user.id,author:"You",body:"",at:Date.now(),mine:true,messageType:type,mediaPath:path,mediaUrl:signed?.signedUrl,durationSeconds,viewOnce:selectedViewOnce}]);
+  };
+
+  const deleteMedia=async(message: VipMessage)=>{
+    if(!message.mine)return;
+    const {data,error}=await (supabase as any).rpc("delete_group_message",{p_message_id:message.id});
+    if(error){toast.error(error.message??"Media could not be deleted");return}
+    setMessages(items=>items.filter(m=>m.id!==message.id));
+    if(data?.media_path){
+      const {error:storageError}=await supabase.storage.from("circle-panda-group-media").remove([data.media_path]);
+      if(storageError) toast.warning("The message was deleted, but the stored media could not be cleaned up automatically.");
+    }
+    toast.success("Media deleted");
   };
 
   const openMember=(userId:string,name:string)=>{
@@ -135,7 +154,7 @@ export function VipGroupChat({open,groupId,onOpenChange}:{open:boolean;groupId:s
     const currentUserId=(await supabase.auth.getUser()).data.user?.id;
     if(currentUserId===memberMenu.userId){window.dispatchEvent(new CustomEvent("circle-panda-self-message-blocked"));setDmOpen(false);setMemberMenu(null);return;}
     setBusy(true);
-    const {error}=await (supabase as any).rpc("request_direct_message_secure",{p_recipient_id:memberMenu.userId,p_message:dmText.trim()||"Hi, I’d like to chat with you."});
+    const {error}=await (supabase as any).rpc("start_dm_request",{p_recipient_id:memberMenu.userId,p_body:dmText.trim()||"Hi, I’d like to chat with you.",p_media_path:null,p_media_type:null,p_context_type:"direct",p_context_id:null});
     setBusy(false);
     if(error){toast.error(error.message??"Message request could not be sent");return}
     toast.success(`Message request sent to ${memberMenu.name}`);
@@ -174,14 +193,14 @@ export function VipGroupChat({open,groupId,onOpenChange}:{open:boolean;groupId:s
               <button type="button" className="mb-0.5 inline-flex items-center gap-1.5 px-2 text-[11px] text-amber-400/80 hover:text-amber-300" onClick={()=>m.userId&&openMember(m.userId,displayName)} disabled={m.mine}>
                 <UserRound className="size-3"/> {displayName}
               </button>
-              <GroupMediaMessage message={m} viewOnce={Boolean(m.viewOnce)}/>
+              <GroupMediaMessage message={m} viewOnce={Boolean(m.viewOnce)} onDelete={m.mine ? deleteMedia : undefined}/>
             </div>
           })}
           <div ref={bottom}/>
         </div>
       </main>
 
-      <footer className="shrink-0 border-t border-amber-400/20 bg-background px-2 py-2 sm:px-3"><div className="mx-auto max-w-4xl"><GroupComposer placeholder="Message the VIP group…" onSendText={sendText} onSendMedia={sendMedia} allowViewOnce={false}/></div></footer>
+      <footer className="shrink-0 border-t border-amber-400/20 bg-background px-2 py-2 sm:px-3"><div className="mx-auto max-w-4xl"><GroupComposer placeholder="Message the VIP group…" onSendText={sendText} onSendMedia={sendMedia} allowViewOnce={true}/></div></footer>
       <VipGroupSponsorGift groupId={groupId}/>
       {activeCall?<VipGroupCallOverlay type={activeCall} groupId={groupId} onClose={()=>setActiveCall(null)}/>:null}
     </div>
