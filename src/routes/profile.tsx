@@ -30,7 +30,7 @@ import { ProfileProgressCard } from "@/components/ProfileProgressCard";
 import { VipIdentity } from "@/components/VipIdentity";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { PandaAvatar } from "@/components/PandaAvatar";
-import { useStore, pandaProgress, starRating, pandaTier, TIERS } from "@/lib/store";
+import { useStore, pandaProgress, starRating } from "@/lib/store";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
@@ -254,7 +254,6 @@ function ProfilePage() {
   const { coins, reputation, level, xp, posts, threads, groups, mySpotlight, isVip, vipExpiresAt } =
     useStore();
   const pandaRank = pandaProgress(xp);
-  const tier = pandaTier(reputation);
   const [publishedConfessions, setPublishedConfessions] = useState(0);
   useEffect(() => {
     if (!profileId) return;
