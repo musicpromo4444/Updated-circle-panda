@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ChevronLeft, Lock, LogOut, Pencil, Settings, Timer, Users } from "lucide-react";
+import { ChevronLeft, Lock, LogOut, Pencil, Reply, Settings, Timer, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useStore, DAY_MS, type GroupChatMessage } from "@/lib/store";
@@ -26,11 +26,16 @@ function countdown(openedAt: number) {
   return `${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`;
 }
 
+type GroupRoomMessage = GroupChatMessage & { replyToId?: string };
+
+type ReplyTarget = { id: string; author: string; body: string };
+
 function GroupRoom() {
   const { groupId } = useParams({ from: "/groups/$groupId" });
   const { groups, isGroupExpired, leaveGroup, updateGroupInfo, updateGroupSettings } = useStore();
   const group = groups.find((g) => g.id === groupId) ?? null;
-  const [messages, setMessages] = useState<GroupChatMessage[]>(group?.messages ?? []);
+  const [messages, setMessages] = useState<GroupRoomMessage[]>(group?.messages ?? []);
+  const [replyTarget, setReplyTarget] = useState<ReplyTarget | null>(null);
   const [, setTick] = useState(0);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [memberEditOpen, setMemberEditOpen] = useState(false);
@@ -53,17 +58,17 @@ function GroupRoom() {
     void (supabase as any).from("group_join_requests").select("id,user_id,created_at,status").eq("group_id",group.id).eq("status","pending").order("created_at",{ascending:true}).then(({data}:any)=>setJoinRequests(data ?? []));
   }, [group?.id,group?.memberRole,group?.approveNewMembers]);
 
-  const mapRow = async (row:any):Promise<GroupChatMessage> => {
+  const mapRow = async (row:any):Promise<GroupRoomMessage> => {
     let mediaUrl:string|undefined;
     if(row.media_path){const {data}=await (supabase as any).storage.from("circle-panda-group-media").createSignedUrl(row.media_path,3600);mediaUrl=data?.signedUrl;}
     const current=(await supabase.auth.getUser()).data.user?.id;
-    return {id:row.id,author:row.user_id===current?"You (anonymous)":"Anonymous Panda",body:row.body??"",at:new Date(row.created_at).getTime(),mine:row.user_id===current,messageType:row.message_type??"text",mediaPath:row.media_path??undefined,mimeType:row.mime_type??undefined,durationSeconds:row.duration_seconds??null,mediaUrl};
+    return {id:row.id,author:row.user_id===current?"You (anonymous)":"Anonymous Panda",body:row.body??"",at:new Date(row.created_at).getTime(),mine:row.user_id===current,messageType:row.message_type??"text",mediaPath:row.media_path??undefined,mimeType:row.mime_type??undefined,durationSeconds:row.duration_seconds??null,mediaUrl,replyToId:row.reply_to_id??undefined};
   };
 
   useEffect(() => {
     if(!groupId || !live) return;
     let cancelled=false;
-    void (async()=>{const {data,error}=await (supabase as any).from("cp_group_messages").select("id,group_id,user_id,body,created_at,message_type,media_path,mime_type,duration_seconds").eq("group_id",groupId).order("created_at",{ascending:true}).limit(1000); if(error){toast.error(error.message??"Could not load group messages");return;} const rows=await Promise.all((data??[]).map(mapRow)); if(!cancelled)setMessages(rows);})();
+    void (async()=>{const {data,error}=await (supabase as any).from("cp_group_messages").select("id,group_id,user_id,body,created_at,message_type,media_path,mime_type,duration_seconds,reply_to_id").eq("group_id",groupId).order("created_at",{ascending:true}).limit(1000); if(error){toast.error(error.message??"Could not load group messages");return;} const rows=await Promise.all((data??[]).map(mapRow)); if(!cancelled)setMessages(rows);})();
     const channel=supabase.channel(`group:${groupId}:messages`).on("postgres_changes",{event:"INSERT",schema:"public",table:"cp_group_messages",filter:`group_id=eq.${groupId}`},(payload:any)=>{void mapRow(payload.new).then(msg=>{if(!cancelled)setMessages(current=>current.some(m=>m.id===msg.id)?current:[...current,msg]);});}).subscribe();
     return()=>{cancelled=true;void supabase.removeChannel(channel);};
   },[groupId,live]);
@@ -71,7 +76,7 @@ function GroupRoom() {
   useEffect(()=>{bottom.current?.scrollIntoView({behavior:"smooth"});},[messages.length]);
 
   const maybeShowSponsorAd=async()=>{ if(!groupId || sponsorAdCreative) return; const {data,error}=await (supabase as any).rpc("start_group_reward_ad_secure",{p_group_id:groupId}); if(error){console.warn("Group sponsor ad unavailable:",error.message);return;} if(data?.show)setSponsorAdCreative(data); };
-  const sendText=async(body:string)=>{const {data,error}=await (supabase as any).rpc("send_group_message_secure",{p_group_id:groupId,p_body:body});if(error){toast.error(error.message??"Message could not be sent");return;}setMessages(current=>[...current,{id:data.id,author:"You (anonymous)",body,at:new Date(data.created_at).getTime(),mine:true,messageType:"text"}]);void maybeShowSponsorAd();};
+  const sendText=async(body:string)=>{const replyId=replyTarget?.id??null;const {data,error}=await (supabase as any).rpc("send_group_message_secure",{p_group_id:groupId,p_body:body,p_reply_to_id:replyId});if(error){toast.error(error.message??"Message could not be sent");return;}setMessages(current=>[...current,{id:data.id,author:"You (anonymous)",body,at:new Date(data.created_at).getTime(),mine:true,messageType:"text",replyToId:replyId??undefined}]);setReplyTarget(null);void maybeShowSponsorAd();};
   const sendMedia=async({type,file,durationSeconds}:OutgoingGroupMedia)=>{const user=(await supabase.auth.getUser()).data.user;if(!user){toast.error("Sign in to send media");return;}const ext=file.name.split(".").pop()?.toLowerCase()||(type==="image"?"jpg":type==="video"?"mp4":"webm");const path=`${groupId}/${user.id}/${crypto.randomUUID()}.${ext}`;const {error:uploadError}=await (supabase as any).storage.from("circle-panda-group-media").upload(path,file,{contentType:file.type,upsert:false});if(uploadError){toast.error(uploadError.message??"Media upload failed");return;}const {data,error}=await (supabase as any).rpc("send_group_media_secure",{p_group_id:groupId,p_message_type:type,p_media_path:path,p_mime_type:file.type,p_duration_seconds:durationSeconds??null,p_view_once:true,p_body:""});if(error){await (supabase as any).storage.from("circle-panda-group-media").remove([path]);toast.error(error.message??"Media message could not be sent");return;}const {data:signed}=await (supabase as any).storage.from("circle-panda-group-media").createSignedUrl(path,3600);setMessages(current=>[...current,{id:data.id,author:"You (anonymous)",body:"",at:new Date(data.created_at).getTime(),mine:true,messageType:type,mediaPath:path,mimeType:file.type,durationSeconds:durationSeconds??null,mediaUrl:signed?.signedUrl}]);void maybeShowSponsorAd();};
 
   const mediaMessages:GroupMediaItem[]=useMemo(()=>messages.map(m=>({id:m.id,author:m.author,body:m.body,at:m.at,mine:m.mine,messageType:m.messageType??"text",mediaUrl:m.mediaUrl,durationSeconds:m.durationSeconds,mimeType:m.mimeType})),[messages]);
@@ -114,12 +119,13 @@ function GroupRoom() {
     <main className="min-h-0 flex-1 overflow-y-auto bg-secondary/10 px-3 py-4 sm:px-5">
       <div className="mx-auto max-w-4xl space-y-3">
         {!live?<div className="py-12 text-center text-sm text-muted-foreground"><Lock className="mx-auto mb-2 size-6"/>{expired?"This group is locked after its 24-hour chat window.":"This group is waiting to be activated."}</div>:null}
-        {live&&mediaMessages.map(m=><div key={m.id} className={m.mine?"text-right":""}><p className="px-2 text-[11px] text-muted-foreground">{m.author}</p><GroupMediaMessage message={m}/></div>)}
+        {live&&mediaMessages.map(m=><div key={m.id} className={m.mine?"text-right":""}><p className="px-2 text-[11px] text-muted-foreground">{m.author}</p><GroupMediaMessage message={m} onReply={()=>setReplyTarget({id:m.id,author:m.author,body:m.body})}/>
+            {m.replyToId ? <div className="ml-auto mr-2 mt-1 max-w-[75%] rounded-lg border-l-2 border-primary/50 bg-secondary/30 px-2 py-1 text-left text-[10px] text-muted-foreground">Replying to {messages.find(x=>x.id===m.replyToId)?.author ?? "message"}: {messages.find(x=>x.id===m.replyToId)?.body ?? "message"}</div> : null}</div>)}
         <div ref={bottom}/>
       </div>
     </main>
 
-    <footer className="shrink-0 border-t border-border bg-background px-2 py-2 sm:px-3"><div className="mx-auto max-w-4xl">{live&&group.sendMessages!==false?<GroupComposer disabled={!live} placeholder="Message the group…" onSendText={sendText} onSendMedia={sendMedia}/>:live?<p className="py-2 text-center text-xs text-muted-foreground">Only group admins can send messages right now.</p>:null}</div></footer>
+    <footer className="shrink-0 border-t border-border bg-background px-2 py-2 sm:px-3"><div className="mx-auto max-w-4xl">{live&&group.sendMessages!==false?<GroupComposer disabled={!live} placeholder="Message the group…" onSendText={sendText} onSendMedia={sendMedia} replyPreview={replyTarget ? {author:replyTarget.author,body:replyTarget.body} : null} onCancelReply={()=>setReplyTarget(null)}/>:live?<p className="py-2 text-center text-xs text-muted-foreground">Only group admins can send messages right now.</p>:null}</div></footer>
     {sponsorAdCreative ? <GroupSponsorAd creative={sponsorAdCreative} onClose={()=>setSponsorAdCreative(null)} /> : null}
   </div>;>;
 }
