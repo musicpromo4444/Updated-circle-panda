@@ -20,7 +20,7 @@ export function GroupComposer({
 }: {
   disabled?: boolean;
   placeholder?: string;
-  onSendText: (body: string) => Promise<void> | void;
+  onSendText: (body: string) => Promise<boolean | void> | boolean | void;
   onSendMedia: (media: OutgoingGroupMedia) => Promise<void>;
   allowViewOnce?: boolean;
 }) {
@@ -159,8 +159,12 @@ export function GroupComposer({
   const sendVoice = async () => {
     if (!voiceBlob || disabled) return;
     const file = new File([voiceBlob], `voice-${Date.now()}.${voiceBlob.type.includes("mp4") ? "m4a" : "webm"}`, { type: voiceBlob.type || "audio/webm" });
-    await onSendMedia({ type: "audio", file, durationSeconds: seconds });
-    clearVoice();
+    try {
+      await onSendMedia({ type: "audio", file, durationSeconds: seconds });
+      clearVoice();
+    } catch {
+      // Keep the recording available for retry when upload/send fails.
+    }
   };
 
   const cancelVoice = () => clearVoice();
@@ -170,7 +174,17 @@ export function GroupComposer({
   }, [pendingMedia?.previewUrl]);
 
   return (
-    <form onSubmit={(e) => { e.preventDefault(); const text = draft.trim(); if (!text || disabled || recording || voiceBlob) return; setDraft(""); void onSendText(text); }} className="flex items-end gap-2">
+    <form onSubmit={async (e) => {
+      e.preventDefault();
+      const text = draft.trim();
+      if (!text || disabled || recording || voiceBlob) return;
+      try {
+        const result = await onSendText(text);
+        if (result !== false) setDraft("");
+      } catch {
+        // Keep the draft when the send fails.
+      }
+    }} className="flex items-end gap-2">
       <input ref={imageInput} type="file" accept="image/*" className="hidden" onChange={(e) => { void pick(e.target.files?.[0], "image"); e.currentTarget.value = ""; }} />
       <input ref={videoInput} type="file" accept="video/*" className="hidden" onChange={(e) => { void pick(e.target.files?.[0], "video"); e.currentTarget.value = ""; }} />
 
