@@ -138,7 +138,7 @@ function DatingPage() {
     const [userRes, connRes, requestRes] = await Promise.all([
       (supabase as any).auth.getUser(),
       (supabase as any).from("dating_connections").select("id,requester_id,recipient_id,status,requester_confirmed,recipient_confirmed,matched_at,reveal_at"),
-      (supabase as any).from("direct_message_requests").select("id,sender_id,recipient_id,status,created_at,thread_id,message").eq("kind","dating"),
+      (supabase as any).from("dm_requests").select("id,sender_id,recipient_id,status,created_at,thread_id,context_type,source_label").eq("context_type","dating"),
     ]);
     const uid = userRes?.data?.user?.id;
     const rows = connRes?.data ?? [];
@@ -164,7 +164,7 @@ function DatingPage() {
       .on("postgres_changes", {event:"*", schema:"public", table:"dating_connections"}, () => {
         void loadConnections();
       })
-      .on("postgres_changes", {event:"*", schema:"public", table:"direct_message_requests"}, () => {
+      .on("postgres_changes", {event:"*", schema:"public", table:"dm_requests"}, () => {
         void loadConnections();
       })
       .subscribe();
@@ -312,8 +312,8 @@ setSameCountryOnly(false);
             {incoming.map((r:any)=>(
               <div key={r.id} className="flex items-center gap-2 rounded-xl bg-background/70 p-3">
                 <span className="grid size-9 place-items-center rounded-full bg-secondary">🐼</span><span className="flex-1 text-sm">Anonymous Panda</span>
-                <Button size="sm" onClick={()=>void (supabase as any).rpc("respond_direct_message_request_secure",{p_request_id:r.id,p_accept:true}).then(async ({data,error}:any)=>{if(error){toast.error(error.message??"Could not accept request");return;} await loadConnections();toast.success("Message request accepted 💗",{description:"Your free 72-hour Dating Chat is ready."}); if(data?.thread_id) void navigate({to:"/messages",search:{thread:data.thread_id}});})}>Accept</Button>
-                <Button size="sm" variant="outline" onClick={()=>void (supabase as any).rpc("respond_direct_message_request_secure",{p_request_id:r.id,p_accept:false}).then(({error}:any)=>{if(error)throw error;setIncoming(x=>x.filter(y=>y.id!==r.id));})}>Decline</Button>
+                <Button size="sm" onClick={()=>void (supabase as any).rpc("respond_dm_request",{p_request_id:r.id,p_accept:true}).then(async ({data,error}:any)=>{if(error){toast.error(error.message??"Could not accept request");return;} await loadConnections();toast.success("Message request accepted 💗",{description:"Your free 72-hour Dating Chat is ready."}); if(data?.thread_id) void navigate({to:"/messages",search:{thread:data.thread_id}});})}>Accept</Button>
+                <Button size="sm" variant="outline" onClick={()=>void (supabase as any).rpc("respond_dm_request",{p_request_id:r.id,p_accept:false}).then(({error}:any)=>{if(error)throw error;setIncoming(x=>x.filter(y=>y.id!==r.id));})}>Decline</Button>
               </div>
             ))}
           </div>
