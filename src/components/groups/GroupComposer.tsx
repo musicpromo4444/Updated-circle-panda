@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Image as ImageIcon, Mic, Send, Square, Video, X, Pause, Play } from "lucide-react";
+import { Image as ImageIcon, Mic, Send, Square, Video, X, Pause, Play, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
@@ -8,6 +8,7 @@ export type OutgoingGroupMedia = {
   type: "image" | "video" | "audio";
   file: File;
   durationSeconds?: number;
+  viewOnce?: boolean;
 };
 
 export function GroupComposer({
@@ -15,11 +16,13 @@ export function GroupComposer({
   placeholder = "Message…",
   onSendText,
   onSendMedia,
+  allowViewOnce = false,
 }: {
   disabled?: boolean;
   placeholder?: string;
   onSendText: (body: string) => Promise<void> | void;
   onSendMedia: (media: OutgoingGroupMedia) => Promise<void>;
+  allowViewOnce?: boolean;
 }) {
   const [draft, setDraft] = useState("");
   const [recording, setRecording] = useState(false);
@@ -28,6 +31,8 @@ export function GroupComposer({
   const [seconds, setSeconds] = useState(0);
   const [voiceBlob, setVoiceBlob] = useState<Blob | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [pendingMedia, setPendingMedia] = useState<{ type: "image" | "video"; file: File; previewUrl: string } | null>(null);
+  const [pendingViewOnce, setPendingViewOnce] = useState(false);
   const timerRef = useRef<number | null>(null);
   const startedAtRef = useRef<number | null>(null);
   const elapsedBeforePauseRef = useRef(0);
@@ -62,7 +67,26 @@ export function GroupComposer({
       toast.error("Media must be 25 MB or smaller.");
       return;
     }
-    await onSendMedia({ type, file });
+    const url = URL.createObjectURL(file);
+    setPendingMedia({ type, file, previewUrl: url });
+    setPendingViewOnce(allowViewOnce ? false : false);
+  };
+
+  const clearPendingMedia = () => {
+    if (pendingMedia?.previewUrl) URL.revokeObjectURL(pendingMedia.previewUrl);
+    setPendingMedia(null);
+    setPendingViewOnce(false);
+  };
+
+  const sendPendingMedia = async () => {
+    if (!pendingMedia || disabled) return;
+    const media = pendingMedia;
+    try {
+      await onSendMedia({ type: media.type, file: media.file, viewOnce: allowViewOnce && pendingViewOnce });
+      clearPendingMedia();
+    } catch {
+      // Keep the preview available if the upload/send fails so the user can retry.
+    }
   };
 
   const startRecording = async () => {
@@ -141,12 +165,33 @@ export function GroupComposer({
 
   const cancelVoice = () => clearVoice();
 
+  useEffect(() => () => {
+    if (pendingMedia?.previewUrl) URL.revokeObjectURL(pendingMedia.previewUrl);
+  }, [pendingMedia?.previewUrl]);
+
   return (
     <form onSubmit={(e) => { e.preventDefault(); const text = draft.trim(); if (!text || disabled || recording || voiceBlob) return; setDraft(""); void onSendText(text); }} className="flex items-end gap-2">
       <input ref={imageInput} type="file" accept="image/*" className="hidden" onChange={(e) => { void pick(e.target.files?.[0], "image"); e.currentTarget.value = ""; }} />
       <input ref={videoInput} type="file" accept="video/*" className="hidden" onChange={(e) => { void pick(e.target.files?.[0], "video"); e.currentTarget.value = ""; }} />
 
-      {recording || voiceBlob ? (
+      {pendingMedia ? (
+        <div className="flex min-w-0 flex-1 items-center gap-2 rounded-2xl border border-border bg-card p-2 shadow-sm">
+          <button type="button" onClick={clearPendingMedia} className="relative size-16 shrink-0 overflow-hidden rounded-xl bg-black" aria-label="Remove selected media">
+            {pendingMedia.type === "image" ? <img src={pendingMedia.previewUrl} alt="Selected photo" className="size-full object-cover" /> : <video src={pendingMedia.previewUrl} muted playsInline className="size-full object-cover" />}
+            <span className="absolute right-1 top-1 grid size-5 place-items-center rounded-full bg-black/70 text-white"><X className="size-3" /></span>
+          </button>
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-xs font-semibold">{pendingMedia.type === "image" ? "Photo ready" : "Video ready"}</p>
+            {allowViewOnce ? (
+              <button type="button" onClick={() => setPendingViewOnce((v) => !v)} className="mt-1 inline-flex items-center gap-1.5 rounded-full border border-border px-2.5 py-1.5 text-[11px] font-semibold">
+                {pendingViewOnce ? <Eye className="size-3.5" /> : <EyeOff className="size-3.5" />}
+                {pendingViewOnce ? "View once" : "Reusable"}
+              </button>
+            ) : <span className="mt-1 block text-[11px] text-muted-foreground">Ready to send</span>}
+          </div>
+          <Button type="button" size="icon" onClick={() => void sendPendingMedia()} aria-label="Send selected media"><Send className="size-4" /></Button>
+        </div>
+      ) : recording || voiceBlob ? (
         <div className="flex min-w-0 flex-1 items-center gap-2 rounded-2xl border border-border bg-card px-2 py-1.5">
           <Button type="button" variant="ghost" size="icon" className="shrink-0" onClick={cancelVoice} aria-label="Delete voice recording"><X className="size-5" /></Button>
           <div className="min-w-0 flex-1">
