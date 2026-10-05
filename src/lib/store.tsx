@@ -1041,6 +1041,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const startDatingChat = useCallback((userId: string, name: string) => {
     if (!dbUserId) { requestLogin("use Dating"); return Promise.resolve(null); }
     if (!userId) return Promise.resolve(null);
+    if (userId === dbUserId) { window.dispatchEvent(new CustomEvent("circle-panda-self-message-blocked")); return Promise.resolve(null); }
+    if (userId === dbUserId) { window.dispatchEvent(new CustomEvent("circle-panda-self-message-blocked")); return Promise.resolve(null); }
     return (async () => {
       const { data, error } = await (supabase as any).rpc("create_direct_thread", { p_other_user_id:userId, p_kind:"dating", p_blurb:"Matched from Dating" });
       if (error) { toast.error(error.message ?? "Dating chat is still locked"); return null; }
