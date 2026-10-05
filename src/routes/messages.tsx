@@ -169,8 +169,12 @@ function MessagesPage() {
     if (error) { toast.error(error.message ?? "Message could not be deleted"); return; }
     // Refresh the canonical thread list so the deleted message cannot reappear from stale state.
     await refreshThreads();
-    // Canonical DM media storage is handled by the media-owner record/storage
-    // when media messaging is enabled. The message itself is removed here first.
+    const mediaPath = String((data as any)?.media_path ?? "");
+    const mediaBucket = String((data as any)?.media_bucket ?? "");
+    if (mediaPath && mediaBucket) {
+      const { error: storageError } = await supabase.storage.from(mediaBucket).remove([mediaPath]);
+      if (storageError) toast.warning("Message deleted, but its stored media could not be cleaned up automatically.");
+    }
     toast.success("Message deleted");
   };
 
