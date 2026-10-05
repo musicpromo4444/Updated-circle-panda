@@ -1077,19 +1077,23 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const startDatingChat = useCallback((userId: string, name: string) => {
     if (!dbUserId) { requestLogin("use Dating"); return Promise.resolve(null); }
-    if (!userId) return Promise.resolve(null);
-    if (userId === dbUserId) { window.dispatchEvent(new CustomEvent("circle-panda-self-message-blocked")); return Promise.resolve(null); }
-    if (userId === dbUserId) { window.dispatchEvent(new CustomEvent("circle-panda-self-message-blocked")); return Promise.resolve(null); }
+    if (!userId || userId === dbUserId) { if (userId === dbUserId) window.dispatchEvent(new CustomEvent("circle-panda-self-message-blocked")); return Promise.resolve(null); }
     return (async () => {
-      const { data, error } = await (supabase as any).rpc("create_direct_thread", { p_other_user_id:userId, p_kind:"dating", p_blurb:"Matched from Dating" });
-      if (error) { toast.error(error.message ?? "Dating chat is still locked"); return null; }
-      const id = data.id as string;
-      setState(s => s.threads.some(t=>t.id===id) ? s : {...s,threads:[{id,name,kind:"dating",blurb:"Matched from Dating",messages:[],startedAt:Date.now()},...s.threads]});
-      await (supabase as any).rpc("award_xp_secure", { p_action:"dating_match_chat", p_reference_id:id });
-      void refreshCoins();
-      return id;
+      const { data: existingThreadId, error: lookupError } = await (supabase as any).rpc("get_existing_dm_thread", { p_other_user_id:userId });
+      if (lookupError) { toast.error(lookupError.message ?? "Dating chat could not be opened"); return null; }
+      if (existingThreadId) {
+        setState(s => s.threads.some(t=>t.id===existingThreadId) ? s : {...s,threads:[{id:existingThreadId,name,kind:"dating",blurb:"Dating",messages:[],startedAt:Date.now()},...s.threads]});
+        return String(existingThreadId);
+      }
+      const { error } = await (supabase as any).rpc("start_dm_request", {
+        p_recipient_id:userId,p_body:"",p_media_path:null,p_media_type:null,p_context_type:"dating",p_context_id:null
+      });
+      if (error) { toast.error(error.message ?? "Dating chat request could not be started"); return null; }
+      toast.success("Dating request sent 💌");
+      await refreshThreads();
+      return null;
     })();
-  }, [dbUserId, refreshCoins]);
+  }, [dbUserId, refreshThreads]);
 
   const startDmWithAuthor = useCallback((userId: string, _author: string, _blurb: string) => {
     if (!dbUserId) { requestLogin("contact this Panda"); return Promise.resolve(null); }
