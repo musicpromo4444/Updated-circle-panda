@@ -24,6 +24,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { UniversalFloatingCampaign } from "@/components/UniversalFloatingCampaign";
 import { PandaAvatar } from "@/components/PandaAvatar";
 import { InsufficientBcDialog } from "@/components/InsufficientBcDialog";
+import { NewMemberOnboarding } from "@/components/NewMemberOnboarding";
 
 const TABS = [
   { to: "/", label: "Confessions", icon: MessageSquare },
@@ -537,6 +538,7 @@ export function AppShell({
       {!immersive ? <SelfMessageBlockedPopup /> : null}
       {!immersive ? <DailyRewardPopup /> : null}
       <InsufficientBcDialog />
+      <NewMemberOnboarding />
     </div>
   );
 }
