@@ -68,16 +68,22 @@ export function VipGroupChat({open,groupId,onOpenChange}:{open:boolean;groupId:s
         const signed=await supabase.storage.from("circle-panda-group-media").createSignedUrl(String(wallpaperRes.data.path),3600);
         if(signed.data?.signedUrl)setWallpaperUrl(signed.data.signedUrl);
       } else setWallpaperUrl(DEFAULT_VIP_WALLPAPER);
-      const {data,error}=await (supabase as any).rpc("get_vip_group_messages",{p_group_id:groupId});
+
+      const {data:group,error:groupError}=await supabase.from("groups").select("id,is_vip").eq("id",groupId).maybeSingle();
+      if(groupError||!group?.is_vip){toast.error(groupError?.message??"This is not a VIP group");return;}
+      const {data:rows,error}=await supabase.from("group_messages").select("id,group_id,sender_id,body,created_at,media_type,media_path,view_once").eq("group_id",groupId).order("created_at",{ascending:true}).limit(1000);
       if(error){toast.error(error.message??"VIP group could not be loaded");return;}
-      const rows=data??[];
-      await loadProfiles(rows.map((r:any)=>r.user_id));
+      await loadProfiles(rows.map((r:any)=>r.sender_id));
       const mapped=await Promise.all(rows.map(mapRow));
       if(!cancelled)setMessages(mapped);
     })();
     const ch=supabase.channel(`vip-group:${groupId}:messages`)
-      .on("postgres_changes",{event:"INSERT",schema:"public",table:"cp_vip_group_messages",filter:`group_id=eq.${groupId}`},(payload:any)=>{
-        void loadProfiles([payload.new.user_id]);
+      .on("postgres_changes",{event:"*",schema:"public",table:"group_messages",filter:`group_id=eq.${groupId}`},(payload:any)=>{
+        if(payload.eventType==="DELETE"){
+          if(!cancelled)setMessages(items=>items.filter(m=>m.id!==payload.old?.id));
+          return;
+        }
+        void loadProfiles([payload.new.sender_id]);
         void mapRow(payload.new).then(msg=>{if(!cancelled)setMessages(items=>items.some(m=>m.id===msg.id)?items:[...items,msg])});
       }).subscribe();
     return()=>{cancelled=true;void supabase.removeChannel(ch)};
