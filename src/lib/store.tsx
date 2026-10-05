@@ -1162,11 +1162,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     if (error) { toast.error(error.message ?? "Vote could not be counted"); return false; }
     setState((state) => ({
       ...state,
-      coins: Math.max(0, state.coins - Number(voteData?.charged_bc ?? 1)),
+      coins: Math.max(0, state.coins - Number(voteData?.charged_bc ?? 50)),
       votedIds: state.votedIds.includes(id) ? state.votedIds : [...state.votedIds, id],
     }));
     void refreshCoins();
-    toast.success("Vote counted · 1 BC");
+    toast.success("Vote counted · 50 BC");
     return true;
   }, [refreshCoins]);
 
