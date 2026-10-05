@@ -357,6 +357,13 @@ function ActivitiesPage() {
 
   useEffect(() => { void load(); }, []);
 
+  useEffect(() => {
+    const slug = new URLSearchParams(window.location.search).get("play");
+    if (!slug || !activities.length) return;
+    const match = activities.find(a => a.activity_type === slug || a.id === slug);
+    if (match && !selectedGame) setSelectedGame(match);
+  }, [activities, selectedGame]);
+
   const completed = useMemo(() => activities.filter(a => a.completed).length, [activities]);
   const total = activities.length;
 
@@ -393,6 +400,6 @@ function ActivitiesPage() {
       </section>
     </div>
     <SpinWheel open={spinOpen} onOpenChange={setSpinOpen} />
-    {selectedGame ? <GameModal activity={selectedGame} onClose={() => setSelectedGame(null)} onDone={() => void load()} /> : null}
+    {selectedGame ? <GameModal activity={selectedGame} onClose={() => setSelectedGame(null)} onDone={() => { const campaign = sessionStorage.getItem("circle-panda-play-campaign"); if (campaign) { sessionStorage.removeItem("circle-panda-play-campaign"); window.location.assign("/confessions?challenge=complete"); } else void load(); }} /> : null}
   </AppShell>;
 }
