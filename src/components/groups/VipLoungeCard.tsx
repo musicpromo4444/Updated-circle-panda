@@ -13,17 +13,21 @@ export function VipLoungeCard(){
  const [rooms,setRooms]=useState<Room[]>([]);
  const [groupId,setGroupId]=useState<string|null>(null);
  const [upgradeOpen,setUpgradeOpen]=useState(false);
+ const [serverVip,setServerVip]=useState(false);
  useEffect(()=>{
    let active=true;
    void (async()=>{
+     const {data:profile}=await (supabase as any).from("profiles").select("is_vip,vip_expires_at").maybeSingle();
+     setServerVip(Boolean(profile?.is_vip && (!profile?.vip_expires_at || new Date(profile.vip_expires_at).getTime()>Date.now())));
      const {data,error}=await (supabase as any).rpc("get_vip_group_rooms_for_user");
      if(!active)return;
      if(error){console.warn("VIP rooms unavailable",error);setRooms([]);return;}
      setRooms(Array.isArray(data)?data:[]);
    })();
    return()=>{active=false};
- },[isVip]);
- const openRoom=(room:Room)=>{if(!isVip){setUpgradeOpen(true);return;}setGroupId(room.id)};
+ },[isVip,serverVip]);
+ const effectiveVip=isVip||serverVip;
+ const openRoom=(room:Room)=>{if(!effectiveVip){setUpgradeOpen(true);return;}setGroupId(room.id)};
  const shareRoom=async(room:Room)=>{
    const url=window.location.origin+"/groups?vip="+encodeURIComponent(room.id);
    try{if(navigator.share)await navigator.share({title:room.name,text:"Join this Circle Panda VIP group.",url});else await navigator.clipboard.writeText(url)}catch{}
@@ -42,7 +46,7 @@ export function VipLoungeCard(){
          <p className="mt-0.5 truncate text-[11px] text-muted-foreground">{room.is_worldwide?"Official Circle Panda worldwide VIP community":"Private VIP group for "+(room.country||"your country")}</p>
          <div className="mt-1 flex items-center gap-1 text-[10px] text-amber-700/80 dark:text-amber-300/80"><Users className="size-3"/> VIP-only · Free messages & media</div>
        </div>
-       {isVip?<Button size="sm" onClick={()=>openRoom(room)} className="shrink-0 rounded-full border border-amber-300 bg-amber-500 px-4 text-black shadow-[0_0_16px_rgba(245,158,11,.35)] hover:bg-amber-400">Join Group</Button>
+       {effectiveVip?<Button size="sm" onClick={()=>openRoom(room)} className="shrink-0 rounded-full border border-amber-300 bg-amber-500 px-4 text-black shadow-[0_0_16px_rgba(245,158,11,.35)] hover:bg-amber-400">Join Group</Button>
        :<Button size="sm" variant="outline" onClick={()=>setUpgradeOpen(true)} className="shrink-0 rounded-full border-amber-400/60 text-amber-700 dark:text-amber-300"><Lock className="mr-1 size-3"/>VIP Only</Button>}
      </div>
      <div className="relative mt-2 flex justify-end">
