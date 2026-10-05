@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { Check, ChevronLeft, Heart, Send, ShieldBan, X, Sparkles, Phone, Video, MessageCircle } from "lucide-react";
+import { Check, ChevronLeft, Heart, Send, ShieldBan, X, Sparkles, Phone, Video, MessageCircle, Trash2 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
@@ -161,6 +161,19 @@ function MessagesPage() {
     } finally {
       setDecisionBusy(false);
     }
+  };
+
+  const deleteDmMessage = async (messageId: string) => {
+    if (!window.confirm("Delete this message for everyone?")) return;
+    const { data, error } = await (supabase as any).rpc("delete_dm_message", { p_message_id: messageId });
+    if (error) { toast.error(error.message ?? "Message could not be deleted"); return; }
+    // Refresh the canonical thread list so the deleted message cannot reappear from stale state.
+    await refreshThreads();
+    if ((data as any)?.media_path) {
+      const { error: storageError } = await supabase.storage.from("circle-panda-dm-media").remove([(data as any).media_path]);
+      if (storageError) toast.warning("The message was deleted, but its stored media could not be cleaned up automatically.");
+    }
+    toast.success("Message deleted");
   };
 
   const active = threads.find((t) => t.id === activeId) ?? null;
@@ -367,15 +380,18 @@ function MessagesPage() {
             active.messages.map((m, idx) => (
               <div key={m.id} className="space-y-2.5">
                 <div className={m.mine ? "text-right" : ""}>
-                  {m.messageType === "dating_photo" && active.kind === "dating" ? (
-                    <DatingPhotoBubble path={m.mediaPath} onOpen={setPhotoPreviewUrl} />
-                  ) : (
-                    <p className={`inline-block max-w-[80%] rounded-2xl px-3.5 py-2 text-sm ${
-                      m.mine ? "bg-primary text-primary-foreground" : "bg-card"
-                    }`}>
-                      {m.body}
-                    </p>
-                  )}
+                  <div className={`inline-flex max-w-[85%] items-end gap-1.5 ${m.mine ? "flex-row-reverse" : ""}`}>
+                    {m.messageType === "dating_photo" && active.kind === "dating" ? (
+                      <DatingPhotoBubble path={m.mediaPath} onOpen={setPhotoPreviewUrl} />
+                    ) : (
+                      <p className={`inline-block rounded-2xl px-3.5 py-2 text-sm ${
+                        m.mine ? "bg-primary text-primary-foreground" : "bg-card"
+                      }`}>
+                        {m.body}
+                      </p>
+                    )}
+                    {m.mine ? <button type="button" onClick={()=>void deleteDmMessage(m.id)} className="grid size-7 place-items-center rounded-full text-destructive hover:bg-destructive/10" aria-label="Delete message"><Trash2 className="size-3.5"/></button> : null}
+                  </div>
                   <TimeAgo at={m.at} className="mt-0.5 block text-[10px] text-muted-foreground" />
                 </div>
 
