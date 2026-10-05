@@ -8,6 +8,7 @@ import { StandardBannerAd } from "@/components/ads/StandardBannerAd";
 import { VipLoungeCard } from "@/components/groups/VipLoungeCard";
 import { CreateGroupModal } from "@/components/groups/CreateGroupModal";
 import { useStore, type GroupChat } from "@/lib/store";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/groups/")({
   head: () => ({
