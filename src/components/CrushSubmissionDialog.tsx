@@ -14,6 +14,7 @@ export function CrushSubmissionDialog({ open, onOpenChange }: { open: boolean; o
   const [caption, setCaption] = useState("");
   const [emoji, setEmoji] = useState("ð¼");
   const [saving, setSaving] = useState(false);
+  const [stage, setStage] = useState<"uploading" | "publishing" | null>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -55,7 +56,7 @@ export function CrushSubmissionDialog({ open, onOpenChange }: { open: boolean; o
       window.dispatchEvent(new Event("circle-panda-crush-refresh"));
     } catch (e: any) {
       toast.error(e?.message ?? "Your Crush post could not be published");
-    } finally { setSaving(false); }
+    } finally { setSaving(false); setStage(null); }
   };
 
   return (
