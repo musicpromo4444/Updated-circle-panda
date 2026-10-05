@@ -145,6 +145,8 @@ function GroupRoom() {
   };
 
   const messageMember = async (userId: string) => {
+    const currentUserId = (await supabase.auth.getUser()).data.user?.id;
+    if (currentUserId && currentUserId === userId) { window.dispatchEvent(new CustomEvent("circle-panda-self-message-blocked")); setMemberMenuOpen(null); return; }
     setMemberMenuOpen(null);
     try {
       const result = await sendMessageRequest(userId, "");
