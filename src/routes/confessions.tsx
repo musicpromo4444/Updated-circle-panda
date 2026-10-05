@@ -66,6 +66,7 @@ export function ConfessionsPage() {
   const [commentsByPost, setCommentsByPost] = useState<Record<string, ConfessionComment[]>>({});
   const [messagePost, setMessagePost] = useState<Confession | null>(null);
   const [messageText, setMessageText] = useState("");
+  const [challengeComplete, setChallengeComplete] = useState(false);
   const [sendingMessage, setSendingMessage] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const remaining = useMemo(() => 2000 - content.length, [content.length]);
@@ -113,6 +114,7 @@ export function ConfessionsPage() {
     if (window.location.hash === "#upload") setUploadOpen(true);
     void load();
     void loadWeekly();
+    if (new URLSearchParams(window.location.search).get("challenge") === "complete") setChallengeComplete(true);
     void (async () => { const { data } = await (supabase as any).rpc("get_my_profile_gender"); if (data === "male" || data === "female") setAccountGender(data); })();
   }, []);
 
@@ -304,12 +306,12 @@ export function ConfessionsPage() {
   const wcwCount = weekly.wcw.length;
 
   return (
-    <AppShell title="Anonymous Feed" hidePageHeader>
+    <AppShell title="Secret Confession Page" hidePageHeader>
       <div className="mx-auto w-full max-w-2xl space-y-4">
         <section className="space-y-1 px-1">
           <div className="flex items-center justify-between gap-3">
             <div className="min-w-0">
-              <h1 className="font-display text-2xl font-black leading-tight sm:text-3xl">Anonymous Feed</h1>
+              <h1 className="font-display text-2xl font-black leading-tight sm:text-3xl">Secret Confession Page</h1>
               <p className="mt-1 text-sm leading-5 text-muted-foreground">Nobody knows it's you. Replies are public.</p>
             </div>
             <Button variant="outline" size="sm" className="shrink-0 rounded-full text-xs">
@@ -580,6 +582,14 @@ export function ConfessionsPage() {
           <DialogDescription>Send a direct message request to this confession's author.</DialogDescription>
           <Textarea value={messageText} onChange={(e) => setMessageText(e.target.value)} maxLength={2000} placeholder="Write your message..." className="min-h-28 rounded-2xl" />
           <Button onClick={() => void sendMessage()} disabled={sendingMessage || !messageText.trim()} className="w-full rounded-2xl">{sendingMessage ? "Sending…" : "Send message"}</Button>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={challengeComplete} onOpenChange={setChallengeComplete}>
+        <DialogContent className="max-w-sm rounded-3xl text-center">
+          <DialogTitle className="font-display text-2xl font-black">🎉 Challenge Completed!</DialogTitle>
+          <DialogDescription className="mt-2">You completed the challenge successfully. Please wait for the results. You can now explore Circle Panda while you wait.</DialogDescription>
+          <Button className="mt-5 w-full" onClick={() => setChallengeComplete(false)}>Explore Circle Panda</Button>
         </DialogContent>
       </Dialog>
 
