@@ -63,8 +63,24 @@ function EventsPage() {
 
   const deleteEvent = async (eventId:string) => {
     if (!window.confirm("Delete this event for everyone?")) return;
-    const { error } = await (supabase as any).rpc("delete_event", { p_event_id:eventId });
+    const { data, error } = await (supabase as any).rpc("delete_event", { p_event_id:eventId });
     if (error) { toast.error(error.message ?? "Event could not be deleted"); return; }
+    const coverUrl = String((data as any)?.cover_url ?? "");
+    if (coverUrl) {
+      try {
+        const marker = "/storage/v1/object/public/event-media/";
+        const at = coverUrl.indexOf(marker);
+        if (at >= 0) {
+          const path = decodeURIComponent(coverUrl.slice(at + marker.length));
+          if (path) {
+            const { error: storageError } = await supabase.storage.from("event-media").remove([path]);
+            if (storageError) toast.warning("Event deleted, but its cover image could not be cleaned up automatically.");
+          }
+        }
+      } catch {
+        toast.warning("Event deleted, but its cover image could not be cleaned up automatically.");
+      }
+    }
     setDeletedEventIds((ids)=>ids.includes(eventId)?ids:[...ids,eventId]);
     setOpenEvent(null);
     setBlastOpen(false);
