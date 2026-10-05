@@ -17,7 +17,7 @@ export function VipLoungeCard() {
 
   useEffect(()=>{ if(!isVip){setRooms([]);return;} void (supabase as any).rpc("get_vip_group_rooms_for_user").then(({data,error}:any)=>{ if(error){console.warn(error.message);return;} setRooms(data??[]); }); },[isVip]);
 
-  const openUpgrade=(e?:React.MouseEvent)=>{e?.stopPropagation();setUpgradeOpen(true)};
+  const openUpgrade=()=>setUpgradeOpen(true);
 
   return <>
     <section className="relative overflow-hidden rounded-2xl border-2 border-amber-400/90 bg-gradient-to-br from-amber-500/15 via-card to-amber-950/25 p-4 shadow-[0_0_24px_rgba(245,158,11,.25)] ring-1 ring-amber-400/50">
