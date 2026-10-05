@@ -20,6 +20,7 @@ import { UniversalWinnerFlow } from "@/components/UniversalWinnerFlow";
 import { LoginRequiredDialog } from "@/components/auth/LoginRequiredDialog";
 import { CirclePandaLoader } from "@/components/CirclePandaLoader";
 import { useStore } from "@/lib/store";
+import { ActionSuccessProvider } from "@/components/ActionSuccessFeedback";
 
 function NotFoundComponent() {
   return (
@@ -163,7 +164,9 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <StoreProvider>
-          <RootContent />
+          <ActionSuccessProvider>
+            <RootContent />
+          </ActionSuccessProvider>
         </StoreProvider>
       </ThemeProvider>
     </QueryClientProvider>
