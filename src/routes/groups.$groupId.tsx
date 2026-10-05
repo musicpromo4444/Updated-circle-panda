@@ -265,6 +265,7 @@ function GroupRoom() {
       currentUserId: uid,
     };
     setChatMessages((items) => items.some((x) => x.id === created.id) ? items : [...items, created]);
+    complete(messageType === "audio" ? "group_voice" : "group_media");
     setMediaMenuOpen(false);
     toast.success(messageType === "image" ? "Photo sent" : messageType === "video" ? "Video sent" : "Voice note sent");
     void maybeOpenGroupRewardAd();
