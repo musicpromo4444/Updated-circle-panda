@@ -48,6 +48,7 @@ function GroupRoom() {
     updateGroupSettings,
   } = useStore();
   const [adOpen, setAdOpen] = useState(false);\n  const [groupRewardSessionId, setGroupRewardSessionId] = useState<string | null>(null);
+  const pendingRewardActionRef = useRef<(() => Promise<void>) | null>(null);
   const [draft, setDraft] = useState("");
   const bottom = useRef<HTMLDivElement>(null);
   const [showActivation, setShowActivation] = useState(false);
@@ -133,14 +134,13 @@ function GroupRoom() {
     return data?.signedUrl ?? null;
   };
 
-  const maybeOpenGroupRewardAd = async () => {
-    if (!group) return;
+  const maybeOpenGroupRewardAd = async (afterAd: () => Promise<void>) => {
+    if (!group) { await afterAd(); return; }
     const { data, error } = await supabase.rpc("start_group_reward_ad_secure", { p_group_id: group.id });
-    if (error) return;
-    if ((data as any)?.show && (data as any)?.session_id) {
-      setGroupRewardSessionId((data as any).session_id);
-      setAdOpen(true);
-    }
+    if (error || !(data as any)?.show || !(data as any)?.session_id) { await afterAd(); return; }
+    pendingRewardActionRef.current = afterAd;
+    setGroupRewardSessionId((data as any).session_id);
+    setAdOpen(true);
   };
 
   const messageMember = async (userId: string) => {
@@ -268,7 +268,7 @@ function GroupRoom() {
     complete(messageType === "audio" ? "group_voice" : "group_media");
     setMediaMenuOpen(false);
     toast.success(messageType === "image" ? "Photo sent" : messageType === "video" ? "Video sent" : "Voice note sent");
-    void maybeOpenGroupRewardAd();
+
   };
 
   const handleMediaPick = async (file?: File) => {
@@ -279,7 +279,7 @@ function GroupRoom() {
       return;
     }
     setMediaMenuOpen(false);
-    await uploadMedia(file, type);
+    await maybeOpenGroupRewardAd(() => uploadMedia(file, type));
   };
 
   const clearVoiceDraft = () => {
@@ -297,8 +297,7 @@ function GroupRoom() {
     setRecordingSeconds(0);
     recordingStartedAtRef.current = null;
     recordingElapsedBeforePauseRef.current = 0;
-  };
-  const startVoiceRecording = async () => {
+  };  const startVoiceRecording = async () => {
     if (recording || voiceBlob) return;
     if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === "undefined") {
       toast.error("Voice recording is not supported on this device");
@@ -399,8 +398,7 @@ function GroupRoom() {
     if (!voiceBlob) return;
     const duration = recordingSeconds;
     const file = new File([voiceBlob], `voice-${Date.now()}.webm`, { type: voiceBlob.type || "audio/webm" });
-    await uploadMedia(file, "audio", duration);
-    clearVoiceDraft();
+    await maybeOpenGroupRewardAd(async () => { await uploadMedia(file, "audio", duration); clearVoiceDraft(); });
   };
 
   const openViewOnceMedia = async (m: any) => {
@@ -597,8 +595,7 @@ function GroupRoom() {
                     <option value="admins_members">All members</option>
                   </select>
                 </label>                <div className="space-y-2 text-xs">
-                  <label className="flex items-center gap-2"><input type="checkbox" checked={sendMessages} onChange={(e) => setSendMessages(e.target.checked)} /> Members can send messages</label>
-                  <label className="flex items-center gap-2"><input type="checkbox" checked={approveMembers} onChange={(e) => setApproveMembers(e.target.checked)} /> Approve new members</label>
+                  <label className="flex items-center gap-2"><input type="checkbox" checked={sendMessages} onChange={(e) => setSendMessages(e.target.checked)} /> Members can send messages</label>                  <label className="flex items-center gap-2"><input type="checkbox" checked={approveMembers} onChange={(e) => setApproveMembers(e.target.checked)} /> Approve new members</label>
                 </div>
                 {joinRequests.length > 0 ? (
                   <div className="rounded-xl border border-border/70 bg-secondary/30 p-3">
@@ -785,7 +782,7 @@ function GroupRoom() {
           onSubmit={(e) => {
             e.preventDefault();
             if (!draft.trim()) return;
-            void (async () => {
+            void maybeOpenGroupRewardAd(async () => {
               const body = draft.trim();
               const { data, error } = await (supabase as any).rpc("send_group_message_secure", {
                 p_group_id: group.id,
@@ -804,8 +801,7 @@ function GroupRoom() {
               }]);
               setReplyTo(null);
               setDraft("");
-              void maybeOpenGroupRewardAd();
-            })();
+            });
           }}
         >
           {mediaMenuOpen ? (
@@ -837,7 +833,13 @@ function GroupRoom() {
       ) : null}
 
       {mediaPreview ? <div className="fixed inset-0 z-[80] grid place-items-center bg-black/80 p-4" onClick={()=>setMediaPreview(null)}><div className="relative max-h-[90vh] max-w-3xl" onClick={e=>e.stopPropagation()}><Button type="button" variant="secondary" size="icon" className="absolute -right-2 -top-2 z-10 rounded-full" onClick={()=>setMediaPreview(null)}><X className="size-4"/></Button>{mediaPreview.type==="image" ? <img src={mediaPreview.url} alt={mediaPreview.name} className="max-h-[85vh] max-w-full rounded-2xl object-contain"/> : mediaPreview.type==="video" ? <video src={mediaPreview.url} controls autoPlay className="max-h-[85vh] max-w-full rounded-2xl"/> : <audio src={mediaPreview.url} controls autoPlay className="w-[min(90vw,420px)]"/>}</div></div> : null}
-      <RewardedAdModal open={adOpen} groupId={groupId} sessionId={groupRewardSessionId} onClose={() => { setAdOpen(false); setGroupRewardSessionId(null); }} />
+      <RewardedAdModal open={adOpen} groupId={groupId} sessionId={groupRewardSessionId} onClose={() => {
+        setAdOpen(false);
+        setGroupRewardSessionId(null);
+        const pending = pendingRewardActionRef.current;
+        pendingRewardActionRef.current = null;
+        if (pending) void pending();
+      }} />
 
     </div>
   );
