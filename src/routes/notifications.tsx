@@ -19,7 +19,7 @@ function NotificationsPage() {
 
   const load = async () => {
     setLoading(true);
-    const { data, error } = await (supabase as any).rpc("get_my_notifications", { p_limit: 100 });
+    const { data, error } = await (supabase as any).from("notifications").select("*").order("created_at", { ascending: false }).limit(100);
     if (error) toast.error(error.message ?? "Notifications could not be loaded");
     setItems(data ?? []);
     setLoading(false);
@@ -33,7 +33,7 @@ function NotificationsPage() {
       if (!uid) return;
       channel = (supabase as any)
         .channel(`circle-panda-notifications-page-${uid}`)
-        .on("postgres_changes", { event: "INSERT", schema: "public", table: "cp_notifications", filter: `user_id=eq.${uid}` }, (payload: any) => {
+        .on("postgres_changes", { event: "INSERT", schema: "public", table: "notifications", filter: `user_id=eq.${uid}` }, (payload: any) => {
           setItems((current) => [payload.new, ...current.filter((x) => x.id !== payload.new.id)].slice(0, 100));
         })
         .subscribe();
@@ -42,7 +42,7 @@ function NotificationsPage() {
   }, []);
 
   const markRead = async () => {
-    const { error } = await (supabase as any).rpc("mark_notifications_read");
+    const { error } = await (supabase as any).rpc("mark_all_notifications_read");
     if (error) { toast.error(error.message ?? "Could not mark notifications read"); return; }
     setItems((current) => current.map((x) => ({ ...x, read_at: x.read_at ?? new Date().toISOString() })));
     window.dispatchEvent(new CustomEvent("circle-panda-notifications-refresh"));
@@ -50,7 +50,7 @@ function NotificationsPage() {
   };
 
   const markOneRead = async (id: string) => {
-    const { error } = await (supabase as any).rpc("mark_notification_read", { p_id: id });
+    const { error } = await (supabase as any).rpc("mark_notification_read", { p_notification_id: id });
     if (error) { toast.error(error.message ?? "Could not mark notification read"); return; }
     setItems((current) => current.map((x) => x.id === id ? { ...x, read_at: x.read_at ?? new Date().toISOString() } : x));
     window.dispatchEvent(new CustomEvent("circle-panda-notifications-refresh"));
@@ -74,7 +74,7 @@ function NotificationsPage() {
       ) : (
         <div className="space-y-2">
           {items.map((item) => {
-            const metadata = item.metadata ?? {};
+            const metadata = item.data ?? {};
             const requestId = typeof metadata.request_id === "string" ? metadata.request_id : null;
             const threadId = typeof metadata.thread_id === "string" ? metadata.thread_id : null;
             const actionable = Boolean(requestId || threadId);
