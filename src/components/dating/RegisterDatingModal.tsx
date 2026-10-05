@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Heart, Sparkles, Upload, Image as ImageIcon } from "lucide-react";
+import { Heart, Sparkles, Upload, Image as ImageIcon, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -61,7 +61,7 @@ function SingleChoice({values,value,onChange}:{values:string[];value:string;onCh
 }
 
 export function RegisterDatingModal({open,onOpenChange}:{open:boolean;onOpenChange:(open:boolean)=>void}) {
-  const {datingProfile,registerDatingProfile}=useStore();
+  const {datingProfile,registerDatingProfile,refreshDatingData}=useStore();
   const [p,setP]=useState(emptyProfile);
   const [step,setStep]=useState(0);
   const [photoFile,setPhotoFile]=useState<File|null>(null);
@@ -95,6 +95,26 @@ export function RegisterDatingModal({open,onOpenChange}:{open:boolean;onOpenChan
       setPhotoFile(null); setStep(0); setAccountReady(true);
     })();
   },[open,onOpenChange]);
+
+  const deleteDatingCard = async () => {
+    if (!datingProfile) return;
+    if (!window.confirm("Delete your Dating card? Existing matches and chats will remain, but your card will no longer appear in Dating.")) return;
+    const { error } = await (supabase as any).rpc("delete_dating_card");
+    if (error) { toast.error(error.message ?? "Dating card could not be deleted"); return; }
+    const paths = [datingProfile.photoPath, datingProfile.blurredPhotoPath].filter(Boolean);
+    if (paths.length) {
+      const [original, blurred] = await Promise.all([
+        datingProfile.photoPath ? supabase.storage.from("dating-photos").remove([datingProfile.photoPath]) : Promise.resolve({error:null} as any),
+        datingProfile.blurredPhotoPath ? supabase.storage.from("dating-photo-blur").remove([datingProfile.blurredPhotoPath]) : Promise.resolve({error:null} as any),
+      ]);
+      if (original?.error || blurred?.error) toast.warning("Dating card deleted, but a stored photo could not be cleaned up automatically.");
+    }
+    await refreshDatingData();
+    setPhotoFile(null);
+    setPhotoPreview(null);
+    onOpenChange(false);
+    toast.success("Dating card deleted");
+  };
 
   const toggle=(key:"interests"|"lookingFor"|"aboutTraits"|"lifestyle"|"personality",value:string)=>
     setP(s=>({...s,[key]:s[key].includes(value)?s[key].filter(x=>x!==value):[...s[key],value]}));
@@ -234,7 +254,10 @@ export function RegisterDatingModal({open,onOpenChange}:{open:boolean;onOpenChan
         </section>}
 
         <DialogFooter className="flex-row justify-between gap-2 pt-2">
-          <Button type="button" variant="outline" onClick={()=>step===0?onOpenChange(false):setStep(step-1)}>{step===0?"Cancel":"Back"}</Button>
+          <div className="flex min-w-0 flex-1 items-center gap-2">
+            {datingProfile ? <Button type="button" variant="ghost" className="gap-1.5 text-destructive hover:bg-destructive/10" onClick={()=>void deleteDatingCard()}><Trash2 className="size-4"/> Delete card</Button> : null}
+            <Button type="button" variant="outline" onClick={()=>step===0?onOpenChange(false):setStep(step-1)}>{step===0?"Cancel":"Back"}</Button>
+          </div>
           {step<4?<Button type="button" onClick={()=>{if(step===1&&!p.relationshipGoal){toast.error("Choose the type of relationship you're looking for");return;} setStep(step+1)}} className="bg-[var(--dating)] text-white">Next</Button>
             :<Button type="submit" disabled={uploadingPhoto||!photoFile&&!p.photoPath} className="gap-1.5 bg-[var(--dating)] text-white">{uploadingPhoto?"Publishing…":datingProfile?"Save Dating Profile":"Publish Dating Profile"} <Sparkles className="size-4"/></Button>}
         </DialogFooter>
