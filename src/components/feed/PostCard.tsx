@@ -1,5 +1,5 @@
 import { useNavigate } from "@tanstack/react-router";
-import { Heart, MessageCircle, MessageSquare, Send, Share2 } from "lucide-react";
+import { Heart, MessageCircle, MessageSquare, Send, Share2, Trash2 } from "lucide-react";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { TimeAgo } from "@/components/TimeAgo";
@@ -39,6 +39,22 @@ export function PostCard({ post }: { post: Post }) {
   const [burstHearts, setBurstHearts] = useState<BurstHeart[]>([]);
   const [miniHearts, setMiniHearts] = useState<MiniHeartParticle[]>([]);
   const [isBouncing, setIsBouncing] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [deleted, setDeleted] = useState(false);
+
+  useEffect(() => {
+    void supabase.auth.getUser().then(({data}) => setCurrentUserId(data.user?.id ?? null));
+  }, []);
+
+  const deletePost = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!post.authorId || post.authorId !== currentUserId) return;
+    if (!window.confirm("Delete this post for everyone?")) return;
+    const { error } = await (supabase as any).rpc("delete_post", { p_post_id: post.id });
+    if (error) { toast.error(error.message ?? "Post could not be deleted"); return; }
+    setDeleted(true);
+    toast.success("Post deleted");
+  };
 
   // Double tap detection on post card
   const lastTapRef = useRef<number>(0);
@@ -134,6 +150,8 @@ export function PostCard({ post }: { post: Post }) {
     void navigate({ to: "/messages", search: { thread: id } });
   };
 
+  if (deleted) return null;
+
   return (
     <article
       id={`post-${post.id}`}
@@ -191,7 +209,11 @@ export function PostCard({ post }: { post: Post }) {
 <TimeAgo at={post.at} />
           </p>
         </div>
-
+        {post.authorId && post.authorId === currentUserId ? (
+          <Button type="button" variant="ghost" size="sm" className="gap-1 text-destructive hover:bg-destructive/10" onClick={deletePost}>
+            <Trash2 className="size-3.5"/> Delete
+          </Button>
+        ) : null}
       </div>
 
       {/* Post Body */}
