@@ -20,6 +20,7 @@ import { VipGroupCallSettings } from "@/components/admin/VipGroupCallSettings";
 import { VipGroupSponsorSettings } from "@/components/admin/VipGroupSponsorSettings";
 import { VipGroupWallpaperManager } from "@/components/admin/VipGroupWallpaperManager";
 import { AdminMonetizationControl } from "@/components/admin/AdminMonetizationControl";
+import { AdminGroupMediaManager } from "@/components/admin/AdminGroupMediaManager";
 import { CirclePandaMediaManager } from "@/components/admin/CirclePandaMediaManager";
 import { useAdminStore } from "@/components/admin/adminStore";
 
@@ -128,6 +129,7 @@ function AdminDashboardPage() {
   return <AppShell title="Admin Dashboard" hidePageHeader>
     <main className="mx-auto max-w-4xl space-y-5 p-4 pb-24 sm:p-6">
       <AdminControlCenter />
+      <AdminGroupMediaManager />
       <VipGroupCallSettings />
       <VipGroupSponsorSettings />
       <VipGroupWallpaperManager />
