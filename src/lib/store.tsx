@@ -608,7 +608,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     const [groupsRes, groupSettingsRes, groupMessagesRes, eventsRes, attendeesRes] = await Promise.all([
       (supabase as any).rpc("get_group_summaries", { p_country:"", p_state_province:"", p_city:"", p_area:"" }),
       (supabase as any).from("group_settings").select("group_id,edit_group_info,send_messages,approve_new_members"),
-      (supabase as any).from("cp_group_messages").select("id,group_id,body,created_at,author_id").order("created_at", {ascending:true}).limit(1000),
+      (supabase as any).from("group_messages").select("id,group_id,body,created_at,sender_id").order("created_at", {ascending:true}).limit(1000),
       (supabase as any).from("events").select("id,title,description,location,starts_at,ends_at,category,entry_fee_bc,entry_fee_amount,entry_fee_currency,duration_minutes,reach_scope,reach_country,reach_state,reach_city,reach_area,cover_url,venue_name,address_line,country,state_province,city,area,latitude,longitude,is_published,owner_id").eq("is_published",true).order("starts_at", {ascending:true}),
       (supabase as any).from("event_attendees").select("event_id,user_id"),
     ]);
@@ -619,12 +619,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     let rawGroups:any[] = Array.isArray(groupsRes.data) ? groupsRes.data : [];
     if (groupsRes.error || rawGroups.length === 0) {
       const fallback = await (supabase as any).from("groups")
-        .select("id,name,topic,owner_id,created_at,activated_at,expires_at,status,country,state_province,city,area")
+        .select("id,name,topic,creator_id,created_at,country_restriction")
         .order("created_at", {ascending:false}).limit(100);
       if (!fallback.error && Array.isArray(fallback.data)) {
         rawGroups = fallback.data.map((g:any) => ({
           ...g,
-          member_role:g.owner_id === dbUserId ? "owner" : null,
+          member_role:g.creator_id === dbUserId ? "owner" : null,
           join_pending:false,
           member_count:0,
         }));
@@ -755,7 +755,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         (supabase as any).from("cp_post_replies").select("id,post_id,body,created_at,author_id,author_vip_at").order("created_at", {ascending:true}).limit(500),
         (supabase as any).rpc("get_group_summaries", { p_country:"", p_state_province:"", p_city:"", p_area:"" }),
         
-        (supabase as any).from("cp_group_messages").select("id,group_id,body,created_at,author_id").order("created_at", {ascending:true}).limit(1000),
+        (supabase as any).from("group_messages").select("id,group_id,body,created_at,sender_id").order("created_at", {ascending:true}).limit(1000),
         (supabase as any).from("cp_threads").select("id,owner_id,participant_id,other_alias,kind,blurb,created_at").order("created_at", {ascending:false}).limit(100),
         (supabase as any).from("cp_thread_messages").select("id,thread_id,user_id,body,created_at,message_type,media_path").order("created_at", {ascending:true}).limit(2000),
         (supabase as any).from("group_settings").select("group_id,edit_group_info,send_messages,approve_new_members"),
@@ -818,10 +818,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!dbUserId) return;
     const groupChannel = (supabase as any).channel(`circle-panda-groups-${dbUserId}`)
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "cp_group_messages" }, (payload:any) => {
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "group_messages" }, (payload:any) => {
         const m = payload.new;
         setState((current) => current.groups.some(g => g.messages.some(x => x.id === m.id)) ? current : ({
-          ...current, groups: current.groups.map(g => g.id === m.group_id ? { ...g, messages: [...g.messages, { id:m.id, author:m.author_id===dbUserId?"You (anonymous)":"Anonymous Panda", body:m.body, at:new Date(m.created_at).getTime(), mine:m.author_id===dbUserId }] } : g)
+          ...current, groups: current.groups.map(g => g.id === m.group_id ? { ...g, messages: [...g.messages, { id:m.id, author:m.sender_id===dbUserId?"You (anonymous)":"Anonymous Panda", body:m.body, at:new Date(m.created_at).getTime(), mine:m.sender_id===dbUserId }] } : g)
         }));
       })
       .on("postgres_changes", { event: "UPDATE", schema: "public", table: "groups" }, (payload:any) => {
@@ -920,7 +920,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     void (async () => {
       const { data, error } = await (supabase as any).rpc("send_group_message_secure", { p_group_id: id, p_body: body });
       if (error) { toast.error(error.message ?? "Message could not be sent"); return; }
-      setState((s) => ({ ...s, groups: s.groups.map((g) => g.id === id ? { ...g, messages: [...g.messages, { id: data.id, author: "You (anonymous)", body, at: new Date(data.created_at).getTime(), mine: true }] } : g) }));
+      setState((s) => ({ ...s, groups: s.groups.map((g) => g.id === id ? { ...g, messages: [...g.messages, { id: String(data), author: "You (anonymous)", body, at: Date.now(), mine: true }] } : g) }));
       void refreshCoins();
     })();
   }, [dbUserId, refreshCoins]);
@@ -939,16 +939,16 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     void (async () => {
       const { data, error } = await (supabase as any).rpc("join_group_secure", { p_group_id: id });
       if (error) { toast.error(error.message ?? "Could not join group"); return; }
-      const joined = data?.status === "active" || data?.status === "joined";
+      const joined = !currentGroup?.approveNewMembers;
       setState((s) => ({ ...s, groups: s.groups.map((g) => g.id === id ? {
         ...g,
-        members: Number(data?.member_count ?? g.members),
-        joinPending: data?.status === "pending",
+        members: joined ? g.members + 1 : g.members,
+        joinPending: !joined,
         memberRole: joined ? (g.memberRole ?? "member") : g.memberRole,
-        openedAt: data?.activated_at ? new Date(data.activated_at).getTime() : g.openedAt,
+        openedAt: g.openedAt ?? Date.now(),
       } : g) }));
       if (joined) void refreshCoins();
-      if (data?.status === "pending") {
+      if (!joined) {
         window.dispatchEvent(new CustomEvent("circle-panda-action", { detail: { title: "Join request sent!", emoji: "🤝" } }));
         toast.success("Join request sent", { description: "An admin must approve your request." });
       } else {
@@ -1191,16 +1191,16 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const createGroup = useCallback(async (name: string, topic: string, country = "", stateProvince = "", city = "", area = ""): Promise<GroupChat | null> => {
     if (!dbUserId || dbIsAnonymous) { requestLogin("create a group"); return null; }
-    const { data, error } = await (supabase as any).rpc("create_group_secure", {
+    const { data, error } = await (supabase as any).rpc("create_group", {
       p_name:name,
-      p_topic:topic,
-      p_country:country,
-      p_state_province:stateProvince,
-      p_city:city,
-      p_area:area,
+      p_about:topic,
+      p_limitations:null,
+      p_country_restriction:country || null,
+      p_is_vip:false,
+      p_vip_scope:null,
     });
     if (error) { toast.error(error.message ?? "Group could not be created"); return null; }
-    const group: GroupChat = { id:data.id, name:data.name ?? name, topic:data.topic ?? topic, members:Number(data.members ?? 1), ownerId:dbUserId, memberRole:"owner", editGroupInfo:"admins", sendMessages:true, approveNewMembers:false, joinPending:false, openedAt:null, latitude:null, longitude:null, messages:[], country:data.country ?? country, stateProvince:data.state_province ?? stateProvince, city:data.city ?? city, area:data.area ?? area };
+    const group: GroupChat = { id:String(data), name, topic, members:1, ownerId:dbUserId, memberRole:"owner", editGroupInfo:"admins", sendMessages:true, approveNewMembers:false, joinPending:false, openedAt:Date.now(), latitude:null, longitude:null, messages:[], country, stateProvince:stateProvince ?? stateProvince, city:data.city ?? city, area:data.area ?? area };
     setState((s) => ({ ...s, groups:[group, ...s.groups] }));
     void refreshGroupsAndEvents();
     window.dispatchEvent(new CustomEvent("circle-panda-action", { detail: { title: "Group created!", emoji: "👥" } }));
