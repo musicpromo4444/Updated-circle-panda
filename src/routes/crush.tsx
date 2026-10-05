@@ -108,6 +108,7 @@ function CrushPage() {
   }, [swipeCount]);
 
   const refreshLiveNominees = async () => {
+    const currentUid = (await supabase.auth.getUser()).data.user?.id;
     const monday = new Date();
     const day = monday.getDay();
     const diff = day === 0 ? -6 : 1 - day;
@@ -121,13 +122,13 @@ function CrushPage() {
     if (!rows.length) {
       const { data: directRows, error: directError } = await (supabase as any)
         .from("crush_nominees")
-        .select("id,display_name,kind,emoji,blurb,media_url,media_type,week_start,created_at")
+        .select("id,user_id,display_name,kind,emoji,blurb,media_url,media_type,week_start,created_at")
         .eq("week_start", weekStart)
         .in("kind", ["wcw", "mcm"])
         .not("media_url", "is", null)
         .order("created_at", { ascending: false });
       if (!directError && Array.isArray(directRows)) {
-        rows = directRows.map((n: any) => ({ ...n, nominee_id: n.id, vote_count: 0, mine: false }));
+        rows = directRows.map((n: any) => ({ ...n, nominee_id: n.id, vote_count: 0, mine: n.user_id === currentUid }));
       }
     }
     if (error || !rows.length) {
@@ -182,7 +183,7 @@ function CrushPage() {
   };
 
   const pool = useMemo(
-    () => (liveNomineesLoaded ? liveNominees : nominees).filter((n) => n.kind === kind && n.mediaUrl),
+    () => (liveNomineesLoaded ? liveNominees : nominees).filter((n) => n.kind === kind && n.mediaUrl && !n.mine),
     [liveNominees, liveNomineesLoaded, nominees, kind],
   );
   const card = pool[index] ?? null;
@@ -316,7 +317,7 @@ function CrushPage() {
   };
 
   const vote = async () => {
-    if (!card) return;
+    if (!card || card.mine) return;
     const { data } = await supabase.auth.getUser();
     if (!data.user || data.user.is_anonymous) {
       setPendingVote(true);
@@ -333,7 +334,7 @@ function CrushPage() {
   };
 
   const react = async (emoji: string) => {
-    if (!card) return;
+    if (!card || card.mine) return;
     const { error } = await (supabase as any).rpc("react_to_crush_secure", {
       p_nominee_id: card.id,
       p_reaction: emoji,
@@ -379,7 +380,7 @@ function CrushPage() {
   };
 
   const sendComment = async () => {
-    if (!card || !comment.trim() || sending) return;
+    if (!card || card.mine || !comment.trim() || sending) return;
     setSending(true);
     try {
       const { error } = await (supabase as any).rpc("add_crush_comment_secure", {
