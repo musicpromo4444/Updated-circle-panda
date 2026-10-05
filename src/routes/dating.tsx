@@ -182,7 +182,7 @@ function DatingPage() {
       void supabase.removeChannel(channel);
       void supabase.removeChannel(connectionChannel);
     };
-  }, [refreshDatingData, loadConnections]);
+  }, [refreshDatingData]);
 
   // Pre-cache video ad units
 
@@ -212,10 +212,7 @@ function DatingPage() {
 
   const connectionFor = (userId?: string) => connections.find((x:any) => userId && ((x.requester_id === userId && x.recipient_id === datingProfile?.userId) || (x.recipient_id === userId && x.requester_id === datingProfile?.userId)));
 
-  const allMatches: Match[] = [
-    ...(datingProfile ? [{ ...datingProfile, name: `${datingProfile.name} (You)` }] : []),
-    ...datingMatches,
-  ];
+  const allMatches: Match[] = datingMatches.filter((m:any) => m.userId && m.userId !== datingProfile?.userId);
   const filteredMatches = allMatches.filter((m:any, idx) => {
     if (idx === 0) return true;
     if (sameCountryOnly && datingProfile?.country && String(m.country).toLowerCase() !== String(datingProfile.country).toLowerCase()) return false;
