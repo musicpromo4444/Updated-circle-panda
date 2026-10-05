@@ -75,6 +75,23 @@ export function GlobalActionWidget() {
   );
 }
 
+function SelfMessageBlockedPopup() {
+  const [open,setOpen]=useState(false);
+  useEffect(()=>{
+    const handler=()=>{setOpen(true);window.setTimeout(()=>setOpen(false),2500)};
+    window.addEventListener("circle-panda-self-message-blocked",handler);
+    return()=>window.removeEventListener("circle-panda-self-message-blocked",handler);
+  },[]);
+  if(!open)return null;
+  return <div className="pointer-events-none fixed inset-0 z-[220] grid place-items-center px-5">
+    <div className="cp-pop rounded-3xl border border-amber-400/50 bg-background/95 px-7 py-6 text-center shadow-2xl backdrop-blur-xl">
+      <div className="text-4xl">🚫</div>
+      <p className="mt-2 font-display text-lg font-black">Sorry, you can't message yourself</p>
+      <p className="mt-1 text-xs text-muted-foreground">You can share, like or comment on your own content.</p>
+    </div>
+  </div>;
+}
+
 function ActionCelebration() {
   const [action, setAction] = useState<{ title: string; emoji: string } | null>(null);
   useEffect(() => {
@@ -517,6 +534,7 @@ export function AppShell({
 
       {!immersive ? <BottomNav /> : null}
       {!immersive ? <ActionCelebration /> : null}
+      {!immersive ? <SelfMessageBlockedPopup /> : null}
       {!immersive ? <DailyRewardPopup /> : null}
       <InsufficientBcDialog />
     </div>
