@@ -8,7 +8,6 @@ import { RewardedAdModal } from "@/components/RewardedAdModal";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { sendMessageRequest } from "@/lib/messageRequests";
-import heic2any from "heic2any";
 
 export const Route = createFileRoute("/groups/$groupId")({
   head: () => ({
@@ -27,6 +26,16 @@ export const Route = createFileRoute("/groups/$groupId")({
   }),
   component: GroupRoom,
 });
+
+async function convertHeicToJpeg(blob: Blob): Promise<Blob> {
+  // heic2any touches window at module evaluation time, so it must only be
+  // imported inside a browser-only action. Importing it at the top level
+  // breaks TanStack Start SSR for the group route.
+  const mod = await import("heic2any");
+  const converter = mod.default;
+  const converted = await converter({ blob, toType: "image/jpeg", quality: 0.9 });
+  return Array.isArray(converted) ? converted[0] : converted;
+}
 
 function GroupRoom() {
   const { groupId } = useParams({ from: "/groups/$groupId" });
@@ -103,7 +112,7 @@ function GroupRoom() {
     })();
     return () => { active = false; };
   }, [groupId, navigate]);
-  const expired = !!group?.expiresAt && new Date(group.expiresAt).getTime() <= Date.now();
+  // Normal Circle Panda groups are permanent after activation. The legacy expires_at field is ignored.
   const live = !!group && group.openedAt !== null;
 
   const signedMediaUrl = async (path?: string | null) => {
@@ -182,8 +191,7 @@ function GroupRoom() {
     if (messageType === "image" && /(^image\/(heic|heif)$)|\.(heic|heif)$/i.test(file.type || file.name)) {
       toast.info("Converting HEIC photo to a compatible image…");
       try {
-        const converted = await heic2any({ blob: file, toType: "image/jpeg", quality: 0.9 });
-        const blob = Array.isArray(converted) ? converted[0] : converted;
+        const blob = await convertHeicToJpeg(file);
         uploadFile = new File([blob], file.name.replace(/\.(heic|heif)$/i, ".jpg"), { type: "image/jpeg" });
       } catch {
         toast.error("This HEIC photo could not be converted. Please choose another photo.");
@@ -401,8 +409,7 @@ function GroupRoom() {
         const response = await fetch(url);
         if (!response.ok) throw new Error("HEIC download failed");
         const source = await response.blob();
-        const converted = await heic2any({ blob: source, toType: "image/jpeg", quality: 0.9 });
-        const blob = Array.isArray(converted) ? converted[0] : converted;
+        const blob = await convertHeicToJpeg(source);
         if (url === m.media_url) URL.revokeObjectURL(url);
         url = URL.createObjectURL(blob);
       } catch {
@@ -683,12 +690,10 @@ function GroupRoom() {
           <p className="py-12 text-center text-sm text-muted-foreground">
             This room doesn't exist.
           </p>
-        ) : expired || group.openedAt === null ? (
+        ) : group.openedAt === null ? (
           <div className="py-12 text-center text-sm text-muted-foreground">
             <Lock className="mx-auto mb-2 size-6" />
-            {expired
-              ? "This chat locked when the 24-hour timer hit zero."
-              : "This room hasn't been opened yet."}
+            This room hasn't been opened yet.
           </div>
         ) : (
           chatMessages.map((m) => (
