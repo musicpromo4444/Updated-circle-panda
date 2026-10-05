@@ -331,3 +331,9 @@ revoke execute on function public.send_group_message_secure(uuid,text,uuid) from
 grant execute on function public.send_group_message_secure(uuid,text,uuid) to authenticated;
 revoke execute on function public.send_group_media_secure(uuid,text,text,text,integer,boolean,text) from public,anon;
 grant execute on function public.send_group_media_secure(uuid,text,text,text,integer,boolean,text) to authenticated;
+
+
+-- Finalize the group sending RPC to one unambiguous signature.
+drop function if exists public.send_group_message_secure(uuid,text);
+revoke all on function public.send_group_message_secure(uuid,text,uuid) from public,anon;
+grant execute on function public.send_group_message_secure(uuid,text,uuid) to authenticated;
