@@ -449,7 +449,7 @@ type StoreValue = State & {
   updateGroupInfo: (id: string, name: string, topic: string) => void;
   updateGroupSettings: (id: string, editGroupInfo: "admins" | "admins_members", sendMessages: boolean, approveNewMembers: boolean) => void;
   isGroupExpired: (g: GroupChat) => boolean;
-  sendMessage: (threadId: string, body: string) => void;
+  sendMessage: (threadId: string, body: string) => Promise<boolean>;
   refreshThreads: () => Promise<void>;
   startDatingChat: (userId: string, name: string) => Promise<string | null>;
   startDmWithAuthor: (userId: string, author: string, blurb: string) => Promise<string | null>;
@@ -1047,31 +1047,32 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     toast.error("Free spins are issued by the server reward engine.");
   }, []);
 
-  const sendMessage = useCallback((threadId: string, body: string) => {
-    if (!dbUserId) { requestLogin("send messages"); return; }
-    void (async () => {
-      const idempotencyKey = crypto.randomUUID();
-      const { data: messageId, error } = await (supabase as any).rpc("send_dm_message", {
-        p_thread_id: threadId,
-        p_body: body,
-        p_media_path: null,
-        p_media_type: null,
-        p_idempotency_key: idempotencyKey,
-      });
-      if (error) { toast.error(error.message ?? "Message could not be sent"); return; }
-      const { data: saved } = await (supabase as any).from("dm_messages")
-        .select("id,body,created_at")
-        .eq("id", messageId)
-        .maybeSingle();
-      setState((s) => ({
-        ...s,
-        threads: s.threads.map((t) => t.id === threadId
-          ? { ...t, messages: [...t.messages, { id:String(messageId), body:saved?.body ?? body, at:new Date(saved?.created_at ?? Date.now()).getTime(), mine:true, messageType:"text" }] }
-          : t),
-      }));
-      void refreshCoins();
-      toast.success("Message delivered 💬");
-    })();
+  const sendMessage = useCallback(async (threadId: string, body: string): Promise<boolean> => {
+    if (!dbUserId) { requestLogin("send messages"); return false; }
+    const trimmed = body.trim();
+    if (!trimmed) return false;
+    const idempotencyKey = crypto.randomUUID();
+    const { data: messageId, error } = await (supabase as any).rpc("send_dm_message", {
+      p_thread_id: threadId,
+      p_body: trimmed,
+      p_media_path: null,
+      p_media_type: null,
+      p_idempotency_key: idempotencyKey,
+    });
+    if (error) { toast.error(error.message ?? "Message could not be sent"); return false; }
+    const { data: saved } = await (supabase as any).from("dm_messages")
+      .select("id,body,created_at")
+      .eq("id", messageId)
+      .maybeSingle();
+    setState((state) => ({
+      ...state,
+      threads: state.threads.map((t) => t.id === threadId
+        ? { ...t, messages: [...t.messages, { id:String(messageId), body:saved?.body ?? trimmed, at:new Date(saved?.created_at ?? Date.now()).getTime(), mine:true, messageType:"text" }] }
+        : t),
+    }));
+    void refreshCoins();
+    toast.success("Message delivered 💬");
+    return true;
   }, [dbUserId, refreshCoins]);
 
   const startDatingChat = useCallback((userId: string, name: string) => {
@@ -1094,7 +1095,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     if (!dbUserId) { requestLogin("contact this Panda"); return Promise.resolve(null); }
     if (!userId) return Promise.resolve(null);
     return (async () => {
-      const { error } = await (supabase as any).rpc("request_direct_message_secure", { p_recipient_id:userId, p_message:"" });
+      const { error } = await (supabase as any).rpc("start_dm_request", { p_recipient_id:userId, p_body:"", p_media_path:null, p_media_type:null, p_context_type:"direct", p_context_id:null });
       if (error) { toast.error(error.message ?? "Could not send message request"); return null; }
       toast.success("Message request sent 💬");
       return null;
@@ -1105,7 +1106,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     if (!dbUserId) { requestLogin("contact this Panda"); return Promise.resolve(null); }
     if (!userId) return Promise.resolve(null);
     return (async () => {
-      const { error } = await (supabase as any).rpc("request_direct_message_secure", { p_recipient_id:userId, p_message:blurb ?? "" });
+      const { error } = await (supabase as any).rpc("start_dm_request", { p_recipient_id:userId, p_body:blurb ?? "", p_media_path:null, p_media_type:null, p_context_type:"direct", p_context_id:null });
       if (error) { toast.error(error.message ?? "Could not send message request"); return null; }
       toast.success("Message request sent 💬");
       return null;
