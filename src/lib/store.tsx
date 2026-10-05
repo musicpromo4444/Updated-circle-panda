@@ -74,6 +74,9 @@ export type Thread = {
   kind: "dm" | "dating";
   blurb: string;
   messages: ChatMessage[];
+  /** Source is shown only on the Messages list card, never inside the chat. */
+  sourceType?: "direct" | "dating" | "event" | "profile" | "group" | "mcm" | "wcw";
+  sourceLabel?: string;
   /** When a dating match started; billing is free for the first 72h after the mutual match. */
   startedAt?: number;
 };
@@ -515,25 +518,41 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const refreshThreads = useCallback(async () => {
     if (!dbUserId) return;
     const uid = dbUserId;
-    const [threadsRes, messagesRes] = await Promise.all([
-      (supabase as any).from("cp_threads")
-        .select("id,owner_id,participant_id,other_alias,kind,blurb,created_at")
-        .order("created_at", { ascending: false })
+    const [threadsRes, messagesRes, requestsRes] = await Promise.all([
+      (supabase as any).from("dm_threads")
+        .select("id,user_a,user_b,status,created_at,updated_at")
+        .or(`user_a.eq.${uid},user_b.eq.${uid}`)
+        .eq("status", "active")
+        .order("updated_at", { ascending: false })
         .limit(100),
-      (supabase as any).from("cp_thread_messages")
-        .select("id,thread_id,user_id,body,created_at,message_type,media_path")
+      (supabase as any).from("dm_messages")
+        .select("id,thread_id,sender_id,body,created_at,media_type,media_path")
         .order("created_at", { ascending: true })
         .limit(2000),
+      (supabase as any).from("dm_requests")
+        .select("thread_id,context_type,source_label,created_at,status")
+        .eq("status", "accepted")
+        .order("created_at", { ascending: false })
+        .limit(500),
     ]);
     if (threadsRes.error) {
-      console.error("Circle Panda thread refresh failed", threadsRes.error);
+      console.error("Circle Panda DM thread refresh failed", threadsRes.error);
       return;
     }
+    if (messagesRes.error) console.error("Circle Panda DM message refresh failed", messagesRes.error);
+    if (requestsRes.error) console.error("Circle Panda DM source refresh failed", requestsRes.error);
+
     const rawThreads = threadsRes.data ?? [];
     const rawMessages = messagesRes.data ?? [];
+    const rawRequests = requestsRes.data ?? [];
+    const sourceByThread = new Map<string, any>();
+    for (const request of rawRequests) {
+      if (!sourceByThread.has(request.thread_id)) sourceByThread.set(request.thread_id, request);
+    }
+
     const otherIds = Array.from(new Set(
       rawThreads
-        .map((t: any) => t.owner_id === uid ? t.participant_id : t.owner_id)
+        .map((t: any) => t.user_a === uid ? t.user_b : t.user_a)
         .filter(Boolean),
     ));
     const profilesRes = otherIds.length
@@ -548,27 +567,32 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         },
       ]),
     );
-    const threads = rawThreads.filter((t: any) => t.participant_id).map((t: any) => {
-      const otherId = t.owner_id === uid ? t.participant_id : t.owner_id;
+
+    const threads = rawThreads.map((t: any) => {
+      const otherId = t.user_a === uid ? t.user_b : t.user_a;
       const profile = profileNames.get(otherId);
+      const source = sourceByThread.get(t.id);
+      const sourceType = source?.context_type ?? "direct";
       return {
         id: t.id,
         otherUserId: otherId,
         otherVip: Boolean(profile?.vip),
         name: profile?.name ?? "Anonymous Panda",
-        kind: t.kind === "dating" ? "dating" : "dm",
-        blurb: t.blurb ?? "",
+        kind: sourceType === "dating" ? "dating" : "dm",
+        sourceType,
+        sourceLabel: source?.source_label ?? "Direct message",
+        blurb: sourceType === "dating" ? "Dating" : sourceType === "event" ? "Event" : "Direct message",
         messages: rawMessages
-          .filter((m: any) => m.thread_id === t.id && !(m.message_type === "dating_photo" && m.user_id === uid))
+          .filter((m: any) => m.thread_id === t.id)
           .map((m: any) => ({
             id: m.id,
-            body: m.body,
+            body: m.body ?? "",
             at: new Date(m.created_at).getTime(),
-            mine: m.user_id === uid,
-            messageType: m.message_type === "dating_photo" ? "dating_photo" : "text",
+            mine: m.sender_id === uid,
+            messageType: m.media_type === "dating_photo" ? "dating_photo" : "text",
             mediaPath: m.media_path ?? undefined,
           })),
-        startedAt: t.kind === "dating" ? new Date(t.created_at).getTime() : undefined,
+        startedAt: sourceType === "dating" ? new Date(t.created_at).getTime() : undefined,
       };
     });
     setState((s) => ({ ...s, threads }));
@@ -1026,15 +1050,27 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const sendMessage = useCallback((threadId: string, body: string) => {
     if (!dbUserId) { requestLogin("send messages"); return; }
     void (async () => {
-      const { data, error } = await (supabase as any).rpc("send_direct_message", { p_thread_id: threadId, p_body: body });
+      const idempotencyKey = crypto.randomUUID();
+      const { data: messageId, error } = await (supabase as any).rpc("send_dm_message", {
+        p_thread_id: threadId,
+        p_body: body,
+        p_media_path: null,
+        p_media_type: null,
+        p_idempotency_key: idempotencyKey,
+      });
       if (error) { toast.error(error.message ?? "Message could not be sent"); return; }
-      setState((s) => ({ ...s, coins: Number(data?.balance ?? s.coins), threads: s.threads.map((t) => t.id === threadId ? { ...t, messages: [...t.messages, { id:data.id, body:data.body, at:new Date(data.created_at).getTime(), mine:true, messageType:"text" }] } : t) }));
+      const { data: saved } = await (supabase as any).from("dm_messages")
+        .select("id,body,created_at")
+        .eq("id", messageId)
+        .maybeSingle();
+      setState((s) => ({
+        ...s,
+        threads: s.threads.map((t) => t.id === threadId
+          ? { ...t, messages: [...t.messages, { id:String(messageId), body:saved?.body ?? body, at:new Date(saved?.created_at ?? Date.now()).getTime(), mine:true, messageType:"text" }] }
+          : t),
+      }));
       void refreshCoins();
-      if (Number(data?.charged_bc ?? 0) > 0) {
-        toast("−1 BC spent 🪙", { description:"Message delivered anonymously." });
-      } else {
-        toast.success("Message delivered 💗", { description:data?.free_reason === "dating_72h" ? "Free during the 72-hour Dating Chat." : "VIP message." });
-      }
+      toast.success("Message delivered 💬");
     })();
   }, [dbUserId, refreshCoins]);
 
