@@ -66,7 +66,7 @@ export function ConfessionsPage() {
   const [commentsByPost, setCommentsByPost] = useState<Record<string, ConfessionComment[]>>({});
   const [messagePost, setMessagePost] = useState<Confession | null>(null);
   const [messageText, setMessageText] = useState("");
-  const [challengeComplete, setChallengeComplete] = useState(false);
+  const [challengeComplete, setChallengeComplete] = useState(false);\n  const [challengeExplore, setChallengeExplore] = useState(false);
   const [sendingMessage, setSendingMessage] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const remaining = useMemo(() => 2000 - content.length, [content.length]);
@@ -589,7 +589,7 @@ export function ConfessionsPage() {
         <DialogContent className="max-w-sm rounded-3xl text-center">
           <DialogTitle className="font-display text-2xl font-black">🎉 Challenge Completed!</DialogTitle>
           <DialogDescription className="mt-2">You completed the challenge successfully. Please wait for the results. You can now explore Circle Panda while you wait.</DialogDescription>
-          <Button className="mt-5 w-full" onClick={() => setChallengeComplete(false)}>Explore Circle Panda</Button>
+          <Button className="mt-5 w-full" onClick={() => { setChallengeComplete(false); setChallengeExplore(true); }}>Explore Circle Panda</Button>
         </DialogContent>
       </Dialog>
 
