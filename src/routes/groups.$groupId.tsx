@@ -8,6 +8,7 @@ import { RewardedAdModal } from "@/components/RewardedAdModal";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { sendMessageRequest } from "@/lib/messageRequests";
+import { useActionSuccess } from "@/components/ActionSuccessFeedback";
 
 export const Route = createFileRoute("/groups/$groupId")({
   head: () => ({
@@ -40,6 +41,7 @@ async function convertHeicToJpeg(blob: Blob): Promise<Blob> {
 function GroupRoom() {
   const { groupId } = useParams({ from: "/groups/$groupId" });
   const navigate = useNavigate();
+  const { complete } = useActionSuccess();
   const {
     leaveGroup,
     updateGroupInfo,
@@ -796,6 +798,7 @@ function GroupRoom() {
                 return;
               }
               const userId = (await supabase.auth.getUser()).data.user?.id;
+              complete("group_message");
               setChatMessages((x) => [...x, {
                 id:data.id, group_id:group.id, body, created_at:data.created_at, user_id:userId,
                 author:"You (anonymous)", mine:true, reply_to_id:replyTo?.id ?? null, reactions:[], currentUserId:userId,
@@ -808,13 +811,13 @@ function GroupRoom() {
         >
           {mediaMenuOpen ? (
             <div className="absolute bottom-full left-3 mb-2 flex gap-2 rounded-2xl border bg-card p-2 shadow-xl">
-              <button type="button" className="grid size-11 place-items-center rounded-xl hover:bg-secondary" onClick={() => { if (mediaInputRef.current) { mediaInputRef.current.accept = "image/*"; mediaInputRef.current.click(); } }} aria-label="Photo">
+              <button type="button" className="grid size-11 place-items-center rounded-xl hover:bg-secondary" onClick={() => { setMediaMenuOpen(false); if (mediaInputRef.current) { mediaInputRef.current.accept = "image/*"; mediaInputRef.current.click(); } }} aria-label="Photo">
                 <ImageIcon className="size-5" />
               </button>
-              <button type="button" className="grid size-11 place-items-center rounded-xl hover:bg-secondary" onClick={() => { if (mediaInputRef.current) { mediaInputRef.current.accept = "video/*"; mediaInputRef.current.click(); } }} aria-label="Video">
+              <button type="button" className="grid size-11 place-items-center rounded-xl hover:bg-secondary" onClick={() => { setMediaMenuOpen(false); if (mediaInputRef.current) { mediaInputRef.current.accept = "video/*"; mediaInputRef.current.click(); } }} aria-label="Video">
                 <Video className="size-5" />
               </button>
-              <button type="button" className="grid size-11 place-items-center rounded-xl hover:bg-secondary" onClick={() => void startVoiceRecording()} aria-label="Voice note">
+              <button type="button" className="grid size-11 place-items-center rounded-xl hover:bg-secondary" onClick={() => { setMediaMenuOpen(false); void startVoiceRecording(); }} aria-label="Voice note">
                 <Mic className="size-5" />
               </button>
             </div>
