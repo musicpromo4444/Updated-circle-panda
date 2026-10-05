@@ -61,7 +61,7 @@ function GroupRoom() {
     if(!groupId || !live) return;
     let cancelled=false;
     void (async()=>{const {data,error}=await (supabase as any).from("group_messages").select("id,group_id,sender_id,body,created_at,media_type,media_path,reply_to_id,view_once").eq("group_id",groupId).order("created_at",{ascending:true}).limit(1000); if(error){toast.error(error.message??"Could not load group messages");return;} const rows=await Promise.all((data??[]).map(mapRow)); if(!cancelled)setMessages(rows);})();
-    const channel=supabase.channel(`group:${groupId}:messages`).on("postgres_changes",{event:"INSERT",schema:"public",table:"cp_group_messages",filter:`group_id=eq.${groupId}`},(payload:any)=>{void mapRow(payload.new).then(msg=>{if(!cancelled)setMessages(current=>current.some(m=>m.id===msg.id)?current:[...current,msg]);});}).subscribe();
+    const channel=supabase.channel(`group:${groupId}:messages`).on("postgres_changes",{event:"INSERT",schema:"public",table:"group_messages",filter:`group_id=eq.${groupId}`},(payload:any)=>{void mapRow(payload.new).then(msg=>{if(!cancelled)setMessages(current=>current.some(m=>m.id===msg.id)?current:[...current,msg]);});}).subscribe();
     return()=>{cancelled=true;void supabase.removeChannel(channel);};
   },[groupId,live]);
 
