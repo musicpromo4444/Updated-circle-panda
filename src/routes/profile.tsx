@@ -88,6 +88,7 @@ function ProfilePage() {
   const [resumeDate, setResumeDate] = useState("");
   const [deletionConfirmOpen, setDeletionConfirmOpen] = useState(false);
   const [settingsBusy, setSettingsBusy] = useState(false);
+  const [supportBusy, setSupportBusy] = useState(false);
   const [loadingLocations, setLoadingLocations] = useState(false);
   const [avatarHead, setAvatarHead] = useState("🐼");
   const [avatarGlasses, setAvatarGlasses] = useState("");
@@ -192,6 +193,27 @@ function ProfilePage() {
       }).catch(()=>setLocationAreas([]));
   }, [country,stateProvince,city]);
 
+  const openSupportChat = async () => {
+    setSupportBusy(true);
+    try {
+      const { data: admins, error } = await (supabase as any).from("app_admins").select("user_id");
+      if (error) throw error;
+      const admin = (admins ?? []).find((row:any) => row.user_id && row.user_id !== profileId);
+      if (!admin?.user_id) throw new Error("Anonymous Admin is not available yet.");
+      const { error: requestError } = await (supabase as any).rpc("request_direct_message_secure", {
+        p_recipient_id: admin.user_id,
+        p_message: "Hello Anonymous Admin, I need help with Circle Panda."
+      });
+      if (requestError) throw requestError;
+      toast.success("Chat request sent to Anonymous Admin");
+      window.location.assign("/messages");
+    } catch (error:any) {
+      toast.error(error?.message ?? "Anonymous Admin chat is unavailable");
+    } finally {
+      setSupportBusy(false);
+    }
+  };
+
   const logout = async () => {
     const { error } = await supabase.auth.signOut();
     if (error) { toast.error(error.message); return; }
@@ -255,7 +277,7 @@ function ProfilePage() {
 
   return (
     <AppShell title="Your Profile" subtitle="Anonymous to everyone else. Tracked only for you.">
-      <div className="mb-3 flex justify-end"><Button type="button" variant="outline" className="gap-2 rounded-xl" onClick={() => setSettingsOpen(true)}><Settings className="size-4" /> Profile Settings</Button></div>
+      <div className="mb-3 flex items-center justify-between gap-2"><Button type="button" variant="outline" className="gap-2 rounded-xl" disabled={supportBusy} onClick={() => void openSupportChat()}><MessageCircle className="size-4" /> Chat With Us</Button><Button type="button" variant="outline" className="gap-2 rounded-xl" onClick={() => setSettingsOpen(true)}><Settings className="size-4" /> Settings</Button></div>
       <section className="panda-panel rounded-2xl p-5">
         <div className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-3">
           <div className="min-w-0">
