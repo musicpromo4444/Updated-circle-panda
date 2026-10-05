@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from "react";
-import { CalendarDays, Check, Crown, Gift, Heart, Image as ImageIcon, MessageCircle, Panda, Send, Sparkles, Trophy, Users, Vote } from "lucide-react";
+import { CalendarDays, Check, Crown, Gift, Heart, Image as ImageIcon, MessageCircle, Send, Sparkles, Trophy, Users } from "lucide-react";
 
 export type CirclePandaActivity =
   | "private_message" | "group_message" | "group_media" | "group_voice"
