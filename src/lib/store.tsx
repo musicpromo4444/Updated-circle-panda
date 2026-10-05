@@ -918,7 +918,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const sendGroupMessage = useCallback((id: string, body: string) => {
     if (!dbUserId) { requestLogin("message this group"); return; }
     void (async () => {
-      const { data, error } = await (supabase as any).rpc("send_group_message_secure", { p_group_id: id, p_body: body });
+      const { data, error } = await (supabase as any).rpc("send_group_message", { p_group_id: id, p_body: body, p_media_type:null, p_media_path:null, p_reply_to_id:null, p_view_once:false, p_idempotency_key:crypto.randomUUID() });
       if (error) { toast.error(error.message ?? "Message could not be sent"); return; }
       setState((s) => ({ ...s, groups: s.groups.map((g) => g.id === id ? { ...g, messages: [...g.messages, { id: String(data), author: "You (anonymous)", body, at: Date.now(), mine: true }] } : g) }));
       void refreshCoins();
@@ -937,7 +937,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       return;
     }
     void (async () => {
-      const { data, error } = await (supabase as any).rpc("join_group_secure", { p_group_id: id });
+      const { data, error } = await (supabase as any).rpc("join_group", { p_group_id: id });
       if (error) { toast.error(error.message ?? "Could not join group"); return; }
       const joined = !currentGroup?.approveNewMembers;
       setState((s) => ({ ...s, groups: s.groups.map((g) => g.id === id ? {
@@ -961,7 +961,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const leaveGroup = useCallback((id: string) => {
     if (!dbUserId) { toast.error("Sign in to leave this group"); return; }
     void (async () => {
-      const { error } = await (supabase as any).rpc("leave_group_secure", { p_group_id: id });
+      const { error } = await (supabase as any).rpc("leave_group", { p_group_id: id });
       if (error) { toast.error(error.message ?? "Could not leave group"); return; }
       setState((s) => ({ ...s, groups: s.groups.map((g) => g.id === id ? { ...g, members: Math.max(0, g.members - 1), memberRole: undefined } : g) }));
       toast.success("You left the group");
@@ -971,7 +971,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const updateGroupInfo = useCallback((id: string, name: string, topic: string) => {
     if (!dbUserId) { requestLogin("edit group information"); return; }
     void (async () => {
-      const { error } = await (supabase as any).rpc("update_group_info_secure", { p_group_id: id, p_name: name, p_topic: topic });
+      const { error } = await (supabase as any).rpc("update_group_info", { p_group_id: id, p_name: name, p_about: topic });
       if (error) { toast.error(error.message ?? "Could not update group information"); return; }
       setState((s) => ({ ...s, groups: s.groups.map((g) => g.id === id ? { ...g, name, topic } : g) }));
       toast.success("Group information updated");
@@ -981,7 +981,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const updateGroupSettings = useCallback((id: string, editGroupInfo: "admins" | "admins_members", sendMessages: boolean, approveNewMembers: boolean) => {
     if (!dbUserId) { requestLogin("change group settings"); return; }
     void (async () => {
-      const { error } = await (supabase as any).rpc("update_group_settings_secure", { p_group_id:id, p_edit_group_info:editGroupInfo, p_send_messages:sendMessages, p_approve_new_members:approveNewMembers });
+      const { error } = await (supabase as any).rpc("update_group_settings", { p_group_id:id, p_edit_group_info:editGroupInfo, p_send_messages:sendMessages, p_approve_new_members:approveNewMembers });
       if (error) { toast.error(error.message ?? "Could not update group settings"); return; }
       setState((s) => ({ ...s, groups: s.groups.map((g) => g.id === id ? { ...g, editGroupInfo, sendMessages, approveNewMembers } : g) }));
       toast.success("Group settings saved");
