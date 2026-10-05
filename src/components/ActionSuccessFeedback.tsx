@@ -38,28 +38,43 @@ const META: Record<CirclePandaActivity, { title: string; icon: ReactNode; motion
   sweepstakes: { title: "Contest action complete", icon: <Trophy />, motion: "cp-success-crown" },
 };
 
-function rewardKey(activity: CirclePandaActivity) {
-  return "circle-panda:first-activity:" + activity;
-}
-
 export function ActionSuccessProvider({ children }: { children: ReactNode }) {
   const [feedback, setFeedback] = useState<Feedback>(null);
+
   const complete = useCallback(async (activity: CirclePandaActivity) => {
-    // The server is authoritative for the one-time +2 BC reward.
-    // localStorage is intentionally no longer used to decide whether a reward
-    // was earned; it may only be used by the UI for cosmetic state if needed.
-    let firstTime = false;
     try {
       const { data, error } = await supabase.rpc("complete_first_activity", {
         p_activity_key: activity,
         p_reward_bc: 2,
       });
-
       if (error) throw error;
-      firstTime = Boolean(data?.awarded);
-      setFeedback({ activity, firstTime, id: Date.now() });
+
+      const next = {
+        activity,
+        firstTime: Boolean(data?.awarded),
+        id: Date.now(),
+      };
+      setFeedback(next);
+      window.setTimeout(() => {
+        setFeedback(current => current?.id === next.id ? null : current);
+      }, 2300);
     } catch {
-      // Never claim a BC reward when the server did not confirm it.
-      setFeedback({ activity, firstTime: false, id: Date.now() });
+      // Never claim a BC reward unless Supabase confirms it.
+      const next = { activity, firstTime: false, id: Date.now() };
+      setFeedback(next);
+      window.setTimeout(() => {
+        setFeedback(current => current?.id === next.id ? null : current);
+      }, 2300);
     }
   }, []);
+
+  const value = useMemo(() => ({ complete }), [complete]);
+
+  return (
+    <ActivityContext.Provider value={value}>
+      {children}
+      {feedback ? <ActionSuccessOverlay feedback={feedback} onClose={() => setFeedback(null)} /> : null}
+    </ActivityContext.Provider>
+  );
+}
+
