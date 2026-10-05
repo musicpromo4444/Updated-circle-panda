@@ -1,6 +1,6 @@
-import { Crown, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ReactNode } from "react";
+import { useMemo } from "react";
 import { PandaAvatar } from "@/components/PandaAvatar";
 
 type VipIdentityProps = {
@@ -12,21 +12,74 @@ type VipIdentityProps = {
   className?: string;
 };
 
-/** Shared VIP identity treatment. Use this anywhere a Panda identity is rendered. */
-export function VipIdentity({ isVip = false, seed = "panda", avatar = "🐼", name, compact = false, className }: VipIdentityProps) {
-  const colors = ["gold", "emerald", "cyan", "violet", "rose"] as const;
-  let hash = 0;
-  for (const ch of seed) hash = (hash * 31 + ch.charCodeAt(0)) >>> 0;
-  const color = colors[hash % colors.length];
+const VIP_EFFECTS = [
+  "fire",
+  "thunder",
+  "sparkles",
+  "lightning",
+  "sparks",
+  "aura",
+  "chi",
+  "bubbles",
+  "comet",
+  "prism",
+] as const;
+
+/**
+ * Shared VIP identity treatment.
+ * The panda face is always centered in a fixed core. VIP effects live in
+ * a separate outer layer so particles can move without moving or resizing
+ * the avatar, its circle, its name, or fixed navigation.
+ */
+export function VipIdentity({
+  isVip = false,
+  seed = "panda",
+  avatar = "🐼",
+  name,
+  compact = false,
+  className,
+}: VipIdentityProps) {
+  const effect = useMemo(() => {
+    let hash = 0;
+    for (const ch of seed) hash = (hash * 31 + ch.charCodeAt(0)) >>> 0;
+    return VIP_EFFECTS[hash % VIP_EFFECTS.length];
+  }, [seed]);
+
+  const size = compact ? "size-8 text-base" : "size-11 text-xl";
 
   return (
-    <div className={cn("flex min-w-0 items-center gap-2", className)}>
-      <span className={cn("vip-avatar-ring relative grid shrink-0 place-items-center rounded-full", `vip-ring-${color}`, compact ? "size-8 text-base" : "size-11 text-xl")} data-vip={isVip ? "true" : "false"}>
-        {isVip ? <><span className="vip-ring-spark vip-ring-spark-a">✦</span><span className="vip-ring-spark vip-ring-spark-b">✧</span></> : null}
-        <span className="relative z-10 grid size-[calc(100%-5px)] place-items-center rounded-full bg-secondary shadow-inner"><PandaAvatar avatar={avatar} size={compact ? "sm" : "md"} /></span>
+    <div className={cn("vip-avatar-identity flex min-w-0 gap-2", className)}>
+      <span className="vip-avatar-stack">
+        <span
+          className={cn(
+            "vip-avatar-ring relative grid shrink-0 place-items-center rounded-full",
+            size,
+          )}
+          data-vip={isVip ? "true" : "false"}
+          data-vip-effect={isVip ? effect : "none"}
+          aria-label={isVip ? "VIP panda" : "Panda avatar"}
+        >
+          {isVip ? (
+            <span className="vip-effect-layer" data-effect={effect} aria-hidden="true">
+              {Array.from({ length: 6 }, (_, index) => (
+                <span key={index} className="vip-effect-particle" />
+              ))}
+            </span>
+          ) : null}
+
+          <span className="vip-avatar-core">
+            <PandaAvatar avatar={avatar} size={compact ? "sm" : "md"} />
+          </span>
+        </span>
+
+        {isVip ? (
+          <span className="vip-stamp" data-compact={compact ? "true" : "false"}>
+            VIP
+          </span>
+        ) : null}
       </span>
-      {name ? <span className="min-w-0 truncate font-semibold">{name}</span> : null}
-      {isVip ? <span className={cn("vip-chip shrink-0", compact && "vip-chip-compact")}><Crown className="size-3" /> VIP <Sparkles className="size-3" /></span> : null}
+
+      {name ? <span className="min-w-0 self-center truncate font-semibold">{name}</span> : null}
     </div>
   );
 }
