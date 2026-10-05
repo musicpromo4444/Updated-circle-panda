@@ -102,7 +102,7 @@ export function VipGroupChat({ open, onOpenChange, groupId }: { open: boolean; o
     }]);
   };
 
-  const sendMedia = async ({ type, file, durationSeconds }: OutgoingGroupMedia) => {
+  const sendMedia = async ({ type, file, durationSeconds, viewOnce }: OutgoingGroupMedia) => {
     const user = (await supabase.auth.getUser()).data.user;
     if (!user) {
       toast.error("Sign in to send media");
@@ -121,7 +121,7 @@ export function VipGroupChat({ open, onOpenChange, groupId }: { open: boolean; o
       p_media_path: path,
       p_mime_type: file.type,
       p_duration_seconds: durationSeconds ?? null,
-      p_view_once: type !== "audio" ? true : false,
+      p_view_once: type !== "audio" ? Boolean(viewOnce) : false,
       p_body: "",
     });
     if (error) {
@@ -139,7 +139,7 @@ export function VipGroupChat({ open, onOpenChange, groupId }: { open: boolean; o
       messageType: type,
       mediaPath: path,
       mediaUrl: type === "audio" ? signed?.signedUrl : undefined,
-      viewOnce: type !== "audio",
+      viewOnce: type !== "audio" ? Boolean(viewOnce) : false,
     }]);
   };
 
@@ -156,7 +156,7 @@ export function VipGroupChat({ open, onOpenChange, groupId }: { open: boolean; o
 
     <main className="min-h-0 flex-1 overflow-y-auto bg-secondary/10 px-3 py-4 sm:px-5">
       <div className="mx-auto max-w-4xl space-y-3">
-        {messages.map(m => <div key={m.id} className={m.mine ? "text-right" : ""}><p className="px-2 text-[11px] text-amber-400/70">{m.author}</p><GroupMediaMessage message={m} viewOnce={Boolean(m.viewOnce)} onViewOnceOpen={async()=>{ if(!m.mediaPath) return null; const {data:allowed,error}=await (supabase as any).rpc("claim_vip_group_media_view_once",{p_message_id:m.id}); if(error){toast.error(error.message ?? "This media could not be opened");return null;} if(allowed!==true){toast.info("This view-once media has already been opened.");return null;} const {data,error:signError}=await (supabase as any).storage.from("circle-panda-group-media").createSignedUrl(m.mediaPath,60); if(signError||!data?.signedUrl){toast.error(signError?.message ?? "Media unavailable");return null;} return data.signedUrl;}} /></div>)}
+        {messages.map(m => <div key={m.id} className={m.mine ? "text-right" : ""}><p className="px-2 text-[11px] text-amber-400/70">{m.author}</p><GroupMediaMessage message={m} viewOnce={Boolean(m.viewOnce)} onViewOnceOpen={async()=>{ if(!m.mediaPath) return null; const {data,error}=await (supabase as any).functions.invoke("circle-panda-view-once-media",{body:{message_id:m.id,vip:true}}); if(error||!data?.url){toast.error(error?.message ?? data?.error ?? "Media unavailable");return null;} return data.url;}} /></div>)}
         <div ref={bottom} />
       </div>
     </main>
