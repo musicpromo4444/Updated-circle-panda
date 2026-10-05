@@ -47,7 +47,7 @@ function GroupRoom() {
     updateGroupInfo,
     updateGroupSettings,
   } = useStore();
-  const [adOpen, setAdOpen] = useState(false);
+  const [adOpen, setAdOpen] = useState(false);\n  const [groupRewardSessionId, setGroupRewardSessionId] = useState<string | null>(null);
   const [draft, setDraft] = useState("");
   const bottom = useRef<HTMLDivElement>(null);
   const [showActivation, setShowActivation] = useState(false);
@@ -135,11 +135,11 @@ function GroupRoom() {
 
   const maybeOpenGroupRewardAd = async () => {
     if (!group) return;
-    const { data, error } = await (supabase as any).rpc("should_show_group_reward_ad", { p_group_id: group.id });
+    const { data, error } = await supabase.rpc("start_group_reward_ad_secure", { p_group_id: group.id });
     if (error) return;
-    if (data === true) {
-      const { error: markError } = await (supabase as any).rpc("mark_group_reward_ad_shown", { p_group_id: group.id });
-      if (!markError) setAdOpen(true);
+    if (data?.show && data.session_id) {
+      setGroupRewardSessionId(data.session_id);
+      setAdOpen(true);
     }
   };
 
@@ -839,7 +839,7 @@ function GroupRoom() {
       ) : null}
 
       {mediaPreview ? <div className="fixed inset-0 z-[80] grid place-items-center bg-black/80 p-4" onClick={()=>setMediaPreview(null)}><div className="relative max-h-[90vh] max-w-3xl" onClick={e=>e.stopPropagation()}><Button type="button" variant="secondary" size="icon" className="absolute -right-2 -top-2 z-10 rounded-full" onClick={()=>setMediaPreview(null)}><X className="size-4"/></Button>{mediaPreview.type==="image" ? <img src={mediaPreview.url} alt={mediaPreview.name} className="max-h-[85vh] max-w-full rounded-2xl object-contain"/> : mediaPreview.type==="video" ? <video src={mediaPreview.url} controls autoPlay className="max-h-[85vh] max-w-full rounded-2xl"/> : <audio src={mediaPreview.url} controls autoPlay className="w-[min(90vw,420px)]"/>}</div></div> : null}
-      <RewardedAdModal open={adOpen} groupId={groupId} onClose={() => setAdOpen(false)} />
+      <RewardedAdModal open={adOpen} groupId={groupId} sessionId={groupRewardSessionId} onClose={() => { setAdOpen(false); setGroupRewardSessionId(null); }} />
 
     </div>
   );
