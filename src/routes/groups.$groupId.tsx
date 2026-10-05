@@ -412,58 +412,11 @@ function GroupRoom() {
     if (!url) { toast.error("Media is unavailable. Please try again."); return; }
     if (m.view_once !== false) {
       const { data: allowed, error } = await (supabase as any).rpc("claim_group_media_view_once", { p_message_id:m.id });
-      if (error || allowed !== true) {
-        toast.info(error?.message ?? "This view-once media has already been opened.");
-        return;
-      }
+      if (error || allowed !== true) { toast.info(error?.message ?? "This view-once media has already been opened."); return; }
+      setViewedMediaIds((old) => new Set(old).add(m.id));
     }
-    setViewedMediaIds((old) => m.view_once !== false ? new Set(old).add(m.id) : old);
     setMediaPreview({url,type:m.message_type === "audio" ? "audio" : m.message_type === "video" ? "video" : "image",name:m.message_type === "audio" ? "Voice note" : "Group media"});
   };
-
-  const isHeic = m.media_type === "image" && /(^image\/(heic|heif)$)|\.(heic|heif)$/i.test(m.mime_type || m.media_path || "");
-    if (isHeic) {
-      try {
-        const response = await fetch(url);
-        if (!response.ok) throw new Error("HEIC download failed");
-        const source = await response.blob();
-        const blob = await convertHeicToJpeg(source);
-        if (url === m.media_url) URL.revokeObjectURL(url);
-        url = URL.createObjectURL(blob);
-      } catch {
-        toast.error("This HEIC photo could not be displayed on this device.");
-        return;
-      }
-    }
-
-    if (m.view_once !== false) {
-      const { data: allowed, error } = await (supabase as any).rpc("claim_group_media_view_once", { p_message_id: m.id });
-      if (error) {
-        toast.error(error.message ?? "This media could not be opened");
-        return;
-      }
-      if (allowed !== true) {
-        setViewedMediaIds((old) => new Set(old).add(m.id));
-        toast.info("This view-once media has already been opened.");
-        return;
-      }
-      url = await signedMediaUrl(m.media_path, 60);
-    } else {
-      url = await signedMediaUrl(m.media_path, 3600);
-    }
-    if (!url) {
-      toast.error("Media is unavailable. Please try again.");
-      return;
-    }
-
-    setViewedMediaIds((old) => new Set(old).add(m.id));
-    setMediaPreview({
-      url,
-      type: m.media_type === "image" ? "image" : m.media_type === "video" ? "video" : "audio",
-      name: m.view_once === false ? (m.media_type === "audio" ? "Voice note" : "Media") : "View once",
-    });
-  };
-
 
   useEffect(() => {
     return () => {
@@ -491,21 +444,24 @@ function GroupRoom() {
     let cancelled = false;
     const load = async () => {
       const [{ data: rows, error }, { data: reactions }] = await Promise.all([
-        (supabase as any).from("cp_group_messages").select("id,group_id,body,created_at,user_id,message_type,reply_to_id,media_path,mime_type,duration_seconds,view_once").eq("group_id", groupId).order("created_at", { ascending: true }).limit(1000),
+        (supabase as any).from("group_messages").select("id,group_id,body,created_at,sender_id,media_type,reply_to_id,media_path,view_once").eq("group_id", groupId).order("created_at", { ascending: true }).limit(1000),
         (supabase as any).from("group_message_reactions").select("message_id,user_id,reaction"),
       ]);
       if (error) { toast.error(error.message ?? "Could not load group messages"); return; }
-      const uid = (await supabase.auth.getUser()).data.user?.id;
-      const reactionMap = new Map<string, any[]>();
-      (reactions ?? []).forEach((r:any) => reactionMap.set(r.message_id, [...(reactionMap.get(r.message_id) ?? []), r]));
-      if (!cancelled) { const mapped = await Promise.all((rows ?? []).map(async (m:any) => ({ ...m, author:m.sender_id===uid?"You (anonymous)":"Anonymous Panda", mine:m.sender_id===uid, media_url:m.view_once ? null : await signedMediaUrl(m.media_path,3600), reactions:reactionMap.get(m.id) ?? [], currentUserId:uid }))); setChatMessages(mapped); }
+      const uid=(await supabase.auth.getUser()).data.user?.id;
+      const reactionMap=new Map<string,any[]>();
+      (reactions ?? []).forEach((r:any)=>{const list=reactionMap.get(r.message_id)??[];list.push(r);reactionMap.set(r.message_id,list);});
+      if (!cancelled) setChatMessages((rows ?? []).map((m:any)=>({
+        id:m.id,group_id:m.group_id,body:m.body ?? "",created_at:m.created_at,user_id:m.sender_id,
+        author:m.sender_id===uid ? "You (anonymous)" : "Anonymous Panda",mine:m.sender_id===uid,
+        message_type:m.media_type,media_path:m.media_path,view_once:m.view_once,reply_to_id:m.reply_to_id,
+        reactions:reactionMap.get(m.id) ?? [],currentUserId:uid
+      })));
     };
     void load();
-    const channel=supabase.channel(`group:${groupId}:whatsapp`)
-      .on("postgres_changes",{event:"INSERT",schema:"public",table:"cp_group_messages",filter:`group_id=eq.${groupId}`},(payload:any)=>{
-        void (async()=>{ const uid=(await supabase.auth.getUser()).data.user?.id; const m=payload.new; const mediaUrl=m.view_once ? null : await signedMediaUrl(m.media_path,3600); setChatMessages(x=>x.some(v=>v.id===m.id)?x:[...x,{...m,author:m.sender_id===uid?"You (anonymous)":"Anonymous Panda",mine:m.sender_id===uid,media_url:mediaUrl,reactions:[],currentUserId:uid}]); })();
-      })
-      .on("postgres_changes",{event:"*",schema:"public",table:"cp_group_message_reactions"},()=>void load())
+    const channel=(supabase as any).channel(`group-room-${groupId}`)
+      .on("postgres_changes",{event:"INSERT",schema:"public",table:"group_messages",filter:`group_id=eq.${groupId}`},()=>void load())
+      .on("postgres_changes",{event:"*",schema:"public",table:"group_message_reactions"},()=>void load())
       .subscribe();
     return()=>{cancelled=true;void supabase.removeChannel(channel);};
   },[groupId,live]);
@@ -790,6 +746,8 @@ function GroupRoom() {
                 p_media_type: null,
                 p_media_path: null,
                 p_reply_to_id: replyTo?.id ?? null,
+                p_view_once: false,
+                p_idempotency_key: crypto.randomUUID(),
                 p_view_once: false,
                 p_idempotency_key: crypto.randomUUID(),
               });
