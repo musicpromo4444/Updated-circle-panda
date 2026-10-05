@@ -137,8 +137,8 @@ function GroupRoom() {
     if (!group) return;
     const { data, error } = await supabase.rpc("start_group_reward_ad_secure", { p_group_id: group.id });
     if (error) return;
-    if (data?.show && data.session_id) {
-      setGroupRewardSessionId(data.session_id);
+    if ((data as any)?.show && (data as any)?.session_id) {
+      setGroupRewardSessionId((data as any).session_id);
       setAdOpen(true);
     }
   };
