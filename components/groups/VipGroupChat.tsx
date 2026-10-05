@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { Crown, Phone, Video, X } from "lucide-react";
+import { ChevronLeft, Crown, Phone, Video } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { GroupComposer, type OutgoingGroupMedia } from "@/components/groups/GroupComposer";
 import { GroupMediaMessage, type GroupMediaItem } from "@/components/groups/GroupMediaMessage";
@@ -147,7 +147,7 @@ export function VipGroupChat({ open, onOpenChange, groupId }: { open: boolean; o
 
   return <div className="fixed inset-0 z-[90] flex h-[100dvh] flex-col bg-background">
     <header className="flex shrink-0 items-center gap-3 border-b border-amber-400/30 bg-background/95 px-3 py-3 backdrop-blur-xl">
-      <Button variant="ghost" size="icon" onClick={() => { onOpenChange(false); void navigate({ to: "/groups" }); }}><X className="size-5" /></Button>
+      <Button variant="ghost" size="sm" className="shrink-0 gap-1 px-2" onClick={() => { onOpenChange(false); void navigate({ to: "/groups" }); }}><ChevronLeft className="size-4"/>Back</Button>
       <span className="grid size-10 shrink-0 place-items-center rounded-full border border-amber-400/60 bg-amber-500/15 text-amber-400 shadow-[0_0_18px_rgba(245,158,11,.3)]"><Crown className="size-5" /></span>
       <div className="min-w-0 flex-1"><p className="font-display font-bold">VIP Group</p><p className="text-[11px] text-amber-400/80">Private VIP community · free full-screen chat</p></div>
       {callConfig?.voice_enabled ? <Button variant="ghost" size="icon" title="Voice call" onClick={() => setActiveCall("voice")}><Phone className="size-5 text-amber-400" /></Button> : null}
