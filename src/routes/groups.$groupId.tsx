@@ -227,7 +227,7 @@ function GroupRoom() {
       return;
     }
 
-    const { data, error } = await (supabase as any).rpc("send_group_media_secure", {
+    const { data, error } = await (supabase as any).rpc("send_group_message", {
       p_group_id: group.id,
       p_media_path: path,
       p_media_type: messageType,
@@ -740,14 +740,12 @@ function GroupRoom() {
             if (!draft.trim()) return;
             void maybeOpenGroupRewardAd(async () => {
               const body = draft.trim();
-              const { data, error } = await (supabase as any).rpc("send_group_message_secure", {
+              const { data, error } = await (supabase as any).rpc("send_group_message", {
                 p_group_id: group.id,
                 p_body: body,
                 p_media_type: null,
                 p_media_path: null,
                 p_reply_to_id: replyTo?.id ?? null,
-                p_view_once: false,
-                p_idempotency_key: crypto.randomUUID(),
                 p_view_once: false,
                 p_idempotency_key: crypto.randomUUID(),
               });
