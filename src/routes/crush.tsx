@@ -94,9 +94,12 @@ function CrushPage() {
   const [liveNomineesLoaded, setLiveNomineesLoaded] = useState(false);
   const [mediaError, setMediaError] = useState<string | null>(null);
   const [sharing, setSharing] = useState(false);
+  const [feedAdSequence, setFeedAdSequence] = useState<number[]>([5, 5, 10]);
+  const [feedAdFormats, setFeedAdFormats] = useState<string[]>(["native", "interstitial", "popup", "banner", "playable"]);
+  const [feedAdsEnabled, setFeedAdsEnabled] = useState(true);
 
-  const AD_BLOCKS = [5, 5, 10];
-  const AD_FORMATS = ["native", "interstitial", "popup", "banner", "playable"] as const;
+  const AD_BLOCKS = feedAdSequence.length ? feedAdSequence : [5, 5, 10];
+  const AD_FORMATS = feedAdFormats.length ? feedAdFormats : ["native", "interstitial", "popup", "banner", "playable"];
   const nextAdBoundary = useMemo(() => {
     let boundary = 0;
     let blockIndex = 0;
@@ -260,7 +263,7 @@ function CrushPage() {
     setSwipeCount(nextCount);
     setReactionOpen(false);
     setCommentOpen(false);
-    if (direction === 1 && nextCount === nextAdBoundary) {
+    if (feedAdsEnabled && direction === 1 && nextCount === nextAdBoundary) {
       setAdSlotIndex((value) => value + 1);
       setShowAd(true);
       return;
