@@ -470,7 +470,7 @@ type StoreValue = State & {
   activateVip: (days: number) => void;
   createGroup: (name: string, topic: string, country?: string, stateProvince?: string, city?: string, area?: string) => Promise<GroupChat | null>;
   createEvent: (event: Omit<PandaEvent, "id" | "rsvp">) => Promise<PandaEvent | null>;
-  requestDatingMatch: (userId: string) => Promise<string | null>;
+  requestDatingMatch: (userId: string) => Promise<{ status: string; requestId?: string; matchId?: string; threadId?: string } | null>;
   searchDatingProfiles: (filters: { ageMin?: number; ageMax?: number; country?: string; state?: string; location?: string; gender?: string; relationshipGoal?: string; lookingFor?: string; lifestyle?: string; smoking?: string; drinking?: string; children?: string; education?: string; heightMin?: number; heightMax?: number; zodiac?: string; sameCountryOnly?: boolean }) => Promise<boolean>;
   registerDatingProfile: (profile: Omit<DatingProfile, "registeredAt" | "userId">) => Promise<boolean>;
   refreshDatingData: (filters?: { sameCountryOnly?: boolean }) => Promise<boolean>;
@@ -1103,12 +1103,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const registerDatingProfile = useCallback(async (p: Omit<DatingProfile, "registeredAt" | "userId">): Promise<boolean> => {
     if (!dbUserId) { toast.error("Sign in to register for Dating"); return false; }
     const { data, error } = await (supabase as any).rpc("register_dating_profile_secure", {
-      p_age:p.age,p_gender:p.gender,p_country:p.country,p_vibe:p.vibe,p_bio:p.bio,p_interests:p.interests,
+      p_vibe:p.vibe,p_about_traits:p.aboutTraits ?? [],p_interests:p.interests,
       p_relationship_goal:p.relationshipGoal,p_looking_for:p.lookingFor,p_lifestyle:p.lifestyle,p_personality:p.personality,
       p_love_language:p.loveLanguage,p_smoking:p.smoking,p_drinking:p.drinking,p_children:p.children,p_education:p.education,
       p_occupation:p.occupation,p_sexual_experience:p.sexualExperience,p_intimacy_preference:p.intimacyPreference,
-      p_relationship_status:p.relationshipStatus,p_height_cm:p.heightCm??null,p_zodiac:p.zodiac,p_favorite_date:p.favoriteDate,
-      p_emoji:p.emoji,p_photo_path:p.photoPath||null,p_blurred_photo_path:p.blurredPhotoPath||null,
+      p_height_cm:p.heightCm??null,p_zodiac:p.zodiac,p_favorite_date:p.favoriteDate,p_emoji:p.emoji,
+      p_photo_path:p.photoPath||null,p_blurred_photo_path:p.blurredPhotoPath||null,
     });
     if (error) { toast.error(error.message ?? "Dating profile could not be saved"); return false; }
     const own = {
@@ -1125,12 +1125,25 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const requestDatingMatch = useCallback((userId:string) => {
     if (!dbUserId || !userId) { toast.error("Dating profile unavailable"); return Promise.resolve(null); }
     return (async () => {
-      const {data,error}=await (supabase as any).rpc("request_dating_match_secure",{p_recipient_id:userId});
-      if(error){toast.error(error.message??"Could not send dating request");return null;}
-      toast.success(data?.status==="matched"?"It's a mutual match 💗":"Dating request sent 💗");
-      return String(data?.status??"pending");
+      const { data, error } = await (supabase as any).rpc("request_dating_match_secure", { p_recipient_id:userId });
+      if (error) { toast.error(error.message ?? "Could not send dating request"); return null; }
+      const result = {
+        status: String(data?.status ?? "pending"),
+        requestId: data?.request_id ? String(data.request_id) : undefined,
+        matchId: data?.match_id ? String(data.match_id) : undefined,
+        threadId: data?.thread_id ? String(data.thread_id) : undefined,
+      };
+      // A mutual request creates the server-authoritative dating match. Open the
+      // real DM thread rather than treating the dating_matches row as a message thread.
+      if (result.status === "matched" && !result.threadId) {
+        const other = userId;
+        const thread = await (supabase as any).rpc("get_or_create_dating_thread_secure", { p_other:other });
+        if (!thread.error && thread.data) result.threadId = String(thread.data);
+      }
+      toast.success(result.status === "matched" ? "It's a mutual match 💗" : "Dating request sent 💗");
+      return result;
     })();
-  },[dbUserId]);
+  }, [dbUserId]);
 
   const buyTicket = useCallback((draw: DrawKind) => {
     if (!dbUserId) { toast.error("Sign in to buy a ticket"); return false; }
