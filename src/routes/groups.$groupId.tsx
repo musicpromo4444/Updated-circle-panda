@@ -114,7 +114,7 @@ function GroupRoom() {
         editGroupInfo:settingsRow?.edit_group_info === "admins_members" ? "admins_members" : "admins",sendMessages:settingsRow?.send_messages !== false,approveNewMembers:Boolean(settingsRow?.approve_new_members),joinPending:Boolean(row.join_pending),
         members:Number(row.member_count ?? 0),openedAt:row.activated_at?new Date(row.activated_at).getTime():null,expiresAt:row.expires_at ?? null,
         latitude:null,longitude:null,country:row.country ?? "",stateProvince:row.state_province ?? "",city:row.city ?? "",area:row.area ?? "",
-    messages:(messages ?? []).map((m:any)=>({id:m.id,author:m.user_id===uid?"You (anonymous)":"Anonymous Panda",body:m.body,at:new Date(m.created_at).getTime(),mine:m.user_id===uid,message_type:m.media_type,media_path:m.media_path,mime_type:m.mime_type,duration_seconds:m.duration_seconds,view_once:m.view_once})),
+    messages:(messages ?? []).map((m:any)=>({id:m.id,author:m.sender_id===uid?"You (anonymous)":"Anonymous Panda",body:m.body,at:new Date(m.created_at).getTime(),mine:m.sender_id===uid,message_type:m.media_type,media_path:m.media_path,mime_type:m.mime_type,duration_seconds:m.duration_seconds,view_once:m.view_once})),
       };
       if (!fresh.memberRole) {
         toast.error("You are not a member of this group. Join again to open the room.");
@@ -489,7 +489,7 @@ function GroupRoom() {
       const uid = (await supabase.auth.getUser()).data.user?.id;
       const reactionMap = new Map<string, any[]>();
       (reactions ?? []).forEach((r:any) => reactionMap.set(r.message_id, [...(reactionMap.get(r.message_id) ?? []), r]));
-      if (!cancelled) { const mapped = await Promise.all((rows ?? []).map(async (m:any) => ({ ...m, author:m.user_id===uid?"You (anonymous)":"Anonymous Panda", mine:m.user_id===uid, media_url:m.view_once ? null : await signedMediaUrl(m.media_path,3600), reactions:reactionMap.get(m.id) ?? [], currentUserId:uid }))); setChatMessages(mapped); }
+      if (!cancelled) { const mapped = await Promise.all((rows ?? []).map(async (m:any) => ({ ...m, author:m.sender_id===uid?"You (anonymous)":"Anonymous Panda", mine:m.sender_id===uid, media_url:m.view_once ? null : await signedMediaUrl(m.media_path,3600), reactions:reactionMap.get(m.id) ?? [], currentUserId:uid }))); setChatMessages(mapped); }
     };
     void load();
     const channel=supabase.channel(`group:${groupId}:whatsapp`)
@@ -709,9 +709,9 @@ function GroupRoom() {
                     <div className="relative shrink-0">
                       <button type="button" className="grid size-9 place-items-center rounded-full border border-border/70 bg-card text-xl shadow-sm" onClick={()=>setMemberMenuOpen(memberMenuOpen===m.id?null:m.id)} aria-label="Open anonymous member menu">🐼</button>
                       {memberMenuOpen===m.id ? <div className="absolute left-0 top-10 z-[60] w-44 rounded-2xl border border-border bg-card p-1.5 shadow-2xl">
-                        <button type="button" className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm hover:bg-secondary" onClick={()=>void messageMember(m.user_id)}><MessageCircle className="size-4"/> Message</button>
-                        <button type="button" className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm hover:bg-secondary" onClick={()=>void navigate({to:"/secret/$userId",params:{userId:m.user_id}})}><Eye className="size-4"/> View secret</button>
-                        <button type="button" className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm text-destructive hover:bg-destructive/10" onClick={()=>void reportMember(m.user_id)}><Flag className="size-4"/> Report</button>
+                        <button type="button" className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm hover:bg-secondary" onClick={()=>void messageMember(m.sender_id)}><MessageCircle className="size-4"/> Message</button>
+                        <button type="button" className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm hover:bg-secondary" onClick={()=>void navigate({to:"/secret/$userId",params:{userId:m.sender_id}})}><Eye className="size-4"/> View secret</button>
+                        <button type="button" className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm text-destructive hover:bg-destructive/10" onClick={()=>void reportMember(m.sender_id)}><Flag className="size-4"/> Report</button>
                       </div> : null}
                     </div>
                   ) : null}
