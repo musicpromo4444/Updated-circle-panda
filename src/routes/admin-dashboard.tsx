@@ -30,6 +30,8 @@ type RewardItem = { label: string; amount: number };
 type Activity = { slug: string; title: string; description: string; free_attempts: number; timer_seconds: number; is_enabled: boolean; sort_order: number; reward_pool?: RewardItem[] };
 type Day = { day_number: number; activity_slug: string | null; activity_title: string | null; enabled: boolean; updated_at: string };
 type GlobalAction = { enabled: boolean; feature_key: string; destination: string; icon: string; label: string };
+type CrushAdBlock = { after: number; format: "banner" | "native" | "interstitial" | "popup" | "playable" };
+type CrushCycleControl = { id: string; kind: "wcw" | "mcm"; starts_at: string; ends_at: string; status: string; feed_ad_sequence: number[] | null; feed_ad_config: any };
 
 const GLOBAL_FEATURES = [
   ["hot-seat", "/hot-seat", "Hot Seat"], ["live", "/live", "Live"], ["activities", "/activities", "Activities"],
@@ -59,6 +61,9 @@ function AdminDashboardPage() {
   const [sweepActivitySlug, setSweepActivitySlug] = useState("wheel_spin");
   const [savedSweepActivitySlug, setSavedSweepActivitySlug] = useState("wheel_spin");
   const [savingSweepActivity, setSavingSweepActivity] = useState(false);
+  const [crushCycles, setCrushCycles] = useState<CrushCycleControl[]>([]);
+  const [crushBlocks, setCrushBlocks] = useState<Record<string, CrushAdBlock[]>>({});
+  const [savingCrushKind, setSavingCrushKind] = useState<string | null>(null);
 
   const load = async () => {
     setLoading(true);
@@ -79,6 +84,21 @@ function AdminDashboardPage() {
     const selectedSweep = String(sweep.data?.[0]?.activity_slug ?? "wheel_spin");
     setSweepActivitySlug(selectedSweep);
     setSavedSweepActivitySlug(selectedSweep);
+    const crushResult = await (supabase as any).rpc("admin_get_crush_ad_blocks");
+    if (!crushResult.error) {
+      const cycles = (crushResult.data ?? []) as CrushCycleControl[];
+      setCrushCycles(cycles);
+      const grouped: Record<string, CrushAdBlock[]> = {};
+      for (const cycle of cycles) {
+        const configured = Array.isArray(cycle.feed_ad_config?.blocks) ? cycle.feed_ad_config.blocks : [];
+        const sequence = Array.isArray(cycle.feed_ad_sequence) ? cycle.feed_ad_sequence.map(Number).filter(Number.isFinite) : [5, 5, 10];
+        grouped[cycle.kind] = sequence.map((after: number, i: number) => ({
+          after: Math.max(1, Math.floor(after)),
+          format: (configured[i]?.format ?? cycle.feed_ad_config?.formats?.[i] ?? ["banner", "native", "interstitial", "popup", "playable"][i % 5]) as CrushAdBlock["format"],
+        }));
+      }
+      setCrushBlocks(grouped);
+    }
   };
   useEffect(() => { if (isAdmin) void load(); else setLoading(false); }, [isAdmin]);
 
@@ -153,6 +173,48 @@ function AdminDashboardPage() {
       <PaymentProviderSetup />
       <AdminIntegrationCenter />
       <UniversalWinnerManager />
+      <section className="panda-panel rounded-3xl p-4 sm:p-5">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <div className="flex items-center gap-2"><Shield className="size-4 text-primary"/><h2 className="font-display font-bold">WCW / MCM ad blocks</h2></div>
+            <p className="mt-1 text-xs text-muted-foreground">Each ad block has its own trigger count and its own ad format. The count sequence and format sequence are independent.</p>
+          </div>
+          <span className="rounded-full bg-primary/10 px-2 py-1 text-[10px] font-bold text-primary">Per block</span>
+        </div>
+        <div className="mt-4 space-y-4">
+          {(["wcw","mcm"] as const).map(kind => {
+            const cycle = crushCycles.find(c => c.kind === kind);
+            const blocks = crushBlocks[kind] ?? [{after:5,format:"banner"},{after:5,format:"native"},{after:10,format:"interstitial"},{after:10,format:"popup"}];
+            return <div key={kind} className="rounded-2xl border border-border/70 bg-card p-3">
+              <div className="flex items-center justify-between gap-3">
+                <div><p className="font-semibold">{kind === "wcw" ? "WCW — Woman Crush Wednesday" : "MCM — Man Crush Monday"}</p><p className="text-[11px] text-muted-foreground">{cycle ? "Active cycle controls" : "No open cycle found yet"}</p></div>
+                <Button type="button" variant="outline" size="sm" onClick={() => setCrushBlocks(v => ({...v,[kind]:[...(v[kind] ?? blocks),{after:10,format:"banner"}]}))}>Add block</Button>
+              </div>
+              <div className="mt-3 space-y-2">
+                {blocks.map((block,i) => <div key={i} className="grid gap-2 sm:grid-cols-[110px_1fr_auto] items-center rounded-xl border border-border/60 bg-background p-2">
+                  <label className="text-xs font-semibold">After<input type="number" min={1} max={1000} value={block.after} onChange={e=>setCrushBlocks(v=>({...v,[kind]:(v[kind]??blocks).map((b,j)=>j===i?{...b,after:Math.max(1,Math.min(1000,Math.floor(Number(e.target.value)||1)))}:b)}))} className="mt-1 h-10 w-full rounded-xl border bg-background px-3 text-sm"/></label>
+                  <label className="text-xs font-semibold">Ad format<select value={block.format} onChange={e=>setCrushBlocks(v=>({...v,[kind]:(v[kind]??blocks).map((b,j)=>j===i?{...b,format:e.target.value as CrushAdBlock["format"]}:b)}))} className="mt-1 h-10 w-full rounded-xl border bg-background px-3 text-sm">
+                    <option value="banner">Banner</option><option value="native">Native</option><option value="interstitial">Interstitial</option><option value="popup">Popup</option><option value="playable">Playable</option>
+                  </select></label>
+                  <Button type="button" variant="ghost" size="sm" disabled={blocks.length<=1} onClick={()=>setCrushBlocks(v=>({...v,[kind]:(v[kind]??blocks).filter((_,j)=>j!==i)}))}>Remove</Button>
+                </div>)}
+              </div>
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                <span className="text-[11px] text-muted-foreground">Sequence: <strong className="text-foreground">{blocks.map(b=>b.after).join(" → ")}</strong></span>
+                <Button type="button" className="ml-auto" disabled={!cycle || savingCrushKind===kind} onClick={async()=>{
+                  if (!cycle) return;
+                  setSavingCrushKind(kind);
+                  const {error}=await (supabase as any).rpc("admin_set_crush_feed_blocks",{p_cycle_id:cycle.id,p_blocks:blocks});
+                  setSavingCrushKind(null);
+                  if(error){toast.error(error.message);return;}
+                  toast.success(`${kind.toUpperCase()} ad blocks saved`);
+                  await load();
+                }}>{savingCrushKind===kind?<Loader2 className="mr-2 size-4 animate-spin"/>:null}Save {kind.toUpperCase()} blocks</Button>
+              </div>
+            </div>;
+          })}
+        </div>
+      </section>
       <div className="flex items-center gap-3"><Link to="/"><Button variant="ghost" size="icon" aria-label="Back"><ChevronLeft className="size-5"/></Button></Link><div><p className="text-[10px] font-bold uppercase tracking-[0.18em] text-primary">Master Admin</p><h1 className="font-display text-2xl font-black">7-Day Activity Schedule</h1><p className="text-sm text-muted-foreground">Choose exactly one activity for each day, or disable a day.</p></div></div>
       {loading ? <div className="grid min-h-64 place-items-center"><Loader2 className="size-9 animate-spin text-primary"/></div> : <>
         <section className="panda-panel rounded-3xl p-4 sm:p-5">
