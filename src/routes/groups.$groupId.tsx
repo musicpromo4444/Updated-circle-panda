@@ -186,7 +186,7 @@ function GroupRoom() {
     }
     setReactionOpen(null);
     const { data: reactions } = await (supabase as any)
-      .from("cp_group_message_reactions")
+      .from("group_message_reactions")
       .select("message_id,user_id,reaction")
       .eq("message_id", messageId);
     setChatMessages((items) =>
@@ -407,7 +407,7 @@ function GroupRoom() {
     if (!m.media_path) return;
 
     // Voice notes are reusable; do not consume the view-once claim for them.
-    let url: string | null = null;
+    let url: string | null = await signedMediaUrl(m.media_path, m.view_once === false ? 3600 : 60);
     if (!url) {
       toast.error("Media is unavailable. The file may have expired or is not accessible to this group member.");
       return;
@@ -442,8 +442,6 @@ function GroupRoom() {
         return;
       }
       url = await signedMediaUrl(m.media_path, 60);
-    } else {
-      url = await signedMediaUrl(m.media_path, 3600);
     }
     if (!url) {
       toast.error("Media is unavailable. Please try again.");
@@ -486,7 +484,7 @@ function GroupRoom() {
     const load = async () => {
       const [{ data: rows, error }, { data: reactions }] = await Promise.all([
         (supabase as any).from("cp_group_messages").select("id,group_id,body,created_at,user_id,message_type,reply_to_id,media_path,mime_type,duration_seconds,view_once").eq("group_id", groupId).order("created_at", { ascending: true }).limit(1000),
-        (supabase as any).from("cp_group_message_reactions").select("message_id,user_id,reaction"),
+        (supabase as any).from("group_message_reactions").select("message_id,user_id,reaction"),
       ]);
       if (error) { toast.error(error.message ?? "Could not load group messages"); return; }
       const uid = (await supabase.auth.getUser()).data.user?.id;
@@ -722,6 +720,7 @@ function GroupRoom() {
                   {m.mine ? null : null}
                 </div>
                 <div className={`mt-1 flex items-center gap-1 ${m.mine ? "justify-end" : ""}`}>
+                  {m.mine ? <Button type="button" variant="ghost" size="icon" className="size-7 text-destructive" onClick={async()=>{if(!window.confirm("Delete this message?")) return; const {data,error}=await (supabase as any).rpc("delete_group_message",{p_message_id:m.id}); if(error){toast.error(error.message??"Message could not be deleted");return;} if(data?.media_path) await supabase.storage.from("circle-panda-group-media").remove([String(data.media_path)]); setChatMessages(items=>items.filter(x=>x.id!==m.id)); toast.success("Message deleted");}} aria-label="Delete message"><X className="size-3.5"/></Button> : null}
                   <Button type="button" variant="ghost" size="icon" className="size-7" onClick={()=>setReplyTo(m)} aria-label="Reply"><Reply className="size-3.5"/></Button>
                   {(() => {
                     const myReaction = (m.reactions ?? []).find((r:any) => r.user_id === (m.currentUserId ?? ""));
@@ -778,7 +777,7 @@ function GroupRoom() {
             if (!draft.trim()) return;
             void maybeOpenGroupRewardAd(async () => {
               const body = draft.trim();
-              const { data, error } = await (supabase as any).rpc("send_group_message_secure", {
+              const { data, error } = await (supabase as any).rpc("send_group_message", {
                 p_group_id: group.id,
                 p_body: body,
                 p_reply_to_id: replyTo?.id ?? null,
@@ -790,7 +789,7 @@ function GroupRoom() {
               const userId = (await supabase.auth.getUser()).data.user?.id;
               complete("group_message");
               setChatMessages((x) => [...x, {
-                id:data.id, group_id:group.id, body, created_at:data.created_at, user_id:userId,
+                id:data, group_id:group.id, body, created_at:new Date().toISOString(), sender_id:userId, user_id:userId,
                 author:"You (anonymous)", mine:true, reply_to_id:replyTo?.id ?? null, reactions:[], currentUserId:userId,
               }]);
               setReplyTo(null);
