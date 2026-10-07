@@ -443,6 +443,7 @@ type StoreValue = State & {
   startDmWithAuthor: (userId: string, author: string, blurb: string) => Promise<string | null>;
   openPaidDm: (userId: string, author: string, blurb: string) => Promise<string | null>;
   refreshCoins: () => Promise<void>;
+  syncCoins: () => Promise<void>;
   syncAccountEntitlements: () => Promise<void>;
   spendCoins: (amount: number, reason?: string) => boolean;
   isAdmin: boolean;
