@@ -1103,7 +1103,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const registerDatingProfile = useCallback(async (p: Omit<DatingProfile, "registeredAt" | "userId">): Promise<boolean> => {
     if (!dbUserId) { toast.error("Sign in to register for Dating"); return false; }
     const { data, error } = await (supabase as any).rpc("register_dating_profile_secure", {
-      p_vibe:p.vibe,p_about_traits:p.aboutTraits ?? [],p_interests:p.interests,
+      p_vibe:p.vibe,p_bio:p.bio,p_about_traits:p.aboutTraits ?? [],p_interests:p.interests,
       p_relationship_goal:p.relationshipGoal,p_looking_for:p.lookingFor,p_lifestyle:p.lifestyle,p_personality:p.personality,
       p_love_language:p.loveLanguage,p_smoking:p.smoking,p_drinking:p.drinking,p_children:p.children,p_education:p.education,
       p_occupation:p.occupation,p_sexual_experience:p.sexualExperience,p_intimacy_preference:p.intimacyPreference,
