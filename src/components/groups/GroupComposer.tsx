@@ -8,6 +8,7 @@ export type OutgoingGroupMedia = {
   type: "image" | "video" | "audio";
   file: File;
   durationSeconds?: number;
+  replyToId?: string;
 };
 
 export function GroupComposer({
@@ -15,11 +16,15 @@ export function GroupComposer({
   placeholder = "Message…",
   onSendText,
   onSendMedia,
+  replyTo,
+  onCancelReply,
 }: {
   disabled?: boolean;
   placeholder?: string;
-  onSendText: (body: string) => Promise<void> | void;
-  onSendMedia: (media: OutgoingGroupMedia) => Promise<void>;
+  onSendText: (body: string, replyToId?: string) => Promise<void> | void;
+  onSendMedia: (media: OutgoingGroupMedia) => Promise<void>; 
+  replyTo?: { id: string; author: string; body: string } | null;
+  onCancelReply?: () => void;
 }) {
   const [draft, setDraft] = useState("");
   const [recording, setRecording] = useState(false);
@@ -62,7 +67,7 @@ export function GroupComposer({
       toast.error("Media must be 25 MB or smaller.");
       return;
     }
-    await onSendMedia({ type, file });
+    await onSendMedia({ type, file, replyToId: replyTo?.id });
   };
 
   const startRecording = async () => {
@@ -135,14 +140,15 @@ export function GroupComposer({
   const sendVoice = async () => {
     if (!voiceBlob || disabled) return;
     const file = new File([voiceBlob], `voice-${Date.now()}.${voiceBlob.type.includes("mp4") ? "m4a" : "webm"}`, { type: voiceBlob.type || "audio/webm" });
-    await onSendMedia({ type: "audio", file, durationSeconds: seconds });
+    await onSendMedia({ type: "audio", file, durationSeconds: seconds, replyToId: replyTo?.id });
     clearVoice();
   };
 
   const cancelVoice = () => clearVoice();
 
   return (
-    <form onSubmit={(e) => { e.preventDefault(); const text = draft.trim(); if (!text || disabled || recording || voiceBlob) return; setDraft(""); void onSendText(text); }} className="flex items-end gap-2">
+    <form style={{position:"relative"}} onSubmit={(e) => { e.preventDefault(); const text = draft.trim(); if (!text || disabled || recording || voiceBlob) return; setDraft(""); void onSendText(text, replyTo?.id); }} className="flex items-end gap-2">
+      {replyTo ? <div className="absolute bottom-full left-2 right-2 mb-1 flex items-center gap-2 rounded-xl border border-border bg-card px-3 py-2 text-xs shadow-lg"><div className="min-w-0 flex-1"><b>Replying to {replyTo.author}</b><div className="truncate text-muted-foreground">{replyTo.body || "Media"}</div></div><Button type="button" variant="ghost" size="icon" onClick={onCancelReply}><X className="size-4"/></Button></div> : null}
       <input ref={imageInput} type="file" accept="image/*" className="hidden" onChange={(e) => { void pick(e.target.files?.[0], "image"); e.currentTarget.value = ""; }} />
       <input ref={videoInput} type="file" accept="video/*" className="hidden" onChange={(e) => { void pick(e.target.files?.[0], "video"); e.currentTarget.value = ""; }} />
 
