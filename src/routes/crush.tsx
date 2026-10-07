@@ -112,6 +112,22 @@ function CrushPage() {
 
   const refreshLiveNominees = async () => {
     const currentUid = (await supabase.auth.getUser()).data.user?.id;
+    const { data: cycle } = await (supabase as any)
+      .from("crush_cycles")
+      .select("id,kind,starts_at,ends_at,feed_ad_config,feed_ad_sequence")
+      .eq("kind", kind)
+      .eq("status", "open")
+      .order("starts_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (cycle) {
+      const seq = Array.isArray(cycle.feed_ad_sequence) ? cycle.feed_ad_sequence.map(Number).filter((n:number) => Number.isFinite(n) && n > 0) : [];
+      const config = cycle.feed_ad_config && typeof cycle.feed_ad_config === "object" ? cycle.feed_ad_config : {};
+      const formats = Array.isArray(config.formats) ? config.formats.map(String).filter(Boolean) : [];
+      setFeedAdSequence(seq.length ? seq : [5, 5, 10]);
+      setFeedAdFormats(formats.length ? formats : ["native", "interstitial", "popup", "banner", "playable"]);
+      setFeedAdsEnabled(config.enabled !== false);
+    }
     const monday = new Date();
     const day = monday.getDay();
     const diff = day === 0 ? -6 : 1 - day;
@@ -186,7 +202,7 @@ function CrushPage() {
   };
 
   const pool = useMemo(
-    () => (liveNomineesLoaded ? liveNominees : nominees).filter((n) => n.kind === kind && n.mediaUrl && !n.mine),
+    () => (liveNomineesLoaded ? liveNominees : nominees).filter((n) => n.kind === kind && n.mediaUrl),
     [liveNominees, liveNomineesLoaded, nominees, kind],
   );
   const card = pool[index] ?? null;
