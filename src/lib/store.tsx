@@ -584,7 +584,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     const [groupsRes, groupSettingsRes, groupMessagesRes, eventsRes, attendeesRes] = await Promise.all([
       (supabase as any).rpc("get_group_summaries", { p_country:"", p_state_province:"", p_city:"", p_area:"" }),
       (supabase as any).from("group_settings").select("group_id,edit_group_info,send_messages,approve_new_members"),
-      (supabase as any).from("cp_group_messages").select("id,group_id,body,created_at,author_id").order("created_at", {ascending:true}).limit(1000),
+      (supabase as any).from("group_messages").select("id,group_id,body,created_at,sender_id,reply_to_id,media_type,media_path,view_once").order("created_at", {ascending:true}).limit(1000),
       (supabase as any).from("events").select("id,title,description,location,starts_at,ends_at,category,entry_fee_bc,entry_fee_amount,entry_fee_currency,duration_minutes,reach_scope,reach_country,reach_state,reach_city,reach_area,cover_url,venue_name,address_line,country,state_province,city,area,latitude,longitude,is_published,creator_id").eq("is_published",true).order("starts_at", {ascending:true}),
       (supabase as any).from("event_attendees").select("event_id,user_id"),
     ]);
@@ -595,12 +595,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     let rawGroups:any[] = Array.isArray(groupsRes.data) ? groupsRes.data : [];
     if (groupsRes.error || rawGroups.length === 0) {
       const fallback = await (supabase as any).from("groups")
-        .select("id,name,topic,owner_id,created_at,activated_at,expires_at,status,country,state_province,city,area")
+        .select("id,name,topic,creator_id,created_at,is_vip,vip_scope,country_restriction")
         .order("created_at", {ascending:false}).limit(100);
       if (!fallback.error && Array.isArray(fallback.data)) {
         rawGroups = fallback.data.map((g:any) => ({
           ...g,
-          member_role:g.owner_id === dbUserId ? "owner" : null,
+          member_role:g.creator_id === dbUserId ? "owner" : null,
           join_pending:false,
           member_count:0,
         }));
@@ -620,7 +620,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     const groups = rawGroups.map((g:any) => {
       const settings = groupSettings.find((x:any) => x.group_id === g.id);
       return {
-        id:g.id, name:g.name, topic:g.topic, ownerId:g.owner_id, memberRole:g.member_role,
+        id:g.id, name:g.name, topic:g.topic, ownerId:g.creator_id, memberRole:g.member_role,
         editGroupInfo:settings?.edit_group_info ?? "admins",
         sendMessages:settings?.send_messages ?? true,
         approveNewMembers:settings?.approve_new_members ?? false,
@@ -737,7 +737,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         (supabase as any).from("cp_post_replies").select("id,post_id,body,created_at,author_id,author_vip_at").order("created_at", {ascending:true}).limit(500),
         (supabase as any).rpc("get_group_summaries", { p_country:"", p_state_province:"", p_city:"", p_area:"" }),
         
-        (supabase as any).from("cp_group_messages").select("id,group_id,body,created_at,author_id").order("created_at", {ascending:true}).limit(1000),
+        (supabase as any).from("group_messages").select("id,group_id,body,created_at,sender_id,reply_to_id,media_type,media_path,view_once").order("created_at", {ascending:true}).limit(1000),
         (supabase as any).from("cp_threads").select("id,owner_id,participant_id,other_alias,kind,blurb,created_at").order("created_at", {ascending:false}).limit(100),
         (supabase as any).from("cp_thread_messages").select("id,thread_id,user_id,body,created_at,message_type,media_path").order("created_at", {ascending:true}).limit(2000),
         (supabase as any).from("group_settings").select("group_id,edit_group_info,send_messages,approve_new_members"),
@@ -765,7 +765,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       const groupSettings = groupSettingsRes.data ?? [];
       const groups = (groupsRes.data ?? []).map((g:any)=>{
         const settings = groupSettings.find((x:any)=>x.group_id===g.id);
-        return {id:g.id,name:g.name,topic:g.topic,ownerId:g.owner_id,memberRole:g.member_role,editGroupInfo:settings?.edit_group_info ?? "admins",sendMessages:settings?.send_messages ?? true,approveNewMembers:settings?.approve_new_members ?? false,joinPending:Boolean(g.join_pending),members:Number(g.member_count ?? 0),openedAt:g.activated_at?new Date(g.activated_at).getTime():null,expiresAt:g.expires_at??null,country:g.country??"",stateProvince:g.state_province??"",city:g.city??"",area:g.area??"",messages:groupMessages.filter((m:any)=>m.group_id===g.id).map((m:any)=>({id:m.id,author:m.author_id===uid?"You (anonymous)":"Anonymous Panda",body:m.body,at:new Date(m.created_at).getTime(),mine:m.author_id===uid}))};
+        return {id:g.id,name:g.name,topic:g.topic,ownerId:g.creator_id,memberRole:g.member_role,editGroupInfo:settings?.edit_group_info ?? "admins",sendMessages:settings?.send_messages ?? true,approveNewMembers:settings?.approve_new_members ?? false,joinPending:Boolean(g.join_pending),members:Number(g.member_count ?? 0),openedAt:g.activated_at?new Date(g.activated_at).getTime():null,expiresAt:g.expires_at??null,country:g.country??"",stateProvince:g.state_province??"",city:g.city??"",area:g.area??"",messages:groupMessages.filter((m:any)=>m.group_id===g.id).map((m:any)=>({id:m.id,author:m.author_id===uid?"You (anonymous)":"Anonymous Panda",body:m.body,at:new Date(m.created_at).getTime(),mine:m.author_id===uid}))};
       });
       const attendees = attendeesRes.data ?? [];
       const attendeeCountsRes = eventsRes.data?.length ? await (supabase as any).rpc("get_event_attendee_counts", { p_event_ids: eventsRes.data.map((e:any) => e.id) }) : { data: [] };
@@ -803,7 +803,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "cp_group_messages" }, (payload:any) => {
         const m = payload.new;
         setState((current) => current.groups.some(g => g.messages.some(x => x.id === m.id)) ? current : ({
-          ...current, groups: current.groups.map(g => g.id === m.group_id ? { ...g, messages: [...g.messages, { id:m.id, author:m.author_id===dbUserId?"You (anonymous)":"Anonymous Panda", body:m.body, at:new Date(m.created_at).getTime(), mine:m.author_id===dbUserId }] } : g)
+          ...current, groups: current.groups.map(g => g.id === m.group_id ? { ...g, messages: [...g.messages, { id:m.id, author:m.sender_id===dbUserId?"You (anonymous)":"Anonymous Panda", body:m.body, at:new Date(m.created_at).getTime(), mine:m.sender_id===dbUserId }] } : g)
         }));
       })
       .on("postgres_changes", { event: "UPDATE", schema: "public", table: "groups" }, (payload:any) => {
@@ -846,7 +846,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           const { data } = await (supabase as any).rpc("get_group_summaries");
           if (data) setState(current => ({ ...current, groups: data.map((g:any) => {
             const settings = current.groups.find(x => x.id===g.id);
-            return { ...settings, id:g.id,name:g.name,topic:g.topic,ownerId:g.owner_id,memberRole:g.member_role,joinPending:Boolean(g.join_pending),members:Number(g.member_count ?? 0),openedAt:g.activated_at?new Date(g.activated_at).getTime():null };
+            return { ...settings, id:g.id,name:g.name,topic:g.topic,ownerId:g.creator_id,memberRole:g.member_role,joinPending:Boolean(g.join_pending),members:Number(g.member_count ?? 0),openedAt:g.activated_at?new Date(g.activated_at).getTime():null };
           }).map((g:any)=>g && g.id ? g : null).filter(Boolean) }));
         }
       }).subscribe();
