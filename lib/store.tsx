@@ -931,7 +931,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   /** Server-authoritative WCW/MCM weekly close. */
   useEffect(() => {
     const check = async () => {
-      const { data } = await (supabase as any).rpc("close_crush_week_secure");
+      const { data } = await (supabase as any).rpc("cp_crush_status");
       if (data?.closed && Array.isArray(data.winners)) {
         const winners = data.winners.map((w:any) => ({ kind:w.kind, name:w.name, wonAt:Date.now() }));
         setState(s => ({ ...s, spotlights:[...winners,...s.spotlights].slice(0,8), weekEndsAt:Date.now()+WEEK_MS, votedIds:[] }));
