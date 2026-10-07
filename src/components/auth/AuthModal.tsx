@@ -110,8 +110,10 @@ export function AuthModal({ open, onOpenChange, defaultTab = "signin", onOpenBac
         }
         if (!created?.user_id) throw new Error("Account was not created.");
 
+        await supabase.auth.signOut({ scope: "local" });
+
         const result = value.includes("@")
-          ? await supabase.auth.signInWithPassword({ email: value, password })
+          ? await supabase.auth.signInWithPassword({ email: value.toLowerCase(), password })
           : await supabase.auth.signInWithPassword({ phone: normalizePhone(value), password });
         if (result.error) throw result.error;
 
@@ -119,7 +121,7 @@ export function AuthModal({ open, onOpenChange, defaultTab = "signin", onOpenBac
         onNewUserCreated?.();
       } else {
         const result = value.includes("@")
-          ? await supabase.auth.signInWithPassword({ email: value, password })
+          ? await supabase.auth.signInWithPassword({ email: value.toLowerCase(), password })
           : await supabase.auth.signInWithPassword({ phone: normalizePhone(value), password });
         if (result.error) throw result.error;
         toast.success("Welcome back to the Circle 🐼");
@@ -186,7 +188,7 @@ export function AuthModal({ open, onOpenChange, defaultTab = "signin", onOpenBac
             <span className="grid size-11 place-items-center rounded-2xl border border-primary/25 bg-primary/15 text-2xl">🐼</span>
             <div>
               <DialogTitle className="font-display text-xl font-bold">Circle Panda Account</DialogTitle>
-              <DialogDescription className="text-xs">Your real Supabase account keeps chats, BC and profile data synced.</DialogDescription>
+              <DialogDescription className="text-xs">Sign in or create your Circle Panda account.</DialogDescription>
             </div>
           </div>
         </DialogHeader>
