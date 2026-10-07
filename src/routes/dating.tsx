@@ -46,7 +46,7 @@ type Match = {
 
 function DatingPhoto({ match, connection }: { match: Match; connection?: any }) {
   const [revealedUrl, setRevealedUrl] = useState<string | null>(null);
-  const revealed = Boolean(connection?.status === "matched" && connection?.requester_confirmed && connection?.recipient_confirmed);
+  const revealed = Boolean(connection?.photos_revealed);
   useEffect(() => {
     let active = true;
     if (!revealed && match.blurredPhotoPath) {
@@ -135,26 +135,25 @@ function DatingPage() {
   const [childrenFilter, setChildrenFilter] = useState("");
   const [sameCountryOnly, setSameCountryOnly] = useState(false);
   const loadConnections = async () => {
-    const [userRes, connRes, requestRes] = await Promise.all([
-      (supabase as any).auth.getUser(),
-      (supabase as any).from("dating_connections").select("id,requester_id,recipient_id,status,requester_confirmed,recipient_confirmed,matched_at,reveal_at"),
-      (supabase as any).from("direct_message_requests").select("id,sender_id,recipient_id,status,created_at,thread_id,message").eq("kind","dating"),
+    const { data: userRes } = await (supabase as any).auth.getUser();
+    const uid = userRes?.user?.id;
+    if (!uid) return;
+    const [matchRes, requestRes] = await Promise.all([
+      (supabase as any).rpc("get_my_dating_matches_secure"),
+      (supabase as any).rpc("get_my_dating_requests_secure"),
     ]);
-    const uid = userRes?.data?.user?.id;
-    const rows = connRes?.data ?? [];
-    const requests = requestRes?.data ?? [];
-    if (!connRes?.error || !requestRes?.error) {
-      setConnections(rows);
-      // Dating requests are message requests. The request itself is the source of
-      // truth until accepted; acceptance then creates the Dating connection/chat.
-      setIncoming(requests.filter((x:any) => x.status === "pending" && x.recipient_id === uid));
-      const sent: Record<string,string> = {};
-      rows.filter((x:any) => x.requester_id === uid).forEach((x:any) => { sent[x.recipient_id] = x.status; });
-      requests.filter((x:any) => x.sender_id === uid).forEach((x:any) => {
-        sent[x.recipient_id] = x.status === "accepted" ? "matched" : x.status;
-      });
-      setSent(sent);
+    if (matchRes.error || requestRes.error) {
+      toast.error(matchRes.error?.message ?? requestRes.error?.message ?? "Dating connections could not be loaded");
+      return;
     }
+    const matches = Array.isArray(matchRes.data) ? matchRes.data : [];
+    const requests = Array.isArray(requestRes.data) ? requestRes.data : [];
+    setConnections(matches);
+    setIncoming(requests.filter((x:any)=>x.recipient_id===uid));
+    const sent:Record<string,string>={};
+    requests.filter((x:any)=>x.sender_id===uid).forEach((x:any)=>{sent[x.recipient_id]=x.status;});
+    matches.forEach((x:any)=>{const other=x.user_a===uid?x.user_b:x.user_a;sent[other]="matched";});
+    setSent(sent);
   };
 
   useEffect(() => {
@@ -210,7 +209,7 @@ function DatingPage() {
     }
   };
 
-  const connectionFor = (userId?: string) => connections.find((x:any) => userId && ((x.requester_id === userId && x.recipient_id === datingProfile?.userId) || (x.recipient_id === userId && x.requester_id === datingProfile?.userId)));
+  const connectionFor = (userId?: string) => connections.find((x:any) => userId && ((x.user_a === userId && x.user_b === datingProfile?.userId) || (x.user_b === userId && x.user_a === datingProfile?.userId)));
 
   const allMatches: Match[] = datingMatches.filter((m:any) => m.userId && m.userId !== datingProfile?.userId);
   const filteredMatches = allMatches.filter((m:any, idx) => {
@@ -279,8 +278,8 @@ setSameCountryOnly(false);
         </Button>
       </div>
 
-      {connections.filter((x:any)=>x.status==="matched" && x.reveal_at && new Date(x.reveal_at).getTime()>Date.now()).map((x:any)=>{
-        const remaining=Math.max(0,new Date(x.reveal_at).getTime()-Date.now());
+      {connections.filter((x:any)=>x.free_until && new Date(x.free_until).getTime()>Date.now()).map((x:any)=>{
+        const remaining=Math.max(0,new Date(x.free_until).getTime()-Date.now());
         const h=Math.floor(remaining/3600000), m=Math.floor((remaining%3600000)/60000), sec=Math.floor((remaining%60000)/1000);
         return <section key={x.id} className="mb-5 rounded-2xl border border-[var(--dating)]/20 bg-[var(--dating)]/5 p-4">
           <p className="font-display font-bold">Mutual match 💗</p>
@@ -289,12 +288,12 @@ setSameCountryOnly(false);
         </section>;
       })}
 
-      {connections.filter((x:any)=>x.status==="matched" && new Date(x.reveal_at).getTime()<=Date.now() && (!x.requester_confirmed || !x.recipient_confirmed)).length ? (
+      {connections.filter((x:any)=>x.free_until && new Date(x.free_until).getTime()<=Date.now() && !x.photos_revealed).length ? (
         <section className="mb-5 rounded-2xl border border-[var(--dating)]/25 bg-[var(--dating)]/5 p-4">
           <p className="font-display font-bold">72-hour confirmation ready</p>
           <p className="mt-1 text-xs text-muted-foreground">The waiting period is complete. Both people must confirm before Dating Chat unlocks.</p>
           <div className="mt-3 space-y-2">
-            {connections.filter((x:any)=>x.status==="matched" && new Date(x.reveal_at).getTime()<=Date.now() && (!x.requester_confirmed || !x.recipient_confirmed)).map((x:any)=>(
+            {connections.filter((x:any)=>x.free_until && new Date(x.free_until).getTime()<=Date.now() && !x.photos_revealed).map((x:any)=>(
               <div key={x.id} className="flex items-center gap-2 rounded-xl bg-background/70 p-3">
                 <span className="grid size-9 place-items-center rounded-full bg-secondary">🐼</span><span className="flex-1 text-sm">Mutual Panda match</span>
                 <Button size="sm" onClick={()=>void navigate({to:"/messages"})}>Open Messages</Button>
@@ -312,8 +311,8 @@ setSameCountryOnly(false);
             {incoming.map((r:any)=>(
               <div key={r.id} className="flex items-center gap-2 rounded-xl bg-background/70 p-3">
                 <span className="grid size-9 place-items-center rounded-full bg-secondary">🐼</span><span className="flex-1 text-sm">Anonymous Panda</span>
-                <Button size="sm" onClick={()=>void (supabase as any).rpc("respond_direct_message_request_secure",{p_request_id:r.id,p_accept:true}).then(async ({data,error}:any)=>{if(error){toast.error(error.message??"Could not accept request");return;} await loadConnections();toast.success("Message request accepted 💗",{description:"Your free 72-hour Dating Chat is ready."}); if(data?.thread_id) void navigate({to:"/messages",search:{thread:data.thread_id}});})}>Accept</Button>
-                <Button size="sm" variant="outline" onClick={()=>void (supabase as any).rpc("respond_direct_message_request_secure",{p_request_id:r.id,p_accept:false}).then(({error}:any)=>{if(error)throw error;setIncoming(x=>x.filter(y=>y.id!==r.id));})}>Decline</Button>
+                <Button size="sm" onClick={()=>void (supabase as any).rpc("respond_dating_request_secure",{p_request_id:r.id,p_accept:true}).then(async ({data,error}:any)=>{if(error){toast.error(error.message??"Could not accept request");return;} await loadConnections();toast.success("Message request accepted 💗",{description:"Your free 72-hour Dating Chat is ready."}); if(data?.thread_id) void navigate({to:"/messages",search:{thread:data.thread_id}});})}>Accept</Button>
+                <Button size="sm" variant="outline" onClick={()=>void (supabase as any).rpc("respond_dating_request_secure",{p_request_id:r.id,p_accept:false}).then(({error}:any)=>{if(error)throw error;setIncoming(x=>x.filter(y=>y.id!==r.id));})}>Decline</Button>
               </div>
             ))}
           </div>
