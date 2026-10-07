@@ -92,7 +92,7 @@ function GroupRoom() {
     void (async () => {
       const [{ data: summaries, error: summariesError }, { data: messages, error: messagesError }, { data: settingsRow, error: settingsError }] = await Promise.all([
         (supabase as any).rpc("get_group_summaries", { p_country:"", p_state_province:"", p_city:"", p_area:"" }),
-        (supabase as any).from("cp_group_messages").select("id,group_id,body,created_at,user_id,message_type,media_path,mime_type,duration_seconds,view_once").eq("group_id", groupId).order("created_at", { ascending: true }),
+        (supabase as any).from("group_messages").select("id,group_id,body,created_at,user_id,message_type,media_path,mime_type,duration_seconds,view_once").eq("group_id", groupId).order("created_at", { ascending: true }),
         (supabase as any).from("group_settings").select("edit_group_info,send_messages,approve_new_members").eq("group_id", groupId).maybeSingle(),
       ]);
       if (summariesError) {
@@ -114,7 +114,7 @@ function GroupRoom() {
         editGroupInfo:settingsRow?.edit_group_info === "admins_members" ? "admins_members" : "admins",sendMessages:settingsRow?.send_messages !== false,approveNewMembers:Boolean(settingsRow?.approve_new_members),joinPending:Boolean(row.join_pending),
         members:Number(row.member_count ?? 0),openedAt:row.activated_at?new Date(row.activated_at).getTime():null,expiresAt:row.expires_at ?? null,
         latitude:null,longitude:null,country:row.country ?? "",stateProvince:row.state_province ?? "",city:row.city ?? "",area:row.area ?? "",
-    messages:(messages ?? []).map((m:any)=>({id:m.id,author:m.user_id===uid?"You (anonymous)":"Anonymous Panda",body:m.body,at:new Date(m.created_at).getTime(),mine:m.user_id===uid,message_type:m.message_type,media_path:m.media_path,mime_type:m.mime_type,duration_seconds:m.duration_seconds,view_once:m.view_once})),
+    messages:(messages ?? []).map((m:any)=>({id:m.id,author:m.user_id===uid?"You (anonymous)":"Anonymous Panda",body:m.body,at:new Date(m.created_at).getTime(),mine:m.user_id===uid,message_type:m.media_type,media_path:m.media_path,mime_type:m.mime_type,duration_seconds:m.duration_seconds,view_once:m.view_once})),
       };
       if (!fresh.memberRole) {
         toast.error("You are not a member of this group. Join again to open the room.");
@@ -483,7 +483,7 @@ function GroupRoom() {
     let cancelled = false;
     const load = async () => {
       const [{ data: rows, error }, { data: reactions }] = await Promise.all([
-        (supabase as any).from("cp_group_messages").select("id,group_id,body,created_at,user_id,message_type,reply_to_id,media_path,mime_type,duration_seconds,view_once").eq("group_id", groupId).order("created_at", { ascending: true }).limit(1000),
+        (supabase as any).from("group_messages").select("id,group_id,body,created_at,sender_id,reply_to_id,media_type,media_path,view_once").eq("group_id", groupId).order("created_at", { ascending: true }).limit(1000),
         (supabase as any).from("group_message_reactions").select("message_id,user_id,reaction"),
       ]);
       if (error) { toast.error(error.message ?? "Could not load group messages"); return; }
@@ -494,10 +494,10 @@ function GroupRoom() {
     };
     void load();
     const channel=supabase.channel(`group:${groupId}:whatsapp`)
-      .on("postgres_changes",{event:"INSERT",schema:"public",table:"cp_group_messages",filter:`group_id=eq.${groupId}`},(payload:any)=>{
-        void (async()=>{ const uid=(await supabase.auth.getUser()).data.user?.id; const m=payload.new; const mediaUrl=m.view_once ? null : await signedMediaUrl(m.media_path,3600); setChatMessages(x=>x.some(v=>v.id===m.id)?x:[...x,{...m,author:m.user_id===uid?"You (anonymous)":"Anonymous Panda",mine:m.user_id===uid,media_url:mediaUrl,reactions:[],currentUserId:uid}]); })();
+      .on("postgres_changes",{event:"INSERT",schema:"public",table:"group_messages",filter:`group_id=eq.${groupId}`},(payload:any)=>{
+        void (async()=>{ const uid=(await supabase.auth.getUser()).data.user?.id; const m=payload.new; const mediaUrl=m.view_once ? null : await signedMediaUrl(m.media_path,3600); setChatMessages(x=>x.some(v=>v.id===m.id)?x:[...x,{...m,author:m.sender_id===uid?"You (anonymous)":"Anonymous Panda",mine:m.sender_id===uid,user_id:m.sender_id,media_url:mediaUrl,reactions:[],currentUserId:uid}]); })();
       })
-      .on("postgres_changes",{event:"*",schema:"public",table:"cp_group_message_reactions"},()=>void load())
+      .on("postgres_changes",{event:"*",schema:"public",table:"group_message_reactions"},()=>void load())
       .subscribe();
     return()=>{cancelled=true;void supabase.removeChannel(channel);};
   },[groupId,live]);
