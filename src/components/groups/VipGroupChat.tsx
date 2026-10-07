@@ -97,7 +97,7 @@ export function VipGroupChat({open,groupId,onOpenChange}:{open:boolean;groupId:s
     const ch=supabase.channel("vip-group:"+groupId+":messages")
       .on("postgres_changes",{event:"*",schema:"public",table:"group_messages",filter:"group_id=eq."+groupId},()=>{if(!cancelled)void loadMessages()})
       .on("postgres_changes",{event:"*",schema:"public",table:"group_message_reactions"},(payload:any)=>{
-        if(!cancelled && payload?.new?.message_id)void loadReactions(messages.map(m=>m.id));
+        if(!cancelled)void loadMessages();
       }).subscribe();
     return()=>{cancelled=true;void supabase.removeChannel(ch)};
   },[open,groupId,loadMessages,loadReactions,onOpenChange]);
