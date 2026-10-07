@@ -13,9 +13,10 @@ interface AuthModalProps {
   defaultTab?: "signin" | "signup";
   onOpenBackendGuide?: () => void;
   onAuthenticated?: () => void;
+  onNewUserCreated?: () => void;
 }
 
-export function AuthModal({ open, onOpenChange, defaultTab = "signin", onOpenBackendGuide, onAuthenticated }: AuthModalProps) {
+export function AuthModal({ open, onOpenChange, defaultTab = "signin", onOpenBackendGuide, onAuthenticated, onNewUserCreated }: AuthModalProps) {
   const [tab, setTab] = useState<"signin" | "signup">(defaultTab);
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
@@ -94,7 +95,7 @@ export function AuthModal({ open, onOpenChange, defaultTab = "signin", onOpenBac
         // This intentionally bypasses Supabase's email/phone confirmation gate so
         // a new Panda can enter the Circle immediately after signing up.
         const { data: created, error: createError } = await supabase.functions.invoke("create-panda-account", {
-          body: { name: name.trim(), identifier: value, password },
+          body: { name: name.trim(), identifier: value, password, metadata: { name: name.trim() } },
         });
         if (createError) {
           let message = createError.message || "Could not create your Panda account.";
@@ -115,7 +116,7 @@ export function AuthModal({ open, onOpenChange, defaultTab = "signin", onOpenBac
         if (result.error) throw result.error;
 
         toast.success("Account created. Welcome to Circle Panda 🐼");
-        onAuthenticated?.();
+        onNewUserCreated?.();
       } else {
         const result = value.includes("@")
           ? await supabase.auth.signInWithPassword({ email: value, password })
