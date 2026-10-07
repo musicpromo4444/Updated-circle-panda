@@ -611,7 +611,13 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
     const groupSettings = groupSettingsRes.data ?? [];
     const groupMessages = groupMessagesRes.data ?? [];
-    // VIP rooms are rendered only by VipLoungeCard. Never show legacy/duplicate VIP rows in the normal group feed.\n    rawGroups = rawGroups.filter((g:any) => {\n      const name = String(g.name ?? "").trim().toLowerCase();\n      return !["worldwide vip", "worldwide vip group", "country vip", "country vip group", "country group"].includes(name);\n    });\n\n    const groups = rawGroups.map((g:any) => {
+    // VIP rooms are rendered only by VipLoungeCard. Never show legacy/duplicate VIP rows in the normal group feed.
+    rawGroups = rawGroups.filter((g:any) => {
+      const name = String(g.name ?? "").trim().toLowerCase();
+      return !["worldwide vip", "worldwide vip group", "country vip", "country vip group", "country group"].includes(name);
+    });
+
+    const groups = rawGroups.map((g:any) => {
       const settings = groupSettings.find((x:any) => x.group_id === g.id);
       return {
         id:g.id, name:g.name, topic:g.topic, ownerId:g.owner_id, memberRole:g.member_role,
