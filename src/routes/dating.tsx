@@ -160,10 +160,10 @@ function DatingPage() {
     void loadConnections();
     void refreshDatingData();
     const connectionChannel = supabase.channel("dating-connections-live")
-      .on("postgres_changes", {event:"*", schema:"public", table:"dating_connections"}, () => {
+      .on("postgres_changes", {event:"*", schema:"public", table:"dating_matches"}, () => {
         void loadConnections();
       })
-      .on("postgres_changes", {event:"*", schema:"public", table:"direct_message_requests"}, () => {
+      .on("postgres_changes", {event:"*", schema:"public", table:"dating_requests"}, () => {
         void loadConnections();
       })
       .subscribe();
@@ -312,7 +312,7 @@ setSameCountryOnly(false);
           <div className="mt-3 space-y-2">
             {incoming.map((r:any)=>(
               <div key={r.id} className="flex items-center gap-2 rounded-xl bg-background/70 p-3">
-                <span className="grid size-9 place-items-center rounded-full bg-secondary">🐼</span><span className="flex-1 text-sm">Anonymous Panda</span>
+                <span className="grid size-9 place-items-center rounded-full bg-secondary">🐼</span><span className="flex-1 text-sm">{r.sender_name || "Anonymous Panda"}</span>
                 <Button size="sm" onClick={()=>void (supabase as any).rpc("respond_dating_request_secure",{p_request_id:r.id,p_accept:true}).then(async ({data,error}:any)=>{if(error){toast.error(error.message??"Could not accept request");return;} await loadConnections();toast.success("Message request accepted 💗",{description:"Your free 72-hour Dating Chat is ready."}); if(data?.status==="matched"){ const uid=(await supabase.auth.getUser()).data.user?.id; const other=r.sender_id===uid?r.recipient_id:r.sender_id; const tr=await (supabase as any).rpc("get_or_create_dating_thread_secure",{p_other:other}); if(!tr.error&&tr.data) void navigate({to:"/messages",search:{thread:String(tr.data)}}); }})}>Accept</Button>
                 <Button size="sm" variant="outline" onClick={()=>void (supabase as any).rpc("respond_dating_request_secure",{p_request_id:r.id,p_accept:false}).then(({error}:any)=>{if(error)throw error;setIncoming(x=>x.filter(y=>y.id!==r.id));})}>Decline</Button>
               </div>
