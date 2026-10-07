@@ -77,17 +77,17 @@ export function RegisterDatingModal({open,onOpenChange}:{open:boolean;onOpenChan
       const uid=userRes?.user?.id;
       if(!uid || userRes?.user?.is_anonymous){requestLogin("register for Dating");onOpenChange(false);return;}
       const {data:profile,error}=await (supabase as any).from("profiles")
-        .select("display_name,avatar_url,age,gender,country,city,area").eq("id",uid).maybeSingle();
+        .select("display_name,avatar_url,age,gender,country,state,area").eq("id",uid).maybeSingle();
       if(error){toast.error(error.message??"Could not load your Circle Panda profile");onOpenChange(false);return;}
       if(!profile?.age || profile.age<18 || !profile.gender || !profile.country){
         toast.error("Complete your Circle Panda profile first — age, gender and country are required for Dating.");
         onOpenChange(false); window.location.href="/profile"; return;
       }
       const base={...emptyProfile,name:profile.display_name||"Anonymous Panda",age:Number(profile.age),gender:profile.gender,country:profile.country,
-        location:profile.city||profile.area||profile.country,emoji:String(profile.avatar_url||"🐼")};
+        location:profile.area||profile.state||profile.country,emoji:String(profile.avatar_url||"🐼")};
       if(datingProfile){
         const {registeredAt:_r,userId:_u,...rest}=datingProfile;
-        setP({...base,...rest,name:profile.display_name||rest.name,age:Number(profile.age),gender:profile.gender,country:profile.country,location:profile.city||profile.area||profile.country,emoji:String(profile.avatar_url||"🐼")});
+        setP({...base,...rest,name:profile.display_name||rest.name,age:Number(profile.age),gender:profile.gender,country:profile.country,location:profile.area||profile.state||profile.country,emoji:String(profile.avatar_url||"🐼")});
         setPhotoPreview(rest.blurredPhotoPath?supabase.storage.from("dating-photo-blur").getPublicUrl(rest.blurredPhotoPath).data.publicUrl:null);
       } else {
         setP(base); setPhotoPreview(null);
