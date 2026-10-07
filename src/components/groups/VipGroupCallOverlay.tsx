@@ -61,9 +61,12 @@ export function VipGroupCallOverlay({type,groupId,onClose}:Props){
         }).on("broadcast",{event:"ice"},async({payload}:any)=>{
           if(payload.to!==uid)return;const pc=peers.current.get(payload.from);if(pc?.remoteDescription)await pc.addIceCandidate(payload.candidate).catch(()=>{});else pendingCandidates.current.set(payload.from,[...(pendingCandidates.current.get(payload.from)||[]),payload.candidate]);
         }).on("presence",{event:"sync"},async()=>{
-          const state=ch.presenceState();const ids=Object.keys(state).filter(id=>id!==uid);
+          const state=ch.presenceState();const ids=Object.keys(state).filter(id=>id!==uid);setParticipants(ids);
           for(const id of ids)if(uid<id)await makePeer(id,true);
-        }).on("presence",{event:"join"},async({key}:any)=>{if(key&&uid<key)await makePeer(key,true);})
+        }).on("presence",{event:"join"},async({key}:any)=>{
+          if(key&&key!==uid){setParticipants(v=>v.includes(key)?v:[...v,key]);if(uid<key)await makePeer(key,true);}
+        }).on("presence",{event:"leave"},({key}:any)=>{if(key)setParticipants(v=>v.filter(id=>id!==key));})
+        .on("broadcast",{event:"continue-intent"},({payload}:any)=>{if(payload?.from&&payload.from!==uid)setRemoteAccepted(v=>v.includes(payload.from)?v:[...v,payload.from]);})
         .subscribe(async status=>{if(status==="SUBSCRIBED")await ch.track({joined_at:Date.now()});});
       }catch(e:any){toast.error(e?.message??"Could not open the call");onClose();}
     })();
