@@ -28,16 +28,6 @@ export const Route = createFileRoute("/groups/$groupId")({
   component: GroupRoom,
 });
 
-async function convertHeicToJpeg(blob: Blob): Promise<Blob> {
-  // heic2any touches window at module evaluation time, so it must only be
-  // imported inside a browser-only action. Importing it at the top level
-  // breaks TanStack Start SSR for the group route.
-  const mod = await import("heic2any");
-  const converter = mod.default;
-  const converted = await converter({ blob, toType: "image/jpeg", quality: 0.9 });
-  return Array.isArray(converted) ? converted[0] : converted;
-}
-
 function GroupRoom() {
   const { groupId } = useParams({ from: "/groups/$groupId" });
   const navigate = useNavigate();
@@ -202,18 +192,7 @@ function GroupRoom() {
       return;
     }
 
-    let uploadFile = file;
-    if (messageType === "image" && /(^image\/(heic|heif)$)|\.(heic|heif)$/i.test(file.type || file.name)) {
-      toast.info("Converting HEIC photo to a compatible image…");
-      try {
-        const blob = await convertHeicToJpeg(file);
-        uploadFile = new File([blob], file.name.replace(/\.(heic|heif)$/i, ".jpg"), { type: "image/jpeg" });
-      } catch {
-        toast.error("This HEIC photo could not be converted. Please choose another photo.");
-        return;
-      }
-    }
-
+    const uploadFile = file;
     const safeName = uploadFile.name.replace(/[^a-zA-Z0-9._-]/g, "_");
     const path = `${uid}/${group.id}/${crypto.randomUUID()}-${safeName}`;
     toast.info(messageType === "image" ? "Uploading photo…" : messageType === "video" ? "Uploading video…" : "Sending voice note…");
@@ -410,23 +389,6 @@ function GroupRoom() {
     if (!url) {
       toast.error("Media is unavailable. The file may have expired or is not accessible to this group member.");
       return;
-    }
-
-    // Browsers do not natively display HEIC/HEIF. Convert the private file
-    // to a browser-safe JPEG before consuming the one-time claim.
-    const isHeic = m.message_type === "image" && /(^image\/(heic|heif)$)|\.(heic|heif)$/i.test(m.mime_type || m.media_path || "");
-    if (isHeic) {
-      try {
-        const response = await fetch(url);
-        if (!response.ok) throw new Error("HEIC download failed");
-        const source = await response.blob();
-        const blob = await convertHeicToJpeg(source);
-        if (url === m.media_url) URL.revokeObjectURL(url);
-        url = URL.createObjectURL(blob);
-      } catch {
-        toast.error("This HEIC photo could not be displayed on this device.");
-        return;
-      }
     }
 
     if (m.view_once !== false) {
