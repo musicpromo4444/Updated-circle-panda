@@ -7,7 +7,6 @@ import { GroupMediaMessage, type GroupMediaItem } from "@/components/groups/Grou
 import { VipGroupCallOverlay } from "@/components/groups/VipGroupCallOverlay";
 import { VipGroupSponsorGift } from "@/components/groups/VipGroupSponsorGift";
 import { supabase } from "@/integrations/supabase/client";
-import heic2any from "heic2any";
 import { toast } from "sonner";
 import { DEFAULT_VIP_WALLPAPER } from "./vipWallpaper";
 
@@ -124,14 +123,7 @@ export function VipGroupChat({open,groupId,onOpenChange}:{open:boolean;groupId:s
     const user=(await supabase.auth.getUser()).data.user;
     if(!user){toast.error("Sign in to send media");return;}
     if(file.size>25*1024*1024){toast.error("Media must be 25 MB or smaller.");return;}
-    let uploadFile=file;
-    if(type==="image"&&/(^image\/(heic|heif)$)|\.(heic|heif)$/i.test(file.type||file.name)){
-      try{
-        const converted=await heic2any({blob:file,toType:"image/jpeg",quality:0.9});
-        const blob=Array.isArray(converted)?converted[0]:converted;
-        uploadFile=new File([blob],file.name.replace(/\.(heic|heif)$/i,".jpg"),{type:"image/jpeg"});
-      }catch{toast.error("This HEIC photo could not be converted.");return;}
-    }
+    const uploadFile=file;
     const ext=uploadFile.name.split(".").pop()?.toLowerCase()??(type==="image"?"jpg":type==="video"?"mp4":"webm");
     const path=`vip/${user.id}/${groupId}/${crypto.randomUUID()}.${ext}`;
     const {error:uploadError}=await supabase.storage.from("circle-panda-group-media").upload(path,uploadFile,{contentType:uploadFile.type||"application/octet-stream",upsert:false});
