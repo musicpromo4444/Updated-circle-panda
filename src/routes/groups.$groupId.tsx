@@ -227,15 +227,14 @@ function GroupRoom() {
       return;
     }
 
-    const { data, error } = await (supabase as any).rpc("send_group_media_secure", {
+    const { data, error } = await (supabase as any).rpc("send_group_message", {
       p_group_id: group.id,
-      p_media_path: path,
-      p_message_type: messageType,
-      p_mime_type: uploadFile.type || null,
-      p_duration_seconds: durationSeconds ?? null,
-      // Photos/videos are view-once; voice notes are normal reusable messages.
-      p_view_once: messageType !== "audio",
       p_body: "",
+      p_media_type: messageType,
+      p_media_path: path,
+      p_reply_to_id: replyTo?.id ?? null,
+      p_view_once: messageType !== "audio",
+      p_idempotency_key: crypto.randomUUID(),
     });
 
     if (error) {
@@ -251,11 +250,11 @@ function GroupRoom() {
 
     const mediaUrl = messageType === "audio" ? await signedMediaUrl(path, 3600) : null;
     const created = {
-      id: data.id,
+      id: data,
       group_id: group.id,
       body: "",
-      created_at: data.created_at,
-      user_id: uid,
+      created_at: new Date().toISOString(),
+      user_id: uid, sender_id: uid,
       author: "You (anonymous)",
       mine: true,
       message_type: messageType,
