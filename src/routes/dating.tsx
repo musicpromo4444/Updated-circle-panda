@@ -226,7 +226,7 @@ function DatingPage() {
     if (childrenFilter && String(m.children ?? "").toLowerCase() !== childrenFilter.toLowerCase()) return false;
     return true;
   });
-  const activeFilterCount = [countryFilter, stateFilter, locationFilter, goalFilter, lookingForFilter, lifestyleFilter, smokingFilter, drinkingFilter, childrenFilter, sameCountryOnly].filter(Boolean).length;
+  const activeFilterCount = [countryFilter, stateFilter, locationFilter, goalFilter, lookingForFilter, lifestyleFilter, smokingFilter, drinkingFilter, childrenFilter].filter(Boolean).length;
   const applyFilters = async () => {
     await searchDatingProfiles({
       ageMin:18, ageMax:120, country: sameCountryOnly && !countryFilter ? (datingProfile?.country ?? "") : countryFilter, state: stateFilter, location: locationFilter, gender:"",
@@ -400,8 +400,6 @@ setSameCountryOnly(false);
           <DialogTitle className="flex items-center gap-2"><SlidersHorizontal className="size-5" /> Dating Filters</DialogTitle>
           <DialogDescription>Choose who appears in your Dating cards. Your filters are private.</DialogDescription>
           <div className="grid gap-4 py-2 sm:grid-cols-2">
-            <label className="flex items-center gap-2 rounded-xl border border-border p-3 text-sm sm:col-span-2"><input type="checkbox" checked={sameCountryOnly} onChange={e=>setSameCountryOnly(e.target.checked)} /> Only show people in my country</label>
-
             <label className="text-xs font-semibold">Country
               <select value={countryFilter} onChange={e=>{ setCountryFilter(e.target.value); setStateFilter(""); setLocationFilter(""); }} className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-3 text-sm">
                 <option value="">Any country</option>{countryOptions.map(v=><option key={v} value={v}>{v}</option>)}
