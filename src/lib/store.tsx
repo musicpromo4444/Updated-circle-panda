@@ -1255,10 +1255,15 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     return (async () => {
       const {data,error}=await (supabase as any).rpc("request_dating_match_secure",{p_recipient_id:userId});
       if(error){toast.error(error.message??"Could not send dating request");return null;}
+      let threadId = data?.thread_id ? String(data.thread_id) : undefined;
+      if (String(data?.status) === "matched") {
+        const threadRes = await (supabase as any).rpc("get_or_create_dating_thread_secure",{p_other:userId});
+        if (!threadRes.error && threadRes.data) threadId = String(threadRes.data);
+      }
       const result = {
         status: String(data?.status ?? "pending"),
         requestId: data?.request_id ? String(data.request_id) : undefined,
-        threadId: data?.thread_id ? String(data.thread_id) : undefined,
+        threadId,
       };
       toast.success(result.status==="matched"?"It's a mutual match 💗":"Dating message request sent 💌");
       return result;
