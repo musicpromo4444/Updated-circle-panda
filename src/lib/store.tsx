@@ -585,7 +585,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       (supabase as any).rpc("get_group_summaries", { p_country:"", p_state_province:"", p_city:"", p_area:"" }),
       (supabase as any).from("group_settings").select("group_id,edit_group_info,send_messages,approve_new_members"),
       (supabase as any).from("cp_group_messages").select("id,group_id,body,created_at,author_id").order("created_at", {ascending:true}).limit(1000),
-      (supabase as any).from("events").select("id,title,description,location,starts_at,ends_at,category,entry_fee_bc,entry_fee_amount,entry_fee_currency,duration_minutes,reach_scope,reach_country,reach_state,reach_city,reach_area,cover_url,venue_name,address_line,country,state_province,city,area,latitude,longitude,is_published,owner_id").eq("is_published",true).order("starts_at", {ascending:true}),
+      (supabase as any).from("events").select("id,title,description,location,starts_at,ends_at,category,entry_fee_bc,entry_fee_amount,entry_fee_currency,duration_minutes,reach_scope,reach_country,reach_state,reach_city,reach_area,cover_url,venue_name,address_line,country,state_province,city,area,latitude,longitude,is_published,creator_id").eq("is_published",true).order("starts_at", {ascending:true}),
       (supabase as any).from("event_attendees").select("event_id,user_id"),
     ]);
 
@@ -647,7 +647,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         reachCity:e.reach_city ?? "", reachArea:e.reach_area ?? "", durationMinutes:Number(e.duration_minutes ?? 120),
         coverUrl:e.cover_url ?? "", venueName:e.venue_name ?? "", addressLine:e.address_line ?? "",
         country:e.country ?? "", stateProvince:e.state_province ?? "", city:e.city ?? "", area:e.area ?? "",
-        latitude:e.latitude ?? null, longitude:e.longitude ?? null, ownerId:e.owner_id ?? undefined,
+        latitude:e.latitude ?? null, longitude:e.longitude ?? null, ownerId:e.creator_id ?? undefined,
       };
     }) as PandaEvent[];
 
