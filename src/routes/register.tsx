@@ -3,6 +3,7 @@ import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Loader2, MapPin, ShieldCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { MovingPandaLogo } from "@/components/auth/MovingPandaLogo";
+import { NewUserOnboarding } from "@/components/auth/NewUserOnboarding";
 
 export const Route = createFileRoute("/register")({
   head: () => ({ meta: [{ title: "Circle Panda — Create your Panda" }] }),
@@ -21,6 +22,7 @@ function RegisterPage() {
   const [cities, setCities] = useState<string[]>([]);
   const [areas, setAreas] = useState<string[]>([]);
   const [loadingLocations, setLoadingLocations] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
   useEffect(() => {
     setLoadingLocations(true);
     void fetch("https://countriesnow.space/api/v0.1/countries/positions").then(r=>r.json()).then(j=>setCountries(Array.isArray(j?.data)?j.data:[])).catch(()=>setCountries([])).finally(()=>setLoadingLocations(false));
@@ -59,12 +61,19 @@ function RegisterPage() {
     try {
       const metadata = { name: form.name.trim(), country: form.country.trim(), state_province: form.state.trim(), city: form.city.trim(), area: form.area.trim(), address_line: form.addressLine.trim(), gender: form.gender, date_of_birth: form.dob, avatar_style: form.avatar, age };
       const value=form.identifier.trim();
+      const { data: created, error: createError } = await supabase.functions.invoke("create-panda-account", { body: { name: form.name.trim(), identifier: value, password: form.password, metadata } });
+      if (createError) {
+        let message = createError.message || "Could not create your Panda account.";
+        try { const ctx=(createError as any).context; if (ctx) { const body=await ctx.clone().json(); if (body?.error) message=String(body.error); } } catch {}
+        throw new Error(message);
+      }
+      if (!created?.user_id) throw new Error("Account was not created.");
       const result = value.includes("@")
-        ? await supabase.auth.signUp({ email:value, password:form.password, options:{data:metadata, emailRedirectTo: window.location.origin + "/auth/callback"} })
-        : await supabase.auth.signUp({ phone:value, password:form.password, options:{data:metadata} });
+        ? await supabase.auth.signInWithPassword({ email:value.toLowerCase(), password:form.password })
+        : await supabase.auth.signInWithPassword({ phone:value.replace(/[\\s().-]/g, "").replace(/^00/,"+").replace(/^0(?=\\d{10}$)/,"+234"), password:form.password });
       if (result.error) throw result.error;
-      setNotice(result.data.session ? "Your Panda is ready. Welcome to the Circle 🐼" : "Account created. Complete the verification step, then log in.");
-      if (result.data.session) setTimeout(()=>navigate({to:"/"}),500);
+      setNotice("Your Panda is ready. Welcome to the Circle 🐼");
+      setShowOnboarding(true);
     } catch(err) { setError(err instanceof Error ? err.message : "Registration failed. Please try again."); }
     finally { setBusy(false); }
   }
@@ -120,6 +129,7 @@ function RegisterPage() {
           <p className="mt-6 text-center text-sm text-white/55">Already a Panda? <Link to="/login" className="font-black text-emerald-300">Log in</Link></p>
         </div>
       </div>
+      {showOnboarding ? <NewUserOnboarding onComplete={() => { setShowOnboarding(false); void navigate({to:"/"}); }} /> : null}
     </main>
   );
 }
