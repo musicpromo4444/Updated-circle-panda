@@ -7,7 +7,6 @@ function LandingPage() {
   const navigate = useNavigate();
   const [authOpen, setAuthOpen] = useState(false);
   const [authTab, setAuthTab] = useState<"signin" | "signup">("signin");
-  const [authChecking, setAuthChecking] = useState(true);
 
   useEffect(() => {
     let active = true;
@@ -17,9 +16,7 @@ function LandingPage() {
       const user = data.session?.user;
       if (user && !user.is_anonymous) {
         await navigate({ to: "/home", replace: true });
-        return;
       }
-      setAuthChecking(false);
     };
     void checkSession();
 
@@ -28,8 +25,6 @@ function LandingPage() {
       const user = session?.user;
       if (user && !user.is_anonymous) {
         void navigate({ to: "/home", replace: true });
-      } else {
-        setAuthChecking(false);
       }
     });
     return () => {
@@ -37,10 +32,6 @@ function LandingPage() {
       listener.subscription.unsubscribe();
     };
   }, [navigate]);
-
-  if (authChecking) {
-    return <main className="min-h-screen bg-[#071412]" aria-hidden="true" />;
-  }
 
   const openAuth = (tab: "signin" | "signup") => {
     setAuthTab(tab);
@@ -89,7 +80,6 @@ function LandingPage() {
             Sign Up
           </button>
         </div>
-
 
         <div className="mt-12 flex items-center gap-4 text-2xl opacity-70">
           <span>🌙</span><span>✨</span><span>⭐</span><span>🐼</span><span>💫</span>
