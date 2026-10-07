@@ -131,7 +131,15 @@ export type Nominee = {
 export type Spotlight = { kind: CrushKind; name: string; wonAt: number };
 
 export const NOMINATION_COST = 5;
-export const FREE_DAILY_VOTES = 3;
+export const FREE_WEEKLY_VOTES = 3;
+export const crushWeekKey = () => {
+  const d = new Date();
+  const day = d.getUTCDay() || 7;
+  d.setUTCDate(d.getUTCDate() + 4 - day);
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  const week = Math.ceil((((d.getTime() - yearStart.getTime()) / DAY_MS) + 1) / 7);
+  return `${d.getUTCFullYear()}-W${String(week).padStart(2, "0")}`;
+};
 export const EXTRA_VOTE_COST = 1;
 export const WINNER_REWARD = 100;
 export const WEEK_MS = 7 * DAY_MS;
@@ -915,7 +923,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       const { data: results } = await (supabase as any).rpc("get_crush_results", { p_week_start: new Date(Date.now() - ((new Date().getDay() + 6) % 7) * 86400000).toISOString().slice(0,10) });
       const counts = new Map<string, number>((results ?? []).map((r:any)=>[r.nominee_id,Number(r.vote_count ?? r.votes ?? 0)]));
       void refreshCoins();
-      setState((s) => ({ ...s, coins: voteData?.charged_bc ? Math.max(0, s.coins - Number(voteData.charged_bc)) : s.coins, votesUsedToday: Number(voteData?.free_votes_used ?? s.votesUsedToday), voteDay: todayKey(), votedIds: s.votedIds.includes(id) ? s.votedIds : [...s.votedIds,id], nominees: s.nominees.map((n) => ({...n,votes:counts.get(n.id) ?? n.votes})) }));
+      setState((s) => ({ ...s, coins: voteData?.charged_bc ? Math.max(0, s.coins - Number(voteData.charged_bc)) : s.coins, votesUsedToday: Number(voteData?.free_votes_used ?? s.votesUsedToday), voteDay: crushWeekKey(), votedIds: s.votedIds.includes(id) ? s.votedIds : [...s.votedIds,id], nominees: s.nominees.map((n) => ({...n,votes:counts.get(n.id) ?? n.votes})) }));
       toast.success(voteData?.charged_bc ? "Vote counted · 1 BC" : "Vote counted 💗");
     })();
   }, [refreshCoins]);
@@ -1267,7 +1275,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       voteFor,
       freeVotesLeft: Math.max(
         0,
-        FREE_DAILY_VOTES - (state.voteDay === todayKey() ? state.votesUsedToday : 0),
+        FREE_WEEKLY_VOTES - (state.voteDay === crushWeekKey() ? state.votesUsedToday : 0),
       ),
       mySpotlight: state.spotlights.find((w) => w.name === "You (anonymous)") ?? null,
       toggleRsvp,
