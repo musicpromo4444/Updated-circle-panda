@@ -1,12 +1,14 @@
 import { useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { AuthModal } from "@/components/auth/AuthModal";
+import { NewUserOnboarding } from "@/components/auth/NewUserOnboarding";
 
 export const Route = createFileRoute("/login")({ component: LoginPage });
 
 function LoginPage() {
   const navigate = useNavigate();
   const [open, setOpen] = useState(true);
+  const [showOnboarding, setShowOnboarding] = useState(false);
 
   return (
     <main className="min-h-screen bg-background px-4 py-10">
@@ -27,7 +29,9 @@ function LoginPage() {
           if (!value) void navigate({ to: "/" });
         }}
         onAuthenticated={() => void navigate({ to: "/" })}
+        onNewUserCreated={() => setShowOnboarding(true)}
       />
+      {showOnboarding ? <NewUserOnboarding onComplete={() => { setShowOnboarding(false); void navigate({to:"/"}); }} /> : null}
     </main>
   );
 }
