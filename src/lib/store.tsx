@@ -515,64 +515,26 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const refreshThreads = useCallback(async () => {
     if (!dbUserId) return;
     const uid = dbUserId;
-    const [threadsRes, messagesRes] = await Promise.all([
-      (supabase as any).from("cp_threads")
-        .select("id,owner_id,participant_id,other_alias,kind,blurb,created_at")
-        .order("created_at", { ascending: false })
-        .limit(100),
-      (supabase as any).from("cp_thread_messages")
-        .select("id,thread_id,user_id,body,created_at,message_type,media_path")
-        .order("created_at", { ascending: true })
-        .limit(2000),
+    const { data: threadsRes, error: threadsError } = await (supabase as any)
+      .from("dm_threads")
+      .select("id,user_a,user_b,status,created_at,updated_at")
+      .or(`user_a.eq.${uid},user_b.eq.${uid}`)
+      .order("updated_at",{ascending:false})
+      .limit(100);
+    if (threadsError) { console.error("DM thread refresh failed", threadsError); return; }
+    const rawThreads = threadsRes ?? [];
+    const ids = Array.from(new Set(rawThreads.map((t:any)=>t.user_a===uid?t.user_b:t.user_a).filter(Boolean)));
+    const [profilesRes,messagesRes] = await Promise.all([
+      ids.length ? (supabase as any).from("profiles").select("id,display_name,is_vip,vip_expires_at").in("id",ids) : {data:[]},
+      rawThreads.length ? (supabase as any).from("dm_messages").select("id,thread_id,sender_id,body,created_at,media_type,media_path").in("thread_id",rawThreads.map((t:any)=>t.id)).order("created_at",{ascending:true}).limit(2000) : {data:[]},
     ]);
-    if (threadsRes.error) {
-      console.error("Circle Panda thread refresh failed", threadsRes.error);
-      return;
-    }
-    const rawThreads = threadsRes.data ?? [];
-    const rawMessages = messagesRes.data ?? [];
-    const otherIds = Array.from(new Set(
-      rawThreads
-        .map((t: any) => t.owner_id === uid ? t.participant_id : t.owner_id)
-        .filter(Boolean),
-    ));
-    const profilesRes = otherIds.length
-      ? await (supabase as any).from("profiles").select("id,display_name,is_vip,vip_expires_at").in("id", otherIds)
-      : { data: [] };
-    const profileNames = new Map(
-      (profilesRes.data ?? []).map((p: any) => [
-        p.id,
-        {
-          name: p.display_name || "Anonymous Panda",
-          vip: Boolean(p.is_vip && (!p.vip_expires_at || new Date(p.vip_expires_at).getTime() > Date.now())),
-        },
-      ]),
-    );
-    const threads = rawThreads.filter((t: any) => t.participant_id).map((t: any) => {
-      const otherId = t.owner_id === uid ? t.participant_id : t.owner_id;
-      const profile = profileNames.get(otherId);
-      return {
-        id: t.id,
-        otherUserId: otherId,
-        otherVip: Boolean(profile?.vip),
-        name: profile?.name ?? "Anonymous Panda",
-        kind: t.kind === "dating" ? "dating" : "dm",
-        blurb: t.blurb ?? "",
-        messages: rawMessages
-          .filter((m: any) => m.thread_id === t.id && !(m.message_type === "dating_photo" && m.user_id === uid))
-          .map((m: any) => ({
-            id: m.id,
-            body: m.body,
-            at: new Date(m.created_at).getTime(),
-            mine: m.user_id === uid,
-            messageType: m.message_type === "dating_photo" ? "dating_photo" : "text",
-            mediaPath: m.media_path ?? undefined,
-          })),
-        startedAt: t.kind === "dating" ? new Date(t.created_at).getTime() : undefined,
-      };
+    const profileMap=new Map((profilesRes.data??[]).map((p:any)=>[p.id,{name:p.display_name||"Anonymous Panda",vip:Boolean(p.is_vip&&(!p.vip_expires_at||new Date(p.vip_expires_at).getTime()>Date.now()))}]));
+    const threads=rawThreads.map((t:any)=>{
+      const other=t.user_a===uid?t.user_b:t.user_a; const p=profileMap.get(other);
+      return {id:t.id,otherUserId:other,otherVip:Boolean(p?.vip),name:p?.name??"Anonymous Panda",kind:"dating" as const,blurb:"Dating Chat",messages:(messagesRes.data??[]).filter((m:any)=>m.thread_id===t.id).map((m:any)=>({id:m.id,body:m.body??"",at:new Date(m.created_at).getTime(),mine:m.sender_id===uid,messageType:m.media_type==="dating_photo"?"dating_photo":"text",mediaPath:m.media_path??undefined})),startedAt:new Date(t.created_at).getTime()};
     });
-    setState((s) => ({ ...s, threads }));
-  }, [dbUserId]);
+    setState(s=>({...s,threads}));
+  },[dbUserId]);
 
 
   /**
@@ -1031,34 +993,27 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const sendMessage = useCallback((threadId: string, body: string) => {
     if (!dbUserId) { requestLogin("send messages"); return; }
-    void (async () => {
-      const { data, error } = await (supabase as any).rpc("send_direct_message", { p_thread_id: threadId, p_body: body });
-      if (error) { toast.error(error.message ?? "Message could not be sent"); return; }
-      setState((s) => ({ ...s, coins: Number(data?.balance ?? s.coins), threads: s.threads.map((t) => t.id === threadId ? { ...t, messages: [...t.messages, { id:data.id, body:data.body, at:new Date(data.created_at).getTime(), mine:true, messageType:"text" }] } : t) }));
-      void refreshCoins();
-      if (Number(data?.charged_bc ?? 0) > 0) {
-        toast("−1 BC spent 🪙", { description:"Message delivered anonymously." });
-      } else {
-        toast.success("Message delivered 💗", { description:data?.free_reason === "dating_72h" ? "Free during the 72-hour Dating Chat." : "VIP message." });
-      }
+    void (async()=>{
+      const {data:thread}=await (supabase as any).from("dm_threads").select("user_a,user_b").eq("id",threadId).maybeSingle();
+      if(!thread){toast.error("Chat not found");return;}
+      const other=thread.user_a===dbUserId?thread.user_b:thread.user_a;
+      const {data,error}=await (supabase as any).rpc("send_dating_message_secure",{p_other:other,p_body:body});
+      if(error){toast.error(error.message??"Message could not be sent");return;}
+      setState(s=>({...s,threads:s.threads.map(t=>t.id===threadId?{...t,messages:[...t.messages,{id:String(data.id),body,at:new Date(data.created_at).getTime(),mine:true,messageType:"text"}]}:t)}));
+      await refreshCoins();
+      if(Number(data?.charged_bc??0)>0) toast("−1 BC spent 🪙",{description:"Dating message delivered."}); else toast.success("Dating message delivered 💗");
     })();
-  }, [dbUserId, refreshCoins]);
+  },[dbUserId,refreshCoins]);
 
   const startDatingChat = useCallback((userId: string, name: string) => {
     if (!dbUserId) { requestLogin("use Dating"); return Promise.resolve(null); }
-    if (!userId) return Promise.resolve(null);
-    if (userId === dbUserId) { window.dispatchEvent(new CustomEvent("circle-panda-self-message-blocked")); return Promise.resolve(null); }
-    if (userId === dbUserId) { window.dispatchEvent(new CustomEvent("circle-panda-self-message-blocked")); return Promise.resolve(null); }
-    return (async () => {
-      const { data, error } = await (supabase as any).rpc("create_direct_thread", { p_other_user_id:userId, p_kind:"dating", p_blurb:"Matched from Dating" });
-      if (error) { toast.error(error.message ?? "Dating chat is still locked"); return null; }
-      const id = data.id as string;
-      setState(s => s.threads.some(t=>t.id===id) ? s : {...s,threads:[{id,name,kind:"dating",blurb:"Matched from Dating",messages:[],startedAt:Date.now()},...s.threads]});
-      await (supabase as any).rpc("award_xp_secure", { p_action:"dating_match_chat", p_reference_id:id });
-      void refreshCoins();
-      return id;
+    return (async()=>{
+      const {data,error}=await (supabase as any).rpc("get_or_create_dating_thread_secure",{p_other:userId});
+      if(error){toast.error(error.message??"Dating Chat is locked until you match");return null;}
+      await refreshThreads();
+      return String(data);
     })();
-  }, [dbUserId, refreshCoins]);
+  },[dbUserId,refreshThreads]);
 
   const startDmWithAuthor = useCallback((userId: string, _author: string, _blurb: string) => {
     if (!dbUserId) { requestLogin("contact this Panda"); return Promise.resolve(null); }
@@ -1229,7 +1184,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     const uid = auth.user?.id;
     if (!uid) return false;
     const [ownRes, discoveryRes] = await Promise.all([
-      (supabase as any).from("dating_profiles").select("user_id,name,age,vibe,emoji,bio,interests,location,country,state_province,gender,relationship_goal,looking_for,about_traits,lifestyle,personality,love_language,smoking,drinking,children,education,occupation,sexual_experience,intimacy_preference,relationship_status,height_cm,zodiac,favorite_date,photo_path,blurred_photo_path,updated_at").eq("user_id",uid).eq("enabled",true).maybeSingle(),
+      (supabase as any).from("dating_profiles").rpc("get_my_dating_profile_secure"),
       (supabase as any).rpc("get_dating_discovery_filters_secure", {
         p_age_min:18,p_age_max:120,p_country:"",p_state:"",p_location:"",p_gender:"",
         p_relationship_goal:"",p_looking_for:"",p_lifestyle:"",p_smoking:"",p_drinking:"",p_children:"",p_education:"",
