@@ -73,24 +73,30 @@ export function ConfessionsPage() {
   const load = async (background = false) => {
     if (background) setRefreshing(true); else setLoading(true);
     const { data, error } = await supabase
-      .from("confessions")
-      .select("id,content,is_anonymous,created_at,author_id,author_vip_at")
-      .eq("is_published", true)
+      .from("secret_posts")
+      .select("id,body,is_anonymous,created_at,author_id")
       .order("created_at", { ascending: false })
       .limit(50);
     if (error) toast.error(error.message);
     else {
-      const nextItems = (data ?? []) as Confession[];
+      const nextItems = (data ?? []).map((row: any) => ({ id:row.id, content:row.body, is_anonymous:Boolean(row.is_anonymous), created_at:row.created_at, author_id:row.author_id ?? null })) as Confession[];
       setItems(nextItems);
       if (nextItems.length) {
         const ids = nextItems.map((x) => x.id);
-        const { data: reactions } = await (supabase as any).rpc("get_confession_reaction_state", { p_confession_ids: ids });
+        const { data: reactions } = await (supabase as any).from("secret_reactions").select("secret_id,user_id,reaction").in("secret_id", ids);
+        const currentUser = (await supabase.auth.getUser()).data.user?.id ?? null;
         const next: Record<string, ReactionState> = {};
-        for (const row of reactions ?? []) next[row.confession_id] = { reaction:row.reaction ?? null, heart_count:Number(row.heart_count ?? 0), laugh_count:Number(row.laugh_count ?? 0), wow_count:Number(row.wow_count ?? 0), sad_count:Number(row.sad_count ?? 0), angry_count:Number(row.angry_count ?? 0), panda_count:Number(row.panda_count ?? 0) };
+        for (const row of reactions ?? []) {
+          const state = next[row.secret_id] ?? { reaction:null, heart_count:0, laugh_count:0, wow_count:0, sad_count:0, angry_count:0, panda_count:0 };
+          const key = row.reaction === "surprised" ? "wow_count" : row.reaction === "heart" ? "heart_count" : row.reaction === "laugh" ? "laugh_count" : row.reaction === "angry" ? "angry_count" : "panda_count";
+          state[key] = Number(state[key] ?? 0) + 1;
+          if (row.user_id === currentUser) state.reaction = row.reaction;
+          next[row.secret_id] = state;
+        }
         setReactionState(next);
-        const { data: commentRows } = await (supabase as any).from("confession_comments").select("confession_id").in("confession_id", ids);
+        const { data: commentRows } = await (supabase as any).from("secret_comments").select("secret_id").in("secret_id", ids);
         const counts: Record<string, number> = {};
-        for (const row of commentRows ?? []) counts[row.confession_id] = (counts[row.confession_id] ?? 0) + 1;
+        for (const row of commentRows ?? []) counts[row.secret_id] = (counts[row.secret_id] ?? 0) + 1;
         setCommentCounts(counts);
       } else { setReactionState({}); setCommentCounts({}); }
     }
@@ -195,10 +201,7 @@ export function ConfessionsPage() {
 
   const submitNow = async (trimmed: string, postAnonymous: boolean) => {
     setSubmitting(true);
-    const { data, error } = await (supabase as any).rpc("submit_confession_secure", {
-      p_content: trimmed,
-      p_anonymous: postAnonymous,
-    });
+    const { data, error } = await (supabase as any).rpc("create_confession", { p_body: trimmed });
     setSubmitting(false);
     if (error) return toast.error(error.message ?? "Your confession could not be submitted.");
     setContent("");
@@ -239,7 +242,7 @@ export function ConfessionsPage() {
       setReactionMenuId(null);
       return;
     }
-    const { data, error } = await (supabase as any).rpc("react_to_confession_secure", { p_confession_id:id, p_reaction:reaction });
+    const { data, error } = await (supabase as any).rpc("toggle_secret_reaction", { p_secret_id:id, p_reaction:reaction });
     if (error) return toast.error(error.message);
     await load(true);
     setReactionMenuId(null);
@@ -250,15 +253,15 @@ export function ConfessionsPage() {
     if (!authData.user || authData.user.is_anonymous) return requestLogin("comment on a confession");
     setCommentPost(item);
     setCommentText("");
-    const { data } = await (supabase as any).rpc("get_confession_comments", { p_confession_id:item.id });
+    const { data } = await (supabase as any).from("secret_comments").select("id,author_id,body,created_at").eq("secret_id",item.id).order("created_at",{ascending:true});
     setCommentsByPost((current) => ({ ...current, [item.id]: data ?? [] }));
   };
 
   const submitComment = async () => {
     if (!commentPost || !commentText.trim()) return;
-    const { error } = await (supabase as any).rpc("add_confession_comment_secure", { p_confession_id:commentPost.id, p_body:commentText.trim() });
+    const { error } = await (supabase as any).rpc("add_secret_comment", { p_secret_id:commentPost.id, p_body:commentText.trim() });
     if (error) return toast.error(error.message);
-    const { data } = await (supabase as any).rpc("get_confession_comments", { p_confession_id:commentPost.id });
+    const { data } = await (supabase as any).from("secret_comments").select("id,author_id,body,created_at").eq("secret_id",commentPost.id).order("created_at",{ascending:true});
     setCommentsByPost((current) => ({ ...current, [commentPost.id]: data ?? [] }));
     setCommentText("");
     setCommentPost(null);
