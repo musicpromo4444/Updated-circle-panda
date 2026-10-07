@@ -94,17 +94,20 @@ function CrushPage() {
   const [liveNomineesLoaded, setLiveNomineesLoaded] = useState(false);
   const [mediaError, setMediaError] = useState<string | null>(null);
   const [sharing, setSharing] = useState(false);
-  const [feedAdSequence, setFeedAdSequence] = useState<number[]>([5, 5, 10]);
+  const [feedAdSequence, setFeedAdSequence] = useState<number[]>([5, 5, 10, 10]);
   const [feedAdFormats, setFeedAdFormats] = useState<string[]>(["native", "interstitial", "popup", "banner", "playable"]);
+  const [feedAdBlocks, setFeedAdBlocks] = useState<Array<{ after: number; format: string }>>([
+    { after: 5, format: "native" }, { after: 5, format: "interstitial" }, { after: 10, format: "popup" }, { after: 10, format: "banner" },
+  ]);
   const [feedAdsEnabled, setFeedAdsEnabled] = useState(true);
 
-  const AD_BLOCKS = feedAdSequence.length ? feedAdSequence : [5, 5, 10];
-  const AD_FORMATS = feedAdFormats.length ? feedAdFormats : ["native", "interstitial", "popup", "banner", "playable"];
+  const AD_BLOCKS = feedAdBlocks.length ? feedAdBlocks.map(b => Math.max(1, Number(b.after) || 1)) : (feedAdSequence.length ? feedAdSequence : [5, 5, 10, 10]);
+  const AD_FORMATS = feedAdBlocks.length ? feedAdBlocks.map(b => b.format) : (feedAdFormats.length ? feedAdFormats : ["native", "interstitial", "popup", "banner", "playable"]);
   const nextAdBoundary = useMemo(() => {
     let boundary = 0;
     let blockIndex = 0;
     while (boundary <= swipeCount) {
-      boundary += AD_BLOCKS[Math.min(blockIndex, 2)] ?? 10;
+      boundary += AD_BLOCKS[Math.min(blockIndex, AD_BLOCKS.length - 1)] ?? 10;
       blockIndex += 1;
     }
     return boundary;
@@ -123,9 +126,16 @@ function CrushPage() {
     if (cycle) {
       const seq = Array.isArray(cycle.feed_ad_sequence) ? cycle.feed_ad_sequence.map(Number).filter((n:number) => Number.isFinite(n) && n > 0) : [];
       const config = cycle.feed_ad_config && typeof cycle.feed_ad_config === "object" ? cycle.feed_ad_config : {};
+      const configuredBlocks = Array.isArray(config.blocks) ? config.blocks
+        .map((b: any) => ({ after: Number(b?.after), format: String(b?.format ?? "") }))
+        .filter((b: any) => Number.isFinite(b.after) && b.after > 0 && ["banner","native","interstitial","popup","playable"].includes(b.format)) : [];
       const formats = Array.isArray(config.formats) ? config.formats.map(String).filter(Boolean) : [];
-      setFeedAdSequence(seq.length ? seq : [5, 5, 10]);
-      setFeedAdFormats(formats.length ? formats : ["native", "interstitial", "popup", "banner", "playable"]);
+      const blocks = configuredBlocks.length
+        ? configuredBlocks
+        : (seq.length ? seq : [5,5,10,10]).map((after:number,i:number) => ({after,format:formats[i] ?? ["native","interstitial","popup","banner","playable"][i % 5]}));
+      setFeedAdBlocks(blocks);
+      setFeedAdSequence(blocks.map((b:any)=>b.after));
+      setFeedAdFormats(blocks.map((b:any)=>b.format));
       setFeedAdsEnabled(config.enabled !== false);
     }
     const monday = new Date();
@@ -440,7 +450,7 @@ function CrushPage() {
       <div className="fixed inset-0 z-50 overflow-hidden bg-black text-white">
         {showAd ? (
           (() => {
-            const format = AD_FORMATS[(adSlotIndex - 1) % AD_FORMATS.length];
+            const format = AD_FORMATS[Math.min(Math.max(adSlotIndex - 1, 0), AD_FORMATS.length - 1)] ?? "banner";
             const continueToFeed = () => {
               setShowAd(false);
               setIndex((v) => (v + 1) % Math.max(1, pool.length));
