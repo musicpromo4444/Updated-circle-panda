@@ -737,6 +737,14 @@ function GroupRoom() {
                     );
                   })()}
                 </div>
+                {(m.reactions ?? []).length > 0 ? (
+                  <div className={`mt-1 flex flex-wrap gap-1 ${m.mine ? "justify-end" : ""}`}>
+                    {["❤️","😂","😮","😡","🐼"].map((emoji) => {
+                      const count = (m.reactions ?? []).filter((r:any) => r.reaction === emoji).length;
+                      return count ? <button key={emoji} type="button" onClick={()=>void addReaction(m.id,emoji)} className="rounded-full border bg-background/70 px-2 py-0.5 text-[11px]" aria-label={`${count} ${emoji} reactions`}>{emoji} {count}</button> : null;
+                    })}
+                  </div>
+                ) : null}
                 {reactionOpen===m.id ? <div className="mt-1 flex gap-1 rounded-2xl border bg-background p-1 shadow-lg">
                   {["❤️","😂","👍","😮","😢","🔥"].map(emoji=><button key={emoji} type="button" className="grid size-8 place-items-center rounded-full text-lg hover:bg-secondary" onClick={()=>void addReaction(m.id,emoji)}>{emoji}</button>)}
                 </div> : null}
