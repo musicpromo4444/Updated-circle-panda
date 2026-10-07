@@ -83,7 +83,7 @@ function GroupCard({ group }: { group: GroupChat }) {
         )}
 
         <div className="mt-3 grid grid-cols-2 gap-2">
-          <Button className="gap-2" variant={live ? "secondary" : "default"}
+          <Button variant={live ? "secondary" : "default"}
             onClick={() => group.memberRole ? openRoom() : joinGroup(group.id)}
             disabled={Boolean(group.joinPending)}
             className={!group.memberRole && !group.joinPending ? "bg-primary text-primary-foreground shadow-lg shadow-primary/30 ring-1 ring-primary/50 animate-pulse" : ""}>
