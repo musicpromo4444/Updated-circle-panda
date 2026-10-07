@@ -215,6 +215,12 @@ export function RegisterDatingModal({open,onOpenChange}:{open:boolean;onOpenChan
             <p className="mb-2 text-sm font-black">Drinking</p>
             <SingleChoice values={["Non-drinker","Drinker","Occasionally","Prefer not to say"]} value={p.drinking} onChange={v=>set("drinking",v)}/>
           </div>
+          <div><p className="mb-2 text-sm font-black">Your interests</p><Chips values={INTERESTS} selected={p.interests} onToggle={v=>toggle("interests",v)}/></div>
+          <div><p className="mb-2 text-sm font-black">Your lifestyle</p><Chips values={LIFESTYLE} selected={p.lifestyle} onToggle={v=>toggle("lifestyle",v)}/></div>
+          <div><p className="mb-2 text-sm font-black">Your personality</p><Chips values={PERSONALITY} selected={p.personality} onToggle={v=>toggle("personality",v)}/></div>
+          <div><label className="mb-1.5 block text-sm font-black">Love language</label><Input value={p.loveLanguage} onChange={e=>set("loveLanguage",e.target.value)} placeholder="Optional"/></div>
+          <div><label className="mb-1.5 block text-sm font-black">Intimacy preference</label><Input value={p.intimacyPreference} onChange={e=>set("intimacyPreference",e.target.value)} placeholder="Optional"/></div>
+          <div><label className="mb-1.5 block text-sm font-black">Favorite date</label><Input value={p.favoriteDate} onChange={e=>set("favoriteDate",e.target.value)} placeholder="Optional"/></div>
           <div>
             <p className="mb-2 text-sm font-black">Sexual Experience</p>
             <SingleChoice values={SEXUAL_EXPERIENCE} value={p.sexualExperience} onChange={v=>set("sexualExperience",v)}/>
