@@ -295,8 +295,10 @@ setSameCountryOnly(false);
           <div className="mt-3 space-y-2">
             {connections.filter((x:any)=>x.free_until && new Date(x.free_until).getTime()<=Date.now() && !x.photos_revealed).map((x:any)=>(
               <div key={x.id} className="flex items-center gap-2 rounded-xl bg-background/70 p-3">
-                <span className="grid size-9 place-items-center rounded-full bg-secondary">🐼</span><span className="flex-1 text-sm">Mutual Panda match</span>
-                <Button size="sm" onClick={()=>void navigate({to:"/messages"})}>Open Messages</Button>
+                <span className="grid size-9 place-items-center rounded-full bg-[var(--dating)]/15 text-[var(--dating)]"><Heart className="size-5 fill-current"/></span>
+                <span className="flex-1 text-sm">Mutual Panda match</span>
+                <Button size="sm" variant="outline" onClick={()=>void (supabase as any).rpc("decide_dating_match_secure",{p_match_id:x.id,p_decision:"ignore"}).then(async({error}:any)=>{if(error){toast.error(error.message);return;} await loadConnections();})}>Ignore</Button>
+                <Button size="sm" onClick={()=>void (supabase as any).rpc("decide_dating_match_secure",{p_match_id:x.id,p_decision:"continue"}).then(async({data,error}:any)=>{if(error){toast.error(error.message);return;} await loadConnections();toast.success(data?.status==="matched"?"Photos revealed 💗":"Waiting for the other Panda");})}>Continue</Button>
               </div>
             ))}
           </div>
@@ -513,12 +515,9 @@ setSameCountryOnly(false);
                       {[
                         ["Country", openMatch.country],
                         ["Location", openMatch.location],
-                        ["Education", openMatch.education],
                         ["Children", openMatch.children],
                         ["Smoking", openMatch.smoking],
                         ["Drinking", openMatch.drinking],
-                        ["Height", openMatch.heightCm ? `${openMatch.heightCm} cm` : ""],
-                        ["Zodiac", openMatch.zodiac],
                         ["Sexual Experience", openMatch.sexualExperience],
                         ["Intimacy Preference", openMatch.intimacyPreference],
                         ["Love Language", openMatch.loveLanguage],
