@@ -337,7 +337,7 @@ export function ConfessionsPage() {
               <h1 className="font-display text-2xl font-black leading-tight sm:text-3xl">Anonymous Feed</h1>
               <p className="mt-1 text-sm leading-5 text-muted-foreground">Nobody knows it's you. Replies are public.</p>
             </div>
-            <Button variant="outline" size="sm" className="shrink-0 rounded-full text-xs">
+            <Button variant="outline" size="sm" className="shrink-0 rounded-full text-xs" onClick={() => window.location.assign("/leaders")}>
               <Crown className="mr-1 size-3.5" /> Leaders
             </Button>
           </div>
