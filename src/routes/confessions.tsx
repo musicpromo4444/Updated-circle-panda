@@ -53,7 +53,6 @@ export function ConfessionsPage() {
   const [commentCounts, setCommentCounts] = useState<Record<string, number>>({});
   const [items, setItems] = useState<Confession[]>([]);
   const [content, setContent] = useState("");
-  const [anonymous, setAnonymous] = useState(true);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [showSignup, setShowSignup] = useState(false);
@@ -221,7 +220,7 @@ export function ConfessionsPage() {
     }
   };
 
-  const submitNow = async (trimmed: string, postAnonymous: boolean) => {
+  const submitNow = async (trimmed: string) => {
     setSubmitting(true);
     const { data, error } = await (supabase as any).rpc("create_confession", { p_body: trimmed });
     setSubmitting(false);
@@ -247,7 +246,7 @@ export function ConfessionsPage() {
       setShowSignup(true);
       return;
     }
-    await submitNow(trimmed, anonymous);
+    await submitNow(trimmed);
   };
 
   const reactionOptions = [
@@ -614,7 +613,7 @@ export function ConfessionsPage() {
         defaultTab="signin"
         onAuthenticated={() => {
           const trimmed = content.trim();
-          if (trimmed.length >= 3) void submitNow(trimmed, anonymous);
+          if (trimmed.length >= 3) void submitNow(trimmed);
         }}
       />
     </AppShell>
