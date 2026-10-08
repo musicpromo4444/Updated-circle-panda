@@ -59,15 +59,9 @@ export function GlobalActionWidget() {
       to={config.destination as any}
       id="global-action-slot"
       aria-label={config.label}
-      className="fixed bottom-[4.75rem] left-1/2 z-40 flex -translate-x-1/2 items-center gap-2 rounded-full border border-orange-400/40 bg-black/90 px-2 py-2 pr-3 shadow-[0_4px_28px_rgba(234,88,12,0.4)] backdrop-blur-xl transition-transform hover:scale-105 active:scale-95 group select-none"
+      className="fixed bottom-[4.75rem] left-1/2 z-40 flex -translate-x-1/2 items-center gap-2 rounded-lg border border-orange-400/40 bg-background/95 px-3 py-2 shadow-lg backdrop-blur-xl transition-colors hover:border-orange-300/70 hover:bg-background active:scale-[.98] group select-none"
     >
-      <div className="relative flex size-11 items-center justify-center rounded-full bg-gradient-to-tr from-red-600 via-orange-500 to-amber-400 p-[2px] shadow-[0_4px_24px_rgba(234,88,12,0.65)] transition-all duration-300 group-hover:shadow-[0_4px_34px_rgba(234,88,12,0.9)]">
-        <div className="absolute inset-0 rounded-full bg-orange-500/20 animate-ping pointer-events-none duration-1000" />
-        <div className="relative flex size-full items-center justify-center rounded-full bg-gradient-to-b from-[#240b04] via-[#140602] to-[#080201] border border-orange-400/50 overflow-hidden">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_75%,rgba(249,115,22,0.5),rgba(220,38,38,0.25)_50%,transparent_75%)]" />
-          <span className="relative text-2xl leading-none drop-shadow-[0_2px_5px_rgba(0,0,0,0.9)]" aria-hidden>{config.icon}</span>
-        </div>
-      </div>
+      <span className="grid size-8 shrink-0 place-items-center text-lg leading-none" aria-hidden>{config.icon}</span>
       <span className="max-w-32 truncate font-display text-[10px] font-black uppercase tracking-wider text-orange-300">
         {config.label}
       </span>
