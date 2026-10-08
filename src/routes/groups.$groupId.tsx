@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate, useParams } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { ChevronLeft, Send, Users, Settings, Pencil, LogOut, Lock, Reply, Smile, Paperclip, Image as ImageIcon, Video, Mic, X, Play, Pause, Square, Flag, MessageCircle, Eye } from "lucide-react";
+import { ChevronLeft, Send, Users, Settings, Pencil, LogOut, Lock, Reply, Smile, Paperclip, Image as ImageIcon, Video, Mic, X, Play, Pause, Square, Flag, MessageCircle, Eye, ShieldBan } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useStore, type GroupChat } from "@/lib/store";
@@ -146,6 +146,19 @@ function GroupRoom() {
       void navigate({ to: "/messages", search: { request: result.id } });
     } catch (e: any) {
       if (!isSelfMessageError(e)) toast.error(e?.message ?? "Could not start messaging");
+    }
+  };
+
+  const blockMember = async (userId: string) => {
+    setMemberMenuOpen(null);
+    if (!currentUserId || currentUserId === userId) return;
+    if (!window.confirm("Block this Panda? They will no longer be able to message you.")) return;
+    try {
+      const { error } = await (supabase as any).rpc("block_user_secure", { p_user_id: userId });
+      if (error) throw error;
+      toast.success("Panda blocked");
+    } catch (e: any) {
+      toast.error(e?.message ?? "Could not block this Panda");
     }
   };
 
@@ -689,7 +702,7 @@ function GroupRoom() {
                       {memberMenuOpen===m.id ? <div className="absolute left-0 top-10 z-[60] w-44 rounded-2xl border border-border bg-card p-1.5 shadow-2xl">
                         <button type="button" className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm hover:bg-secondary" onClick={()=>void messageMember(m.sender_id)}><MessageCircle className="size-4"/> Message</button>
                         <button type="button" className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm hover:bg-secondary" onClick={()=>void navigate({to:"/secret/$userId",params:{userId:m.sender_id}})}><Eye className="size-4"/> View secret</button>
-                        <button type="button" className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm text-destructive hover:bg-destructive/10" onClick={()=>void reportMember(m.sender_id)}><Flag className="size-4"/> Report</button>
+                        <button type="button" className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm text-destructive hover:bg-destructive/10" onClick={()=>void reportMember(m.sender_id)}><Flag className="size-4"/> Report</button>\n                        <button type="button" className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm text-destructive hover:bg-destructive/10" onClick={()=>void blockMember(m.sender_id)}><ShieldBan className="size-4"/> Block</button>
                       </div> : null}
                     </div>
                   ) : null}
