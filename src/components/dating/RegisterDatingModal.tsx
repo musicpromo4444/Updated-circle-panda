@@ -17,12 +17,12 @@ const INTERESTS = [
   "Cooking","Coffee","Books","Late walks","Night drives","Art galleries"
 ];
 
-const LIFESTYLE = [
+const PERSONALITY = [
   "Playful","Adventurous","Social","Social-media person","Office type","Inside type","Romantic",
   "Funny","Ambitious","Party person","Quiet/private","Family-oriented","Spontaneous","Jealous","Easygoing"
 ];
 
-const PERSONALITY = ["Funny","Romantic","Quiet","Confident","Spontaneous","Caring","Ambitious","Flirty","Introverted","Outgoing"];
+const PERSONALITY = ["Playful","Adventurous","Social","Social-media person","Office type","Inside type","Romantic","Funny","Ambitious","Party person","Quiet/private","Family-oriented","Spontaneous","Jealous","Easygoing","Quiet","Confident","Caring","Flirty","Introverted","Outgoing"];
 const SEXUAL_EXPERIENCE = ["Virgin","Novice","Expert","Good in bed","Pro","Prefer not to say"];
 const RELATIONSHIP_TYPES = [
   "Long-distance relationship","Something casual","Long-term relationship","Something that leads to marriage",
@@ -116,8 +116,8 @@ export function RegisterDatingModal({open,onOpenChange}:{open:boolean;onOpenChan
           ...(currentDating?(()=>{const {registeredAt:_r,userId:_u,...rest}=currentDating;return rest;})():{}),
           name:profile.display_name||s.name||"Anonymous Panda",
           age:Number(profile.age||s.age||0),gender:profile.gender||s.gender||"",
-          country:profile.country||s.country||"",location:profile.area||profile.state||profile.country||s.location||"",
-          emoji:String(profile.avatar_url||s.emoji||"🐼")
+          country:profile.country||s.country||"",location:profile.area||profile.city||profile.state_province||profile.state||profile.country||s.location||"",
+          emoji:"🐼"
         }));
 
         if(currentDating?.blurredPhotoPath){
@@ -136,7 +136,7 @@ export function RegisterDatingModal({open,onOpenChange}:{open:boolean;onOpenChan
     })();
   },[open,onOpenChange]);
 
-  const toggle=(key:"interests"|"lookingFor"|"aboutTraits"|"lifestyle"|"personality",value:string)=>
+  const toggle=(key:"interests"|"lookingFor"|"aboutTraits"|"personality",value:string)=>
     setP(s=>({...s,[key]:s[key].includes(value)?s[key].filter(x=>x!==value):[...s[key],value]}));
   const set=(key:keyof typeof p,value:string|number|null)=>setP(s=>({...s,[key]:value}));
 
@@ -268,11 +268,7 @@ export function RegisterDatingModal({open,onOpenChange}:{open:boolean;onOpenChan
             <SingleChoice values={["Non-drinker","Drinker","Occasionally","Prefer not to say"]} value={p.drinking} onChange={v=>set("drinking",v)}/>
           </div>
           <div><p className="mb-2 text-sm font-black">Your interests</p><Chips values={INTERESTS} selected={p.interests} onToggle={v=>toggle("interests",v)}/></div>
-          <div><p className="mb-2 text-sm font-black">Your lifestyle</p><Chips values={LIFESTYLE} selected={p.lifestyle} onToggle={v=>toggle("lifestyle",v)}/></div>
-          <div><p className="mb-2 text-sm font-black">Your personality</p><Chips values={PERSONALITY} selected={p.personality} onToggle={v=>toggle("personality",v)}/></div>
-          <div><label className="mb-1.5 block text-sm font-black">Love language</label><Input value={p.loveLanguage} onChange={e=>set("loveLanguage",e.target.value)} placeholder="Optional"/></div>
-          <div><label className="mb-1.5 block text-sm font-black">Intimacy preference</label><Input value={p.intimacyPreference} onChange={e=>set("intimacyPreference",e.target.value)} placeholder="Optional"/></div>
-          <div><label className="mb-1.5 block text-sm font-black">Favorite date</label><Input value={p.favoriteDate} onChange={e=>set("favoriteDate",e.target.value)} placeholder="Optional"/></div>
+          <div><p className="mb-2 text-sm font-black">Personality</p><Chips values={PERSONALITY} selected={p.personality} onToggle={v=>toggle("personality",v)}/></div>
           <div>
             <p className="mb-2 text-sm font-black">Sexual Experience</p>
             <SingleChoice values={SEXUAL_EXPERIENCE} value={p.sexualExperience} onChange={v=>set("sexualExperience",v)}/>
