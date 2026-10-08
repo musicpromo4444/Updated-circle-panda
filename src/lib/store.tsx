@@ -464,6 +464,7 @@ type StoreValue = State & {
   mySpotlight: Spotlight | null;
   toggleRsvp: (id: string) => void;
   toggleEventInterest: (id: string) => Promise<void>;
+  refreshEvents: () => Promise<void>;
   startEventBlast: (eventId: string, planId?: string, paymentMethod?: "bc" | "cash", targetScope?: "worldwide" | "country" | "state" | "city" | "area", targetCountry?: string, targetState?: string, targetCity?: string, targetArea?: string) => Promise<boolean>;
   buyTicket: (draw: DrawKind) => boolean;
   myTicketCount: (draw: DrawKind) => number;
@@ -1163,15 +1164,16 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     return created;
   }, [dbUserId, dbIsAnonymous, refreshGroupsAndEvents]);
 
-  const startEventBlast = useCallback(async (eventId: string, planId = "starter", paymentMethod: "bc" | "cash" = "bc", targetScope = "worldwide", targetCountry = "", targetState = "", targetCity = "", targetArea = "") => {
+  const refreshEvents = useCallback(async () => {\n    await refreshGroupsAndEvents();\n  }, [refreshGroupsAndEvents]);\n\n  const startEventBlast = useCallback(async (eventId: string, planId = "starter", paymentMethod: "bc" | "cash" = "bc", targetScope = "worldwide", targetCountry = "", targetState = "", targetCity = "", targetArea = "") => {
     if (!dbUserId) { requestLogin("promote an event"); return false; }
     const { data, error } = await (supabase as any).rpc("start_event_blast_secure", { p_event_id:eventId,p_plan_id:planId,p_payment_method:paymentMethod,p_target_scope:targetScope,p_target_country:targetCountry || null,p_target_state:targetState || null,p_target_city:targetCity || null,p_target_area:targetArea || null });
     if (error) { toast.error(error.message ?? "Could not start Event Blast"); return false; }
     const charged = Number(data?.bc_cost ?? 0);
     if (charged > 0) setState(s=>({...s,coins:Math.max(0,s.coins-charged)}));
-    toast.success("Event Blast is live 🚀",{description:`${Number(data?.unique_reach??500).toLocaleString()} people + 20% extra notifications.`});
+    toast.success("Event Blast is live 🚀",{description:`${Number(data?.unique_reach??500).toLocaleString()} target users + up to ${Number(data?.notification_cap ?? Number(data?.unique_reach ?? 500)*2).toLocaleString()} notifications.`});
+    await refreshGroupsAndEvents();
     return true;
-  }, [dbUserId]);
+  }, [dbUserId, refreshGroupsAndEvents]);
 
   const refreshDatingData = useCallback(async () => {
     const { data: auth } = await supabase.auth.getUser();
@@ -1416,6 +1418,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       createGroup,
       createEvent,
       toggleEventInterest,
+      refreshEvents,
       startEventBlast,
       registerDatingProfile,
       refreshDatingData,
