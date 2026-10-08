@@ -12,16 +12,60 @@ function LandingPage() {
 
   useEffect(() => {
     let active = true;
+    let navigating = false;
+
+    const enterCircle = async () => {
+      if (!active || navigating) return;
+      navigating = true;
+      await navigate({ to: "/home", replace: true });
+    };
+
     const checkSession = async () => {
-      const { data } = await supabase.auth.getSession();
-      if (!active) return;
-      const user = data.session?.user;
-      if (user && !user.is_anonymous) {
-        await navigate({ to: "/home", replace: true });
+      try {
+        const { data } = await supabase.auth.getSession();
+        const user = data.session?.user;
+        if (active && user && !user.is_anonymous) {
+          await enterCircle();
+          return;
+        }
+      } catch {
+        // The auth listener below will handle a later valid session.
+      }
+
+      // Allow the persisted Supabase session a moment to hydrate after a cold
+      // Vercel load before treating the visitor as signed out.
+      if (active) {
+        window.setTimeout(() => {
+          void (async () => {
+            try {
+              const { data } = await supabase.auth.getSession();
+              const user = data.session?.user;
+              if (user && !user.is_anonymous) await enterCircle();
+            } catch {
+              // Stay on the landing page when there is genuinely no session.
+            }
+          })();
+        }, 300);
       }
     };
+
     void checkSession();
-    return () => { active = false; };
+
+    const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
+      if (!active || navigating) return;
+      if (
+        session?.user &&
+        !session.user.is_anonymous &&
+        ["INITIAL_SESSION", "SIGNED_IN", "TOKEN_REFRESHED", "USER_UPDATED"].includes(event)
+      ) {
+        window.setTimeout(() => void enterCircle(), 0);
+      }
+    });
+
+    return () => {
+      active = false;
+      listener.subscription.unsubscribe();
+    };
   }, [navigate]);
 
   const openAuth = (tab: "signin" | "signup") => {
