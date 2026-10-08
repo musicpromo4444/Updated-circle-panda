@@ -133,7 +133,7 @@ function EventsPage() {
   };
 
   return (
-    <AppShell title="Events" subtitle="Masks encouraged. Names optional.">
+    <AppShell title="Events" subtitle="Discover events, RSVP, and connect with event creators.">
       <div className="cp-events-page min-w-0 w-full overflow-x-hidden">
       <div className="mb-5">
         <Button size="lg" onClick={() => setCreateOpen(true)} className="w-full gap-2.5 rounded-2xl py-6 font-bold shadow-lg shadow-primary/20">
@@ -157,10 +157,10 @@ function EventsPage() {
               <div className="mt-3 space-y-1 text-xs text-muted-foreground">
                 <p className="flex items-center gap-1.5"><CalendarDays className="size-3.5" /> {e.date} · {e.time}</p>
                 <p className="flex items-center gap-1.5"><MapPin className="size-3.5" /> {e.place}</p>
-                <p className="flex items-center gap-1.5"><Users className="size-3.5" /> {e.attendeeCount ?? 0} attending · {e.reachScope === "worldwide" ? "Worldwide" : `${e.reachScope}: ${e.reachCity || e.reachCountry || e.reachArea || ""}`}</p>
+                <p className="flex items-center gap-1.5"><Users className="size-3.5" /> <strong>ATTENDING {e.attendeeCount ?? 0} 👤</strong> · Interested {e.interestedCount ?? 0} · Responses {e.responseCount ?? 0} · Reach {e.reachCount ?? 0}</p>
               </div>
               {e.rsvp ? <p className="mt-3 rounded-lg bg-primary/15 py-1.5 text-center text-xs font-semibold text-primary">You're going 🐼</p> : null}
-              {e.ownerId && e.ownerId === currentUserId ? <div className="mt-3 flex items-center justify-between border-t border-border/60 pt-3"><span className="text-[11px] text-muted-foreground">Your event</span><span role="button" tabIndex={0} onClick={(ev) => { ev.stopPropagation(); setOpenEvent(e); setBlastOpen(true); }} className="rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground">Boost Event</span></div> : null}
+              {e.ownerId && e.ownerId === currentUserId ? <div className="mt-3 flex items-center justify-between border-t border-border/60 pt-3"><span className="text-[11px] text-muted-foreground">Your event</span><span role="button" tabIndex={0} onClick={(ev) => { ev.stopPropagation(); setOpenEvent(e); setBlastOpen(false); window.setTimeout(() => openBlast(), 0); }} className="rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground">Boost Event</span></div> : null}
             </div>
             {(idx + 1) % 4 === 0 ? <StandardBannerAd index={Math.floor(idx / 4)} variant="feed-card" placement="events_inline" /> : null}
             </>
@@ -185,7 +185,7 @@ function EventsPage() {
               <p className="flex items-center gap-2"><Clock className="size-4 text-primary" /> {current.time}</p>
               <p className="flex items-center gap-2"><MapPin className="size-4 text-primary" /> {current.venueName || current.place}</p>
               <p className="text-xs text-muted-foreground">{current.addressLine}{current.area ? `, ${current.area}` : ""}{current.city ? `, ${current.city}` : ""}{current.stateProvince ? `, ${current.stateProvince}` : ""}{current.country ? `, ${current.country}` : ""}</p>
-              <p className="flex items-center gap-2"><Users className="size-4 text-primary" /> {current.attendeeCount ?? 0} attending · {current.reachScope ?? "worldwide"} reach</p>
+              <p className="flex items-center gap-2"><Users className="size-4 text-primary" /> <strong>ATTENDING {current.attendeeCount ?? 0} 👤</strong></p>
               <p>{current.cost === 0 ? "Gate fee: Free" : `Gate fee: ${current.currency === "NGN" ? "₦" : current.currency + " "}${current.cost.toLocaleString()} — paid at the gate`}</p>
             </div>
             <p className="text-sm leading-relaxed text-muted-foreground">{current.details}</p>
@@ -199,6 +199,7 @@ function EventsPage() {
                   >
                     {current.rsvp ? "You’re going 🐼" : "I will attend"}
                   </Button>
+                  <Button type="button" variant={current.interested ? "secondary" : "outline"} onClick={() => void toggleEventInterest(current.id)} className="gap-2"><Heart className="size-4" /> {current.interested ? "Interested ✓" : "Interested"}</Button>
                   <Button type="button" variant="outline" onClick={() => void messageEventCreator()} className="gap-2">
                     <MessageCircle className="size-4" /> Message creator
                   </Button>
@@ -216,25 +217,23 @@ function EventsPage() {
           <DialogHeader>
             <DialogTitle className="font-display text-2xl">🚀 Event Blast</DialogTitle>
           </DialogHeader>
-          <p className="text-sm text-muted-foreground">Promote <strong>{current?.title}</strong> for {plans[0]?.duration_minutes ?? 60} minutes. Your purchased reach is the base audience, plus up to <strong>20% extra notification reach</strong> at no additional cost.</p>
+          <p className="text-sm text-muted-foreground">Promote <strong>{current?.title}</strong> for 60 minutes. Reach is unique users. Notifications can reach up to <strong>2× the target</strong> at no additional cost.</p>
+          {freePromotionEligible ? <Button type="button" variant="outline" disabled={freePromotionProcessing} onClick={() => void claimFreePromotion()} className="w-full">🎁 500 Free Reach / Month · {freePromotionProcessing ? "Starting…" : "Use free promotion"}</Button> : null}
           <div className="space-y-2 rounded-2xl border border-border p-4"><label className="text-xs font-semibold">Target audience</label><div className="grid grid-cols-2 gap-2 sm:grid-cols-5">{(["worldwide","country","state","city","area"] as const).map((scope) => <button key={scope} type="button" onClick={() => setTargetScope(scope)} className={`rounded-xl px-2 py-2 text-xs font-semibold capitalize ${targetScope === scope ? "bg-primary text-primary-foreground" : "border border-border bg-secondary/60"}`}>{scope}</button>)}</div>{targetScope !== "worldwide" ? <div className="grid gap-2 sm:grid-cols-2"><select value={targetCountry} style={{minWidth:0,maxWidth:"100%"}} onChange={e=>{setTargetCountry(e.target.value);setTargetState("");setTargetCity("");}} className="h-10 rounded-xl border border-border bg-secondary/60 px-3 text-sm"><option value="">Select country</option>{targetCountries.map(c=><option key={c.iso2} value={c.name}>{countryFlag(c.iso2)} {c.name}</option>)}</select>{(targetScope==="state"||targetScope==="city"||targetScope==="area")?<select value={targetState} style={{minWidth:0,maxWidth:"100%"}} disabled={!targetCountry} onChange={e=>{setTargetState(e.target.value);setTargetCity("");}} className="h-10 rounded-xl border border-border bg-secondary/60 px-3 text-sm"><option value="">Select state / province</option>{targetStates.map(s=><option key={s}>{s}</option>)}</select>:null}{(targetScope==="city"||targetScope==="area")?<select value={targetCity} style={{minWidth:0,maxWidth:"100%"}} disabled={!targetState} onChange={e=>setTargetCity(e.target.value)} className="h-10 rounded-xl border border-border bg-secondary/60 px-3 text-sm"><option value="">Select city</option>{targetCities.map(s=><option key={s}>{s}</option>)}</select>:null}{targetScope==="area"?<Input value={targetArea} onChange={e=>setTargetArea(e.target.value)} placeholder="Target area / neighborhood"/>:null}</div>:null}</div>
           <div className="space-y-3">
             {plans.map((plan) => (
               <div key={plan.id} className="rounded-2xl border border-border p-4">
                 <div className="flex items-center justify-between gap-3">
-                  <div><p className="font-semibold">{plan.name}</p><p className="text-xs text-muted-foreground">{plan.unique_reach.toLocaleString()} base reach · up to {(Math.ceil(plan.unique_reach * 1.2)).toLocaleString()} notifications (+20%) · {plan.duration_minutes} min</p></div>
+                  <div><p className="font-semibold">{plan.name}</p><p className="text-xs text-muted-foreground">{plan.unique_reach.toLocaleString()} unique-user target · up to {(plan.unique_reach * 2).toLocaleString()} notifications · {plan.duration_minutes} min</p></div>
                   <p className="font-bold">${Number(plan.price_usd).toFixed(2)}</p>
                 </div>
                 <div className="mt-3 flex flex-wrap gap-2">
                   <Button
                     size="sm"
-                    variant={plan.bc_price ? "default" : "outline"}
+                    variant="default"
                     disabled={processing || bcProcessing !== null}
                     onClick={() => {
-                      if (!plan.bc_price) {
-                        window.dispatchEvent(new CustomEvent("circle-panda-insufficient-bc", { detail: { noEquivalent: true, reason: "No equivalent BC price for this Event Blast plan" } }));
-                        return;
-                      }
+                      if (!plan.bc_price) return;
                       if (!current) return;
                       setBcProcessing(plan.id);
                       void (async () => {
