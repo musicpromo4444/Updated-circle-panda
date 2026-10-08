@@ -33,7 +33,7 @@ type BlastPlan = {
 };
 
 function EventsPage() {
-  const { events, startEventBlast, toggleRsvp, toggleEventInterest } = useStore();
+  const { events, startEventBlast, toggleRsvp, toggleEventInterest, refreshEvents } = useStore();
   const navigate = useNavigate();
   const [openEvent, setOpenEvent] = useState<PandaEvent | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
@@ -96,7 +96,7 @@ function EventsPage() {
       });
       if (error) throw new Error(error.message);
       toast.success("Free Event Blast is live 🎁", { description: `${Number(data?.unique_reach ?? 500).toLocaleString()} target users · up to 1,000 notifications.` });
-      setFreePromotionEligible(false); setBlastOpen(false);
+      setFreePromotionEligible(false); await refreshEvents(); setBlastOpen(false);
     } catch (e:any) { toast.error(e?.message ?? "Free promotion could not be started."); }
     finally { setFreePromotionProcessing(false); }
   };
