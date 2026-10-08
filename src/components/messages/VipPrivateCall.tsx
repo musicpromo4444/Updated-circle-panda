@@ -3,11 +3,9 @@ import { Mic, MicOff, PhoneOff, Video, VideoOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
-import { PlayableVideoAd } from "@/components/ads/PlayableVideoAd";
 import { toast } from "sonner";
 
 type Props = { callId: string | null; incoming?: boolean; onClose: () => void };
-const FREE_CALL_SECONDS = 20 * 60;
 
 export function VipPrivateCall({ callId, incoming = false, onClose }: Props) {
   const [accepted, setAccepted] = useState(!incoming);
@@ -17,15 +15,11 @@ export function VipPrivateCall({ callId, incoming = false, onClose }: Props) {
   const [camera, setCamera] = useState(true);
   const [remoteOffer, setRemoteOffer] = useState<any>(null);
   const [remoteAnswer, setRemoteAnswer] = useState<any>(null);
-  const [remaining, setRemaining] = useState(FREE_CALL_SECONDS);
-  const [limitOpen, setLimitOpen] = useState(false);
-  const [adOpen, setAdOpen] = useState(false);
   const pc = useRef<RTCPeerConnection | null>(null);
   const localStream = useRef<MediaStream | null>(null);
   const remoteVideo = useRef<HTMLVideoElement | null>(null);
   const seenCandidates = useRef(new Set<string>());
   const startedAt = useRef<number | null>(null);
-  const extensionStartedAt = useRef<number | null>(null);
   const usageRecorded = useRef(false);
 
   useEffect(() => {
@@ -117,24 +111,12 @@ export function VipPrivateCall({ callId, incoming = false, onClose }: Props) {
   const end = async () => {
     if (callId && !usageRecorded.current) {
       usageRecorded.current = true;
-      const elapsed = Math.min(FREE_CALL_SECONDS, Math.max(0, Math.floor((Date.now() - (startedAt.current ?? Date.now())) / 1000)));
-      if (elapsed > 0) await (supabase as any).rpc("consume_vip_group_call_time", { p_call_type: type, p_seconds: elapsed }).catch(() => {});
       await (supabase as any).rpc("end_vip_private_call", { p_call_id: callId, p_status: "ended" }).catch(() => {});
     }
     onClose();
   };
 
-  const continueAfterAd = () => {
-    setAdOpen(false);
-    extensionStartedAt.current = Date.now();
-    setRemaining(FREE_CALL_SECONDS);
-    setLimitOpen(false);
-    toast.success("Call continued for another 20 minutes.");
-  };
-
   if (!callId) return null;
-  const minutes = Math.floor(remaining / 60);
-  const seconds = remaining % 60;
 
   return <>
     <Dialog open={!!callId} onOpenChange={(open) => { if (!open) void end(); }}>
@@ -144,7 +126,6 @@ export function VipPrivateCall({ callId, incoming = false, onClose }: Props) {
           <video ref={remoteVideo} autoPlay playsInline className={type === "video" ? "absolute inset-0 size-full object-cover" : "hidden"} />
           {!connected && <div className="absolute inset-0 grid place-items-center text-center text-white"><div><div className="mx-auto mb-3 grid size-20 place-items-center rounded-full bg-primary/20 text-4xl">🐼</div><p className="font-bold">{incoming ? "Incoming VIP call" : "Calling VIP…"}</p><p className="mt-1 text-xs text-white/60">Private VIP-to-VIP call</p></div></div>}
           {type === "voice" && connected && <div className="absolute inset-0 grid place-items-center text-white"><div className="text-5xl">🐼</div></div>}
-          {connected && <div className="absolute left-1/2 top-4 -translate-x-1/2 rounded-full bg-black/60 px-3 py-1 text-xs font-semibold text-white tabular-nums">{String(minutes).padStart(2,"0")}:{String(seconds).padStart(2,"0")}</div>}
           <div className="absolute bottom-5 left-1/2 flex -translate-x-1/2 gap-3">
             {incoming && !accepted ? <>
               <Button onClick={() => setAccepted(true)} className="size-12 rounded-full bg-green-600">📞</Button>
@@ -159,24 +140,5 @@ export function VipPrivateCall({ callId, incoming = false, onClose }: Props) {
       </DialogContent>
     </Dialog>
 
-    <Dialog open={limitOpen} onOpenChange={(open) => { if (!open) void end(); }}>
-      <DialogContent className="max-w-sm border-primary/30">
-        <DialogTitle>20 minutes are up</DialogTitle>
-        <p className="text-sm text-muted-foreground">Would you like to continue the call?</p>
-        <div className="mt-4 flex gap-2">
-          <Button variant="outline" className="flex-1" onClick={() => void end()}>End Call</Button>
-          <Button className="flex-1" onClick={() => setAdOpen(true)}>Continue</Button>
-        </div>
-      </DialogContent>
-    </Dialog>
-
-    <Dialog open={adOpen} onOpenChange={(open) => { if (!open) void end(); }}>
-      <DialogContent className="max-w-lg border-primary/30">
-        <DialogTitle>Watch an ad to continue</DialogTitle>
-        <p className="mb-3 text-xs text-muted-foreground">Watch the full sponsored video. Your call will continue when it finishes.</p>
-        <PlayableVideoAd placement="groups_inline" variant="card" onComplete={continueAfterAd} onSkipped={() => toast.error("Please watch the ad to continue.")} />
-        <Button variant="outline" className="mt-2 w-full" onClick={() => void end()}>End Call</Button>
-      </DialogContent>
-    </Dialog>
   </>;
 }
