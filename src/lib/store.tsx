@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { sendMessageRequest, isSelfMessageError } from "@/lib/messageRequests";
 import { requestLogin } from "@/components/auth/LoginRequiredDialog";
 import { supabase } from "@/integrations/supabase/client";
+import { requireCompleteProfile } from "@/lib/profileGate";
 
 export type Reply = { id: string; author: string; body: string; at: number };
 export type Post = {
@@ -850,6 +851,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const openGroup = useCallback((id: string) => {
     if (!dbUserId) { requestLogin("open this group"); return; }
     void (async () => {
+      if (!(await requireCompleteProfile("open a group"))) return;
+    void (async () => {
       const { data, error } = await (supabase as any).rpc("open_group_secure", { p_group_id: id });
       if (error) { toast.error(error.message ?? "Group could not be opened"); return; }
       const openedAt = data?.opened_at ? new Date(data.opened_at).getTime() : Date.now();
@@ -860,6 +863,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       window.dispatchEvent(new CustomEvent("circle-panda-action", { detail: { title: "Group is now open!", emoji: "🐼" } }));
       toast.success("Group chat activated 🐼", { description: "3 members reached · the group is now open." });
     })();
+    })();
   }, [dbUserId]);
 
   const isGroupExpired = useCallback((_g: GroupChat) => false, []);
@@ -867,9 +871,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const sendGroupMessage = useCallback((id: string, body: string) => {
     if (!dbUserId) { requestLogin("message this group"); return; }
     void (async () => {
-      const { data, error } = await (supabase as any).rpc("send_group_message_secure", { p_group_id: id, p_body: body });
+      if (!(await requireCompleteProfile("message this group"))) return;
+      const { data, error } = await (supabase as any).rpc("send_group_message", { p_group_id: id, p_body: body, p_idempotency_key: rid() });
       if (error) { toast.error(error.message ?? "Message could not be sent"); return; }
-      setState((s) => ({ ...s, groups: s.groups.map((g) => g.id === id ? { ...g, messages: [...g.messages, { id: data.id, author: "You (anonymous)", body, at: new Date(data.created_at).getTime(), mine: true }] } : g) }));
+      setState((s) => ({ ...s, groups: s.groups.map((g) => g.id === id ? { ...g, messages: [...g.messages, { id: String(data), author: "You (anonymous)", body, at: Date.now(), mine: true }] } : g) }));
       void refreshCoins();
     })();
   }, [dbUserId, refreshCoins]);
@@ -886,23 +891,24 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       return;
     }
     void (async () => {
-      const { data, error } = await (supabase as any).rpc("join_group_secure", { p_group_id: id });
+      if (!(await requireCompleteProfile("join a group"))) return;
+      const { data, error } = await (supabase as any).rpc("join_group", { p_group_id: id });
       if (error) { toast.error(error.message ?? "Could not join group"); return; }
-      const joined = data?.status === "active" || data?.status === "joined";
+      const joined = true;
       setState((s) => ({ ...s, groups: s.groups.map((g) => g.id === id ? {
         ...g,
-        members: Number(data?.member_count ?? g.members),
-        joinPending: data?.status === "pending",
+        members: g.members + 1,
+        joinPending: false,
         memberRole: joined ? (g.memberRole ?? "member") : g.memberRole,
         openedAt: data?.activated_at ? new Date(data.activated_at).getTime() : g.openedAt,
       } : g) }));
       if (joined) void refreshCoins();
-      if (data?.status === "pending") {
+      if (false) {
         window.dispatchEvent(new CustomEvent("circle-panda-action", { detail: { title: "Join request sent!", emoji: "🤝" } }));
         toast.success("Join request sent", { description: "An admin must approve your request." });
       } else {
         window.dispatchEvent(new CustomEvent("circle-panda-action", { detail: { title: "Joined group!", emoji: "🤝" } }));
-        toast.success(data?.status === "active" ? "Group activated 🐼" : "Joined group", { description: data?.status === "active" ? "3 members reached · 24-hour chat started." : "You're now an anonymous member." });
+        toast.success(data?.status === "active" ? "Group activated 🐼" : "Joined group", { description: "You're now an anonymous member." });
       }
     })();
   }, [dbUserId, refreshCoins, state.groups]);
@@ -910,7 +916,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const leaveGroup = useCallback((id: string) => {
     if (!dbUserId) { toast.error("Sign in to leave this group"); return; }
     void (async () => {
-      const { error } = await (supabase as any).rpc("leave_group_secure", { p_group_id: id });
+      const { error } = await (supabase as any).rpc("leave_group", { p_group_id: id });
       if (error) { toast.error(error.message ?? "Could not leave group"); return; }
       setState((s) => ({ ...s, groups: s.groups.map((g) => g.id === id ? { ...g, members: Math.max(0, g.members - 1), memberRole: undefined } : g) }));
       toast.success("You left the group");
@@ -920,7 +926,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const updateGroupInfo = useCallback((id: string, name: string, topic: string) => {
     if (!dbUserId) { requestLogin("edit group information"); return; }
     void (async () => {
-      const { error } = await (supabase as any).rpc("update_group_info_secure", { p_group_id: id, p_name: name, p_topic: topic });
+      const { error } = await (supabase as any).rpc("update_group_info", { p_group_id: id, p_name: name, p_topic: topic });
       if (error) { toast.error(error.message ?? "Could not update group information"); return; }
       setState((s) => ({ ...s, groups: s.groups.map((g) => g.id === id ? { ...g, name, topic } : g) }));
       toast.success("Group information updated");
@@ -930,7 +936,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const updateGroupSettings = useCallback((id: string, editGroupInfo: "admins" | "admins_members", sendMessages: boolean, approveNewMembers: boolean) => {
     if (!dbUserId) { requestLogin("change group settings"); return; }
     void (async () => {
-      const { error } = await (supabase as any).rpc("update_group_settings_secure", { p_group_id:id, p_edit_group_info:editGroupInfo, p_send_messages:sendMessages, p_approve_new_members:approveNewMembers });
+      const { error } = await (supabase as any).rpc("update_group_settings", { p_group_id:id, p_edit_group_info:editGroupInfo, p_send_messages:sendMessages, p_approve_new_members:approveNewMembers });
       if (error) { toast.error(error.message ?? "Could not update group settings"); return; }
       setState((s) => ({ ...s, groups: s.groups.map((g) => g.id === id ? { ...g, editGroupInfo, sendMessages, approveNewMembers } : g) }));
       toast.success("Group settings saved");
@@ -1116,7 +1122,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const createGroup = useCallback(async (name: string, topic: string, country = "", stateProvince = "", city = "", area = ""): Promise<GroupChat | null> => {
     if (!dbUserId || dbIsAnonymous) { requestLogin("create a group"); return null; }
-    const { data, error } = await (supabase as any).rpc("create_group_secure", {
+    if (!(await requireCompleteProfile("create a group"))) return null;
+    const { data, error } = await (supabase as any).rpc("create_group", {
       p_name:name,
       p_topic:topic,
       p_country:country,
