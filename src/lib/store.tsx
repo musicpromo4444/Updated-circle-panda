@@ -754,17 +754,17 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       })
       .subscribe();
     const directMessageChannel = (supabase as any).channel(`circle-panda-dm-${dbUserId}`)
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "cp_threads" }, (payload:any) => {
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "dm_threads" }, (payload:any) => {
         const t = payload.new;
-        if (!t?.id || (t.owner_id !== dbUserId && t.participant_id !== dbUserId)) return;
+        if (!t?.id || (t.user_a !== dbUserId && t.user_b !== dbUserId)) return;
         setState(current => current.threads.some(x => x.id === t.id) ? current : {
           ...current,
-          threads: [{ id:t.id, otherUserId:t.owner_id===dbUserId ? t.participant_id : t.owner_id, otherVip:false, name:t.owner_id===dbUserId ? (t.other_alias ?? "Anonymous Panda") : "Anonymous Panda", kind:t.kind==="dating" ? "dating" : "dm", blurb:t.blurb ?? "", messages:[], startedAt:t.kind==="dating" ? new Date(t.created_at).getTime() : undefined }, ...current.threads]
+          threads: [{ id:t.id, otherUserId:t.user_a===dbUserId ? t.user_b : t.user_a, otherVip:false, name:"Anonymous Panda", kind:"dm", blurb:"Direct message", messages:[], startedAt:new Date(t.created_at).getTime() }, ...current.threads]
         });
       })
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "cp_thread_messages" }, (payload:any) => {
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "dm_messages" }, (payload:any) => {
         const m = payload.new;
-        setState(current => current.threads.some(t=>t.messages.some(x=>x.id===m.id)) || (m.message_type==="dating_photo" && m.user_id===dbUserId) ? current : ({...current,threads:current.threads.map(t=>t.id===m.thread_id?{...t,messages:[...t.messages,{id:m.id,body:m.body,at:new Date(m.created_at).getTime(),mine:m.user_id===dbUserId,messageType:m.message_type==="dating_photo"?"dating_photo":"text",mediaPath:m.media_path ?? undefined}]}:t)}));
+        setState(current => current.threads.some(t=>t.messages.some(x=>x.id===m.id)) ? current : ({...current,threads:current.threads.map(t=>t.id===m.thread_id?{...t,messages:[...t.messages,{id:m.id,body:m.body??"",at:new Date(m.created_at).getTime(),mine:m.sender_id===dbUserId,messageType:m.media_type==="dating_photo"?"dating_photo":"text",mediaPath:m.media_path ?? undefined}]}:t)}));
       }).subscribe();
     const crushChannel = (supabase as any).channel(`circle-panda-crush-${dbUserId}`)
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "crush_votes" }, async () => {
@@ -781,8 +781,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         }));
       }).subscribe();
     const notificationChannel = (supabase as any).channel(`circle-panda-notifications-${dbUserId}`)
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "cp_notifications", filter:`user_id=eq.${dbUserId}` }, async (payload:any) => {
-        const kind = payload.new?.kind;
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "notifications", filter:`user_id=eq.${dbUserId}` }, async (payload:any) => {
+        const kind = payload.new?.type;
         toast.success("New Panda notification 🔔");
         if (["group_activation","group_join_request"].includes(kind)) {
           const { data } = await (supabase as any).rpc("get_group_summaries");
