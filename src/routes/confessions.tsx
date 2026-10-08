@@ -134,10 +134,13 @@ export function ConfessionsPage() {
   const saveGender = async (gender: "male" | "female") => {
     const { data, error } = await (supabase as any).rpc("set_profile_gender_secure", { p_gender: gender });
     if (error) return toast.error(error.message ?? "Gender could not be saved");
-    setAccountGender(data === "male" || data === "female" ? data : gender);
+    const savedGender = data === "male" || data === "female" ? data : gender;
+    setAccountGender(savedGender);
     setGenderPromptOpen(false);
-    setUploadOpen(true);
-    toast.success("Profile gender saved. You can continue your WCW/MCM upload.");
+    // Let Radix finish closing the gender dialog before opening the upload dialog.
+    // This prevents the closing focus trap from intercepting the upload controls on mobile.
+    window.setTimeout(() => setUploadOpen(true), 0);
+    toast.success("Gender saved. Continue with your WCW/MCM upload.");
   };
 
   const handleFile = (file: File | null) => {
@@ -163,7 +166,11 @@ export function ConfessionsPage() {
   };
 
   const uploadCrush = async () => {
-    if (!accountGender) { setGenderPromptOpen(true); return; }
+    if (!accountGender) {
+      setUploadOpen(false);
+      setGenderPromptOpen(true);
+      return;
+    }
     if (!uploadFile) return toast.error("Tap Choose photo or video first.");
     setUploading(true);
     try {
