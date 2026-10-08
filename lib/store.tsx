@@ -699,10 +699,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       if (error) { toast.error(error.message ?? "Post could not be created"); return; }
       const id = String(data);
       setState((s) => {
-        const { level, xp } = gainXp(s.level, s.xp, Number(data.xp ?? 7));
-        return { ...s, coins: s.coins + Number(data.reward_bc ?? 2), reputation: s.reputation + Number(data.xp ?? 15), level, xp, posts: [{ id, author:"You (anonymous)", authorId:dbUserId, authorVip:Boolean(data.author_vip_at ?? s.isVip), body, at:data.created_at ? new Date(data.created_at).getTime() : Date.now(), replies:[] }, ...s.posts] };
+        const { level, xp } = gainXp(s.level, s.xp, 7);
+        return { ...s, coins: s.coins, reputation: s.reputation + 7, level, xp, posts: [{ id, author:"You (anonymous)", authorId:dbUserId, authorVip:s.isVip, body, at:Date.now(), replies:[] }, ...s.posts] };
       });
-      toast.success("Posted anonymously 🐼", { description: `+${Number(data.reward_bc ?? 0)} BC · +${Number(data.xp ?? 0)} XP earned.` });
+      toast.success("Posted anonymously 🐼", { description: "+7 XP earned." });
     })();
   }, [dbUserId]);
 
@@ -740,9 +740,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const sendGroupMessage = useCallback((id: string, body: string) => {
     if (!dbUserId) { toast.error("Sign in to message this group"); return; }
     void (async () => {
-      const { data, error } = await (supabase as any).rpc("send_group_message", { p_group_id: id, p_body: body });
+      const { data, error } = await (supabase as any).rpc("send_group_message", { p_group_id: id, p_body: body, p_idempotency_key: "group:" + id + ":" + dbUserId + ":" + Date.now() });
       if (error) { toast.error(error.message ?? "Message could not be sent"); return; }
-      setState((s) => ({ ...s, groups: s.groups.map((g) => g.id === id ? { ...g, messages: [...g.messages, { id: data.id, author: "You (anonymous)", body, at: new Date(data.created_at).getTime(), mine: true }] } : g) }));
+      setState((s) => ({ ...s, groups: s.groups.map((g) => g.id === id ? { ...g, messages: [...g.messages, { id: String(data), author: "You (anonymous)", body, at: Date.now(), mine: true }] } : g) }));
       void refreshCoins();
     })();
   }, [dbUserId, refreshCoins]);
@@ -761,14 +761,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const leaveGroup = useCallback((id: string): Promise<boolean> => {
     if (!dbUserId) { toast.error("Sign in to leave this group"); return Promise.resolve(false); }
     return (async () => {
-      const { data, error } = await (supabase as any).rpc("leave_group", { p_group_id: id });
+      const { error } = await (supabase as any).rpc("leave_group", { p_group_id: id });
       if (error) { toast.error(error.message ?? "Could not leave group"); return false; }
-      const left = Boolean(data?.left);
-      const memberCount = Number(data?.member_count ?? 0);
-      setState((s) => ({ ...s, groups: s.groups.map((g) => g.id === id ? { ...g, members: memberCount, memberRole: left ? undefined : g.memberRole, joinPending: left ? false : g.joinPending } : g) }));
-      if (left) toast.success("You left the group");
-      else toast.info("You are not a member of this group");
-      return left;
+      setState((s) => ({ ...s, groups: s.groups.map((g) => g.id === id ? { ...g, members: Math.max(0, g.members - 1), memberRole: undefined, joinPending: false } : g) }));
+      toast.success("You left the group");
+      return true;
     })();
   }, [dbUserId]);
 
