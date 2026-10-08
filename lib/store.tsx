@@ -782,7 +782,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const updateGroupSettings = useCallback((id: string, editGroupInfo: "admins" | "admins_members", sendMessages: boolean, approveNewMembers: boolean) => {
     if (!dbUserId) { toast.error("Sign in to change group settings"); return; }
     void (async () => {
-      const { error } = await (supabase as any).rpc("update_group_settings_secure", { p_group_id:id, p_edit_group_info:editGroupInfo, p_send_messages:sendMessages, p_approve_new_members:approveNewMembers });
+      const { error } = await (supabase as any).rpc("update_group_settings", { p_group_id:id, p_edit_group_info:editGroupInfo, p_send_messages:sendMessages, p_approve_new_members:approveNewMembers });
       if (error) { toast.error(error.message ?? "Could not update group settings"); return; }
       setState((s) => ({ ...s, groups: s.groups.map((g) => g.id === id ? { ...g, editGroupInfo, sendMessages, approveNewMembers } : g) }));
       toast.success("Group settings saved");
