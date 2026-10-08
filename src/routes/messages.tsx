@@ -143,7 +143,7 @@ function MessagesPage() {
     setDecisionBusy(true);
     try {
       const { data, error } = await (supabase as any).rpc("decide_dating_match_secure", {
-        p_connection_id: pendingDating.connection_id,
+        p_match_id: pendingDating.connection_id,
         p_decision: decision,
       });
       if (error) throw error;
