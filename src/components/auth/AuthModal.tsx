@@ -90,6 +90,7 @@ export function AuthModal({ open, onOpenChange, defaultTab = "signin", onOpenBac
 
     setBusy(true);
     try {
+      if (typeof window !== "undefined") window.sessionStorage.setItem("cp_auth_intent", "1");
       if (tab === "signup") {
         // Create the account server-side with confirmation already completed.
         // This intentionally bypasses Supabase's email/phone confirmation gate so
@@ -127,9 +128,11 @@ export function AuthModal({ open, onOpenChange, defaultTab = "signin", onOpenBac
         toast.success("Welcome back to the Circle 🐼");
         onAuthenticated?.();
       }
+      if (typeof window !== "undefined") window.sessionStorage.removeItem("cp_auth_intent");
       reset();
       onOpenChange(false);
     } catch (error) {
+      if (typeof window !== "undefined") window.sessionStorage.removeItem("cp_auth_intent");
       let message = error instanceof Error ? error.message : "Authentication failed.";
       // Supabase FunctionsHttpError normally exposes only "non-2xx" in message.
       // Read the function's JSON body so users see the real signup problem.
