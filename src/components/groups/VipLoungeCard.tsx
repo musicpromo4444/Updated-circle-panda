@@ -69,7 +69,7 @@ export function VipLoungeCard(){
       </div>
       <div className="relative mt-4 flex items-center justify-between border-t border-amber-200/15 pt-3">
         <span className="text-[11px] font-black uppercase tracking-[.16em] text-amber-200/80">VIP ACCESS</span>
-        <span className="text-xs font-bold text-amber-100">{isVip?(room?"Tap to enter":"Preparing lounge…"):"Tap to become VIP"}</span>
+        <span className="text-xs font-bold text-amber-100">{isVip?(room?"Join Group":"Preparing lounge…"):"Become VIP"}</span>
       </div>
     </button>;
   };
