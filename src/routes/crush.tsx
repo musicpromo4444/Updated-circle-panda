@@ -182,6 +182,7 @@ function CrushPage() {
       .filter((n: any) => typeof n.media_url === "string" && n.media_url.trim().length > 0)
       .map((n: any) => ({
         id: n.nominee_id ?? n.id,
+        userId: n.user_id ?? null,
         name: n.display_name ?? "Anonymous Panda",
         kind: n.kind,
         emoji: n.emoji ?? "🐼",
