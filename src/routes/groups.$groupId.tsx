@@ -104,7 +104,7 @@ function GroupRoom() {
       const fresh: GroupChat = {
         id:row.id,name:row.name,topic:row.topic,ownerId:row.owner_id,memberRole:row.member_role,
         editGroupInfo:settingsRow?.edit_group_info === "admins_members" ? "admins_members" : "admins",sendMessages:settingsRow?.send_messages !== false,approveNewMembers:Boolean(settingsRow?.approve_new_members),joinPending:Boolean(row.join_pending),
-        members:Number(row.member_count ?? 0),openedAt:row.activated_at?new Date(row.activated_at).getTime():null,expiresAt:row.expires_at ?? null,
+        members:Number(row.member_count ?? 0),openedAt:row.activated_at?new Date(row.activated_at).getTime():null,closedAt:row.closed_at?new Date(row.closed_at).getTime():null,expiresAt:row.expires_at ?? null,
         latitude:null,longitude:null,country:row.country ?? "",stateProvince:row.state_province ?? "",city:row.city ?? "",area:row.area ?? "",
     messages:(messages ?? []).map((m:any)=>({id:m.id,author:m.sender_id===uid?"You (anonymous)":"Anonymous Panda",body:m.body,at:new Date(m.created_at).getTime(),mine:m.sender_id===uid,message_type:m.media_type,media_path:m.media_path,mime_type:m.mime_type,duration_seconds:m.duration_seconds,view_once:m.view_once})),
       };
@@ -118,8 +118,8 @@ function GroupRoom() {
     })();
     return () => { active = false; };
   }, [groupId, navigate]);
-  // Normal Circle Panda groups are permanent after activation. The legacy expires_at field is ignored.
-  const live = !!group && group.openedAt !== null;
+  // Normal Circle Panda groups open at 3 members and remain open until the owner closes them.
+  const live = !!group && group.openedAt !== null && !group.closedAt;
 
   const signedMediaUrl = async (path?: string | null, expiresIn = 3600) => {
     if (!path) return null;
@@ -657,10 +657,15 @@ function GroupRoom() {
           <p className="py-12 text-center text-sm text-muted-foreground">
             This room doesn't exist.
           </p>
+        ) : group.closedAt ? (
+          <div className="py-12 text-center text-sm text-muted-foreground">
+            <Lock className="mx-auto mb-2 size-6" />
+            This group was closed by the owner.
+          </div>
         ) : group.openedAt === null ? (
           <div className="py-12 text-center text-sm text-muted-foreground">
             <Lock className="mx-auto mb-2 size-6" />
-            This room is not available.
+            Waiting for 3 members before the room opens.
           </div>
         ) : (
           chatMessages.map((m) => (
