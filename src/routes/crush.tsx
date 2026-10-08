@@ -231,16 +231,20 @@ function CrushPage() {
   }, []);
 
   useEffect(() => {
-    void refreshLiveNominees();
     const section = window.location.hash.replace("#", "").toLowerCase();
     const queryKind = new URLSearchParams(window.location.search).get("kind")?.toLowerCase();
     const requestedKind = queryKind === "mcm" || queryKind === "wcw" ? queryKind : section;
-    const requestedNominee = new URLSearchParams(window.location.search).get("nominee");
     if (requestedKind === "mcm" || requestedKind === "wcw") {
-      setKind((current) => current === requestedKind ? current : requestedKind as CrushKind);
+      setKind(requestedKind as CrushKind);
     }
     setIndex(0);
   }, []);
+
+  useEffect(() => {
+    setLiveNomineesLoaded(false);
+    setIndex(0);
+    void refreshLiveNominees();
+  }, [kind]);
 
   useEffect(() => {
     if (!liveNomineesLoaded) return;
