@@ -864,7 +864,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     return (async () => {
       const { data, error } = await (supabase as any).rpc("get_or_create_dating_thread_secure", { p_other:userId });
       if (error) { toast.error(error.message ?? "Dating chat is still locked"); return null; }
-      const id = data.id as string;
+      const id = String(data);
       setState(s => s.threads.some(t=>t.id===id) ? s : {...s,threads:[{id,name,kind:"dating",blurb:"Matched from Dating",messages:[],startedAt:Date.now()},...s.threads]});
       await (supabase as any).rpc("award_xp", { p_action:"dating_match_chat", p_idempotency_key:`dating_match_chat:${id}` });
       void refreshCoins();
