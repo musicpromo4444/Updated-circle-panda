@@ -11,7 +11,7 @@ export function isSelfMessageError(error: unknown) {
   return error instanceof Error && error.message === SELF_MESSAGE_ERROR;
 }
 
-export async function sendMessageRequest(recipientId: string, message: string): Promise<MessageRequestResult> {
+export async function sendMessageRequest(recipientId: string, message: string, contextType: "direct"|"profile"|"event"|"group"|"mcm"|"wcw" = "direct", contextId?: string): Promise<MessageRequestResult> {
   const { data:userData } = await supabase.auth.getUser();
   if (!userData.user) throw new Error("Please sign in before messaging.");
   if (recipientId === userData.user.id) {
