@@ -562,7 +562,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       if (!session.user.is_anonymous) {
         void (supabase as any).rpc("ensure_my_circle_panda_profile").catch(() => {});
       }
-    void (supabase as any).rpc("get_my_admin_status").then(({data}: any) => setDbIsAdmin(data === true));
+    void (supabase as any).from("admin_roles").select("user_id").eq("user_id", uid).maybeSingle().then(({data}: any) => setDbIsAdmin(Boolean(data?.user_id)));
       const uid = session.user.id;
       if (!session.user.is_anonymous) {
         try { await (supabase as any).functions.invoke("crush-cycle-maintenance"); } catch {}
@@ -579,7 +579,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         (supabase as any).from("group_settings").select("group_id,edit_group_info,send_messages,approve_new_members"),
         (supabase as any).from("events").select("id,title,description,location,starts_at,ends_at,category,entry_fee_bc,entry_fee_amount,entry_fee_currency,duration_minutes,reach_scope,reach_country,reach_state,reach_city,reach_area,cover_url,venue_name,address_line,country,state_province,city,area,latitude,longitude,is_published,owner_id").eq("is_published",true).order("starts_at", {ascending:true}),
         (supabase as any).from("event_attendees").select("event_id,user_id"),
-        (supabase as any).rpc("get_dating_discovery_filters_secure", { p_age_min:18,p_age_max:99,p_same_country_only:true }),
+        (supabase as any).rpc("get_dating_discovery_filters_secure", { p_age_min:18,p_age_max:120,p_country:"",p_state:"",p_location:"",p_gender:"",p_relationship_goal:"",p_looking_for:"",p_lifestyle:"",p_smoking:"",p_drinking:"",p_children:"",p_education:"" }),
         (supabase as any).from("dating_profiles").select("user_id,name,age,vibe,emoji,bio,interests,location,country,state_province,gender,relationship_goal,looking_for,lifestyle,personality,love_language,smoking,drinking,children,education,occupation,sexual_experience,intimacy_preference,relationship_status,height_cm,zodiac,favorite_date,photo_path,blurred_photo_path,updated_at").eq("user_id",uid).maybeSingle(),
         (supabase as any).from("bc_accounts").select("balance").eq("user_id",uid).maybeSingle(),
         (supabase as any).from("user_xp").select("xp").eq("user_id",uid).maybeSingle(),
@@ -851,14 +851,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const sendMessage = useCallback((threadId: string, body: string) => {
     if (!dbUserId) { toast.error("Sign in to send messages"); return; }
     void (async () => {
-      const { data, error } = await (supabase as any).rpc("send_direct_message", { p_thread_id: threadId, p_body: body });
+      const messageIdempotency = "dm:" + threadId + ":" + dbUserId + ":" + Date.now();
+      const { data, error } = await (supabase as any).rpc("send_dm_message", { p_thread_id: threadId, p_body: body, p_media_path:null, p_media_type:null, p_idempotency_key:messageIdempotency });
       if (error) { toast.error(error.message ?? "Message could not be sent"); return; }
-      setState((s) => ({ ...s, coins: Number(data?.balance ?? s.coins), threads: s.threads.map((t) => t.id === threadId ? { ...t, messages: [...t.messages, { id:data.id, body:data.body, at:new Date(data.created_at).getTime(), mine:true, messageType:"text" }] } : t) }));
+      setState((s) => ({ ...s, threads: s.threads.map((t) => t.id === threadId ? { ...t, messages: [...t.messages, { id:String(data), body, at:Date.now(), mine:true, messageType:"text" }] } : t) }));
       void refreshCoins();
-      if (Number(data?.charged_bc ?? 0) > 0) {
-        toast("−1 BC spent 🪙", { description:"Message delivered anonymously." });
-      } else {
-        toast.success("Message delivered 💗", { description:data?.free_reason === "dating_72h" ? "Free during the 72-hour Dating Chat." : "VIP message." });
+      toast.success("Message delivered 💬");
       }
     })();
   }, [dbUserId, refreshCoins]);
@@ -866,7 +864,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const startDatingChat = useCallback((userId: string, name: string) => {
     if (!dbUserId || !userId) { toast.error("Dating profile unavailable"); return Promise.resolve(null); }
     return (async () => {
-      const { data, error } = await (supabase as any).rpc("create_direct_thread", { p_other_user_id:userId, p_kind:"dating", p_blurb:"Matched from Dating" });
+      const { data, error } = await (supabase as any).rpc("get_or_create_dating_thread_secure", { p_other:userId });
       if (error) { toast.error(error.message ?? "Dating chat is still locked"); return null; }
       const id = data.id as string;
       setState(s => s.threads.some(t=>t.id===id) ? s : {...s,threads:[{id,name,kind:"dating",blurb:"Matched from Dating",messages:[],startedAt:Date.now()},...s.threads]});
@@ -1026,7 +1024,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       if (error) { toast.error(error.message ?? "Could not publish event"); return null; }
       const created = { ...optimistic, id: data.id, ownerId: dbUserId };
       setState(s=>({...s,events:[created,...s.events]}));
-      void (supabase as any).rpc("record_activity_participation",{p_activity_id:null,p_activity_type:"event_created",p_reference_id:data.id,p_points:5});
+      
       toast.success("Event published 🐼");
       return created;
     }
