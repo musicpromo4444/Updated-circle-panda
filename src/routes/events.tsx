@@ -38,7 +38,13 @@ function EventsPage() {
   const [openEvent, setOpenEvent] = useState<PandaEvent | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
   const [blastOpen, setBlastOpen] = useState(false);
+  const [blastEvent, setBlastEvent] = useState<PandaEvent | null>(null);
   const [plans, setPlans] = useState<BlastPlan[]>([]);
+  const [freePromotionEligible, setFreePromotionEligible] = useState(false);
+  const [freePromotionProcessing, setFreePromotionProcessing] = useState(false);
+  const [freeReach, setFreeReach] = useState(100);
+  const [freeNotificationCap, setFreeNotificationCap] = useState(200);
+  const [freeIsVip, setFreeIsVip] = useState(false);
   const [email, setEmail] = useState("");
   const [processing, setProcessing] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
@@ -80,14 +86,25 @@ function EventsPage() {
   const openBlast = (eventOverride?: PandaEvent) => {
     const event = eventOverride ?? current;
     if (!event) return;
-    setTargetScope("worldwide"); setTargetCountry(""); setTargetState(""); setTargetCity(""); setTargetArea(""); setBlastOpen(true);
+    setBlastEvent(event);
+    setTargetScope("worldwide"); setTargetCountry(""); setTargetState(""); setTargetCity(""); setTargetArea("");
+    setFreePromotionEligible(false); setFreeReach(100); setFreeNotificationCap(200); setFreeIsVip(false);
+    setBlastOpen(true);
     void (async () => {
+      const allowed = await requireCompleteProfile("use Event Blast");
+      if (!allowed) { setBlastOpen(false); return; }
       const { data, error } = await (supabase as any).rpc("get_event_promotion_status_secure");
-      if (!error) setFreePromotionEligible(Boolean(data?.eligible));
+      if (!error) {
+        setFreePromotionEligible(Boolean(data?.eligible));
+        setFreeReach(Number(data?.base_reach ?? 100));
+        setFreeNotificationCap(Number(data?.notification_cap ?? Number(data?.base_reach ?? 100) * 2));
+        setFreeIsVip(Boolean(data?.is_vip));
+      }
     })();
   };
   const claimFreePromotion = async () => {
-    if (!current) return;
+    const event = blastEvent;
+    if (!event) return;
     setFreePromotionProcessing(true);
     try {
       const { data, error } = await (supabase as any).rpc("claim_free_event_promotion_secure", {
@@ -96,7 +113,7 @@ function EventsPage() {
       });
       if (error) throw new Error(error.message);
       toast.success("Free Event Blast is live 🎁", { description: `${Number(data?.unique_reach ?? 100).toLocaleString()} target users · up to ${Number(data?.notification_cap ?? 200).toLocaleString()} notifications.` });
-      setFreePromotionEligible(false); await refreshEvents(); setBlastOpen(false);
+      setFreePromotionEligible(false); await refreshEvents(); setBlastOpen(false); setBlastEvent(null);
     } catch (e:any) { toast.error(e?.message ?? "Free promotion could not be started."); }
     finally { setFreePromotionProcessing(false); }
   };
@@ -106,7 +123,8 @@ function EventsPage() {
   const countryFlag = (iso2:string) => iso2.toUpperCase().replace(/./g,c=>String.fromCodePoint(127397+c.charCodeAt(0)));
 
   const payCashBlast = async (plan: BlastPlan) => {
-    if (!current || !email.trim()) { toast.error("Enter an email for checkout."); return; }
+    const event = blastEvent;
+    if (!event || !email.trim()) { toast.error("Enter an email for checkout."); return; }
     setProcessing(true);
     try {
       const { data: paystackConfig, error: configError } = await (supabase as any).rpc("get_paystack_public_config");
@@ -117,13 +135,13 @@ function EventsPage() {
       await new Promise<void>((resolve, reject) => {
         const popup = window.PaystackPop!.setup({
           key, email:email.trim(), amount:Math.round(Number(plan.price_usd)*100), currency:"USD", ref:reference,
-          metadata:{eventId:current.id,planId:plan.id,purpose:"event_blast",targetScope,targetCountry,targetState,targetCity,targetArea},
+          metadata:{eventId:event.id,planId:plan.id,purpose:"event_blast",targetScope,targetCountry,targetState,targetCity,targetArea},
           callback: async (response) => {
             if (response.status !== "success") { reject(new Error("Payment was not confirmed.")); return; }
-            const { data, error } = await supabase.functions.invoke("verify-event-blast-payment", { body:{reference:response.reference,eventId:current.id,planId:plan.id,targetScope,targetCountry,targetState,targetCity,targetArea} });
+            const { data, error } = await supabase.functions.invoke("verify-event-blast-payment", { body:{reference:response.reference,eventId:event.id,planId:plan.id,targetScope,targetCountry,targetState,targetCity,targetArea} });
             if (error) { reject(new Error(error.message || "Payment verification failed.")); return; }
             toast.success("Event Blast is live 🚀", { description: `${Number(data?.unique_reach ?? plan.unique_reach).toLocaleString()} target users · up to ${Number(data?.notification_cap ?? plan.unique_reach*2).toLocaleString()} notifications.` });
-            setBlastOpen(false); resolve();
+            setBlastOpen(false); setBlastEvent(null); resolve();
           },
           onClose:()=>reject(new Error("Checkout closed before confirmation.")),
         });
@@ -218,8 +236,8 @@ function EventsPage() {
           <DialogHeader>
             <DialogTitle className="font-display text-2xl">🚀 Event Blast</DialogTitle>
           </DialogHeader>
-          <p className="text-sm text-muted-foreground">Promote <strong>{current?.title}</strong> for 60 minutes. Reach is unique users. Notifications can reach up to <strong>2× the target</strong> at no additional cost.</p>
-          {freePromotionEligible ? <Button type="button" variant="outline" disabled={freePromotionProcessing} onClick={() => void claimFreePromotion()} className="w-full">🎁 {freePromotionEligible ? "Free Event Blast available" : "Free Event Blast"} · {freePromotionProcessing ? "Starting…" : "Use free promotion"}</Button> : null}
+          <p className="text-sm text-muted-foreground">Promote <strong>{blastEvent?.title}</strong> for 60 minutes. Reach is unique users. Notifications can reach up to <strong>2× the target</strong> at no additional cost.</p>
+          {freePromotionEligible ? <Button type="button" variant="outline" disabled={freePromotionProcessing} onClick={() => void claimFreePromotion()} className="w-full">🎁 Free Event Blast · {freeReach.toLocaleString()} reach · {freeIsVip ? "VIP" : "normal"} · {freePromotionProcessing ? "Starting…" : "Use free promotion"}</Button> : null}
           <div className="space-y-2 rounded-2xl border border-border p-4"><label className="text-xs font-semibold">Target audience</label><div className="grid grid-cols-2 gap-2 sm:grid-cols-5">{(["worldwide","country","state","city","area"] as const).map((scope) => <button key={scope} type="button" onClick={() => setTargetScope(scope)} className={`rounded-xl px-2 py-2 text-xs font-semibold capitalize ${targetScope === scope ? "bg-primary text-primary-foreground" : "border border-border bg-secondary/60"}`}>{scope}</button>)}</div>{targetScope !== "worldwide" ? <div className="grid gap-2 sm:grid-cols-2"><select value={targetCountry} style={{minWidth:0,maxWidth:"100%"}} onChange={e=>{setTargetCountry(e.target.value);setTargetState("");setTargetCity("");}} className="h-10 rounded-xl border border-border bg-secondary/60 px-3 text-sm"><option value="">Select country</option>{targetCountries.map(c=><option key={c.iso2} value={c.name}>{countryFlag(c.iso2)} {c.name}</option>)}</select>{(targetScope==="state"||targetScope==="city"||targetScope==="area")?<select value={targetState} style={{minWidth:0,maxWidth:"100%"}} disabled={!targetCountry} onChange={e=>{setTargetState(e.target.value);setTargetCity("");}} className="h-10 rounded-xl border border-border bg-secondary/60 px-3 text-sm"><option value="">Select state / province</option>{targetStates.map(s=><option key={s}>{s}</option>)}</select>:null}{(targetScope==="city"||targetScope==="area")?<select value={targetCity} style={{minWidth:0,maxWidth:"100%"}} disabled={!targetState} onChange={e=>setTargetCity(e.target.value)} className="h-10 rounded-xl border border-border bg-secondary/60 px-3 text-sm"><option value="">Select city</option>{targetCities.map(s=><option key={s}>{s}</option>)}</select>:null}{targetScope==="area"?<Input value={targetArea} onChange={e=>setTargetArea(e.target.value)} placeholder="Target area / neighborhood"/>:null}</div>:null}</div>
           <div className="space-y-3">
             {plans.map((plan) => (
