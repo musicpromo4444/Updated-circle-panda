@@ -676,7 +676,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       if (!session.user.is_anonymous) {
         void (supabase as any).rpc("ensure_my_circle_panda_profile").catch(() => {});
       }
-    void (supabase as any).rpc("get_my_admin_status").then(({data}: any) => setDbIsAdmin(data === true));
+    void (supabase as any).from("admin_roles").select("role").eq("user_id",session.user.id).maybeSingle().then(({data}: any) => setDbIsAdmin(Boolean(data?.role)));
       const uid = session.user.id;
       // Location is optional and must never block app hydration.
       void new Promise<{latitude:number;longitude:number}|null>((resolve) => { if (typeof navigator === "undefined" || !navigator.geolocation) return resolve(null); navigator.geolocation.getCurrentPosition((pos) => resolve({ latitude:pos.coords.latitude, longitude:pos.coords.longitude }), () => resolve(null), { enableHighAccuracy:false, maximumAge:300000, timeout:3000 }); });
