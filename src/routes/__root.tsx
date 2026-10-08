@@ -9,6 +9,7 @@ import { HotSeatFloatingPresence } from "@/components/hotseat/HotSeatFloatingPre
 import { AppDownloadPromotion } from "@/components/AppDownloadPromotion";
 import { UniversalWinnerFlow } from "@/components/UniversalWinnerFlow";
 import { LoginRequiredDialog } from "@/components/auth/LoginRequiredDialog";
+import { ProfileRequiredDialog } from "@/components/auth/ProfileRequiredDialog";
 import { CirclePandaLoader } from "@/components/CirclePandaLoader";
 import { useStore } from "@/lib/store";
 import { ActionSuccessProvider } from "@/components/ActionSuccessFeedback";
@@ -64,5 +65,5 @@ function RootContent() {
     return () => window.clearTimeout(timeoutId);
   }, [hydrated, isLanding]);
   const hideHotSeatPresence = location.pathname === "/profile" || location.pathname.startsWith("/profile/");
-  return <><Outlet />{!isLanding && !hydrated && !loaderTimedOut ? <CirclePandaLoader /> : null}<UniversalWinnerFlow /><LoginRequiredDialog /><AppDownloadPromotion />{!hideHotSeatPresence ? <HotSeatFloatingPresence /> : null}</>;
+  return <><Outlet />{!isLanding && !hydrated && !loaderTimedOut ? <CirclePandaLoader /> : null}<UniversalWinnerFlow /><LoginRequiredDialog /><ProfileRequiredDialog /><AppDownloadPromotion />{!hideHotSeatPresence ? <HotSeatFloatingPresence /> : null}</>;
 }
