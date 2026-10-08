@@ -593,10 +593,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       const stData = st.data?.state ?? {};
       const replies = repliesRes.data ?? [];
       const rawPosts = postsRes.data ?? [];
-      const likeSummaryRes = rawPosts.length ? await (supabase as any).rpc("get_post_like_summaries", { p_post_ids: rawPosts.map((p:any)=>p.id) }) : { data: [] };
-      const likeSummary = new Map((likeSummaryRes.data ?? []).map((x:any)=>[x.post_id,x]));
-      const posts = rawPosts.map((p:any) => { const likes = likeSummary.get(p.id); return { id:p.id, author:p.author_id===uid?"You (anonymous)":"Anonymous Panda", authorId:p.author_id, authorVip:Boolean(p.author_vip_at), likes:Number(likes?.like_count ?? 0), liked:Boolean(likes?.liked), body:p.body, at:new Date(p.created_at).getTime(), replies:replies.filter((r:any)=>r.post_id===p.id).map((r:any)=>({id:r.id,author:r.author_id===uid?"You (anonymous)":"Anonymous Panda",body:r.body,at:new Date(r.created_at).getTime()})) }; });
-      
+      const likeRowsRes = rawPosts.length ? await (supabase as any).from("post_reactions").select("post_id,user_id,reaction").in("post_id", rawPosts.map((p:any)=>p.id)) : { data: [] };
+      const likeRows = likeRowsRes.data ?? [];
+      const posts = rawPosts.map((p:any) => { const reactions = likeRows.filter((r:any)=>r.post_id===p.id); return { id:p.id, author:p.author_id===uid?"You (anonymous)":"Anonymous Panda", authorId:p.author_id, authorVip:Boolean(p.author_vip_at), likes:reactions.length, liked:reactions.some((r:any)=>r.user_id===uid), body:p.body, at:new Date(p.created_at).getTime(), replies:replies.filter((r:any)=>r.post_id===p.id).map((r:any)=>({id:r.id,author:r.author_id===uid?"You (anonymous)":"Anonymous Panda",body:r.body,at:new Date(r.created_at).getTime()})) }; });
       const groupMessages = groupMessagesRes.data ?? [];
       const groupSettings = groupSettingsRes.data ?? [];
       const groups = (groupsRes.data ?? []).map((g:any)=>{
@@ -857,7 +856,6 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       setState((s) => ({ ...s, threads: s.threads.map((t) => t.id === threadId ? { ...t, messages: [...t.messages, { id:String(data), body, at:Date.now(), mine:true, messageType:"text" }] } : t) }));
       void refreshCoins();
       toast.success("Message delivered 💬");
-      }
     })();
   }, [dbUserId, refreshCoins]);
 
