@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, ChevronLeft, ChevronRight, Flag, Heart, MessageCircle, Send, Share2, Smile, Trophy } from "lucide-react";
 import { toast } from "sonner";
+import { sendMessageRequest, isSelfMessageError } from "@/lib/messageRequests";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -410,21 +411,17 @@ function CrushPage() {
 
   const sendComment = async () => {
     if (!card || card.mine || !comment.trim() || sending) return;
+    const recipientId = String((card as any).userId ?? "");
+    if (!recipientId) { toast.error("This Crush post is missing its owner."); return; }
     setSending(true);
     try {
-      const { error } = await (supabase as any).rpc("add_crush_comment_secure", {
-        p_nominee_id: card.id,
-        p_body: comment.trim(),
-        p_attachment_url: null,
-        p_attachment_type: null,
-      });
-      if (error) throw error;
+      await sendMessageRequest(recipientId, comment.trim(), card.kind === "mcm" ? "mcm" : "wcw");
       setComment("");
       setCommentOpen(false);
       complete("private_message");
-      toast.success("Comment sent 💌", { description: "It has been sent to the post owner as a message request." });
+      toast.success("Message request sent 💌", { description: "It is now in Messages while you wait for acceptance." });
     } catch (e: any) {
-      toast.error(e?.message ?? "Comment could not be sent");
+      if (!isSelfMessageError(e)) toast.error(e?.message ?? "Message request could not be sent");
     } finally {
       setSending(false);
     }
