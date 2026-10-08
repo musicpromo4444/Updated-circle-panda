@@ -18,13 +18,13 @@ export function PandaAvatar({avatar="🐼",size="md",className}:PandaAvatarProps
   md:{box:"size-11",panda:"text-2xl",head:"text-lg",glasses:"text-sm",face:"text-[9px]",cosmetic:"text-[10px]"},
   lg:{box:"size-20",panda:"text-5xl",head:"text-3xl",glasses:"text-2xl",face:"text-lg",cosmetic:"text-base"},
  }[size];
- return <span className={cn("relative inline-grid shrink-0 place-items-center overflow-hidden aspect-square rounded-full",sizes.box,className)} aria-label="Panda avatar">
+ return <span className={cn("relative inline-grid shrink-0 place-items-center overflow-hidden aspect-square rounded-xl bg-secondary/70",sizes.box,className)} aria-label="Panda avatar">
    <span className="absolute inset-0 grid place-items-center">
      <span className={cn("relative z-10 block origin-center leading-none text-center",sizes.panda)}>🐼</span>
    </span>
    {head?<span className={cn("pointer-events-none absolute left-1/2 z-20 -translate-x-1/2 leading-none",sizes.head)} style={{top:"8%"}}>{head}</span>:null}
    {glasses?<span className={cn("pointer-events-none absolute left-1/2 z-30 -translate-x-1/2 leading-none",sizes.glasses)} style={{top:"42%"}}>{glasses}</span>:null}
-   {face?<span className={cn("pointer-events-none absolute left-1/2 z-20 -translate-x-1/2 leading-none",sizes.face)} style={{top:"57%"}}>{face}</span>:null}
+   
    {cosmetic?<span className={cn("pointer-events-none absolute right-0 top-0 z-40 leading-none",sizes.cosmetic)}>{cosmetic}</span>:null}
  </span>;
 }
