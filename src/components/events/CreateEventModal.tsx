@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useStore, type PandaEvent } from "@/lib/store";
 import { supabase } from "@/integrations/supabase/client";
 import { requestLogin } from "@/components/auth/LoginRequiredDialog";
+import { requireCompleteProfile } from "@/lib/profileGate";
 
 const EVENT_TAGS=["Meetup","Nightlife","Gaming","Music & Vinyl","Study & Chill","Foodie","Arts","Sports","Business","Party","Other"];
 
@@ -24,7 +25,7 @@ export function CreateEventModal({open,onOpenChange,onCreated}:{open:boolean;onO
  useEffect(() => {
   if (!open) return;
   let active = true;
-  void supabase.auth.getUser().then(({ data }) => {
+  void supabase.auth.getUser().then(async ({ data }) => {
    if (!active) return;
    if (!data.user || data.user.is_anonymous) {
     onOpenChange(false);
@@ -40,7 +41,9 @@ export function CreateEventModal({open,onOpenChange,onCreated}:{open:boolean;onO
  const submit=(e:React.FormEvent)=>{e.preventDefault();
   void supabase.auth.getUser().then(({ data }) => {
    if(!data.user || data.user.is_anonymous){ onOpenChange(false); requestLogin("create an event"); return; }
+   if(!(await requireCompleteProfile("create an event"))) return;
    if(!title.trim()||!date||!venue.trim()||!address.trim()||!country.trim()||!city.trim()||!blurb.trim()) return toast.error("Complete the title, date, venue, address, country, city and summary.");
+
   const gateFee = price.trim() === "" ? 0 : Number(price);
   if(!Number.isFinite(gateFee) || gateFee < 0) return toast.error("Enter a valid gate fee.");
   if(gateFee>0 && currency!=="NGN") return toast.error("Paid gate fees currently use NGN.");
