@@ -63,6 +63,7 @@ function ProfilePage() {
   const [avatar, setAvatar] = useState("🐼");
   const [accountGender, setAccountGender] = useState<"male" | "female" | null>(null);
   const [profileId, setProfileId] = useState<string | null>(null);
+  const [pageOrigin, setPageOrigin] = useState("");
   const [displayName, setDisplayName] = useState("Your Panda");
   const [age, setAge] = useState<number | null>(null);
   const [dateOfBirth, setDateOfBirth] = useState("");
@@ -95,6 +96,7 @@ function ProfilePage() {
   const [avatarCosmetic, setAvatarCosmetic] = useState("");
   const composeAvatar = (head=avatarHead, glasses=avatarGlasses, cosmetic=avatarCosmetic) => `${head}${glasses}${cosmetic}`;
   useEffect(() => {
+    setPageOrigin(window.location.origin);
     void supabase.auth.getUser().then(async ({ data }) => {
       if (!data.user) return;
       setProfileId(data.user.id);
@@ -363,8 +365,8 @@ function ProfilePage() {
           <Link to="/secret/$userId" params={{ userId: profileId }} className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-xl bg-amber-500 px-3.5 py-2 text-xs font-black text-black">
             <Eye className="size-3.5" /> View
           </Link>
-          <input readOnly value={window.location.origin + "/secret/" + profileId} className="cp-input min-w-0 flex-1 text-xs" aria-label="Secret profile link" />
-          <Button type="button" variant="outline" className="shrink-0 gap-1.5 border-amber-500/30" onClick={() => { const url = window.location.origin + "/secret/" + profileId; void navigator.clipboard?.writeText(url); toast.success("Secret link copied."); }}>
+          <input readOnly value={pageOrigin + "/secret/" + profileId} className="cp-input min-w-0 flex-1 text-xs" aria-label="Secret profile link" />
+          <Button type="button" variant="outline" className="shrink-0 gap-1.5 border-amber-500/30" onClick={() => { const url = pageOrigin + "/secret/" + profileId; void navigator.clipboard?.writeText(url); toast.success("Secret link copied."); }}>
             <Copy className="size-3.5" /> Copy
           </Button>
         </div>
