@@ -1184,7 +1184,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     const uid = auth.user?.id;
     if (!uid) return false;
     const [ownRes, discoveryRes] = await Promise.all([
-      (supabase as any).from("dating_profiles").rpc("get_my_dating_profile_secure"),
+      (supabase as any).rpc("get_my_dating_profile_secure"),
       (supabase as any).rpc("get_dating_discovery_filters_secure", {
         p_age_min:18,p_age_max:120,p_country:"",p_state:"",p_location:"",p_gender:"",
         p_relationship_goal:"",p_looking_for:"",p_lifestyle:"",p_smoking:"",p_drinking:"",p_children:"",p_education:"",
