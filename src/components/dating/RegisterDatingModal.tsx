@@ -143,7 +143,15 @@ export function RegisterDatingModal({open,onOpenChange}:{open:boolean;onOpenChan
     }finally{setUploadingPhoto(false);}
   };
 
-  if(!accountReady && open)return null;
+  if(!accountReady && open)return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-sm">
+        <DialogTitle>Opening Dating</DialogTitle>
+        <DialogDescription>Checking your Circle Panda profile and preparing your Dating card…</DialogDescription>
+        <div className="flex justify-center py-5"><CirclePandaLoader /></div>
+      </DialogContent>
+    </Dialog>
+  );
 
   const progress=["Circle Panda","Relationship","What are you looking for?","Your details","Dating photo"];
   return <>
