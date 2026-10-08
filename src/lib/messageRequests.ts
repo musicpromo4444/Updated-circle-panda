@@ -1,8 +1,10 @@
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 export type MessageRequestResult = { id: string; status: string };
 export const SELF_MESSAGE_ERROR = "SELF_MESSAGE_BLOCKED";
 export function showSelfMessageBlocked() {
+  toast.error("Sorry, you can't message yourself");
   if (typeof window !== "undefined") window.dispatchEvent(new CustomEvent("circle-panda-self-message-blocked"));
 }
 export function isSelfMessageError(error: unknown) {
