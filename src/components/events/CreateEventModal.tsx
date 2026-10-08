@@ -28,7 +28,6 @@ export function CreateEventModal({open,onOpenChange,onCreated}:{open:boolean;onO
   void supabase.auth.getUser().then(async ({ data }) => {
    if (!active) return;
    if (!data.user || data.user.is_anonymous) {
-    onOpenChange(false);
     requestLogin("create an event");
    }
   });
@@ -36,14 +35,14 @@ export function CreateEventModal({open,onOpenChange,onCreated}:{open:boolean;onO
  }, [open, onOpenChange]);
 
  const uploadImage=async(file:File)=>{ if(!file.type.startsWith("image/")) return toast.error("Choose an image file."); if(file.size>8*1024*1024) return toast.error("Image must be 8MB or smaller."); setUploading(true);
-  try{const {data:{user}}=await supabase.auth.getUser(); if(!user) throw new Error("Sign in first."); const path=`${user.id}/${crypto.randomUUID()}-${file.name.replace(/[^a-zA-Z0-9._-]/g,"_")}`; const {error}=await supabase.storage.from("event-media").upload(path,file,{upsert:false,contentType:file.type}); if(error) throw error; const {data}=supabase.storage.from("event-media").getPublicUrl(path); setImageUrl(data.publicUrl); toast.success("Event picture added.");}catch(e){toast.error(e instanceof Error?e.message:"Image upload failed.");}finally{setUploading(false);}
+  try{const {data:{user}}=await supabase.auth.getUser(); if(!user || user.is_anonymous){ requestLogin("upload an event picture"); return; } const path=`${user.id}/${crypto.randomUUID()}-${file.name.replace(/[^a-zA-Z0-9._-]/g,"_")}`; const {error}=await supabase.storage.from("event-media").upload(path,file,{upsert:false,contentType:file.type}); if(error) throw error; const {data}=supabase.storage.from("event-media").getPublicUrl(path); setImageUrl(data.publicUrl); toast.success("Event picture added.");}catch(e){toast.error(e instanceof Error?e.message:"Image upload failed.");}finally{setUploading(false);}
  };
  const submit=(e:React.FormEvent)=>{e.preventDefault(); if(publishing||uploading) return;
   void supabase.auth.getUser().then(async ({ data }) => {
-   if(!data.user || data.user.is_anonymous){ onOpenChange(false); requestLogin("create an event"); return; }
+   if(!data.user || data.user.is_anonymous){ requestLogin("create an event"); return; }
    if(!(await requireCompleteProfile("create an event"))) return;
+   if(!title.trim()||!date||!venue.trim()||!address.trim()||!country.trim()||!city.trim()||!blurb.trim()){ toast.error("Complete the title, date, venue, address, country, city and summary."); return; }
    setPublishing(true);
-   if(!title.trim()||!date||!venue.trim()||!address.trim()||!country.trim()||!city.trim()||!blurb.trim()) return toast.error("Complete the title, date, venue, address, country, city and summary.");
 
   const gateFee = price.trim() === "" ? 0 : Number(price);
   if(!Number.isFinite(gateFee) || gateFee < 0) return toast.error("Enter a valid gate fee.");
