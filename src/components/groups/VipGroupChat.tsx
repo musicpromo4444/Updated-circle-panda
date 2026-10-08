@@ -8,6 +8,7 @@ import { VipGroupCallOverlay } from "@/components/groups/VipGroupCallOverlay";
 import { VipGroupSponsorGift } from "@/components/groups/VipGroupSponsorGift";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { sendMessageRequest, isSelfMessageError } from "@/lib/messageRequests";
 import { DEFAULT_VIP_WALLPAPER } from "./vipWallpaper";
 
 type VipMessage = GroupMediaItem & {
@@ -155,14 +156,15 @@ export function VipGroupChat({open,groupId,onOpenChange}:{open:boolean;groupId:s
 
   const sendMemberRequest=async()=>{
     if(!memberMenu)return;
-    const currentUserId=(await supabase.auth.getUser()).data.user?.id;
-    if(currentUserId===memberMenu.userId){setDmOpen(false);setMemberMenu(null);return;}
     setBusy(true);
-    const {error}=await (supabase as any).rpc("request_direct_message_secure",{p_recipient_id:memberMenu.userId,p_message:dmText.trim()||"Hi, I’d like to chat with you."});
-    setBusy(false);
-    if(error){toast.error(error.message??"Message request could not be sent");return;}
-    toast.success(`Message request sent to ${memberMenu.name}`);
-    setDmOpen(false);setMemberMenu(null);setDmText("");
+    try {
+      await sendMessageRequest(memberMenu.userId, dmText.trim() || "Hi, I’d like to chat with you.", "group", groupId);
+      toast.success(`Message request sent to ${memberMenu.name}`);
+      setDmOpen(false);setMemberMenu(null);setDmText("");
+    } catch (e:any) {
+      if (!isSelfMessageError(e)) toast.error(e?.message ?? "Message request could not be sent");
+      if (isSelfMessageError(e)) { setDmOpen(false); setMemberMenu(null); }
+    } finally { setBusy(false); }
   };
 
   const reportMember=async()=>{
