@@ -60,6 +60,7 @@ export type GroupChat = {
   approveNewMembers?: boolean;
   joinPending?: boolean;
   openedAt: number | null;
+  closedAt?: number | null;
   messages: GroupChatMessage[];
   latitude?: number | null;
   longitude?: number | null;
@@ -733,7 +734,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       const groupSettings = groupSettingsRes.data ?? [];
       const groups = (groupsRes.data ?? []).map((g:any)=>{
         const settings = groupSettings.find((x:any)=>x.group_id===g.id);
-        return {id:g.id,name:g.name,topic:g.about ?? "",ownerId:g.creator_id,memberRole:g.member_role,editGroupInfo:settings?.edit_group_info ?? "admins",sendMessages:settings?.send_messages ?? true,approveNewMembers:settings?.approve_new_members ?? false,joinPending:Boolean(g.join_pending),members:Number(g.member_count ?? 0),openedAt:g.activated_at?new Date(g.activated_at).getTime():null,expiresAt:g.expires_at??null,country:g.country??"",stateProvince:g.state_province??"",city:g.city??"",area:g.area??"",messages:groupMessages.filter((m:any)=>m.group_id===g.id).map((m:any)=>({id:m.id,author:m.sender_id===uid?"You (anonymous)":"Anonymous Panda",body:m.body,at:new Date(m.created_at).getTime(),mine:m.sender_id===uid}))};
+        return {id:g.id,name:g.name,topic:g.about ?? "",ownerId:g.creator_id,memberRole:g.member_role,editGroupInfo:settings?.edit_group_info ?? "admins",sendMessages:settings?.send_messages ?? true,approveNewMembers:settings?.approve_new_members ?? false,joinPending:Boolean(g.join_pending),members:Number(g.member_count ?? 0),openedAt:g.activated_at?new Date(g.activated_at).getTime():null,closedAt:g.closed_at?new Date(g.closed_at).getTime():null,expiresAt:g.expires_at??null,country:g.country??"",stateProvince:g.state_province??"",city:g.city??"",area:g.area??"",messages:groupMessages.filter((m:any)=>m.group_id===g.id).map((m:any)=>({id:m.id,author:m.sender_id===uid?"You (anonymous)":"Anonymous Panda",body:m.body,at:new Date(m.created_at).getTime(),mine:m.sender_id===uid}))};
       });
       const attendees = attendeesRes.data ?? [];
       const attendeeCountsRes = eventsRes.data?.length ? await (supabase as any).rpc("get_event_attendee_counts", { p_event_ids: eventsRes.data.map((e:any) => e.id) }) : { data: [] };
@@ -776,7 +777,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       })
       .on("postgres_changes", { event: "UPDATE", schema: "public", table: "groups" }, (payload:any) => {
         const g = payload.new;
-        setState(current => ({ ...current, groups: current.groups.map(x => x.id===g.id ? { ...x, openedAt:g.activated_at?new Date(g.activated_at).getTime():null, members:x.members } : x) }));
+        setState(current => ({ ...current, groups: current.groups.map(x => x.id===g.id ? { ...x, openedAt:g.activated_at?new Date(g.activated_at).getTime():null, closedAt:g.closed_at?new Date(g.closed_at).getTime():null, members:x.members } : x) }));
       })
       .subscribe();
     const directMessageChannel = (supabase as any).channel(`circle-panda-dm-${dbUserId}`)
@@ -887,16 +888,17 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       if (!(await requireCompleteProfile("join a group"))) return;
       const { data, error } = await (supabase as any).rpc("join_group", { p_group_id: id });
       if (error) { toast.error(error.message ?? "Could not join group"); return; }
-      const joined = true;
+      const status = String(data?.status ?? "waiting");
+      const joined = status !== "pending";
       setState((s) => ({ ...s, groups: s.groups.map((g) => g.id === id ? {
         ...g,
-        members: g.members + 1,
-        joinPending: false,
+        members: joined ? g.members + 1 : g.members,
+        joinPending: status === "pending",
         memberRole: joined ? (g.memberRole ?? "member") : g.memberRole,
         openedAt: data?.activated_at ? new Date(data.activated_at).getTime() : g.openedAt,
       } : g) }));
       if (joined) void refreshCoins();
-      if (false) {
+      if (status === "pending") {
         window.dispatchEvent(new CustomEvent("circle-panda-action", { detail: { title: "Join request sent!", emoji: "🤝" } }));
         toast.success("Join request sent", { description: "An admin must approve your request." });
       } else {
@@ -906,14 +908,13 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     })();
   }, [dbUserId, refreshCoins, state.groups]);
 
-  const leaveGroup = useCallback((id: string) => {
-    if (!dbUserId) { toast.error("Sign in to leave this group"); return; }
-    void (async () => {
-      const { error } = await (supabase as any).rpc("leave_group", { p_group_id: id });
-      if (error) { toast.error(error.message ?? "Could not leave group"); return; }
-      setState((s) => ({ ...s, groups: s.groups.map((g) => g.id === id ? { ...g, members: Math.max(0, g.members - 1), memberRole: undefined } : g) }));
-      toast.success("You left the group");
-    })();
+  const leaveGroup = useCallback(async (id: string) => {
+    if (!dbUserId) { toast.error("Sign in to leave this group"); return false; }
+    const { error } = await (supabase as any).rpc("leave_group", { p_group_id: id });
+    if (error) { toast.error(error.message ?? "Could not leave group"); return false; }
+    setState((s) => ({ ...s, groups: s.groups.map((g) => g.id === id ? { ...g, members: Math.max(0, g.members - 1), memberRole: undefined } : g) }));
+    toast.success("You left the group");
+    return true;
   }, [dbUserId]);
 
   const updateGroupInfo = useCallback((id: string, name: string, topic: string) => {
@@ -1126,7 +1127,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     });
     if (error) { toast.error(error.message ?? "Group could not be created"); return null; }
     const groupId = String(data);
-    const group: GroupChat = { id:groupId, name:name.trim(), topic:about.trim(), members:1, ownerId:dbUserId, memberRole:"owner", editGroupInfo:"admins", sendMessages:true, approveNewMembers:false, joinPending:false, openedAt:Date.now(), latitude:null, longitude:null, messages:[], country:countryRestriction.trim(), stateProvince:"", city:"", area:"" };
+    const group: GroupChat = { id:groupId, name:name.trim(), topic:about.trim(), members:1, ownerId:dbUserId, memberRole:"owner", editGroupInfo:"admins", sendMessages:true, approveNewMembers:false, joinPending:false, openedAt:null, closedAt:null, latitude:null, longitude:null, messages:[], country:countryRestriction.trim(), stateProvince:"", city:"", area:"" };
     setState((state) => ({ ...state, groups:[group, ...state.groups] }));
     void refreshGroupsAndEvents();
     window.dispatchEvent(new CustomEvent("circle-panda-action", { detail: { title: "Group created!", emoji: "👥" } }));
