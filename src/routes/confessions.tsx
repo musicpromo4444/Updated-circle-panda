@@ -72,13 +72,10 @@ export function ConfessionsPage() {
 
   const load = async (background = false) => {
     if (background) setRefreshing(true); else setLoading(true);
-    const { data, error } = await supabase
-      .from("secret_posts")
-      .select("id,body,is_anonymous,created_at,author_id")
-      .order("created_at", { ascending: false })
-      .limit(50);
-    if (error) toast.error(error.message);
-    else {
+    const { data, error } = await (supabase as any).rpc("get_public_confessions", { p_limit: 50 });
+    if (error) {
+      toast.error(error.message ?? "Could not load confessions");
+    } else {
       const nextItems = (data ?? []).map((row: any) => ({ id:row.id, content:row.body, is_anonymous:Boolean(row.is_anonymous), created_at:row.created_at, author_id:row.author_id ?? null })) as Confession[];
       setItems(nextItems);
       if (nextItems.length) {
