@@ -852,17 +852,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     if (!dbUserId) { requestLogin("open this group"); return; }
     void (async () => {
       if (!(await requireCompleteProfile("open a group"))) return;
-    void (async () => {
-      const { data, error } = await (supabase as any).rpc("open_group_secure", { p_group_id: id });
-      if (error) { toast.error(error.message ?? "Group could not be opened"); return; }
-      const openedAt = data?.opened_at ? new Date(data.opened_at).getTime() : Date.now();
-      setState((s) => ({
-        ...s,
-        groups: s.groups.map((g) => g.id === id ? { ...g, openedAt, members: Number(data?.member_count ?? g.members) } : g),
+      setState((current) => ({
+        ...current,
+        groups: current.groups.map((g) => g.id === id ? { ...g, openedAt: g.openedAt ?? Date.now() } : g),
       }));
-      window.dispatchEvent(new CustomEvent("circle-panda-action", { detail: { title: "Group is now open!", emoji: "🐼" } }));
-      toast.success("Group chat activated 🐼", { description: "3 members reached · the group is now open." });
-    })();
     })();
   }, [dbUserId]);
 
