@@ -67,16 +67,16 @@ export function RegisterDatingModal({open,onOpenChange}:{open:boolean;onOpenChan
 
   useEffect(()=>{
     if(!open) return;
+    let active = true;
     setAccountReady(false);
     setPublishing(false);
-    void (async()=>{
+    const hydrate = async () => {
       try {
         const {data:userRes,error:userError}=await (supabase as any).auth.getUser();
         if(userError) throw userError;
         const uid=userRes?.user?.id;
         if(!uid || userRes?.user?.is_anonymous){
           requestLogin("register for Dating");
-          onOpenChange(false);
           return;
         }
 
@@ -128,7 +128,17 @@ export function RegisterDatingModal({open,onOpenChange}:{open:boolean;onOpenChan
         toast.error(err?.message ?? "Could not open Dating registration. Please try again.");
         setAccountReady(true);
       }
-    })();
+    };
+    void hydrate();
+    const {data:authListener} = supabase.auth.onAuthStateChange((event,session)=>{
+      if(event==="SIGNED_IN" && session?.user && !session.user.is_anonymous){
+        window.setTimeout(()=>{ if(active) void hydrate(); },0);
+      }
+    });
+    return () => {
+      active = false;
+      authListener.subscription.unsubscribe();
+    };
   },[open,onOpenChange]);
 
   const toggle=(key:"interests"|"lookingFor"|"aboutTraits"|"personality",value:string)=>
@@ -160,7 +170,7 @@ export function RegisterDatingModal({open,onOpenChange}:{open:boolean;onOpenChan
     setPublishing(true);
     try{
       const {data:userRes}=await (supabase as any).auth.getUser(); const uid=userRes?.user?.id;
-      if(!uid||userRes?.user?.is_anonymous){requestLogin("register for Dating");return;}
+      if(!uid||userRes?.user?.is_anonymous){setPublishing(false);requestLogin("register for Dating");return;}
       let photoPath=p.photoPath||"",blurredPhotoPath=p.blurredPhotoPath||"";
       if(photoFile){
         const ext=photoFile.type==="image/png"?"png":photoFile.type==="image/webp"?"webp":"jpg"; const base=crypto.randomUUID();
@@ -172,14 +182,14 @@ export function RegisterDatingModal({open,onOpenChange}:{open:boolean;onOpenChan
         if(blurUpload.error)throw blurUpload.error;
       }
       const saved = await registerDatingProfile({...p,aboutTraits:p.aboutTraits,photoPath,blurredPhotoPath,name:p.name.trim(),country:p.country.trim(),location:p.location.trim(),bio:""});
-      if (!saved) return;
+      if (!saved) { setPublishing(false); return; }
       toast.success(datingProfile?"Dating profile updated 💗":"🎉 Dating profile is live!");
       onOpenChange(false);
       setPublishing(false);
     }catch(err:any){
       toast.error(err?.message??"Could not save Dating profile");
       setPublishing(false);
-    }finally{setUploadingPhoto(false);}
+    }finally{setUploadingPhoto(false);setPublishing(false);}
   };
 
   if(!accountReady && open)return (
