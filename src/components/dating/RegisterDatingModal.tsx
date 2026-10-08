@@ -97,7 +97,7 @@ export function RegisterDatingModal({open,onOpenChange}:{open:boolean;onOpenChan
         setAccountReady(true);
 
         const {data:profile,error}=await (supabase as any).from("profiles")
-          .select("display_name,avatar_url,age,gender,country,state,area").eq("id",uid).maybeSingle();
+          .select("display_name,avatar_id,age,gender,country,state,state_province,city,area").eq("id",uid).maybeSingle();
 
         if(error){
           toast.error(error.message??"Could not load your Circle Panda profile");
@@ -110,7 +110,7 @@ export function RegisterDatingModal({open,onOpenChange}:{open:boolean;onOpenChan
 
         const base={...emptyProfile,name:profile.display_name||"Anonymous Panda",
           age:Number(profile.age||0),gender:profile.gender||"",country:profile.country||"",
-          location:profile.area||profile.state||profile.country||"",emoji:String(profile.avatar_url||"🐼")};
+          location:profile.area||profile.city||profile.state_province||profile.state||profile.country||"",emoji:String(profile.avatar_id ?? "🐼")};
 
         setP(s=>({...base,
           ...(currentDating?(()=>{const {registeredAt:_r,userId:_u,...rest}=currentDating;return rest;})():{}),
