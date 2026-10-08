@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { sendMessageRequest, isSelfMessageError } from "@/lib/messageRequests";
 import { useActionSuccess } from "@/components/ActionSuccessFeedback";
+import { requireCompleteProfile } from "@/lib/profileGate";
 
 export const Route = createFileRoute("/groups/$groupId")({
   head: () => ({
@@ -80,6 +81,7 @@ function GroupRoom() {
   useEffect(() => {
     let active = true;
     void (async () => {
+      if (!(await requireCompleteProfile("open a group"))) { if (active) setGroupLoading(false); return; }
       const [{ data: summaries, error: summariesError }, { data: messages, error: messagesError }, { data: settingsRow, error: settingsError }] = await Promise.all([
         (supabase as any).rpc("get_group_summaries", { p_country:"", p_state_province:"", p_city:"", p_area:"" }),
         (supabase as any).from("group_messages").select("id,group_id,body,created_at,user_id,message_type,media_path,mime_type,duration_seconds,view_once").eq("group_id", groupId).order("created_at", { ascending: true }),
