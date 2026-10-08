@@ -18,7 +18,7 @@ export function CreateEventModal({open,onOpenChange,onCreated}:{open:boolean;onO
  const [duration,setDuration]=useState(120); const [venue,setVenue]=useState(""); const [address,setAddress]=useState("");
  const [country,setCountry]=useState(""); const [state,setState]=useState(""); const [city,setCity]=useState(""); const [area,setArea]=useState("");
  const [price,setPrice]=useState<string>(""); const [currency,setCurrency]=useState("NGN"); const [blurb,setBlurb]=useState(""); const [details,setDetails]=useState("");
- const [imageUrl,setImageUrl]=useState(""); const [uploading,setUploading]=useState(false);
+ const [imageUrl,setImageUrl]=useState(""); const [uploading,setUploading]=useState(false); const [publishing,setPublishing]=useState(false);
  const [reachScope,setReachScope]=useState<"worldwide"|"country"|"state"|"city"|"area">("worldwide");
  const [reachCountry,setReachCountry]=useState(""); const [reachState,setReachState]=useState(""); const [reachCity,setReachCity]=useState(""); const [reachArea,setReachArea]=useState("");
 
@@ -38,10 +38,11 @@ export function CreateEventModal({open,onOpenChange,onCreated}:{open:boolean;onO
  const uploadImage=async(file:File)=>{ if(!file.type.startsWith("image/")) return toast.error("Choose an image file."); if(file.size>8*1024*1024) return toast.error("Image must be 8MB or smaller."); setUploading(true);
   try{const {data:{user}}=await supabase.auth.getUser(); if(!user) throw new Error("Sign in first."); const path=`${user.id}/${crypto.randomUUID()}-${file.name.replace(/[^a-zA-Z0-9._-]/g,"_")}`; const {error}=await supabase.storage.from("event-media").upload(path,file,{upsert:false,contentType:file.type}); if(error) throw error; const {data}=supabase.storage.from("event-media").getPublicUrl(path); setImageUrl(data.publicUrl); toast.success("Event picture added.");}catch(e){toast.error(e instanceof Error?e.message:"Image upload failed.");}finally{setUploading(false);}
  };
- const submit=(e:React.FormEvent)=>{e.preventDefault();
+ const submit=(e:React.FormEvent)=>{e.preventDefault(); if(publishing||uploading) return;
   void supabase.auth.getUser().then(async ({ data }) => {
    if(!data.user || data.user.is_anonymous){ onOpenChange(false); requestLogin("create an event"); return; }
    if(!(await requireCompleteProfile("create an event"))) return;
+   setPublishing(true);
    if(!title.trim()||!date||!venue.trim()||!address.trim()||!country.trim()||!city.trim()||!blurb.trim()) return toast.error("Complete the title, date, venue, address, country, city and summary.");
 
   const gateFee = price.trim() === "" ? 0 : Number(price);
@@ -49,9 +50,10 @@ export function CreateEventModal({open,onOpenChange,onCreated}:{open:boolean;onO
   if(gateFee>0 && currency!=="NGN") return toast.error("Paid gate fees currently use NGN.");
    void (async () => {
     const created = await createEvent({title:title.trim(),tag,date,time:`${duration} minutes`,place:venue.trim(),cost:Math.max(0,gateFee),currency,blurb:blurb.trim(),details:details.trim()||blurb.trim(),coverUrl:imageUrl,venueName:venue.trim(),addressLine:address.trim(),country:country.trim(),stateProvince:state.trim(),city:city.trim(),area:area.trim(),reachScope,reachCountry:reachCountry.trim(),reachState:reachState.trim(),reachCity:reachCity.trim(),reachArea:reachArea.trim(),durationMinutes:duration});
-    if (!created) return;
+    if (!created) { setPublishing(false); return; }
     setTitle("");setBlurb("");setDetails("");setVenue("");setAddress("");setCountry("");setState("");setCity("");setArea("");setPrice("");setImageUrl("");setDuration(120);onOpenChange(false);
     onCreated?.(created);
+    setPublishing(false);
    })();
   });
  };
@@ -67,7 +69,7 @@ export function CreateEventModal({open,onOpenChange,onCreated}:{open:boolean;onO
    <div><label className="mb-1 block text-xs font-semibold">Short summary</label><Input value={blurb} onChange={e=>setBlurb(e.target.value)} placeholder="What is this event about?" required/></div>
    <div><label className="mb-1 block text-xs font-semibold">About the event</label><Textarea rows={4} value={details} onChange={e=>setDetails(e.target.value)} placeholder="What should people know, bring, expect, or prepare for?"/></div>
    <div className="rounded-2xl border border-border p-4 space-y-3"><label className="block text-xs font-semibold">Who should see this event?</label><div className="grid grid-cols-2 gap-2 sm:grid-cols-5">{(["worldwide","country","state","city","area"] as const).map(x=><button type="button" key={x} onClick={()=>setReachScope(x)} className={`rounded-xl px-2 py-2 text-xs font-semibold capitalize ${reachScope===x?"bg-primary text-primary-foreground":"border border-border bg-secondary/60"}`}>{x}</button>)}</div>{reachScope!=="worldwide"?<div className="grid gap-2 sm:grid-cols-2">{<Input value={reachCountry} onChange={e=>setReachCountry(e.target.value)} placeholder="Target country"/>}{(reachScope==="state"||reachScope==="city"||reachScope==="area")&&<Input value={reachState} onChange={e=>setReachState(e.target.value)} placeholder="Target state / province"/>}{(reachScope==="city"||reachScope==="area")&&<Input value={reachCity} onChange={e=>setReachCity(e.target.value)} placeholder="Target city"/>}{reachScope==="area"&&<Input value={reachArea} onChange={e=>setReachArea(e.target.value)} placeholder="Target area / neighborhood"/>}</div>:null}</div>
-   <DialogFooter><Button type="button" variant="outline" onClick={()=>onOpenChange(false)}>Cancel</Button><Button type="submit" className="gap-1.5 font-bold"><Sparkles className="size-4"/>Publish Event</Button></DialogFooter>
+   <DialogFooter><Button type="button" variant="outline" onClick={()=>onOpenChange(false)}>Cancel</Button><Button type="submit" disabled={publishing||uploading} className="gap-1.5 font-bold"><Sparkles className="size-4"/>{publishing?"Publishing…":"Publish Event"}</Button></DialogFooter>
   </form>
  </DialogContent></Dialog>;
 }
