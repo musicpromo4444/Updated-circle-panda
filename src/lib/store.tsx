@@ -507,14 +507,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const refreshCoins = useCallback(async () => {
     if (!dbUserId) return;
-    const [bcRes, xpRes] = await Promise.all([
-      (supabase as any).from("bc_accounts").select("balance").eq("user_id", dbUserId).maybeSingle(),
-      (supabase as any).from("user_xp").select("xp").eq("user_id", dbUserId).maybeSingle(),
+    const [walletRes, xpRes] = await Promise.all([
+      (supabase as any).from("wallets").select("balance").eq("user_id", dbUserId).maybeSingle(),
+      (supabase as any).from("xp_ledger").select("amount").eq("user_id", dbUserId),
     ]);
-    setState((s) => {
-      const totalXp = Number(xpRes.data?.xp ?? s.xp);
-      return { ...s, coins: Number(bcRes.data?.balance ?? s.coins), xp: totalXp, level: pandaProgress(totalXp).index + 1 };
-    });
+    const totalXp = (xpRes.data ?? []).reduce((sum:number,row:any) => sum + Number(row.amount ?? 0), 0);
+    setState((s) => ({ ...s, coins: Number(walletRes.data?.balance ?? s.coins), xp: totalXp, level: pandaProgress(totalXp).index + 1 }));
   }, [dbUserId]);
 
   const refreshThreads = useCallback(async () => {
@@ -631,25 +629,6 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     return { groups, events };
   }, [dbUserId]);
 
-  const persistUserState = useCallback((next: State) => {
-    if (!dbUserId) return;
-    void (supabase as any).from("user_app_state").upsert({
-      user_id: dbUserId, state: { reputation: next.reputation,
-        datingProfile: next.datingProfile, isVip: next.isVip, vipExpiresAt: next.vipExpiresAt,
-        lastSpinAt: next.lastSpinAt, skipPasses: next.skipPasses, lastAdShownAt: next.lastAdShownAt },
-      updated_at: new Date().toISOString(),
-    });
-  }, [dbUserId]);
-
-  useEffect(() => {
-    // Never write the initial in-memory defaults back to Supabase before the
-    // server state has finished hydrating. This prevents refresh/login races
-    // from erasing saved settings and entitlements.
-    if (!dbUserId || !hydrated || hydratedUserRef.current !== dbUserId) return;
-    const timer = window.setTimeout(() => persistUserState(state), 150);
-    return () => window.clearTimeout(timer);
-  }, [state, dbUserId, persistUserState]);
-
   useEffect(() => {
     const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
       const nextUserId = session?.user?.id ?? null;
@@ -701,61 +680,54 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       const uid = session.user.id;
       // Location is optional and must never block app hydration.
       void new Promise<{latitude:number;longitude:number}|null>((resolve) => { if (typeof navigator === "undefined" || !navigator.geolocation) return resolve(null); navigator.geolocation.getCurrentPosition((pos) => resolve({ latitude:pos.coords.latitude, longitude:pos.coords.longitude }), () => resolve(null), { enableHighAccuracy:false, maximumAge:300000, timeout:3000 }); });
-      const [st, postsRes, repliesRes, groupsRes, groupMessagesRes, threadsRes, threadMessagesRes, groupSettingsRes, eventsRes, attendeesRes, datingRes, datingOwnRes, coinsRes, xpRes, nomineesRes, crushResultsRes, winnersRes, ticketsRes, crushWinnersRes] = await Promise.all([
-        (supabase as any).from("user_app_state").select("state").eq("user_id", uid).maybeSingle(),
-        (supabase as any).from("cp_posts").select("id,body,created_at,author_id,author_vip_at").order("created_at", {ascending:false}).limit(100),
-        (supabase as any).from("cp_post_replies").select("id,post_id,body,created_at,author_id,author_vip_at").order("created_at", {ascending:true}).limit(500),
-        (supabase as any).rpc("get_group_summaries", { p_country:"", p_state_province:"", p_city:"", p_area:"" }),
-        
-        (supabase as any).from("group_messages").select("id,group_id,body,created_at,sender_id,reply_to_id,media_type,media_path,view_once").order("created_at", {ascending:true}).limit(1000),
-        (supabase as any).from("cp_threads").select("id,owner_id,participant_id,other_alias,kind,blurb,created_at").order("created_at", {ascending:false}).limit(100),
-        (supabase as any).from("cp_thread_messages").select("id,thread_id,user_id,body,created_at,message_type,media_path").order("created_at", {ascending:true}).limit(2000),
-        (supabase as any).from("group_settings").select("group_id,edit_group_info,send_messages,approve_new_members"),
-        (supabase as any).from("events").select("id,title,description,location,starts_at,ends_at,category,entry_fee_bc,entry_fee_amount,entry_fee_currency,duration_minutes,reach_scope,reach_country,reach_state,reach_city,reach_area,cover_url,venue_name,address_line,country,state_province,city,area,latitude,longitude,is_published,owner_id").eq("is_published",true).order("starts_at", {ascending:true}),
+      const [postsRes, repliesRes, reactionsRes, groupsRes, groupMessagesRes, eventsRes, attendeesRes, datingRes, datingOwnRes, walletRes, xpRes, crushResultsRes, crushWinnersRes] = await Promise.all([
+        (supabase as any).from("posts").select("id,body,created_at,author_id").order("created_at",{ascending:false}).limit(100),
+        (supabase as any).from("post_comments").select("id,post_id,body,created_at,author_id").order("created_at",{ascending:true}).limit(500),
+        (supabase as any).from("post_reactions").select("post_id,user_id,reaction").limit(2000),
+        (supabase as any).rpc("get_group_summaries",{p_country:"",p_state_province:"",p_city:"",p_area:""}),
+        (supabase as any).from("group_messages").select("id,group_id,body,created_at,sender_id,reply_to_id,media_type,media_path,view_once").order("created_at",{ascending:true}).limit(1000),
+        (supabase as any).rpc("get_events_for_user"),
         (supabase as any).from("event_attendees").select("event_id,user_id"),
-        (supabase as any).rpc("get_dating_discovery_secure", { p_age_min:18,p_age_max:120,p_same_country_only:true }),
-        (supabase as any).from("dating_profiles").select("user_id,name,age,vibe,emoji,bio,interests,location,country,gender,relationship_goal,looking_for,about_traits,lifestyle,personality,love_language,smoking,drinking,children,education,occupation,sexual_experience,intimacy_preference,relationship_status,height_cm,zodiac,favorite_date,photo_path,blurred_photo_path,updated_at").eq("user_id",uid).maybeSingle(),
-        (supabase as any).from("bc_accounts").select("balance").eq("user_id",uid).maybeSingle(),
-        (supabase as any).from("user_xp").select("xp").eq("user_id",uid).maybeSingle(),
-        Promise.resolve({ data: [] as any[] }),
-        (supabase as any).rpc("get_crush_results", { p_week_start: new Date(Date.now() - ((new Date().getDay() + 6) % 7) * 86400000).toISOString().slice(0,10) }),
-        (supabase as any).from("sweep_winners").select("draw,name,prize,won_at").order("won_at", {ascending:false}).limit(20),
-        (supabase as any).from("sweep_tickets").select("id,draw,created_at").eq("user_id",uid),
-        (supabase as any).from("crush_winners").select("kind,display_name,created_at").order("created_at", {ascending:false}).limit(16),
+        (supabase as any).rpc("get_dating_discovery_filters_secure",{p_age_min:18,p_age_max:120,p_country:"",p_state:"",p_location:"",p_gender:"",p_relationship_goal:"",p_looking_for:"",p_lifestyle:"",p_smoking:"",p_drinking:"",p_children:"",p_education:""}),
+        (supabase as any).from("dating_profiles").select("user_id,name,age,vibe,emoji,bio,interests,location,country,state_province,gender,relationship_goal,looking_for,about_traits,lifestyle,personality,love_language,smoking,drinking,children,education,occupation,sexual_experience,intimacy_preference,relationship_status,height_cm,zodiac,favorite_date,photo_path,blurred_photo_path,updated_at").eq("user_id",uid).maybeSingle(),
+        (supabase as any).from("wallets").select("balance").eq("user_id",uid).maybeSingle(),
+        (supabase as any).from("xp_ledger").select("amount").eq("user_id",uid),
+        (supabase as any).rpc("get_crush_results",{p_week_start:new Date(Date.now()-((new Date().getDay()+6)%7)*86400000).toISOString().slice(0,10)}),
+        (supabase as any).from("crush_winners").select("kind,display_name,created_at").order("created_at",{ascending:false}).limit(16),
       ]);
       if (cancelled) return;
-      const stData = st.data?.state ?? {};
       const replies = repliesRes.data ?? [];
       const rawPosts = postsRes.data ?? [];
-      const likeSummaryRes = rawPosts.length ? await (supabase as any).rpc("get_post_like_summaries", { p_post_ids: rawPosts.map((p:any)=>p.id) }) : { data: [] };
-      const likeSummary = new Map((likeSummaryRes.data ?? []).map((x:any)=>[x.post_id,x]));
-      const posts = rawPosts.map((p:any) => { const likes = likeSummary.get(p.id); return { id:p.id, author:p.author_id===uid?"You (anonymous)":"Anonymous Panda", authorId:p.author_id, authorVip:Boolean(p.author_vip_at), likes:Number(likes?.like_count ?? 0), liked:Boolean(likes?.liked), body:p.body, at:new Date(p.created_at).getTime(), replies:replies.filter((r:any)=>r.post_id===p.id).map((r:any)=>({id:r.id,author:r.author_id===uid?"You (anonymous)":"Anonymous Panda",body:r.body,at:new Date(r.created_at).getTime()})) }; });
-      
+      const reactionRows = reactionsRes.data ?? [];
+      const reactionCounts = new Map<string,number>();
+      const myReactions = new Set<string>();
+      for (const r of reactionRows) {
+        if (r.reaction === "like") reactionCounts.set(r.post_id,(reactionCounts.get(r.post_id)??0)+1);
+        if (r.user_id===uid && r.reaction==="like") myReactions.add(r.post_id);
+      }
+      const postAuthorIds = Array.from(new Set(rawPosts.map((p:any)=>p.author_id).concat(replies.map((r:any)=>r.author_id)).filter(Boolean)));
+      const postProfilesRes = postAuthorIds.length ? await (supabase as any).from("profiles").select("id,display_name,is_vip,vip_expires_at").in("id",postAuthorIds) : {data:[]};
+      const postProfiles = new Map((postProfilesRes.data??[]).map((p:any)=>[p.id,p]));
+      const posts = rawPosts.map((p:any)=>({
+        id:p.id,author:p.author_id===uid?"You (anonymous)":"Anonymous Panda",authorId:p.author_id,
+        authorVip:Boolean(postProfiles.get(p.author_id)?.is_vip && (!postProfiles.get(p.author_id)?.vip_expires_at || new Date(postProfiles.get(p.author_id).vip_expires_at).getTime()>Date.now())),
+        likes:reactionCounts.get(p.id)??0,liked:myReactions.has(p.id),body:p.body,at:new Date(p.created_at).getTime(),
+        replies:replies.filter((r:any)=>r.post_id===p.id).map((r:any)=>({id:r.id,author:r.author_id===uid?"You (anonymous)":"Anonymous Panda",body:r.body,at:new Date(r.created_at).getTime()}))
+      }));
       const groupMessages = groupMessagesRes.data ?? [];
+      const groupSettingsRes = await (supabase as any).from("group_settings").select("group_id,edit_group_info,send_messages,approve_new_members");
       const groupSettings = groupSettingsRes.data ?? [];
       const groups = (groupsRes.data ?? []).map((g:any)=>{
-        const settings = groupSettings.find((x:any)=>x.group_id===g.id);
-        return {id:g.id,name:g.name,topic:g.about ?? "",ownerId:g.creator_id,memberRole:g.member_role,editGroupInfo:settings?.edit_group_info ?? "admins",sendMessages:settings?.send_messages ?? true,approveNewMembers:settings?.approve_new_members ?? false,joinPending:Boolean(g.join_pending),members:Number(g.member_count ?? 0),openedAt:g.activated_at?new Date(g.activated_at).getTime():null,closedAt:g.closed_at?new Date(g.closed_at).getTime():null,expiresAt:g.expires_at??null,country:g.country??"",stateProvince:g.state_province??"",city:g.city??"",area:g.area??"",messages:groupMessages.filter((m:any)=>m.group_id===g.id).map((m:any)=>({id:m.id,author:m.sender_id===uid?"You (anonymous)":"Anonymous Panda",body:m.body,at:new Date(m.created_at).getTime(),mine:m.sender_id===uid}))};
+        const settings=groupSettings.find((x:any)=>x.group_id===g.id);
+        return {id:g.id,name:g.name,topic:g.about??"",ownerId:g.creator_id,memberRole:g.member_role,editGroupInfo:settings?.edit_group_info??"admins",sendMessages:settings?.send_messages??true,approveNewMembers:settings?.approve_new_members??false,joinPending:Boolean(g.join_pending),members:Number(g.member_count??0),openedAt:g.activated_at?new Date(g.activated_at).getTime():null,closedAt:g.closed_at?new Date(g.closed_at).getTime():null,expiresAt:null,country:g.country??"",stateProvince:g.state_province??"",city:g.city??"",area:g.area??"",messages:groupMessages.filter((m:any)=>m.group_id===g.id).map((m:any)=>({id:m.id,author:m.sender_id===uid?"You (anonymous)":"Anonymous Panda",body:m.body,at:new Date(m.created_at).getTime(),mine:m.sender_id===uid}))};
       });
-      const attendees = attendeesRes.data ?? [];
-      const attendeeCountsRes = eventsRes.data?.length ? await (supabase as any).rpc("get_event_attendee_counts", { p_event_ids: eventsRes.data.map((e:any) => e.id) }) : { data: [] };
-      const attendeeCounts = new Map((attendeeCountsRes.data ?? []).map((x:any) => [x.event_id, Number(x.attendee_count ?? 0)]));
-      const events = (eventsRes.data ?? []).map((e:any)=>({id:e.id,ownerId:e.owner_id ?? undefined,title:e.title,tag:e.category ?? "Meetup",date:e.starts_at?new Date(e.starts_at).toLocaleDateString():"",time:e.starts_at?`${new Date(e.starts_at).toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"})}${e.ends_at ? ` · ${Math.max(1,Math.round((new Date(e.ends_at).getTime()-new Date(e.starts_at).getTime())/60000))} min` : ""}`:"",place:e.location??"",cost:Number(e.entry_fee_amount ?? 0),currency:e.entry_fee_currency ?? "NGN",blurb:e.description,details:e.description,rsvp:attendees.some((a:any)=>a.event_id===e.id&&a.user_id===uid),attendeeCount:Number(attendeeCounts.get(e.id) ?? 0),reachScope:e.reach_scope ?? "worldwide",reachCountry:e.reach_country ?? "",reachState:e.reach_state ?? "",reachCity:e.reach_city ?? "",reachArea:e.reach_area ?? "",durationMinutes:Number(e.duration_minutes ?? 120),coverUrl:e.cover_url ?? "",venueName:e.venue_name ?? "",addressLine:e.address_line ?? "",country:e.country ?? "",stateProvince:e.state_province ?? "",city:e.city ?? "",area:e.area ?? "",latitude:e.latitude ?? null,longitude:e.longitude ?? null}));
-      const dating = datingOwnRes.data;
-      const crushCounts = new Map<string, number>((crushResultsRes.data ?? []).map((r:any)=>[r.nominee_id, Number(r.vote_count ?? r.votes ?? 0)]));
-      const nominees = (crushResultsRes.data ?? []).map((n:any)=>({id:n.nominee_id,name:n.display_name,kind:n.kind,emoji:n.emoji,blurb:n.blurb,votes:Number(n.vote_count ?? 0),avatarUrl:n.media_url,mediaUrl:n.media_url,mediaType:n.media_type,mine:Boolean(n.mine)}));
-      const rawThreads = threadsRes.data ?? [];
-      const rawThreadMessages = threadMessagesRes.data ?? [];
-      const otherIds = Array.from(new Set(rawThreads.map((t:any)=>t.owner_id===uid?t.participant_id:t.owner_id).filter(Boolean)));
-      const otherProfilesRes = otherIds.length ? await (supabase as any).from("profiles").select("id,display_name,is_vip,vip_expires_at").in("id",otherIds) : {data:[]};
-      const profileNames = new Map((otherProfilesRes.data ?? []).map((p:any)=>[p.id,{name:p.display_name || "Anonymous Panda",vip:Boolean(p.is_vip && (!p.vip_expires_at || new Date(p.vip_expires_at).getTime()>Date.now()))}]));
-      const threads = rawThreads.filter((t:any)=>t.participant_id).map((t:any)=>({
-        id:t.id, otherUserId:t.owner_id===uid?t.participant_id:t.owner_id, otherVip:Boolean(profileNames.get(t.owner_id===uid?t.participant_id:t.owner_id)?.vip), name:profileNames.get(t.owner_id===uid?t.participant_id:t.owner_id)?.name ?? "Anonymous Panda", kind:t.kind === "dating" ? "dating" : "dm", blurb:t.blurb ?? "",
-        messages:rawThreadMessages.filter((m:any)=>m.thread_id===t.id && !(m.message_type==="dating_photo" && m.user_id===uid)).map((m:any)=>({id:m.id,body:m.body,at:new Date(m.created_at).getTime(),mine:m.user_id===uid,messageType:m.message_type==="dating_photo"?"dating_photo":"text",mediaPath:m.media_path ?? undefined})), startedAt:t.kind === "dating" ? new Date(t.created_at).getTime() : undefined
-      }));
-      const totalXp = Number(xpRes.data?.xp ?? 0);
-      setState((prev)=>({...prev,...stData,coins:Number(coinsRes.data?.balance ?? prev.coins),reputation:stData.reputation??0,level:pandaProgress(totalXp).index+1,xp:totalXp,posts,groups,threads,events,nominees,sweepWinners:(winnersRes.data??[]).map((w:any)=>({draw:w.draw,name:w.name,prize:w.prize,wonAt:new Date(w.won_at).getTime()})),sweepTickets:(ticketsRes.data??[]).map((t:any)=>({id:t.id,draw:t.draw,at:new Date(t.created_at).getTime()})),spotlights:(crushWinnersRes.data??[]).map((w:any)=>({kind:w.kind,name:w.display_name,wonAt:new Date(w.created_at).getTime()})),datingProfile:dating?{userId:dating.user_id,name:dating.name,age:dating.age,vibe:dating.vibe,emoji:dating.emoji,bio:dating.bio,interests:dating.interests??[],location:dating.location,country:dating.country??dating.location??"",gender:dating.gender??"",relationshipGoal:dating.relationship_goal??"",lookingFor:dating.looking_for??[],aboutTraits:dating.about_traits??[],lifestyle:dating.lifestyle??[],personality:dating.personality??[],loveLanguage:dating.love_language??"",smoking:dating.smoking??"",drinking:dating.drinking??"",children:dating.children??"",education:dating.education??"",occupation:dating.occupation??"",sexualExperience:dating.sexual_experience??"",intimacyPreference:dating.intimacy_preference??"",relationshipStatus:dating.relationship_status??"single",heightCm:dating.height_cm??null,zodiac:dating.zodiac??"",favoriteDate:dating.favorite_date??"",photoPath:dating.photo_path??"",blurredPhotoPath:dating.blurred_photo_path??"",registeredAt:new Date(dating.updated_at).getTime()}:null,datingMatches:(datingRes.data??[]).filter((d:any)=>d.user_id!==uid).map((d:any)=>({userId:d.user_id,name:d.name,age:d.age,vibe:d.vibe,emoji:d.emoji,bio:d.bio,interests:d.interests??[],location:d.location,country:d.country??d.location??"",gender:d.gender??"",relationshipGoal:d.relationship_goal??"",lookingFor:d.looking_for??[],aboutTraits:d.about_traits??[],lifestyle:d.lifestyle??[],personality:d.personality??[],loveLanguage:d.love_language??"",smoking:d.smoking??"",drinking:d.drinking??"",children:d.children??"",education:d.education??"",occupation:d.occupation??"",sexualExperience:d.sexual_experience??"",intimacyPreference:d.intimacy_preference??"",relationshipStatus:d.relationship_status??"single",heightCm:d.height_cm??null,zodiac:d.zodiac??"",favoriteDate:d.favorite_date??"",photoPath:d.photo_path??"",blurredPhotoPath:d.blurred_photo_path??"",registeredAt:new Date(d.updated_at).getTime()}))}));
-    })().catch(() => {}).finally(() => {
+      const attendees=attendeesRes.data??[];
+      const events=(eventsRes.data??[]).map((e:any)=>{const start=e.starts_at?new Date(e.starts_at):null;const end=e.ends_at?new Date(e.ends_at):null;return {id:e.id,ownerId:e.creator_id,title:e.title,tag:e.category??"Meetup",date:start?start.toLocaleDateString():"",time:start?start.toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"}):"",place:e.location??"",cost:Number(e.entry_fee_amount??0),currency:e.entry_fee_currency??"NGN",blurb:e.description??"",details:e.description??"",rsvp:Boolean(e.viewer_going??attendees.some((a:any)=>a.event_id===e.id&&a.user_id===uid)),attendeeCount:Number(e.attendee_count??attendees.filter((a:any)=>a.event_id===e.id).length),interestedCount:Number(e.interested_count??0),responseCount:Number(e.response_count??0),reachCount:Number(e.reach_count??0),reachScope:e.reach_scope??"worldwide",reachCountry:e.reach_country??"",reachState:e.reach_state??"",reachCity:e.reach_city??"",reachArea:e.reach_area??"",durationMinutes:Number(e.duration_minutes??120),coverUrl:e.cover_url??"",venueName:e.venue_name??"",addressLine:e.address_line??"",country:e.country??"",stateProvince:e.state_province??"",city:e.city??"",area:e.area??"",latitude:e.latitude??null,longitude:e.longitude??null};});
+      const dating=datingOwnRes.data;
+      const crushCounts=new Map<string,number>((crushResultsRes.data??[]).map((r:any)=>[r.nominee_id,Number(r.vote_count??r.votes??0)]));
+      const nominees=(crushResultsRes.data??[]).map((n:any)=>({id:n.nominee_id,name:n.display_name,kind:n.kind,emoji:n.emoji,blurb:n.blurb,votes:Number(n.vote_count??0),avatarUrl:n.media_url,mediaUrl:n.media_url,mediaType:n.media_type,mine:Boolean(n.mine)}));
+      const totalXp=(xpRes.data??[]).reduce((sum:number,row:any)=>sum+Number(row.amount??0),0);
+      setState(prev=>({...prev,coins:Number(walletRes.data?.balance??prev.coins),level:pandaProgress(totalXp).index+1,xp:totalXp,posts,groups,events,nominees,spotlights:(crushWinnersRes.data??[]).map((w:any)=>({kind:w.kind,name:w.display_name,wonAt:new Date(w.created_at).getTime()})),datingProfile:dating?{userId:dating.user_id,name:dating.name,age:Number(dating.age??18),vibe:dating.vibe??"",emoji:dating.emoji??"🐼",bio:dating.bio??"",interests:dating.interests??[],location:dating.location??"",country:dating.country??"",stateProvince:dating.state_province??"",gender:dating.gender??"",relationshipGoal:dating.relationship_goal??"",lookingFor:dating.looking_for??[],aboutTraits:dating.about_traits??[],lifestyle:dating.lifestyle??[],personality:dating.personality??[],loveLanguage:dating.love_language??"",smoking:dating.smoking??"",drinking:dating.drinking??"",children:dating.children??"",education:dating.education??"",occupation:dating.occupation??"",sexualExperience:dating.sexual_experience??"",intimacyPreference:dating.intimacy_preference??"",relationshipStatus:dating.relationship_status??"single",heightCm:dating.height_cm??null,zodiac:dating.zodiac??"",favoriteDate:dating.favorite_date??"",photoPath:dating.photo_path??"",blurredPhotoPath:dating.blurred_photo_path??"",registeredAt:dating.updated_at?new Date(dating.updated_at).getTime():Date.now()}:null,datingMatches:(datingRes.data??[]).filter((d:any)=>d.user_id!==uid).map((d:any)=>({...d,userId:d.user_id,registeredAt:d.updated_at?new Date(d.updated_at).getTime():Date.now()}))}));    })().catch(() => {}).finally(() => {
       if (!cancelled) {
         hydratedUserRef.current = uid;
         setHydrated(true);
@@ -826,9 +798,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const addPost = useCallback((body: string) => {
     if (!dbUserId) { requestLogin("post"); return; }
     void (async () => {
-      const { data, error } = await (supabase as any).rpc("create_post_secure", { p_body: body });
-      if (error) { toast.error(error.message ?? "Post could not be created"); return; }
-      const id = data.id;
+      const { data: id, error } = await (supabase as any).rpc("create_post", { p_body: body });
+      if (error || !id) { toast.error(error?.message ?? "Post could not be created"); return; }
+      const data = { id, xp: 7, reward_bc: 0, created_at: new Date().toISOString(), author_vip_at: false };
       setState((s) => {
         const { level, xp } = gainXp(s.level, s.xp, Number(data.xp ?? 7));
         return { ...s, coins: s.coins + Number(data.reward_bc ?? 2), reputation: s.reputation + Number(data.xp ?? 15), level, xp, posts: [{ id, author:"You (anonymous)", authorId:dbUserId, authorVip:Boolean(data.author_vip_at ?? s.isVip), body, at:data.created_at ? new Date(data.created_at).getTime() : Date.now(), replies:[] }, ...s.posts] };
