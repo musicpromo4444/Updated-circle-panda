@@ -9,6 +9,7 @@ import {
   type ReactNode,
 } from "react";
 import { toast } from "sonner";
+import { sendMessageRequest, isSelfMessageError } from "@/lib/messageRequests";
 import { requestLogin } from "@/components/auth/LoginRequiredDialog";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -1020,9 +1021,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     if (!dbUserId) { requestLogin("contact this Panda"); return Promise.resolve(null); }
     if (!userId) return Promise.resolve(null);
     return (async () => {
-      const { error } = await (supabase as any).rpc("request_direct_message_secure", { p_recipient_id:userId, p_message:"" });
-      if (error) { toast.error(error.message ?? "Could not send message request"); return null; }
-      toast.success("Message request sent 💬");
+      try { await sendMessageRequest(userId, "", "profile", userId); toast.success("Message request sent 💬"); }
+      catch (e:any) { if (!isSelfMessageError(e)) toast.error(e?.message ?? "Could not send message request"); }
       return null;
     })();
   }, [dbUserId]);
@@ -1031,9 +1031,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     if (!dbUserId) { requestLogin("contact this Panda"); return Promise.resolve(null); }
     if (!userId) return Promise.resolve(null);
     return (async () => {
-      const { error } = await (supabase as any).rpc("request_direct_message_secure", { p_recipient_id:userId, p_message:blurb ?? "" });
-      if (error) { toast.error(error.message ?? "Could not send message request"); return null; }
-      toast.success("Message request sent 💬");
+      try { await sendMessageRequest(userId, blurb ?? "", "profile", userId); toast.success("Message request sent 💬"); }
+      catch (e:any) { if (!isSelfMessageError(e)) toast.error(e?.message ?? "Could not send message request"); }
       return null;
     })();
   }, [dbUserId]);
