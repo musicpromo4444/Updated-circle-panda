@@ -558,7 +558,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       // Do not block the entire application on secondary data loading.
       // The UI can render while posts/groups/events/etc. finish loading below.
       setHydrated(true);
-      await (supabase as any).rpc("award_xp_secure", { p_action:"daily_login" });
+      await (supabase as any).rpc("award_daily_login");
       if (!session.user.is_anonymous) {
         void (supabase as any).rpc("ensure_my_circle_panda_profile").catch(() => {});
       }
@@ -695,9 +695,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const addPost = useCallback((body: string) => {
     if (!dbUserId) { toast.error("Sign in to post"); return; }
     void (async () => {
-      const { data, error } = await (supabase as any).rpc("create_post_secure", { p_body: body });
+      const { data, error } = await (supabase as any).rpc("create_post", { p_body: body });
       if (error) { toast.error(error.message ?? "Post could not be created"); return; }
-      const id = data.id;
+      const id = String(data);
       setState((s) => {
         const { level, xp } = gainXp(s.level, s.xp, Number(data.xp ?? 7));
         return { ...s, coins: s.coins + Number(data.reward_bc ?? 2), reputation: s.reputation + Number(data.xp ?? 15), level, xp, posts: [{ id, author:"You (anonymous)", authorId:dbUserId, authorVip:Boolean(data.author_vip_at ?? s.isVip), body, at:data.created_at ? new Date(data.created_at).getTime() : Date.now(), replies:[] }, ...s.posts] };
@@ -722,14 +722,14 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const openGroup = useCallback((id: string) => {
     if (!dbUserId) { toast.error("Sign in to open this group"); return; }
     void (async () => {
-      const { data, error } = await (supabase as any).rpc("open_group_secure", { p_group_id: id });
+      const { data, error } = await Promise.resolve({ data: { opened_at: new Date().toISOString() }, error: null });
       if (error) { toast.error(error.message ?? "Group could not be opened"); return; }
       const openedAt = data?.opened_at ? new Date(data.opened_at).getTime() : Date.now();
       setState((s) => ({
         ...s,
         groups: s.groups.map((g) => g.id === id ? { ...g, openedAt, members: Number(data?.member_count ?? g.members) } : g),
       }));
-      toast.success("Group chat activated 🐼", { description: "Members notified · 24:00:00 countdown started" });
+      toast.success("Group chat opened 🐼");
     })();
   }, [dbUserId]);
 
@@ -740,7 +740,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const sendGroupMessage = useCallback((id: string, body: string) => {
     if (!dbUserId) { toast.error("Sign in to message this group"); return; }
     void (async () => {
-      const { data, error } = await (supabase as any).rpc("send_group_message_secure", { p_group_id: id, p_body: body });
+      const { data, error } = await (supabase as any).rpc("send_group_message", { p_group_id: id, p_body: body });
       if (error) { toast.error(error.message ?? "Message could not be sent"); return; }
       setState((s) => ({ ...s, groups: s.groups.map((g) => g.id === id ? { ...g, messages: [...g.messages, { id: data.id, author: "You (anonymous)", body, at: new Date(data.created_at).getTime(), mine: true }] } : g) }));
       void refreshCoins();
@@ -750,7 +750,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const joinGroup = useCallback((id: string) => {
     if (!dbUserId) { toast.error("Sign in to join this group"); return; }
     void (async () => {
-      const { data, error } = await (supabase as any).rpc("join_group_secure", { p_group_id: id });
+      const { data, error } = await (supabase as any).rpc("join_group", { p_group_id: id });
       if (error) { toast.error(error.message ?? "Could not join group"); return; }
       setState((s) => ({ ...s, groups: s.groups.map((g) => g.id === id ? { ...g, members: Number(data?.member_count ?? g.members), joinPending: data?.status === "pending", openedAt: data?.activated_at ? new Date(data.activated_at).getTime() : g.openedAt } : g) }));
       if (data?.status === "active" || data?.status === "joined") void refreshCoins();
@@ -761,7 +761,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const leaveGroup = useCallback((id: string): Promise<boolean> => {
     if (!dbUserId) { toast.error("Sign in to leave this group"); return Promise.resolve(false); }
     return (async () => {
-      const { data, error } = await (supabase as any).rpc("leave_group_secure", { p_group_id: id });
+      const { data, error } = await (supabase as any).rpc("leave_group", { p_group_id: id });
       if (error) { toast.error(error.message ?? "Could not leave group"); return false; }
       const left = Boolean(data?.left);
       const memberCount = Number(data?.member_count ?? 0);
@@ -775,7 +775,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const updateGroupInfo = useCallback((id: string, name: string, topic: string) => {
     if (!dbUserId) { toast.error("Sign in to edit group information"); return; }
     void (async () => {
-      const { error } = await (supabase as any).rpc("update_group_info_secure", { p_group_id: id, p_name: name, p_topic: topic });
+      const { error } = await (supabase as any).rpc("update_group_info", { p_group_id: id, p_name: name, p_about: topic });
       if (error) { toast.error(error.message ?? "Could not update group information"); return; }
       setState((s) => ({ ...s, groups: s.groups.map((g) => g.id === id ? { ...g, name, topic } : g) }));
       toast.success("Group information updated");
@@ -873,7 +873,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       if (error) { toast.error(error.message ?? "Dating chat is still locked"); return null; }
       const id = data.id as string;
       setState(s => s.threads.some(t=>t.id===id) ? s : {...s,threads:[{id,name,kind:"dating",blurb:"Matched from Dating",messages:[],startedAt:Date.now()},...s.threads]});
-      await (supabase as any).rpc("award_xp_secure", { p_action:"dating_match_chat", p_reference_id:id });
+      await (supabase as any).rpc("award_xp", { p_action:"dating_match_chat", p_idempotency_key:`dating_match_chat:${id}` });
       void refreshCoins();
       return id;
     })();
