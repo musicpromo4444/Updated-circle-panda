@@ -72,27 +72,67 @@ export function RegisterDatingModal({open,onOpenChange}:{open:boolean;onOpenChan
 
   useEffect(()=>{
     if(!open) return;
+    setAccountReady(false);
+    setPublishing(false);
     void (async()=>{
-      const {data:userRes}=await (supabase as any).auth.getUser();
-      const uid=userRes?.user?.id;
-      if(!uid || userRes?.user?.is_anonymous){requestLogin("register for Dating");onOpenChange(false);return;}
-      const {data:profile,error}=await (supabase as any).from("profiles")
-        .select("display_name,avatar_url,age,gender,country,state,area").eq("id",uid).maybeSingle();
-      if(error){toast.error(error.message??"Could not load your Circle Panda profile");onOpenChange(false);return;}
-      if(!profile?.age || profile.age<18 || !profile.gender || !profile.country){
-        toast.error("Complete your Circle Panda profile first — age, gender and country are required for Dating.");
-        onOpenChange(false); window.location.href="/profile"; return;
+      try {
+        const {data:userRes,error:userError}=await (supabase as any).auth.getUser();
+        if(userError) throw userError;
+        const uid=userRes?.user?.id;
+        if(!uid || userRes?.user?.is_anonymous){
+          requestLogin("register for Dating");
+          onOpenChange(false);
+          return;
+        }
+
+        // Open the real registration card as soon as authentication is confirmed.
+        // Profile hydration happens inside the card and must never silently close it.
+        const currentDating=datingProfile;
+        if(currentDating){
+          const {registeredAt:_r,userId:_u,...rest}=currentDating;
+          setP(s=>({...s,...rest}));
+        }
+        setPhotoFile(null);
+        setStep(0);
+        setAccountReady(true);
+
+        const {data:profile,error}=await (supabase as any).from("profiles")
+          .select("display_name,avatar_url,age,gender,country,state,area").eq("id",uid).maybeSingle();
+
+        if(error){
+          toast.error(error.message??"Could not load your Circle Panda profile");
+          return;
+        }
+        if(!profile){
+          toast.error("Your Circle Panda profile could not be found. Complete your main profile before publishing Dating.");
+          return;
+        }
+
+        const base={...emptyProfile,name:profile.display_name||"Anonymous Panda",
+          age:Number(profile.age||0),gender:profile.gender||"",country:profile.country||"",
+          location:profile.area||profile.state||profile.country||"",emoji:String(profile.avatar_url||"🐼")};
+
+        setP(s=>({...base,
+          ...(currentDating?(()=>{const {registeredAt:_r,userId:_u,...rest}=currentDating;return rest;})():{}),
+          name:profile.display_name||s.name||"Anonymous Panda",
+          age:Number(profile.age||s.age||0),gender:profile.gender||s.gender||"",
+          country:profile.country||s.country||"",location:profile.area||profile.state||profile.country||s.location||"",
+          emoji:String(profile.avatar_url||s.emoji||"🐼")
+        }));
+
+        if(currentDating?.blurredPhotoPath){
+          setPhotoPreview(supabase.storage.from("dating-photo-blur").getPublicUrl(currentDating.blurredPhotoPath).data.publicUrl);
+        } else {
+          setPhotoPreview(null);
+        }
+
+        if(!profile.age || Number(profile.age)<18 || !profile.gender || !profile.country){
+          toast.error("Your main Circle Panda profile needs age, gender and country before you can publish a Dating card.");
+        }
+      } catch(err:any) {
+        toast.error(err?.message ?? "Could not open Dating registration. Please try again.");
+        setAccountReady(true);
       }
-      const base={...emptyProfile,name:profile.display_name||"Anonymous Panda",age:Number(profile.age),gender:profile.gender,country:profile.country,
-        location:profile.area||profile.state||profile.country,emoji:String(profile.avatar_url||"🐼")};
-      if(datingProfile){
-        const {registeredAt:_r,userId:_u,...rest}=datingProfile;
-        setP({...base,...rest,name:profile.display_name||rest.name,age:Number(profile.age),gender:profile.gender,country:profile.country,location:profile.area||profile.state||profile.country,emoji:String(profile.avatar_url||"🐼")});
-        setPhotoPreview(rest.blurredPhotoPath?supabase.storage.from("dating-photo-blur").getPublicUrl(rest.blurredPhotoPath).data.publicUrl:null);
-      } else {
-        setP(base); setPhotoPreview(null);
-      }
-      setPhotoFile(null); setStep(0); setAccountReady(true);
     })();
   },[open,onOpenChange]);
 
@@ -115,6 +155,10 @@ export function RegisterDatingModal({open,onOpenChange}:{open:boolean;onOpenChan
   const submit=async(e:React.FormEvent)=>{
     e.preventDefault();
     if(!accountReady)return;
+    if(!p.age || Number(p.age)<18 || !p.gender || !p.country){
+      toast.error("Complete your Circle Panda profile with age, gender and country before publishing Dating.");
+      return;
+    }
     if(!p.relationshipGoal){toast.error("Choose the type of relationship you're looking for");setStep(1);return;}
     if(!photoFile && !p.photoPath){toast.error("Upload your Dating photo");return;}
     setUploadingPhoto(true);
