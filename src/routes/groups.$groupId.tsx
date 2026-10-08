@@ -574,6 +574,15 @@ function GroupRoom() {
                   }}>
                   <Pencil className="size-3.5" /> Save changes
                 </Button>
+                <Button type="button" variant="destructive" className="w-full gap-1.5" disabled={Boolean(group.closedAt)} onClick={async () => {
+                  const { error } = await (supabase as any).rpc("close_group", { p_group_id: group.id });
+                  if (error) { toast.error(error.message ?? "Could not close the group"); return; }
+                  setRemoteGroup((current) => current ? { ...current, closedAt: Date.now() } : current);
+                  setSettingsOpen(false);
+                  toast.success("Group closed");
+                }}>
+                  <Lock className="size-3.5" /> {group.closedAt ? "Group closed" : "Close group"}
+                </Button>
               </>
             ) : (
               <>
