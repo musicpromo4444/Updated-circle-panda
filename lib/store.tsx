@@ -1145,16 +1145,22 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const registerDatingProfile = useCallback(async (p: Omit<DatingProfile, "registeredAt" | "userId">): Promise<boolean> => {
     if (!dbUserId) { toast.error("Sign in to register for Dating"); return false; }
     const { data, error } = await (supabase as any).rpc("register_dating_profile_secure", {
-      p_vibe:p.vibe,p_bio:p.bio,p_about_traits:p.aboutTraits ?? [],p_interests:p.interests,
-      p_relationship_goal:p.relationshipGoal,p_looking_for:p.lookingFor,p_lifestyle:p.lifestyle,p_personality:p.personality,
-      p_love_language:p.loveLanguage,p_smoking:p.smoking,p_drinking:p.drinking,p_children:p.children,p_education:p.education,
-      p_occupation:p.occupation,p_sexual_experience:p.sexualExperience,p_intimacy_preference:p.intimacyPreference,
-      p_height_cm:p.heightCm??null,p_zodiac:p.zodiac,p_favorite_date:p.favoriteDate,p_emoji:p.emoji,
+      p_vibe:p.vibe,p_bio:p.bio,p_about_traits:p.aboutTraits ?? [],p_interests:p.interests ?? [],
+      p_relationship_goal:p.relationshipGoal,p_looking_for:p.lookingFor ?? [],p_lifestyle:p.lifestyle ?? [],p_personality:p.personality ?? [],
+      p_love_language:p.loveLanguage ?? "",p_smoking:p.smoking ?? "",p_drinking:p.drinking ?? "",p_children:p.children ?? "",p_education:p.education ?? "",
+      p_occupation:p.occupation ?? "",p_sexual_experience:p.sexualExperience ?? "",p_intimacy_preference:p.intimacyPreference ?? "",
+      p_height_cm:p.heightCm??null,p_zodiac:p.zodiac ?? "",p_favorite_date:p.favoriteDate ?? "",p_emoji:p.emoji ?? "🐼",
       p_photo_path:p.photoPath||null,p_blurred_photo_path:p.blurredPhotoPath||null,
     });
     if (error) { toast.error(error.message ?? "Dating profile could not be saved"); return false; }
+    // register_dating_profile_secure returns BOOLEAN, not the profile row.
+    // Treat true as a successful publication and hydrate the authoritative row afterward.
+    if (data !== true) {
+      toast.error("Dating profile could not be published");
+      return false;
+    }
     const own = {
-      ...p,name:data?.name??p.name,userId:dbUserId,registeredAt:Date.now(),
+      ...p,name:p.name,userId:dbUserId,registeredAt:Date.now(),
     };
     setState(s => ({...s,datingProfile:own}));
     // Immediately refresh from Supabase so the card is visible to this account and
