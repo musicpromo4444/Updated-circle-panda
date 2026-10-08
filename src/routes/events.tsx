@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ArrowLeft, CalendarDays, CalendarPlus, Clock, MapPin, MessageCircle, Rocket, Share2, Users } from "lucide-react";
+import { ArrowLeft, CalendarDays, CalendarPlus, Clock, Heart, MapPin, MessageCircle, Rocket, Users } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
 import { StandardBannerAd } from "@/components/ads/StandardBannerAd";
@@ -11,6 +11,7 @@ import { CreateEventModal } from "@/components/events/CreateEventModal";
 import { useStore, type PandaEvent } from "@/lib/store";
 import { supabase } from "@/integrations/supabase/client";
 import { sendMessageRequest, isSelfMessageError } from "@/lib/messageRequests";
+import { requireCompleteProfile } from "@/lib/profileGate";
 
 export const Route = createFileRoute("/events")({
   head: () => ({
@@ -28,12 +29,11 @@ type BlastPlan = {
   unique_reach: number;
   duration_minutes: number;
   price_usd: number;
-  price_ngn: number;
   bc_price: number | null;
 };
 
 function EventsPage() {
-  const { events, startEventBlast, toggleRsvp } = useStore();
+  const { events, startEventBlast, toggleRsvp, toggleEventInterest } = useStore();
   const navigate = useNavigate();
   const [openEvent, setOpenEvent] = useState<PandaEvent | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
@@ -51,11 +51,11 @@ function EventsPage() {
   const [targetStates, setTargetStates] = useState<string[]>([]); const [targetCities, setTargetCities] = useState<string[]>([]);
   const current = openEvent ? (events.find((e) => e.id === openEvent.id) ?? null) : null;
 
-  useEffect(() => { void supabase.auth.getUser().then(({ data }) => setCurrentUserId(data.user?.id ?? null)); }, []);
+  useEffect(() => { void supabase.auth.getUser().then(({ data }) => { setCurrentUserId(data.user?.id ?? null); if (data.user && !data.user.is_anonymous) void requireCompleteProfile("use Events"); }); }, []);
 
   useEffect(() => {
     void (async () => {
-      const { data } = await (supabase as any).from("event_blast_plans").select("id,name,unique_reach,duration_minutes,price_usd,price_ngn,bc_price").eq("enabled", true).order("sort_order");
+      const { data } = await (supabase as any).rpc("get_event_blast_plans");
       setPlans((data ?? []) as BlastPlan[]);
     })();
   }, []);
@@ -77,49 +77,59 @@ function EventsPage() {
     }
   };
 
-  const openBlast = () => { if (!current) return; setTargetScope("worldwide"); setTargetCountry(""); setTargetState(""); setTargetCity(""); setTargetArea(""); setBlastOpen(true); };
+  const openBlast = () => {
+    if (!current) return;
+    setTargetScope("worldwide"); setTargetCountry(""); setTargetState(""); setTargetCity(""); setTargetArea(""); setBlastOpen(true);
+    void (async () => {
+      const { data, error } = await (supabase as any).rpc("get_event_promotion_status_secure");
+      if (!error) setFreePromotionEligible(Boolean(data?.eligible));
+    })();
+  };
+  const claimFreePromotion = async () => {
+    if (!current) return;
+    setFreePromotionProcessing(true);
+    try {
+      const { data, error } = await (supabase as any).rpc("claim_free_event_promotion_secure", {
+        p_event_id: current.id, p_target_scope: targetScope, p_target_country: targetCountry || null,
+        p_target_state: targetState || null, p_target_city: targetCity || null, p_target_area: targetArea || null,
+      });
+      if (error) throw new Error(error.message);
+      toast.success("Free Event Blast is live 🎁", { description: `${Number(data?.unique_reach ?? 500).toLocaleString()} target users · up to 1,000 notifications.` });
+      setFreePromotionEligible(false); setBlastOpen(false);
+    } catch (e:any) { toast.error(e?.message ?? "Free promotion could not be started."); }
+    finally { setFreePromotionProcessing(false); }
+  };
   useEffect(() => { void fetch("https://countriesnow.space/api/v0.1/countries/positions").then(r=>r.json()).then(j=>setTargetCountries((j.data ?? []).map((x:any)=>({name:x.name,iso2:x.iso2})).sort((a:any,b:any)=>a.name.localeCompare(b.name)))).catch(()=>setTargetCountries([])); }, []);
   useEffect(() => { setTargetStates([]); setTargetCities([]); if(!targetCountry) return; void fetch("https://countriesnow.space/api/v0.1/countries/states",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({country:targetCountry})}).then(r=>r.json()).then(j=>setTargetStates((j.data?.states ?? []).map((x:any)=>x.name).filter(Boolean).sort())).catch(()=>setTargetStates([])); }, [targetCountry]);
   useEffect(() => { setTargetCities([]); if(!targetCountry || !targetState) return; void fetch("https://countriesnow.space/api/v0.1/countries/state/cities",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({country:targetCountry,state:targetState})}).then(r=>r.json()).then(j=>setTargetCities((j.data ?? []).filter(Boolean).sort())).catch(()=>setTargetCities([])); }, [targetCountry,targetState]);
   const countryFlag = (iso2:string) => iso2.toUpperCase().replace(/./g,c=>String.fromCodePoint(127397+c.charCodeAt(0)));
 
   const payCashBlast = async (plan: BlastPlan) => {
-    if (!current || !email.trim()) {
-      toast.error("Enter an email for the secure cash checkout.");
-      return;
-    }
+    if (!current || !email.trim()) { toast.error("Enter an email for checkout."); return; }
     setProcessing(true);
     try {
-      const { data: paystackConfig, error: paystackConfigError } = await (supabase as any).rpc("get_paystack_public_config");
-      if (paystackConfigError) throw new Error(paystackConfigError.message || "Payment configuration could not be loaded.");
+      const { data: paystackConfig, error: configError } = await (supabase as any).rpc("get_paystack_public_config");
+      if (configError) throw new Error(configError.message || "Payment configuration could not be loaded.");
       const key = String(paystackConfig?.public_key || "").trim();
-      if (!key || !window.PaystackPop?.setup) throw new Error("Paystack checkout is not configured yet.");
-      const reference = `CP_BLAST_${Date.now()}_${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
+      if (!key || !window.PaystackPop?.setup) throw new Error("Cash checkout is not configured yet.");
+      const reference = `CP_BLAST_${Date.now()}_${Math.random().toString(36).slice(2,8).toUpperCase()}`;
       await new Promise<void>((resolve, reject) => {
         const popup = window.PaystackPop!.setup({
-          key,
-          email: email.trim(),
-          amount: Math.round(Number(plan.price_ngn) * 100),
-          currency: "NGN",
-          ref: reference,
-          metadata: { eventId: current.id, planId: plan.id, purpose: "event_blast", targetScope, targetCountry, targetState, targetCity, targetArea },
+          key, email:email.trim(), amount:Math.round(Number(plan.price_usd)*100), currency:"USD", ref:reference,
+          metadata:{eventId:current.id,planId:plan.id,purpose:"event_blast",targetScope,targetCountry,targetState,targetCity,targetArea},
           callback: async (response) => {
             if (response.status !== "success") { reject(new Error("Payment was not confirmed.")); return; }
-            const { error } = await supabase.functions.invoke("verify-event-blast-payment", { body: { reference: response.reference, eventId: current.id, planId: plan.id, targetScope, targetCountry, targetState, targetCity, targetArea } });
+            const { data, error } = await supabase.functions.invoke("verify-event-blast-payment", { body:{reference:response.reference,eventId:current.id,planId:plan.id,targetScope,targetCountry,targetState,targetCity,targetArea} });
             if (error) { reject(new Error(error.message || "Payment verification failed.")); return; }
-            toast.success("Event Blast is live 🚀", { description: `${plan.unique_reach.toLocaleString()} unique users · 60 minutes.` });
-            setBlastOpen(false);
-            resolve();
+            toast.success("Event Blast is live 🚀", { description: `${Number(data?.unique_reach ?? plan.unique_reach).toLocaleString()} target users · up to ${Number(data?.notification_cap ?? plan.unique_reach*2).toLocaleString()} notifications.` });
+            setBlastOpen(false); resolve();
           },
-          onClose: () => reject(new Error("Checkout closed before confirmation.")),
+          onClose:()=>reject(new Error("Checkout closed before confirmation.")),
         });
         popup.openIframe();
       });
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Event Blast payment failed.");
-    } finally {
-      setProcessing(false);
-    }
+    } catch (error) { toast.error(error instanceof Error ? error.message : "Event Blast payment failed."); }
+    finally { setProcessing(false); }
   };
 
   return (
