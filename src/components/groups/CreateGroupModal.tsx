@@ -28,10 +28,9 @@ export function CreateGroupModal({
   const navigate = useNavigate();
 
   const [name, setName] = useState("");
-  const [topic, setTopic] = useState("");
-  const [country, setCountry] = useState("");
-  const [city, setCity] = useState("");
-  const [area, setArea] = useState("");
+  const [about, setAbout] = useState("");
+  const [limitations, setLimitations] = useState("");
+  const [countryRestriction, setCountryRestriction] = useState("");
 
   useEffect(() => {
     if (!open) return;
@@ -52,8 +51,8 @@ export function CreateGroupModal({
       toast.error("Please provide a group name");
       return;
     }
-    if (!topic.trim()) {
-      toast.error("Please add a topic or purpose");
+    if (!about.trim()) {
+      toast.error("Please say what this circle is about");
       return;
     }
 
@@ -64,19 +63,18 @@ export function CreateGroupModal({
       return;
     }
 
-    const group = await createGroup(name.trim(), topic.trim(), country.trim(), "", city.trim(), area.trim());
+    const group = await createGroup(name.trim(), about.trim(), limitations.trim(), countryRestriction.trim());
     if (!group) return;
 
 
 
     setName("");
-    setTopic("");
-    setCountry("");
-    setCity("");
-    setArea("");
+    setAbout("");
+    setLimitations("");
+    setCountryRestriction("");
     onOpenChange(false);
 
-    // Keep the new group on the Groups page as a compact card.\n    // The full WhatsApp-style room opens only when the user taps the card.\n    void group;
+    void group;
   };
 
   return (
@@ -90,7 +88,7 @@ export function CreateGroupModal({
             <div>
               <DialogTitle className="font-display text-xl font-bold">Create Your Circle</DialogTitle>
               <DialogDescription className="text-xs text-muted-foreground">
-                A place for people to come together, sit in the circle, and talk. Rooms lock 24 hours after being opened.
+                Create a circle and start chatting.
               </DialogDescription>
             </div>
           </div>
@@ -110,32 +108,17 @@ export function CreateGroupModal({
             />
           </div>
 
-          {/* Location */}
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <div><label className="mb-1 block text-xs font-semibold text-muted-foreground">Country</label><Input value={country} onChange={(e) => setCountry(e.target.value)} placeholder="e.g. Nigeria" /></div>
-            <div><label className="mb-1 block text-xs font-semibold text-muted-foreground">City / Area</label><Input value={city} onChange={(e) => setCity(e.target.value)} placeholder="e.g. Port Harcourt" /></div>
-          </div>
-          <div><label className="mb-1 block text-xs font-semibold text-muted-foreground">Neighbourhood / Area (optional)</label><Input value={area} onChange={(e) => setArea(e.target.value)} placeholder="e.g. GRA" /></div>
-
-          {/* Topic */}
           <div>
-            <label className="mb-1 block text-xs font-semibold text-muted-foreground">
-              Topic / Purpose
-            </label>
-            <Textarea
-              rows={3}
-              value={topic}
-              onChange={(e) => setTopic(e.target.value)}
-              placeholder="What should anonymous members talk about here? Set ground rules and discussion prompts..."
-              required
-            />
+            <label className="mb-1 block text-xs font-semibold text-muted-foreground">What is this circle about?</label>
+            <Textarea rows={3} value={about} onChange={(e) => setAbout(e.target.value)} placeholder="What should people talk about here?" required />
           </div>
-
-          <div className="rounded-xl border border-border/70 bg-secondary/30 p-3 text-xs text-muted-foreground">
-            <p className="font-semibold text-foreground">⏳ Ephemeral 24-Hour Rule</p>
-            <p className="mt-0.5">
-              The group is created as a locked card. When 3 members have joined, it opens into the full group chat.
-            </p>
+          <div>
+            <label className="mb-1 block text-xs font-semibold text-muted-foreground">Limitations</label>
+            <Textarea rows={2} value={limitations} onChange={(e) => setLimitations(e.target.value)} placeholder="Rules or limits for this group (optional)" />
+          </div>
+          <div>
+            <label className="mb-1 block text-xs font-semibold text-muted-foreground">Country restriction</label>
+            <Input value={countryRestriction} onChange={(e) => setCountryRestriction(e.target.value)} placeholder="Leave empty for everyone" />
           </div>
 
           <DialogFooter className="pt-2">
