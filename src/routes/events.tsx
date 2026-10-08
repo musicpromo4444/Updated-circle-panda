@@ -77,8 +77,9 @@ function EventsPage() {
     }
   };
 
-  const openBlast = () => {
-    if (!current) return;
+  const openBlast = (eventOverride?: PandaEvent) => {
+    const event = eventOverride ?? current;
+    if (!event) return;
     setTargetScope("worldwide"); setTargetCountry(""); setTargetState(""); setTargetCity(""); setTargetArea(""); setBlastOpen(true);
     void (async () => {
       const { data, error } = await (supabase as any).rpc("get_event_promotion_status_secure");
@@ -160,7 +161,7 @@ function EventsPage() {
                 <p className="flex items-center gap-1.5"><Users className="size-3.5" /> <strong>ATTENDING {e.attendeeCount ?? 0} 👤</strong> · Interested {e.interestedCount ?? 0} · Responses {e.responseCount ?? 0} · Reach {e.reachCount ?? 0}</p>
               </div>
               {e.rsvp ? <p className="mt-3 rounded-lg bg-primary/15 py-1.5 text-center text-xs font-semibold text-primary">You're going 🐼</p> : null}
-              {e.ownerId && e.ownerId === currentUserId ? <div className="mt-3 flex items-center justify-between border-t border-border/60 pt-3"><span className="text-[11px] text-muted-foreground">Your event</span><span role="button" tabIndex={0} onClick={(ev) => { ev.stopPropagation(); setOpenEvent(e); setBlastOpen(false); window.setTimeout(() => openBlast(), 0); }} className="rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground">Boost Event</span></div> : null}
+              {e.ownerId && e.ownerId === currentUserId ? <div className="mt-3 flex items-center justify-between border-t border-border/60 pt-3"><span className="text-[11px] text-muted-foreground">Your event</span><span role="button" tabIndex={0} onClick={(ev) => { ev.stopPropagation(); setOpenEvent(e); openBlast(e); }} className="rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground">Boost Event</span></div> : null}
             </div>
             {(idx + 1) % 4 === 0 ? <StandardBannerAd index={Math.floor(idx / 4)} variant="feed-card" placement="events_inline" /> : null}
             </>
@@ -228,7 +229,7 @@ function EventsPage() {
                   <p className="font-bold">${Number(plan.price_usd).toFixed(2)}</p>
                 </div>
                 <div className="mt-3 flex flex-wrap gap-2">
-                  <Button
+                  {plan.bc_price ? <Button
                     size="sm"
                     variant="default"
                     disabled={processing || bcProcessing !== null}
@@ -247,7 +248,7 @@ function EventsPage() {
                     }}
                   >
                     {bcProcessing === plan.id ? "Starting…" : plan.bc_price ? `${Number(plan.bc_price).toLocaleString()} BC` : "BC unavailable"}
-                  </Button>
+                  </Button> : null}
                   <Button size="sm" variant="outline" disabled={processing} onClick={() => void payCashBlast(plan)}>
                     {processing ? "Processing…" : `Pay $${Number(plan.price_usd).toFixed(2)}`}
                   </Button>
