@@ -139,7 +139,7 @@ function GroupRoom() {
     if (currentUserId && currentUserId === userId) { window.dispatchEvent(new CustomEvent("circle-panda-self-message-blocked")); setMemberMenuOpen(null); return; }
     setMemberMenuOpen(null);
     try {
-      const result = await sendMessageRequest(userId, "");
+      const result = await sendMessageRequest(userId, "", "group", groupId);
       toast.success("Message request sent 💌", { description: "It is now in Messages while you wait for acceptance." });
       void navigate({ to: "/messages", search: { request: result.id } });
     } catch (e: any) {
