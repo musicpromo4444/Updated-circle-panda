@@ -504,6 +504,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [dbIsAdmin, setDbIsAdmin] = useState(false);
   const [hydrated, setHydrated] = useState(false);
   const hydratedUserRef = useRef<string | null>(null);
+  const authGenerationRef = useRef(0);
 
   const refreshCoins = useCallback(async () => {
     if (!dbUserId) return;
@@ -631,6 +632,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+      authGenerationRef.current += 1;
+      if (session?.user && !session.user.is_anonymous && typeof window !== "undefined") {
+        window.sessionStorage.removeItem("cp_auth_intent");
+      }
       const nextUserId = session?.user?.id ?? null;
       setDbUserId((previousUserId) => {
         if (previousUserId !== nextUserId) setHydrated(false);
@@ -663,7 +668,19 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     }, 3000);
     void (async () => {
       let session = (await supabase.auth.getSession()).data.session;
-      if (!session) session = (await supabase.auth.signInAnonymously()).data.session ?? null;
+      if (!session) {
+        const generationAtStart = authGenerationRef.current;
+        const hasAuthIntent = typeof window !== "undefined" && window.sessionStorage.getItem("cp_auth_intent") === "1";
+        if (hasAuthIntent) {
+          for (let attempt = 0; attempt < 20 && !session; attempt += 1) {
+            await new Promise((resolve) => window.setTimeout(resolve, 150));
+            session = (await supabase.auth.getSession()).data.session;
+          }
+        }
+        if (!session && generationAtStart === authGenerationRef.current && !hasAuthIntent) {
+          session = (await supabase.auth.signInAnonymously()).data.session ?? null;
+        }
+      }
       if (!session?.user || cancelled) return;
       setDbUserId(session.user.id);
       setDbIsAnonymous(Boolean(session.user.is_anonymous));
