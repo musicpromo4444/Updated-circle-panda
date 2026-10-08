@@ -660,7 +660,7 @@ function GroupRoom() {
         ) : group.openedAt === null ? (
           <div className="py-12 text-center text-sm text-muted-foreground">
             <Lock className="mx-auto mb-2 size-6" />
-            This room hasn't been opened yet.
+            This room is not available.
           </div>
         ) : (
           chatMessages.map((m) => (
@@ -710,7 +710,7 @@ function GroupRoom() {
                   </div>
                 ) : null}
                 {reactionOpen===m.id ? <div className="mt-1 flex gap-1 rounded-2xl border bg-background p-1 shadow-lg">
-                  {["❤️","😂","👍","😮","😢","🔥"].map(emoji=><button key={emoji} type="button" className="grid size-8 place-items-center rounded-full text-lg hover:bg-secondary" onClick={()=>void addReaction(m.id,emoji)}>{emoji}</button>)}
+                  {["❤️","😂","😮","😡","🐼"].map(emoji=><button key={emoji} type="button" className="grid size-8 place-items-center rounded-full text-lg hover:bg-secondary" onClick={()=>void addReaction(m.id,emoji)}>{emoji}</button>)}
                 </div> : null}
               </div>
             </div>
