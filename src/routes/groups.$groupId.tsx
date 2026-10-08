@@ -143,7 +143,7 @@ function GroupRoom() {
       toast.success("Message request sent 💌", { description: "It is now in Messages while you wait for acceptance." });
       void navigate({ to: "/messages", search: { request: result.id } });
     } catch (e: any) {
-      toast.error(e?.message ?? "Could not start messaging");
+      if (!isSelfMessageError(e)) toast.error(e?.message ?? "Could not start messaging");
     }
   };
 
