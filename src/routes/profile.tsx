@@ -55,6 +55,36 @@ export const Route = createFileRoute("/profile")({
 });
 
 function ProfilePage() {
+  const [avatar, setAvatar] = useState("🐼");
+  const [accountGender, setAccountGender] = useState<"male" | "female" | null>(null);
+  const [profileId, setProfileId] = useState<string | null>(null);
+  const [pageOrigin, setPageOrigin] = useState("");
+  const [displayName, setDisplayName] = useState("Your Panda");
+  const [age, setAge] = useState<number | null>(null);
+  const [dateOfBirth, setDateOfBirth] = useState("");
+  const [locationCountries, setLocationCountries] = useState<any[]>([]);
+  const [locationStates, setLocationStates] = useState<string[]>([]);
+  const [locationCities, setLocationCities] = useState<string[]>([]);
+  const [locationAreas, setLocationAreas] = useState<string[]>([]);
+  const [country, setCountry] = useState("");
+  const [stateProvince, setStateProvince] = useState("");
+  const [city, setCity] = useState("");
+  const [area, setArea] = useState("");
+  const [addressLine, setAddressLine] = useState("");
+  const [bio, setBio] = useState("");
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [profileSaved, setProfileSaved] = useState(false);
+  const [profileDetailsOpen, setProfileDetailsOpen] = useState(true);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [accountStatus, setAccountStatus] = useState<"active" | "deactivated" | "pending_deletion">("active");
+  const [deactivatedUntil, setDeactivatedUntil] = useState<string | null>(null);
+  const [deletionScheduledFor, setDeletionScheduledFor] = useState<string | null>(null);
+  const [resumeDate, setResumeDate] = useState("");
+  const [deletionConfirmOpen, setDeletionConfirmOpen] = useState(false);
+  const [settingsBusy, setSettingsBusy] = useState(false);
+  const [supportBusy, setSupportBusy] = useState(false);
+  const [genderSaving, setGenderSaving] = useState(false);
+  const [loadingLocations, setLoadingLocations] = useState(false);
   useEffect(() => {
     setPageOrigin(window.location.origin);
     void supabase.auth.getUser().then(async ({ data }) => {
@@ -272,7 +302,7 @@ function ProfilePage() {
               </div>
             </div>
             <Button type="button" variant="outline" size="sm" className="h-8 shrink-0 rounded-lg px-3 text-xs font-bold" onClick={() => setProfileDetailsOpen((v) => !v)}>
-              {profileDetailsOpen ? "Hide" : "View"}
+              {profileDetailsOpen ? "Hide" : "Edit"}
             </Button>
           </div>
           {profileDetailsOpen ? (
