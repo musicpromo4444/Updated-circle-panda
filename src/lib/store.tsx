@@ -1164,7 +1164,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     return created;
   }, [dbUserId, dbIsAnonymous, refreshGroupsAndEvents]);
 
-  const refreshEvents = useCallback(async () => {\n    await refreshGroupsAndEvents();\n  }, [refreshGroupsAndEvents]);\n\n  const startEventBlast = useCallback(async (eventId: string, planId = "starter", paymentMethod: "bc" | "cash" = "bc", targetScope = "worldwide", targetCountry = "", targetState = "", targetCity = "", targetArea = "") => {
+  const refreshEvents = useCallback(async () => {
+    await refreshGroupsAndEvents();
+  }, [refreshGroupsAndEvents]);
+
+  const startEventBlast = useCallback(async (eventId: string, planId = "starter", paymentMethod: "bc" | "cash" = "bc", targetScope = "worldwide", targetCountry = "", targetState = "", targetCity = "", targetArea = "") => {
     if (!dbUserId) { requestLogin("promote an event"); return false; }
     const { data, error } = await (supabase as any).rpc("start_event_blast_secure", { p_event_id:eventId,p_plan_id:planId,p_payment_method:paymentMethod,p_target_scope:targetScope,p_target_country:targetCountry || null,p_target_state:targetState || null,p_target_city:targetCity || null,p_target_area:targetArea || null });
     if (error) { toast.error(error.message ?? "Could not start Event Blast"); return false; }
