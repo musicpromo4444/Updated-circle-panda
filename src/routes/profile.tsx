@@ -7,8 +7,6 @@ import {
   Heart,
   MessageCircle,
   Bell,
-  Palette,
-  Sparkles,
   Star,
   Trophy,
   Users,
@@ -57,45 +55,6 @@ export const Route = createFileRoute("/profile")({
 });
 
 function ProfilePage() {
-  const HEADS = ["🐼", "🐼🎩", "🐼🧢", "🐼🎧", "🐼🎀"];
-  const GLASSES = ["", "🕶️", "👓", "🥽"];
-  const COSMETICS = ["", "✨", "🔥", "🌸", "💎", "⚡", "🦋", "🌈", "❤️", "💫"];
-  const [avatar, setAvatar] = useState("🐼");
-  const [accountGender, setAccountGender] = useState<"male" | "female" | null>(null);
-  const [profileId, setProfileId] = useState<string | null>(null);
-  const [pageOrigin, setPageOrigin] = useState("");
-  const [displayName, setDisplayName] = useState("Your Panda");
-  const [age, setAge] = useState<number | null>(null);
-  const [dateOfBirth, setDateOfBirth] = useState("");
-  const [locationCountries, setLocationCountries] = useState<any[]>([]);
-  const [locationStates, setLocationStates] = useState<string[]>([]);
-  const [locationCities, setLocationCities] = useState<string[]>([]);
-  const [locationAreas, setLocationAreas] = useState<string[]>([]);
-  const [country, setCountry] = useState("");
-  const [stateProvince, setStateProvince] = useState("");
-  const [city, setCity] = useState("");
-  const [area, setArea] = useState("");
-  const [addressLine, setAddressLine] = useState("");
-  const [bio, setBio] = useState("");
-  const [savingProfile, setSavingProfile] = useState(false);
-  const [profileSaved, setProfileSaved] = useState(false);
-  const [profileDetailsOpen, setProfileDetailsOpen] = useState(false);
-  const [cosmeticsOpen, setCosmeticsOpen] = useState(false);
-  const [avatarViewOpen, setAvatarViewOpen] = useState(false);
-  const [settingsOpen, setSettingsOpen] = useState(false);
-  const [accountStatus, setAccountStatus] = useState<"active" | "deactivated" | "pending_deletion">("active");
-  const [deactivatedUntil, setDeactivatedUntil] = useState<string | null>(null);
-  const [deletionScheduledFor, setDeletionScheduledFor] = useState<string | null>(null);
-  const [resumeDate, setResumeDate] = useState("");
-  const [deletionConfirmOpen, setDeletionConfirmOpen] = useState(false);
-  const [settingsBusy, setSettingsBusy] = useState(false);
-  const [supportBusy, setSupportBusy] = useState(false);
-  const [genderSaving, setGenderSaving] = useState(false);
-  const [loadingLocations, setLoadingLocations] = useState(false);
-  const [avatarHead, setAvatarHead] = useState("🐼");
-  const [avatarGlasses, setAvatarGlasses] = useState("");
-  const [avatarCosmetic, setAvatarCosmetic] = useState("");
-  const composeAvatar = (head=avatarHead, glasses=avatarGlasses, cosmetic=avatarCosmetic) => `${head}${glasses}${cosmetic}`;
   useEffect(() => {
     setPageOrigin(window.location.origin);
     void supabase.auth.getUser().then(async ({ data }) => {
@@ -106,13 +65,7 @@ function ProfilePage() {
       }
       const { data: profile } = await (supabase as any).from("profiles").select("display_name,avatar_url,gender,age,date_of_birth,country,state_province,city,area,address_line,bio").eq("id", data.user.id).maybeSingle();
       if (profile?.display_name) setDisplayName(profile.display_name);
-      if (profile?.avatar_url) {
-        const saved = String(profile.avatar_url);
-        setAvatar(saved);
-        setAvatarHead(saved.includes("🎩") ? "🐼🎩" : saved.includes("🧢") ? "🐼🧢" : saved.includes("🎧") ? "🐼🎧" : saved.includes("🎀") ? "🐼🎀" : "🐼");
-        setAvatarGlasses(saved.includes("🕶️") ? "🕶️" : saved.includes("👓") ? "👓" : saved.includes("🥽") ? "🥽" : "");
-        setAvatarCosmetic(saved.includes("✨") ? "✨" : saved.includes("🔥") ? "🔥" : saved.includes("🌸") ? "🌸" : saved.includes("💎") ? "💎" : saved.includes("⚡") ? "⚡" : saved.includes("🦋") ? "🦋" : saved.includes("🌈") ? "🌈" : "");
-      }
+      if (profile?.avatar_url) setAvatar(String(profile.avatar_url));
       if (profile?.age) setAge(Number(profile.age));
       if (profile?.date_of_birth) setDateOfBirth(String(profile.date_of_birth));
       if (profile?.country) setCountry(profile.country);
@@ -224,36 +177,6 @@ function ProfilePage() {
     window.location.replace("/");
   };
 
-  const refreshProfileAvatar = async () => {
-    if (!profileId) return;
-    const { data: profile, error } = await (supabase as any)
-      .from("profiles")
-      .select("avatar_url")
-      .eq("id", profileId)
-      .maybeSingle();
-    if (error) {
-      toast.error(error.message ?? "Could not refresh Panda avatar");
-      return;
-    }
-    if (profile?.avatar_url) {
-      const saved = String(profile.avatar_url);
-      setAvatar(saved);
-      setAvatarHead(saved.includes("🎩") ? "🐼🎩" : saved.includes("🧢") ? "🐼🧢" : saved.includes("🎧") ? "🐼🎧" : saved.includes("🎀") ? "🐼🎀" : "🐼");
-      setAvatarGlasses(saved.includes("🕶️") ? "🕶️" : saved.includes("👓") ? "👓" : saved.includes("🥽") ? "🥽" : "");
-      setAvatarCosmetic(saved.includes("✨") ? "✨" : saved.includes("🔥") ? "🔥" : saved.includes("🌸") ? "🌸" : saved.includes("💎") ? "💎" : saved.includes("⚡") ? "⚡" : saved.includes("🦋") ? "🦋" : saved.includes("🌈") ? "🌈" : saved.includes("❤️") ? "❤️" : saved.includes("💫") ? "💫" : "");
-    }
-  };
-
-  const saveAvatar = async (next:string) => {
-    const { data, error } = await (supabase as any).rpc("set_panda_avatar_secure", { p_avatar: next });
-    if (error) {
-      toast.error(error.message ?? "Avatar could not be updated");
-      return false;
-    }
-    setAvatar(String(data ?? next));
-    window.dispatchEvent(new CustomEvent("circle-panda-avatar-refresh", { detail: { avatar: String(data ?? next) } }));
-    return true;
-  };
   const { coins, reputation, level, xp, posts, threads, groups, mySpotlight, isVip, vipExpiresAt } =
     useStore();
   const pandaRank = pandaProgress(xp);
@@ -298,14 +221,6 @@ function ProfilePage() {
           </div>
         </div>
 
-        <section className="mt-4 rounded-2xl border border-border bg-secondary/20 p-3">
-          <div className="flex items-center gap-3">
-            <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-primary/10 text-2xl">🐼</span>
-            <div className="min-w-0 flex-1"><h2 className="font-display text-sm font-semibold">Panda Avatar</h2><p className="text-[10px] text-muted-foreground">Your built-in Panda look</p></div>
-            <div className="flex gap-2"><Button type="button" variant="outline" size="sm" className="h-8 rounded-lg px-3 text-xs font-bold" onClick={() => setAvatarViewOpen(true)}>View</Button><Button type="button" size="sm" className="h-8 rounded-lg px-3 text-xs font-bold" onClick={() => setCosmeticsOpen(true)}>Edit</Button></div>
-          </div>
-        </section>
-
         <div className="mt-4">
           <div className="flex items-center justify-between text-xs text-muted-foreground">
             <span>{`Panda Rank · ${pandaRank.current.name}`}</span>
@@ -321,35 +236,6 @@ function ProfilePage() {
           </div>
         </div>
       </section>
-
-      {cosmeticsOpen ? (
-        <section className="panda-panel mt-4 rounded-2xl p-4">
-          <div className="flex items-center justify-between gap-3">
-            <div><h2 className="font-display text-lg font-semibold">Panda Avatar Studio</h2><p className="text-xs text-muted-foreground">Choose your built-in Panda head, glasses and cosmetic.</p></div>
-            <Button variant="outline" size="sm" className="h-8 rounded-lg px-3 text-xs font-bold" onClick={() => { void refreshProfileAvatar(); setCosmeticsOpen(false); }}>Done</Button>
-          </div>
-          <div className="mt-4 grid gap-4">
-            {[
-              ["Head / hat", HEADS, avatarHead, setAvatarHead],
-              ["Eyeglasses", GLASSES, avatarGlasses, setAvatarGlasses],
-              ["Cosmetics", COSMETICS, avatarCosmetic, setAvatarCosmetic],
-            ].map(([label, values, selected, setter]: any) => (
-              <div key={label as string}>
-                <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{label as string}</p>
-                <div className="flex flex-wrap gap-2">
-                  {(values as string[]).map((value) => (
-                    <button key={`${label}-${value}`} type="button" onClick={() => { setter(value); const next = composeAvatar(label === "Head / hat" ? value : avatarHead, label === "Eyeglasses" ? value : avatarGlasses, label === "Cosmetics" ? value : avatarCosmetic); void saveAvatar(next); }} className={`grid min-h-11 min-w-11 place-items-center rounded-xl border px-2 text-xl transition-transform hover:scale-105 ${selected===value?"border-primary bg-primary/10":"border-border bg-secondary/40"}`}>{value || "None"}</button>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-          <div className="mt-4 flex items-center gap-3 rounded-2xl border border-primary/20 bg-primary/5 p-3">
-            <div className="grid size-20 shrink-0 place-items-center rounded-2xl bg-secondary"><PandaAvatar avatar={avatar} size="lg" /></div>
-            <div><p className="font-semibold">Current Panda</p><p className="text-xs text-muted-foreground">Your selected look is saved to your profile.</p></div>
-          </div>
-        </section>
-      ) : null}
 
       <ProfileProgressCard level={level} xp={xp} />
 
@@ -641,13 +527,6 @@ function ProfilePage() {
       </Dialog>
       <Dialog open={deletionConfirmOpen} onOpenChange={setDeletionConfirmOpen}>
         <DialogContent className="max-w-sm rounded-3xl"><DialogHeader><DialogTitle>Delete your Panda account?</DialogTitle><DialogDescription>Your account remains recoverable for 30 days. After that, it is permanently deleted. You can cancel before the deadline.</DialogDescription></DialogHeader><div className="grid grid-cols-2 gap-2"><Button variant="outline" onClick={() => setDeletionConfirmOpen(false)}>Keep Account</Button><Button variant="destructive" disabled={settingsBusy} onClick={() => void (async () => { setSettingsBusy(true); const { data, error } = await (supabase as any).rpc("request_account_deletion_secure"); setSettingsBusy(false); if (error) { toast.error(error.message); return; } setAccountStatus(data?.status ?? "pending_deletion"); setDeletionScheduledFor(data?.deletion_scheduled_for ?? null); setDeletionConfirmOpen(false); toast.success("Deletion scheduled. You have 30 days to change your mind."); })()}>Delete in 30 Days</Button></div></DialogContent>
-      </Dialog>
-      <Dialog open={avatarViewOpen} onOpenChange={setAvatarViewOpen}>
-        <DialogContent className="max-w-sm rounded-3xl">
-          <DialogHeader><DialogTitle>Your Panda Avatar</DialogTitle><DialogDescription>Your built-in Panda avatar is private to your profile. Use Edit to change the look.</DialogDescription></DialogHeader>
-          <div className="grid place-items-center py-5"><div className="grid size-36 place-items-center rounded-3xl bg-secondary"><PandaAvatar avatar={avatar} size="lg" /></div></div>
-          <Button onClick={() => { setAvatarViewOpen(false); setCosmeticsOpen(true); }}>Edit Avatar</Button>
-        </DialogContent>
       </Dialog>
     </AppShell>
   );
