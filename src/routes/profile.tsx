@@ -468,7 +468,10 @@ function ProfilePage() {
           setSavingProfile(false);
           if (error) { toast.error(error.message ?? "Profile could not be saved"); return; }
           setAge(data?.age ? Number(data.age) : age); setDateOfBirth(data?.date_of_birth ?? dateOfBirth); setCountry(data?.country ?? country); setStateProvince(data?.state_province ?? stateProvince);
-          setCity(data?.city ?? city); setArea(data?.area ?? area); setAddressLine(data?.address_line ?? addressLine); setProfileSaved(Boolean((data?.date_of_birth ?? dateOfBirth) && (data?.country ?? country)));
+          setCity(data?.city ?? city); setArea(data?.area ?? area); setAddressLine(data?.address_line ?? addressLine);
+          const saved = Boolean((data?.date_of_birth ?? dateOfBirth) && (data?.country ?? country));
+          setProfileSaved(saved);
+          if (saved) setProfileDetailsOpen(false);
           toast.success("Profile details saved 🐼");
         })()}>
           {savingProfile ? "Saving…" : "Save profile details"}
