@@ -124,14 +124,19 @@ export function ConfessionsPage() {
 
   const chooseFile = () => fileInputRef.current?.click();
   const openCrushUpload = () => {
+    if (!accountGender) {
+      setUploadOpen(false);
+      setGenderPromptOpen(true);
+      return;
+    }
     setUploadOpen(true);
-    if (!accountGender) setGenderPromptOpen(true);
   };
   const saveGender = async (gender: "male" | "female") => {
     const { data, error } = await (supabase as any).rpc("set_profile_gender_secure", { p_gender: gender });
     if (error) return toast.error(error.message ?? "Gender could not be saved");
     setAccountGender(data === "male" || data === "female" ? data : gender);
     setGenderPromptOpen(false);
+    setUploadOpen(true);
     toast.success("Profile gender saved. You can continue your WCW/MCM upload.");
   };
 
