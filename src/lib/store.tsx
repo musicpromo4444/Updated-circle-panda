@@ -1407,6 +1407,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       ),
       mySpotlight: state.spotlights.find((w) => w.name === "You (anonymous)") ?? null,
       toggleRsvp,
+      toggleEventInterest,
       buyTicket,
       myTicketCount,
       spinWheel,
