@@ -7,6 +7,7 @@ import { StandardBannerAd } from "@/components/ads/StandardBannerAd";
 import { VipLoungeCard } from "@/components/groups/VipLoungeCard";
 import { CreateGroupModal } from "@/components/groups/CreateGroupModal";
 import { useStore, type GroupChat } from "@/lib/store";
+import { requireCompleteProfile } from "@/lib/profileGate";
 
 export const Route = createFileRoute("/groups/")({
   head: () => ({
@@ -42,7 +43,7 @@ function GroupCard({ group }: { group: GroupChat }) {
     } catch {}
   };
 
-  const openRoom = () => void navigate({ to: "/groups/$groupId", params: { groupId: group.id } });
+  const openRoom = async () => { if (!(await requireCompleteProfile("open a group"))) return; void navigate({ to: "/groups/$groupId", params: { groupId: group.id } }); };
 
   return (
     <section className={`panda-panel rounded-2xl p-4 transition-all duration-300 ${live ? "" : "opacity-75"}`}>
@@ -84,7 +85,7 @@ function GroupCard({ group }: { group: GroupChat }) {
 
         <div className="mt-3 grid grid-cols-2 gap-2">
           <Button variant={live ? "secondary" : "default"}
-            onClick={() => group.memberRole ? openRoom() : joinGroup(group.id)}
+            onClick={async () => { if (!(await requireCompleteProfile(group.memberRole ? "open a group" : "join a group"))) return; if (group.memberRole) await openRoom(); else joinGroup(group.id); }}
             disabled={Boolean(group.joinPending)}
             className={!group.memberRole && !group.joinPending ? "bg-primary text-primary-foreground shadow-lg shadow-primary/30 ring-1 ring-primary/50 animate-pulse" : ""}>
             <Users className="size-4" /> {group.memberRole ? "Open Group" : group.joinPending ? "Request Sent" : "Join Group"}
@@ -119,7 +120,7 @@ function GroupsPage() {
       <div className="mb-5">
         <Button
           size="lg"
-          onClick={() => setCreateGroupOpen(true)}
+          onClick={async () => { if (await requireCompleteProfile("create a group")) setCreateGroupOpen(true); }}
           className="w-full gap-2.5 rounded-2xl py-6 text-sm sm:text-base font-bold shadow-lg shadow-primary/20 transition-all hover:opacity-95 active:scale-[0.99] cursor-pointer"
         >
           <PlusCircle className="size-5" />
