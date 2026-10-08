@@ -93,6 +93,8 @@ function CrushPage() {
   const [voteAdBusy, setVoteAdBusy] = useState(false);
   const [liveNominees, setLiveNominees] = useState<any[]>([]);
   const [liveNomineesLoaded, setLiveNomineesLoaded] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
   const [mediaError, setMediaError] = useState<string | null>(null);
   const [sharing, setSharing] = useState(false);
   const [feedAdSequence, setFeedAdSequence] = useState<number[]>([5, 5, 10, 10]);
@@ -116,6 +118,7 @@ function CrushPage() {
 
   const refreshLiveNominees = async () => {
     const currentUid = (await supabase.auth.getUser()).data.user?.id;
+    setCurrentUserId(currentUid ?? null);
     const { data: cycle } = await (supabase as any)
       .from("crush_cycles")
       .select("id,kind,starts_at,ends_at,feed_ad_config,feed_ad_sequence")
@@ -218,6 +221,7 @@ function CrushPage() {
     [liveNominees, liveNomineesLoaded, nominees, kind],
   );
   const card = pool[index] ?? null;
+  const isCreator = Boolean(card && currentUserId && card.userId === currentUserId);
   const ranked = useMemo(() => [...pool].sort((a, b) => b.votes - a.votes), [pool]);
 
   useEffect(() => {
@@ -410,6 +414,24 @@ function CrushPage() {
     }
   };
 
+  const deleteSubmission = async () => {
+    if (!card || !isCreator || deleting) return;
+    setDeleting(true);
+    try {
+      const { data, error } = await (supabase as any).rpc("delete_crush_submission", { p_nominee_id: card.id });
+      if (error) throw error;
+      if (data?.success === false) throw new Error(data?.message ?? "Could not delete this submission.");
+      toast.success("Submission deleted.");
+      const removedId = card.id;
+      setLiveNominees((rows) => rows.filter((row: any) => row.id !== removedId));
+      setIndex((value) => Math.max(0, Math.min(value, pool.length - 2)));
+    } catch (e: any) {
+      toast.error(e?.message ?? "Could not delete this submission.");
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   const sendComment = async () => {
     if (!card || card.mine || !comment.trim() || sending) return;
     const recipientId = String((card as any).userId ?? "");
@@ -531,21 +553,25 @@ function CrushPage() {
               <Button variant="ghost" size="icon" className="shrink-0 rounded-full bg-black/45 text-white hover:bg-black/60" onClick={() => void shareCrush()} disabled={sharing} aria-label="Share picture">
                 <Share2 className="size-5" />
               </Button>
-              <Button variant="ghost" size="icon" className="shrink-0 rounded-full bg-black/45 text-white hover:bg-black/60" onClick={() => setShowLeaderboard(true)}>
-                <Trophy className="size-5" />
-              </Button>
+{!isCreator ? (
+                <Button variant="ghost" size="icon" className="shrink-0 rounded-full bg-black/45 text-white hover:bg-black/60" onClick={() => setShowLeaderboard(true)}>
+                  <Trophy className="size-5" />
+                </Button>
+              ) : null}
             </div>
 
             <div className="absolute inset-x-0 top-[calc(env(safe-area-inset-top)+4.5rem)] z-20 flex items-center justify-between px-3">
               <div className="rounded-full bg-black/60 px-3 py-1.5 text-xs font-black backdrop-blur-md">Votes {card.votes}</div>
-              <button
-                type="button"
-                onClick={() => void vote()}
-                className="flex items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-xs font-black text-primary-foreground shadow-xl active:scale-95"
-              >
-                <Heart className="size-4 fill-current" />
-                Vote {freeVotesLeft > 0 ? "Free" : ""}
-              </button>
+{!isCreator ? (
+                <button
+                  type="button"
+                  onClick={() => void vote()}
+                  className="flex items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-xs font-black text-primary-foreground shadow-xl active:scale-95"
+                >
+                  <Heart className="size-4 fill-current" />
+                  Vote {freeVotesLeft > 0 ? "Free" : ""}
+                </button>
+              ) : null}
             </div>
 
             <button aria-label="Previous picture" onClick={() => next(-1)} className="absolute left-2 top-1/2 z-20 grid size-10 -translate-y-1/2 place-items-center rounded-full bg-black/40 text-white backdrop-blur-sm">
@@ -563,12 +589,19 @@ function CrushPage() {
                 </p>
               </div>
             </div>
-            {mineReaction ? (
+            {!isCreator && mineReaction ? (
               <div className="absolute bottom-[calc(env(safe-area-inset-bottom)+5.25rem)] right-4 z-30 grid size-12 place-items-center rounded-full border border-white/20 bg-black/75 text-2xl shadow-2xl backdrop-blur-md" aria-label={`Your reaction: ${mineReaction}`}>
                 {mineReaction}
               </div>
             ) : null}
 
+            {isCreator ? (
+              <div className="absolute inset-x-0 bottom-0 z-30 flex items-center justify-end border-t border-white/10 bg-black/80 px-3 pt-2 backdrop-blur-xl pb-[max(0.65rem,env(safe-area-inset-bottom))]">
+                <Button type="button" variant="destructive" size="sm" disabled={deleting} onClick={() => void deleteSubmission()}>
+                  {deleting ? "Deleting…" : "Delete"}
+                </Button>
+              </div>
+            ) : (
             <div className="absolute inset-x-0 bottom-0 z-30 border-t border-white/10 bg-black/80 px-3 pt-2 backdrop-blur-xl pb-[max(0.65rem,env(safe-area-inset-bottom))]">
               {reactionOpen ? (
                 <div className="mb-2 flex items-center justify-end">
@@ -632,11 +665,13 @@ function CrushPage() {
               )}
             </div>
 
-            <div className="absolute bottom-[calc(env(safe-area-inset-bottom)+4.7rem)] right-3 z-20">
-              <button type="button" onClick={() => setReportOpen(true)} aria-label="Report picture" className="grid size-9 place-items-center rounded-full bg-black/45 text-white/75 backdrop-blur-md">
-                <Flag className="size-4" />
-              </button>
-            </div>
+            {!isCreator ? (
+              <div className="absolute bottom-[calc(env(safe-area-inset-bottom)+4.7rem)] right-3 z-20">
+                <button type="button" onClick={() => setReportOpen(true)} aria-label="Report picture" className="grid size-9 place-items-center rounded-full bg-black/45 text-white/75 backdrop-blur-md">
+                  <Flag className="size-4" />
+                </button>
+              </div>
+            ) : null}
           </div>
         ) : (
           <div className="grid size-full place-items-center bg-black p-8 text-center">
