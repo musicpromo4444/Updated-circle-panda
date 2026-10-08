@@ -123,13 +123,26 @@ export function ConfessionsPage() {
   }, []);
 
   const chooseFile = () => fileInputRef.current?.click();
-  const openCrushUpload = () => {
-    if (!accountGender) {
-      setUploadOpen(false);
-      setGenderPromptOpen(true);
+  const openCrushUpload = async () => {
+    if (accountGender) {
+      setUploadOpen(true);
       return;
     }
-    setUploadOpen(true);
+    // Re-read the locked profile gender before showing the selector. This avoids
+    // a race on first tap while the page is still loading the profile.
+    const { data, error } = await (supabase as any).rpc("get_my_profile_gender");
+    if (error) {
+      toast.error(error.message ?? "Could not load your profile gender");
+      return;
+    }
+    if (data === "male" || data === "female") {
+      setAccountGender(data);
+      setGenderPromptOpen(false);
+      setUploadOpen(true);
+      return;
+    }
+    setUploadOpen(false);
+    setGenderPromptOpen(true);
   };
   const saveGender = async (gender: "male" | "female") => {
     const { data, error } = await (supabase as any).rpc("set_profile_gender_secure", { p_gender: gender });
