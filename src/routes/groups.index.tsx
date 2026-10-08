@@ -16,12 +16,12 @@ export const Route = createFileRoute("/groups/")({
       {
         name: "description",
         content:
-          "Anonymous group chats stay as cards until 3 members join, then open into a full-screen chat.",
+          "Anonymous group chats open as full-screen rooms for members.",
       },
       { property: "og:title", content: "Group Chats — Circle Panda" },
       {
         property: "og:description",
-        content: "Join anonymous groups and open the full chat when 3 members are present.",
+        content: "Join anonymous groups and chat in a full-screen room.",
       },
     ],
   }),
@@ -76,9 +76,7 @@ function GroupCard({ group }: { group: GroupChat }) {
             <Lock className="mx-auto mb-2 size-5 text-muted-foreground" />
             <p className="text-sm font-medium">Group locked</p>
             <p className="mt-1 text-xs text-muted-foreground">
-              {group.members < 3
-                ? `This group has ${group.members} member${group.members === 1 ? "" : "s"}. 3 members are needed before the group can start.`
-                : "The group is ready to open."}
+              {group.memberRole ? "You are a member of this group." : "Join this group to enter the chat."}
             </p>
           </>
         )}
