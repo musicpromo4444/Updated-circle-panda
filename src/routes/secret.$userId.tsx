@@ -134,7 +134,7 @@ function SecretProfilePage() {
       toast.success("Message request sent 💌", { description: "It is now in Messages while you wait for acceptance." });
       void navigate({ to: "/messages", search: { request: result.id } });
     } catch (e: any) {
-      toast.error(e?.message ?? "Message request could not be sent");
+      if (!isSelfMessageError(e)) toast.error(e?.message ?? "Message request could not be sent");
     } finally {
       setSendingMessage(false);
     }
