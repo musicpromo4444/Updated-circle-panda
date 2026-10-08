@@ -7,7 +7,7 @@ import { useStore, type GroupChat } from "@/lib/store";
 import { RewardedAdModal } from "@/components/RewardedAdModal";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { sendMessageRequest } from "@/lib/messageRequests";
+import { sendMessageRequest, isSelfMessageError } from "@/lib/messageRequests";
 import { useActionSuccess } from "@/components/ActionSuccessFeedback";
 
 export const Route = createFileRoute("/groups/$groupId")({
