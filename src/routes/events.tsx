@@ -253,11 +253,11 @@ function EventsPage() {
                     disabled={processing || bcProcessing !== null}
                     onClick={() => {
                       if (!plan.bc_price) return;
-                      if (!current) return;
+                      if (!blastEvent) return;
                       setBcProcessing(plan.id);
                       void (async () => {
                         try {
-                          const ok = await startEventBlast(current.id, plan.id, "bc", targetScope, targetCountry, targetState, targetCity, targetArea);
+                          const ok = await startEventBlast(blastEvent.id, plan.id, "bc", targetScope, targetCountry, targetState, targetCity, targetArea);
                           if (ok) setBlastOpen(false);
                         } finally {
                           setBcProcessing(null);
@@ -289,7 +289,7 @@ function EventsPage() {
           <p className="text-sm text-muted-foreground">Would you like to boost your event to reach a lot of people?</p>
           <div className="grid grid-cols-2 gap-2 pt-2">
             <Button variant="outline" onClick={() => { setBoostPromptOpen(false); setCreatedEvent(null); setOpenEvent(null); }}>No</Button>
-            <Button onClick={() => { setBoostPromptOpen(false); if (createdEvent) { setOpenEvent(createdEvent); setBlastOpen(true); } }}>Yes</Button>
+            <Button onClick={() => { setBoostPromptOpen(false); if (createdEvent) { setOpenEvent(createdEvent); openBlast(createdEvent); } }}>Yes</Button>
           </div>
         </DialogContent>
       </Dialog>
