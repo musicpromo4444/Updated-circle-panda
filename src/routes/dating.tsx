@@ -111,12 +111,10 @@ function DatingPage() {
   const [openMatch, setOpenMatch] = useState<Match | null>(null);
   const [profilePage, setProfilePage] = useState(0);
   const [registerOpen, setRegisterOpen] = useState(false);
-  const openDatingRegistration = async () => {
-    const { data } = await supabase.auth.getUser();
-    if (!data.user || data.user.is_anonymous) {
-      requestLogin("register for Dating");
-      return;
-    }
+  const openDatingRegistration = () => {
+    // Open the registration card immediately. The modal performs the
+    // authentication/profile readiness check itself, so a slow auth request
+    // cannot make the CTA appear unclickable.
     setRegisterOpen(true);
   };
   const [sent, setSent] = useState<Record<string,string>>({});
