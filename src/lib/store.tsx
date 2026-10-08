@@ -1170,7 +1170,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     if (error) { toast.error(error.message ?? "Could not start Event Blast"); return false; }
     const charged = Number(data?.bc_cost ?? 0);
     if (charged > 0) setState(s=>({...s,coins:Math.max(0,s.coins-charged)}));
-    toast.success("Event Blast is live 🚀",{description:`${Number(data?.unique_reach??500).toLocaleString()} target users + up to ${Number(data?.notification_cap ?? Number(data?.unique_reach ?? 500)*2).toLocaleString()} notifications.`});
+    toast.success("Event Blast is live 🚀",{description:`${Number(data?.unique_reach??100).toLocaleString()} target users + up to ${Number(data?.notification_cap ?? Number(data?.unique_reach ?? 100)*2).toLocaleString()} notifications.`});
     await refreshGroupsAndEvents();
     return true;
   }, [dbUserId, refreshGroupsAndEvents]);
