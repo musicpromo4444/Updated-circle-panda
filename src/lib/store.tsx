@@ -482,7 +482,7 @@ type StoreValue = State & {
   nextSpinAt: number | null;
   activateVip: (days: number) => void;
   createGroup: (name: string, topic: string, country?: string, stateProvince?: string, city?: string, area?: string) => Promise<GroupChat | null>;
-  createEvent: (event: Omit<PandaEvent, "id" | "rsvp">) => PandaEvent;
+  createEvent: (event: Omit<PandaEvent, "id" | "rsvp">) => Promise<PandaEvent | null>;
   requestDatingMatch: (userId: string) => Promise<{ status: string; requestId?: string; threadId?: string } | null>;
   searchDatingProfiles: (filters: { ageMin?: number; ageMax?: number; country?: string; state?: string; location?: string; gender?: string; relationshipGoal?: string; lookingFor?: string; lifestyle?: string; smoking?: string; drinking?: string; children?: string; education?: string; heightMin?: number; heightMax?: number; zodiac?: string; sameCountryOnly?: boolean }) => Promise<boolean>;
   refreshDatingData: () => Promise<boolean>;
@@ -1141,40 +1141,27 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     return group;
   }, [dbUserId, dbIsAnonymous, refreshGroupsAndEvents]);
 
-  const createEvent = useCallback((eventData: Omit<PandaEvent, "id" | "rsvp">): PandaEvent => {
-    const localId = crypto.randomUUID();
-    const optimistic: PandaEvent = { ...eventData, id: localId, rsvp: false };
-    if (!dbUserId || dbIsAnonymous) { requestLogin("create an event"); return optimistic; }
-    setState((s) => ({ ...s, events: [optimistic, ...s.events] }));
-    void (async () => {
-      const startsAt = eventData.date ? new Date(eventData.date).toISOString() : new Date(Date.now() + 60 * 60 * 1000).toISOString();
-      const durationMinutes = Math.max(15, Math.min(10080, Number(eventData.durationMinutes) || 120));
-      const endsAt = new Date(new Date(startsAt).getTime() + durationMinutes * 60 * 1000).toISOString();
-      const { data, error } = await (supabase as any).rpc("create_event_secure", {
-        p_title:eventData.title,p_description:eventData.details || eventData.blurb,p_location:eventData.place,p_starts_at:startsAt,p_ends_at:endsAt,
-        p_category:eventData.tag,p_entry_fee_bc:0,p_duration_minutes:durationMinutes,p_reach_scope:eventData.reachScope ?? "worldwide",
-        p_reach_country:eventData.reachCountry ?? null,p_reach_state:eventData.reachState ?? null,p_reach_city:eventData.reachCity ?? null,p_reach_area:eventData.reachArea ?? null,
-        p_entry_fee_amount:Math.max(0,Number(eventData.cost)||0),p_entry_fee_currency:eventData.currency ?? "NGN",p_venue_name:eventData.venueName ?? null,
-        p_address_line:eventData.addressLine ?? null,p_country:eventData.country ?? null,p_state_province:eventData.stateProvince ?? null,p_city:eventData.city ?? null,p_area:eventData.area ?? null,
-        p_latitude:eventData.latitude ?? null,p_longitude:eventData.longitude ?? null,p_cover_url:eventData.coverUrl ?? null,
-      });
-      if (error) { 
-        setState(s=>({...s,events:s.events.filter(e=>e.id!==localId)}));
-        toast.error(error.message ?? "Could not publish event"); 
-        return; 
-      }
-      const { data: savedEvent, error: verifyError } = await (supabase as any).from("events").select("id,is_published").eq("id",data.id).maybeSingle();
-      if (verifyError || !savedEvent) {
-        setState(s=>({...s,events:s.events.filter(e=>e.id!==localId)}));
-        toast.error("The event could not be confirmed in the database, so it was not marked as published.");
-        return;
-      }
-      setState(s=>({...s,events:s.events.map(e=>e.id===localId?{...optimistic,id:data.id}:e)}));
-      void refreshGroupsAndEvents();
-      toast.success("Event published 🐼");
-    })();
-    return optimistic;
-  }, [dbUserId, dbIsAnonymous, refreshCoins, refreshGroupsAndEvents]);
+  const createEvent = useCallback(async (eventData: Omit<PandaEvent, "id" | "rsvp">): Promise<PandaEvent | null> => {
+    if (!dbUserId || dbIsAnonymous) { requestLogin("create an event"); return null; }
+    if (!(await requireCompleteProfile("create an event"))) return null;
+    const startsAt = eventData.date ? new Date(eventData.date).toISOString() : new Date(Date.now() + 60 * 60 * 1000).toISOString();
+    const durationMinutes = Math.max(15, Math.min(10080, Number(eventData.durationMinutes) || 120));
+    const endsAt = new Date(new Date(startsAt).getTime() + durationMinutes * 60 * 1000).toISOString();
+    const { data, error } = await (supabase as any).rpc("create_event_secure", {
+      p_title:eventData.title,p_description:eventData.details || eventData.blurb,p_location:eventData.place,p_starts_at:startsAt,p_ends_at:endsAt,
+      p_category:eventData.tag,p_entry_fee_bc:0,p_duration_minutes:durationMinutes,p_reach_scope:eventData.reachScope ?? "worldwide",
+      p_reach_country:eventData.reachCountry ?? null,p_reach_state:eventData.reachState ?? null,p_reach_city:eventData.reachCity ?? null,p_reach_area:eventData.reachArea ?? null,
+      p_entry_fee_amount:Math.max(0,Number(eventData.cost)||0),p_entry_fee_currency:eventData.currency ?? "NGN",p_venue_name:eventData.venueName ?? null,
+      p_address_line:eventData.addressLine ?? null,p_country:eventData.country ?? null,p_state_province:eventData.stateProvince ?? null,p_city:eventData.city ?? null,p_area:eventData.area ?? null,
+      p_latitude:eventData.latitude ?? null,p_longitude:eventData.longitude ?? null,p_cover_url:eventData.coverUrl ?? null,
+    });
+    if (error || !data?.id) { toast.error(error?.message ?? "Could not publish event"); return null; }
+    const created: PandaEvent = { ...eventData, id:String(data.id), rsvp:false, attendeeCount:0, interestedCount:0, responseCount:0, reachCount:0, ownerId:dbUserId };
+    setState((s) => ({ ...s, events:[created, ...s.events] }));
+    void refreshGroupsAndEvents();
+    toast.success("Event published 🐼");
+    return created;
+  }, [dbUserId, dbIsAnonymous, refreshGroupsAndEvents]);
 
   const startEventBlast = useCallback(async (eventId: string, planId = "starter", paymentMethod: "bc" | "cash" = "bc", targetScope = "worldwide", targetCountry = "", targetState = "", targetCity = "", targetArea = "") => {
     if (!dbUserId) { requestLogin("promote an event"); return false; }
