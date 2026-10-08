@@ -463,6 +463,7 @@ type StoreValue = State & {
   freeVotesLeft: number;
   mySpotlight: Spotlight | null;
   toggleRsvp: (id: string) => void;
+  toggleEventInterest: (id: string) => Promise<void>;
   startEventBlast: (eventId: string, planId?: string, paymentMethod?: "bc" | "cash", targetScope?: "worldwide" | "country" | "state" | "city" | "area", targetCountry?: string, targetState?: string, targetCity?: string, targetArea?: string) => Promise<boolean>;
   buyTicket: (draw: DrawKind) => boolean;
   myTicketCount: (draw: DrawKind) => number;
@@ -554,7 +555,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       (supabase as any).rpc("get_group_summaries", { p_country:"", p_state_province:"", p_city:"", p_area:"" }),
       (supabase as any).from("group_settings").select("group_id,edit_group_info,send_messages,approve_new_members"),
       (supabase as any).from("group_messages").select("id,group_id,body,created_at,sender_id,reply_to_id,media_type,media_path,view_once").order("created_at", {ascending:true}).limit(1000),
-      (supabase as any).from("events").select("id,title,description,location,starts_at,ends_at,category,entry_fee_bc,entry_fee_amount,entry_fee_currency,duration_minutes,reach_scope,reach_country,reach_state,reach_city,reach_area,cover_url,venue_name,address_line,country,state_province,city,area,latitude,longitude,is_published,creator_id").eq("is_published",true).order("starts_at", {ascending:true}),
+      (supabase as any).rpc("get_events_for_user"),
       (supabase as any).from("event_attendees").select("event_id,user_id"),
     ]);
 
@@ -604,9 +605,6 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       };
     }) as GroupChat[];
 
-    const attendees = attendeesRes.data ?? [];
-    const attendeeCountsRes = eventsRes.data?.length ? await (supabase as any).rpc("get_event_attendee_counts", { p_event_ids: eventsRes.data.map((e:any) => e.id) }) : { data: [] };
-    const attendeeCounts = new Map((attendeeCountsRes.data ?? []).map((x:any) => [x.event_id, Number(x.attendee_count ?? 0)]));
     const events = (eventsRes.data ?? []).map((e:any) => {
       const start = e.starts_at ? new Date(e.starts_at) : null;
       const end = e.ends_at ? new Date(e.ends_at) : null;
@@ -617,7 +615,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         time:start ? start.toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"}) + (end ? " · " + duration + " min" : "") : "",
         place:e.location ?? "", cost:Number(e.entry_fee_amount ?? 0), currency:e.entry_fee_currency ?? "NGN",
         blurb:e.description ?? "", details:e.description ?? "",
-        rsvp:attendees.some((a:any) => a.event_id === e.id && a.user_id === dbUserId), attendeeCount:Number(attendeeCounts.get(e.id) ?? 0),
+        rsvp:Boolean(e.viewer_going), interested:Boolean(e.viewer_interested),
+        attendeeCount:Number(e.attendee_count ?? 0), interestedCount:Number(e.interested_count ?? 0),
+        responseCount:Number(e.response_count ?? 0), reachCount:Number(e.reach_count ?? 0),
         reachScope:e.reach_scope ?? "worldwide", reachCountry:e.reach_country ?? "", reachState:e.reach_state ?? "",
         reachCity:e.reach_city ?? "", reachArea:e.reach_area ?? "", durationMinutes:Number(e.duration_minutes ?? 120),
         coverUrl:e.cover_url ?? "", venueName:e.venue_name ?? "", addressLine:e.address_line ?? "",
@@ -1095,23 +1095,29 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const toggleRsvp = useCallback((id: string) => {
     if (!dbUserId) return;
     void (async()=>{
-      const { data, error } = await (supabase as any).rpc("toggle_event_rsvp_secure", { p_event_id: id });
+      const { data, error } = await (supabase as any).rpc("toggle_event_rsvp_secure", { p_event_id:id });
       if (error) { toast.error(error.message ?? "Could not update RSVP"); return; }
-      const joined = Boolean(data?.joined);
-      const charged = Number(data?.charged_bc ?? 0);
-      const refunded = Number(data?.refunded_bc ?? 0);
-      const attendeeCount = Number(data?.attendee_count ?? 0);
-      setState((s) => ({
-        ...s,
-        coins: Math.max(0, s.coins - charged + refunded),
-        events: s.events.map((e) => e.id === id ? { ...e, rsvp: joined, attendeeCount } : e),
-      }));
-      if (joined) {
-        toast.success("You're on the list 🐼", { description: charged > 0 ? `−${charged} BC entry fee` : "Free RSVP" });
-      } else {
-        toast.success("RSVP cancelled", { description: refunded > 0 ? `+${refunded} BC refunded` : undefined });
-      }
+      setState((s) => ({ ...s, events: s.events.map((e) => e.id===id ? {
+        ...e, rsvp:Boolean(data?.attending), interested:false,
+        attendeeCount:Number(data?.attendee_count ?? e.attendeeCount ?? 0),
+        interestedCount:Number(data?.interested_count ?? e.interestedCount ?? 0),
+        responseCount:Number(data?.response_count ?? e.responseCount ?? 0),
+      } : e) }));
+      toast.success(data?.attending ? "You're on the list 🐼" : "RSVP cancelled");
     })();
+  }, [dbUserId]);
+
+  const toggleEventInterest = useCallback(async (id: string) => {
+    if (!dbUserId) return;
+    const { data, error } = await (supabase as any).rpc("toggle_event_interest_secure", { p_event_id:id });
+    if (error) { toast.error(error.message ?? "Could not update interest"); return; }
+    setState((s) => ({ ...s, events: s.events.map((e) => e.id===id ? {
+      ...e, interested:Boolean(data?.interested),
+      interestedCount:Number(data?.interested_count ?? e.interestedCount ?? 0),
+      attendeeCount:Number(data?.attendee_count ?? e.attendeeCount ?? 0),
+      responseCount:Number(data?.response_count ?? e.responseCount ?? 0),
+    } : e) }));
+    toast.success(data?.interested ? "Marked interested" : "Interest removed");
   }, [dbUserId]);
 
   const createGroup = useCallback(async (name: string, about: string, limitations = "", countryRestriction = ""): Promise<GroupChat | null> => {
@@ -1165,7 +1171,6 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       }
       setState(s=>({...s,events:s.events.map(e=>e.id===localId?{...optimistic,id:data.id}:e)}));
       void refreshGroupsAndEvents();
-      void (supabase as any).rpc("record_activity_participation",{p_activity_id:null,p_activity_type:"event_created",p_reference_id:data.id,p_points:5});
       toast.success("Event published 🐼");
     })();
     return optimistic;
@@ -1422,6 +1427,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       isAdmin: dbIsAdmin,
       createGroup,
       createEvent,
+      toggleEventInterest,
       startEventBlast,
       registerDatingProfile,
       refreshDatingData,
