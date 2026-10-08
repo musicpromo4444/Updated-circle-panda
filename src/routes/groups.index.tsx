@@ -32,7 +32,9 @@ function GroupCard({ group }: { group: GroupChat }) {
   const { joinGroup, isGroupExpired } = useStore();
   const navigate = useNavigate();
   const expired = isGroupExpired(group);
-  const live = group.openedAt !== null && !expired;
+  const closed = Boolean(group.closedAt);
+  const live = group.openedAt !== null && !expired && !closed;
+  const membersNeeded = Math.max(0, 3 - group.members);
 
   const shareGroup = async () => {
     const url = window.location.origin + "/groups/" + group.id;
@@ -71,22 +73,26 @@ function GroupCard({ group }: { group: GroupChat }) {
       <div className="mt-4 rounded-xl border border-dashed border-border bg-secondary/30 p-4 text-center">
         {live ? (
           <p className="text-sm font-semibold text-primary">This group is open and live.</p>
+        ) : closed ? (
+          <>
+            <Lock className="mx-auto mb-2 size-5 text-muted-foreground" />
+            <p className="text-sm font-medium">Group closed by the owner</p>
+            <p className="mt-1 text-xs text-muted-foreground">This group is no longer accepting new members.</p>
+          </>
         ) : (
           <>
             <Lock className="mx-auto mb-2 size-5 text-muted-foreground" />
-            <p className="text-sm font-medium">Group locked</p>
-            <p className="mt-1 text-xs text-muted-foreground">
-              {group.memberRole ? "You are a member of this group." : "Join this group to enter the chat."}
-            </p>
+            <p className="text-sm font-medium">Waiting for 3 members</p>
+            <p className="mt-1 text-xs text-muted-foreground">{membersNeeded} more member{membersNeeded === 1 ? "" : "s"} needed before the room opens.</p>
           </>
         )}
 
         <div className="mt-3 grid grid-cols-2 gap-2">
           <Button variant={live ? "secondary" : "default"}
             onClick={async () => { if (!(await requireCompleteProfile(group.memberRole ? "open a group" : "join a group"))) return; if (group.memberRole) await openRoom(); else joinGroup(group.id); }}
-            disabled={Boolean(group.joinPending)}
-            className={!group.memberRole && !group.joinPending ? "bg-primary text-primary-foreground shadow-lg shadow-primary/30 ring-1 ring-primary/50 animate-pulse" : ""}>
-            <Users className="size-4" /> {group.memberRole ? "Open Group" : group.joinPending ? "Request Sent" : "Join Group"}
+            disabled={Boolean(group.joinPending) || closed}
+            className={!group.memberRole && !group.joinPending && !closed ? "bg-primary text-primary-foreground shadow-lg shadow-primary/30 ring-1 ring-primary/50 animate-pulse" : ""}>
+            <Users className="size-4" /> {closed ? "Closed" : group.memberRole ? (live ? "Open Group" : "Joined · Waiting") : group.joinPending ? "Request Sent" : "Join Group"}
           </Button>
           <Button variant="outline" className="gap-2" onClick={shareGroup}>
             <Share2 className="size-4" /> Share
