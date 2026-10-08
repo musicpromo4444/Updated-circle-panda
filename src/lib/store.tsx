@@ -1113,23 +1113,24 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     })();
   }, [dbUserId]);
 
-  const createGroup = useCallback(async (name: string, topic: string, country = "", stateProvince = "", city = "", area = ""): Promise<GroupChat | null> => {
+  const createGroup = useCallback(async (name: string, about: string, limitations = "", countryRestriction = ""): Promise<GroupChat | null> => {
     if (!dbUserId || dbIsAnonymous) { requestLogin("create a group"); return null; }
     if (!(await requireCompleteProfile("create a group"))) return null;
     const { data, error } = await (supabase as any).rpc("create_group", {
-      p_name:name,
-      p_topic:topic,
-      p_country:country,
-      p_state_province:stateProvince,
-      p_city:city,
-      p_area:area,
+      p_name:name.trim(),
+      p_about:about.trim(),
+      p_limitations:limitations.trim() || null,
+      p_country_restriction:countryRestriction.trim() || null,
+      p_is_vip:false,
+      p_vip_scope:null,
     });
     if (error) { toast.error(error.message ?? "Group could not be created"); return null; }
-    const group: GroupChat = { id:data.id, name:data.name ?? name, topic:data.topic ?? topic, members:Number(data.members ?? 1), ownerId:dbUserId, memberRole:"owner", editGroupInfo:"admins", sendMessages:true, approveNewMembers:false, joinPending:false, openedAt:null, latitude:null, longitude:null, messages:[], country:data.country ?? country, stateProvince:data.state_province ?? stateProvince, city:data.city ?? city, area:data.area ?? area };
-    setState((s) => ({ ...s, groups:[group, ...s.groups] }));
+    const groupId = String(data);
+    const group: GroupChat = { id:groupId, name:name.trim(), topic:about.trim(), members:1, ownerId:dbUserId, memberRole:"owner", editGroupInfo:"admins", sendMessages:true, approveNewMembers:false, joinPending:false, openedAt:Date.now(), latitude:null, longitude:null, messages:[], country:countryRestriction.trim(), stateProvince:"", city:"", area:"" };
+    setState((state) => ({ ...state, groups:[group, ...state.groups] }));
     void refreshGroupsAndEvents();
     window.dispatchEvent(new CustomEvent("circle-panda-action", { detail: { title: "Group created!", emoji: "👥" } }));
-    toast.success("Group created 🐼", { description:"Invite members, then open it when 3+ members are ready." });
+    toast.success("Group created 🐼");
     return group;
   }, [dbUserId, dbIsAnonymous, refreshGroupsAndEvents]);
 
