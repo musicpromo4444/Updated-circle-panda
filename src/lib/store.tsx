@@ -524,14 +524,18 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     if (threadsError) { console.error("DM thread refresh failed", threadsError); return; }
     const rawThreads = threadsRes ?? [];
     const ids = Array.from(new Set(rawThreads.map((t:any)=>t.user_a===uid?t.user_b:t.user_a).filter(Boolean)));
-    const [profilesRes,messagesRes] = await Promise.all([
+    const [profilesRes,messagesRes,requestsRes] = await Promise.all([
       ids.length ? (supabase as any).from("profiles").select("id,display_name,is_vip,vip_expires_at").in("id",ids) : {data:[]},
       rawThreads.length ? (supabase as any).from("dm_messages").select("id,thread_id,sender_id,body,created_at,media_type,media_path").in("thread_id",rawThreads.map((t:any)=>t.id)).order("created_at",{ascending:true}).limit(2000) : {data:[]},
+      rawThreads.length ? (supabase as any).from("dm_requests").select("thread_id,context_type,status,created_at").in("thread_id",rawThreads.map((t:any)=>t.id)).eq("status","accepted").order("created_at",{ascending:false}) : {data:[]},
     ]);
     const profileMap=new Map((profilesRes.data??[]).map((p:any)=>[p.id,{name:p.display_name||"Anonymous Panda",vip:Boolean(p.is_vip&&(!p.vip_expires_at||new Date(p.vip_expires_at).getTime()>Date.now()))}]));
+    const requestKind=new Map<string,string>();
+    for(const r of (requestsRes.data??[])) if(!requestKind.has(r.thread_id)) requestKind.set(r.thread_id,r.context_type??"direct");
     const threads=rawThreads.map((t:any)=>{
       const other=t.user_a===uid?t.user_b:t.user_a; const p=profileMap.get(other);
-      return {id:t.id,otherUserId:other,otherVip:Boolean(p?.vip),name:p?.name??"Anonymous Panda",kind:"dating" as const,blurb:"Dating Chat",messages:(messagesRes.data??[]).filter((m:any)=>m.thread_id===t.id).map((m:any)=>({id:m.id,body:m.body??"",at:new Date(m.created_at).getTime(),mine:m.sender_id===uid,messageType:m.media_type==="dating_photo"?"dating_photo":"text",mediaPath:m.media_path??undefined})),startedAt:new Date(t.created_at).getTime()};
+      const isDating=requestKind.get(t.id)==="dating";
+      return {id:t.id,otherUserId:other,otherVip:Boolean(p?.vip),name:p?.name??"Anonymous Panda",kind:(isDating?"dating":"dm") as const,blurb:isDating?"Dating Chat":"Direct message",messages:(messagesRes.data??[]).filter((m:any)=>m.thread_id===t.id).map((m:any)=>({id:m.id,body:m.body??"",at:new Date(m.created_at).getTime(),mine:m.sender_id===uid,messageType:m.media_type==="dating_photo"?"dating_photo":"text",mediaPath:m.media_path??undefined})),startedAt:new Date(t.created_at).getTime()};
     });
     setState(s=>({...s,threads}));
   },[dbUserId]);
@@ -994,14 +998,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const sendMessage = useCallback((threadId: string, body: string) => {
     if (!dbUserId) { requestLogin("send messages"); return; }
     void (async()=>{
-      const {data:thread}=await (supabase as any).from("dm_threads").select("user_a,user_b").eq("id",threadId).maybeSingle();
-      if(!thread){toast.error("Chat not found");return;}
-      const other=thread.user_a===dbUserId?thread.user_b:thread.user_a;
-      const {data,error}=await (supabase as any).rpc("send_dating_message_secure",{p_other:other,p_body:body});
+      const {data,error}=await (supabase as any).rpc("send_dm_message",{p_thread_id:threadId,p_body:body,p_media_path:null,p_media_type:null,p_idempotency_key:rid()});
       if(error){toast.error(error.message??"Message could not be sent");return;}
-      setState(s=>({...s,threads:s.threads.map(t=>t.id===threadId?{...t,messages:[...t.messages,{id:String(data.id),body,at:new Date(data.created_at).getTime(),mine:true,messageType:"text"}]}:t)}));
+      setState(s=>({...s,threads:s.threads.map(t=>t.id===threadId?{...t,messages:[...t.messages,{id:String(data),body,at:Date.now(),mine:true,messageType:"text"}]}:t)}));
       await refreshCoins();
-      if(Number(data?.charged_bc??0)>0) toast("−1 BC spent 🪙",{description:"Dating message delivered."}); else toast.success("Dating message delivered 💗");
+      toast.success("Message delivered 💗");
     })();
   },[dbUserId,refreshCoins]);
 
