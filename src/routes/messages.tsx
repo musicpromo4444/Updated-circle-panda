@@ -89,20 +89,33 @@ function MessagesPage() {
       const uid = (await supabase.auth.getUser()).data.user?.id;
       if (!uid || !active) return;
       const [incomingRes, outgoingRes] = await Promise.all([
-        (supabase as any).from("direct_message_requests").select("id,sender_id,message,kind,created_at,status").eq("recipient_id",uid).eq("status","pending").order("created_at",{ascending:false}),
-        (supabase as any).from("direct_message_requests").select("id,recipient_id,message,kind,created_at,status,responded_at,thread_id").eq("sender_id",uid).in("status",["pending","accepted"]).order("created_at",{ascending:false}).limit(50),
+        (supabase as any).from("dm_requests").select("id,sender_id,recipient_id,context_type,context_id,source_label,created_at,status,responded_at,thread_id").eq("recipient_id",uid).eq("status","pending").order("created_at",{ascending:false}),
+        (supabase as any).from("dm_requests").select("id,sender_id,recipient_id,context_type,context_id,source_label,created_at,status,responded_at,thread_id").eq("sender_id",uid).in("status",["pending","accepted"]).order("created_at",{ascending:false}).limit(50),
       ]);
       if (!active) return;
-      if (!incomingRes.error) {
-        const rows = incomingRes.data ?? [];
-        setMessageRequests(rows);
-        if (search.request && rows.some((r:any) => r.id === search.request)) setSelectedRequestId(search.request);
-      }
-      if (!outgoingRes.error) setSentRequests(outgoingRes.data ?? []);
+      const rowsIn = incomingRes.error ? [] : (incomingRes.data ?? []);
+      const rowsOut = outgoingRes.error ? [] : (outgoingRes.data ?? []);
+      const otherIds = Array.from(new Set([
+        ...rowsIn.map((r:any)=>r.sender_id),
+        ...rowsOut.map((r:any)=>r.recipient_id),
+      ].filter(Boolean)));
+      const profilesRes = otherIds.length ? await (supabase as any).from("profiles").select("id,display_name").in("id",otherIds) : {data:[]};
+      const names = new Map((profilesRes.data ?? []).map((p:any)=>[p.id,p.display_name || "Anonymous Panda"]));
+      const withNames = (r:any, incoming:boolean) => ({
+        ...r,
+        kind: r.context_type,
+        message: r.context_type === "dating" ? "Dating message request" : r.context_type === "mcm" || r.context_type === "wcw" ? "Message request from the Crush page" : "Message request",
+        other_name: names.get(incoming ? r.sender_id : r.recipient_id) ?? "Anonymous Panda",
+      });
+      const incomingRows = rowsIn.map((r:any)=>withNames(r,true));
+      const outgoingRows = rowsOut.map((r:any)=>withNames(r,false));
+      setMessageRequests(incomingRows);
+      setSentRequests(outgoingRows);
+      if (search.request && incomingRows.some((r:any) => r.id === search.request)) setSelectedRequestId(search.request);
     };
     void loadRequests();
     const requestChannel = supabase.channel("message-requests-live")
-      .on("postgres_changes", {event:"*", schema:"public", table:"direct_message_requests"}, () => void loadRequests())
+      .on("postgres_changes", {event:"*", schema:"public", table:"dm_requests"}, () => void loadRequests())
       .subscribe();
     void (supabase as any).rpc("get_pending_dating_decisions_secure").then(({data,error}:any)=>{
       if (!error && Array.isArray(data) && data.length) setPendingDating(data[0]);
@@ -193,7 +206,7 @@ function MessagesPage() {
                 {messageRequests.map((r:any)=>(
                   <div key={r.id} className="rounded-xl bg-background p-3">
                     <button type="button" className="w-full text-left" onClick={() => setSelectedRequestId(r.id)}>
-                      <p className="text-[10px] font-bold text-muted-foreground">Anonymous Panda · {r.kind === "crush" ? "MCM/WCW Message Request" : r.kind === "dating" ? "Dating request" : "Message request"}</p>
+                      <p className="text-[10px] font-bold text-muted-foreground">Anonymous Panda · {r.context_type === "mcm" || r.context_type === "wcw" ? "MCM/WCW Message Request" : r.context_type === "dating" ? "Dating Message Request" : "Message Request"}</p>
                       {r.message ? <p className="mt-1 line-clamp-2 text-sm">{r.message}</p> : null}
                     </button>
                     <div className="mt-2 flex gap-2">
@@ -222,13 +235,13 @@ function MessagesPage() {
                       Anonymous Panda · {r.kind === "dating" ? "Dating Message Request" : r.kind === "crush" ? "MCM/WCW Message Request" : "Message Request"}
                     </p>
                     <p className="mt-1 text-sm font-semibold">
-                      {r.status === "pending" ? "Sent request · Waiting for acceptance" : "Request accepted 💗"}
+                      {r.status === "pending" ? "Request sent · Waiting for acceptance" : r.context_type === "dating" ? "Dating request accepted 💗" : "Request accepted 💗"}
                     </p>
                     <p className="mt-1 text-xs text-muted-foreground">{r.message || "If this request is accepted, you can start talking. If it is declined, this request will disappear."}</p>
                     {r.status === "pending" ? (
                       <p className="mt-2 text-[11px] text-muted-foreground/80">Waiting for the recipient to accept or decline.</p>
                     ) : r.thread_id ? (
-                      <Button size="sm" className="mt-2" onClick={() => setActiveId(r.thread_id)}>Open {r.kind === "dating" ? "Dating Chat" : "Chat"}</Button>
+                      <Button size="sm" className="mt-2" onClick={() => setActiveId(r.thread_id)}>Open {r.context_type === "dating" ? "Dating Chat" : "Chat"}</Button>
                     ) : null}
                   </div>
                 ))}
@@ -283,14 +296,14 @@ function MessagesPage() {
               <div className="flex items-center gap-3 border-b border-border bg-card px-3 py-3">
                 <Button variant="ghost" size="icon" onClick={() => setSelectedRequestId(null)}><ChevronLeft className="size-5"/></Button>
                 <span className="grid size-10 place-items-center rounded-full bg-secondary text-xl">🐼</span>
-                <div className="min-w-0 flex-1"><p className="font-semibold">Anonymous Panda</p><p className="text-[11px] text-muted-foreground">{request.kind === "crush" ? "MCM/WCW Message Request" : request.kind === "dating" ? "Dating Message Request" : "Message Request"}</p></div>
+                <div className="min-w-0 flex-1"><p className="font-semibold">{request.other_name || "Anonymous Panda"}</p><p className="text-[11px] text-muted-foreground">{request.context_type === "mcm" || request.context_type === "wcw" ? "MCM/WCW Message Request" : request.context_type === "dating" ? "Dating Message Request" : "Message Request"}</p></div>
               </div>
               <div className="flex-1 overflow-y-auto bg-secondary/20 p-4">
                 <div className="max-w-[82%] rounded-2xl rounded-tl-md bg-card px-4 py-3 text-sm shadow-sm">{request.message || "This Panda sent you a message request."}</div>
               </div>
               <div className="grid grid-cols-2 gap-2 border-t border-border bg-card p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
                 <Button variant="outline" onClick={() => void respondRequest(request,false)}>Decline</Button>
-                <Button onClick={() => void respondRequest(request,true)} className="gap-2"><Check className="size-4"/>Accept & Reply</Button>
+                <Button onClick={() => void respondRequest(request,true)} className="gap-2"><Check className="size-4"/>{request.context_type === "dating" ? "Accept & Start Dating Chat" : "Accept & Reply"}</Button>
               </div>
             </div>;
           })()}
