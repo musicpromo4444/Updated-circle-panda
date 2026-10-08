@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { sendMessageRequest } from "@/lib/messageRequests";
+import { sendMessageRequest, isSelfMessageError } from "@/lib/messageRequests";
 import { StandardBannerAd } from "@/components/ads/StandardBannerAd";
 import { VipIdentity } from "@/components/VipIdentity";
 import { requestLogin } from "@/components/auth/LoginRequiredDialog";
