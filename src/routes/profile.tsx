@@ -90,6 +90,7 @@ function ProfilePage() {
   const [deletionConfirmOpen, setDeletionConfirmOpen] = useState(false);
   const [settingsBusy, setSettingsBusy] = useState(false);
   const [supportBusy, setSupportBusy] = useState(false);
+  const [genderSaving, setGenderSaving] = useState(false);
   const [loadingLocations, setLoadingLocations] = useState(false);
   const [avatarHead, setAvatarHead] = useState("🐼");
   const [avatarGlasses, setAvatarGlasses] = useState("");
@@ -480,9 +481,32 @@ function ProfilePage() {
           <div><h2 className="font-display text-base font-semibold">Account gender</h2><p className="mt-1 text-xs text-muted-foreground">Used only to route your Crush submission automatically: male → MCM, female → WCW.</p></div>
           <span className="text-xl">{accountGender === "male" ? "🧑" : accountGender === "female" ? "👩" : "🐼"}</span>
         </div>
-        <div className="mt-3 grid grid-cols-2 gap-2">
-          {(["female","male"] as const).map((g) => <button key={g} type="button" disabled={Boolean(accountGender && accountGender !== g)} onClick={() => void (async () => { const { data, error } = await (supabase as any).rpc("set_profile_gender_secure", { p_gender:g }); if (error) { toast.error(error.message); return; } setAccountGender(data); toast.success("Account gender saved"); })()} className={`rounded-xl border px-3 py-2 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-45 ${accountGender===g?"border-primary bg-primary/10":"border-border bg-secondary/40"}`}>{g === "female" ? "Female · WCW" : "Male · MCM"}</button>)}
-        </div>
+        {!accountGender ? (
+          <div className="mt-3 grid grid-cols-2 gap-2">
+            {(["female","male"] as const).map((g) => (
+              <button
+                key={g}
+                type="button"
+                disabled={genderSaving}
+                onClick={() => void (async () => {
+                  setGenderSaving(true);
+                  const { data, error } = await (supabase as any).rpc("set_profile_gender_secure", { p_gender:g });
+                  setGenderSaving(false);
+                  if (error) { toast.error(error.message ?? "Gender could not be saved"); return; }
+                  setAccountGender(data === "male" || data === "female" ? data : g);
+                  toast.success("Account gender saved");
+                })()}
+                className="min-h-12 rounded-xl border border-border bg-secondary/40 px-3 py-2 text-sm font-semibold transition-colors active:scale-[.98] hover:bg-secondary/70 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {g === "female" ? "👩 Female · WCW" : "🧑 Male · MCM"}
+              </button>
+            ))}
+          </div>
+        ) : (
+          <div className="mt-3 flex min-h-12 items-center justify-center rounded-xl border border-primary/40 bg-primary/10 px-3 py-2 text-sm font-semibold">
+            {accountGender === "female" ? "👩 Female · WCW" : "🧑 Male · MCM"} · Locked
+          </div>
+        )}
         {accountGender ? <p className="mt-2 text-[10px] text-muted-foreground">Locked after registration so MCM/WCW routing cannot change between submissions.</p> : null}
       </section>
 
