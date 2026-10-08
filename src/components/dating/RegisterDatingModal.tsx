@@ -110,7 +110,7 @@ export function RegisterDatingModal({open,onOpenChange}:{open:boolean;onOpenChan
 
         const base={...emptyProfile,name:profile.display_name||"Anonymous Panda",
           age:Number(profile.age||0),gender:profile.gender||"",country:profile.country||"",
-          location:profile.area||profile.city||profile.state_province||profile.state||profile.country||"",emoji:String(profile.avatar_id ?? "🐼")};
+          location:profile.area||profile.city||profile.state_province||profile.state||profile.country||"",emoji:"🐼"};
 
         setP(s=>({...base,
           ...(currentDating?(()=>{const {registeredAt:_r,userId:_u,...rest}=currentDating;return rest;})():{}),
