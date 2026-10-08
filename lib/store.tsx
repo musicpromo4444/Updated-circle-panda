@@ -567,12 +567,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       if (!session.user.is_anonymous) {
         try { await (supabase as any).functions.invoke("crush-cycle-maintenance"); } catch {}
       }
-      const viewerCoords = await new Promise<{latitude:number;longitude:number}|null>((resolve) => { if (typeof navigator === "undefined" || !navigator.geolocation) return resolve(null); navigator.geolocation.getCurrentPosition((pos) => resolve({ latitude:pos.coords.latitude, longitude:pos.coords.longitude }), () => resolve(null), { enableHighAccuracy:false, maximumAge:300000, timeout:5000 }); });
       const [st, postsRes, repliesRes, groupsRes, groupMessagesRes, threadsRes, threadMessagesRes, groupSettingsRes, eventsRes, attendeesRes, datingRes, datingOwnRes, coinsRes, xpRes, nomineesRes, crushResultsRes, winnersRes, ticketsRes, crushWinnersRes] = await Promise.all([
         (supabase as any).from("user_app_state").select("state").eq("user_id", uid).maybeSingle(),
         (supabase as any).from("cp_posts").select("id,body,created_at,author_id,author_vip_at").order("created_at", {ascending:false}).limit(100),
         (supabase as any).from("cp_post_replies").select("id,post_id,body,created_at,author_id,author_vip_at").order("created_at", {ascending:true}).limit(500),
-        (supabase as any).rpc("get_group_summaries_nearby", { p_latitude:viewerCoords?.latitude ?? null, p_longitude:viewerCoords?.longitude ?? null }),
+        (supabase as any).rpc("get_group_summaries", { p_country: "", p_state_province: "", p_city: "", p_area: "" }),
         
         (supabase as any).from("cp_group_messages").select("id,group_id,body,created_at,author_id").order("created_at", {ascending:true}).limit(1000),
         (supabase as any).from("cp_threads").select("id,owner_id,participant_id,other_alias,kind,blurb,created_at").order("created_at", {ascending:false}).limit(100),
@@ -969,14 +968,45 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     })();
   }, [dbUserId]);
 
-  const createGroup = useCallback(async (name: string, topic: string, country = "", stateProvince = "", city = "", area = ""): Promise<GroupChat | null> => {
+  const createGroup = useCallback(async (name: string, about: string, limitations = "", countryRestriction = ""): Promise<GroupChat | null> => {
     if (!dbUserId) { toast.error("Sign in to create a group"); return null; }
-    const coords = await new Promise<{latitude:number;longitude:number}|null>((resolve) => { if (typeof navigator === "undefined" || !navigator.geolocation) return resolve(null); navigator.geolocation.getCurrentPosition((pos) => resolve({ latitude:pos.coords.latitude, longitude:pos.coords.longitude }), () => resolve(null), { enableHighAccuracy:false, maximumAge:300000, timeout:5000 }); });
-    const { data, error } = await (supabase as any).rpc("create_group_secure", { p_name:name, p_topic:topic, p_latitude:coords?.latitude ?? null, p_longitude:coords?.longitude ?? null });
-    if (error) { toast.error(error.message ?? "Group could not be created"); return null; }
-    const group: GroupChat = { id:data.id, name:data.name ?? name, topic:data.topic ?? topic, members:Number(data.members ?? 1), ownerId:dbUserId, memberRole:"owner", editGroupInfo:"admins", sendMessages:true, approveNewMembers:false, joinPending:false, openedAt:null, latitude:coords?.latitude ?? null, longitude:coords?.longitude ?? null, messages:[], country:data.country ?? country, stateProvince:data.state_province ?? stateProvince, city:data.city ?? city, area:data.area ?? area };
-    setState((s) => ({ ...s, groups:[group, ...s.groups] }));
-    toast.success("Group created 🐼", { description:"Invite members, then open it when 3+ members are ready." });
+    const { data: id, error } = await (supabase as any).rpc("create_group", {
+      p_name: name.trim(),
+      p_about: about.trim(),
+      p_limitations: limitations.trim() || null,
+      p_country_restriction: countryRestriction.trim() || null,
+      p_is_vip: false,
+      p_vip_scope: null,
+    });
+    if (error || !id) {
+      toast.error(error?.message ?? "Group could not be created");
+      return null;
+    }
+    const { data: row, error: rowError } = await (supabase as any)
+      .from("groups")
+      .select("id,name,about,creator_id,country_restriction,activated_at")
+      .eq("id", id)
+      .single();
+    if (rowError || !row) {
+      toast.error(rowError?.message ?? "Group was created but could not be loaded");
+      return null;
+    }
+    const group: GroupChat = {
+      id: row.id,
+      name: row.name,
+      topic: row.about ?? "",
+      members: 1,
+      ownerId: row.creator_id ?? dbUserId,
+      memberRole: "owner",
+      editGroupInfo: "admins",
+      sendMessages: true,
+      approveNewMembers: false,
+      joinPending: false,
+      openedAt: row.activated_at ? new Date(row.activated_at).getTime() : null,
+      messages: [],
+    };
+    setState((s) => ({ ...s, groups: [group, ...s.groups.filter((g) => g.id !== group.id)] }));
+    toast.success("Group created 🐼", { description: "Invite members, then open it when 3+ members are ready." });
     return group;
   }, [dbUserId]);
 
