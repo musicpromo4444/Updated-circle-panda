@@ -4,6 +4,7 @@ import { useStore } from "@/lib/store";
 import { VipGroupChat } from "./VipGroupChat";
 import { VipUpgradeModal } from "./VipUpgradeModal";
 import { supabase } from "@/integrations/supabase/client";
+import { requireCompleteProfile } from "@/lib/profileGate";
 
 type Room={id:string;name:string;country:string|null;is_worldwide:boolean};
 
@@ -36,7 +37,8 @@ export function VipLoungeCard(){
 
   const worldwide=rooms.find(r=>r.is_worldwide);
   const countryRoom=rooms.find(r=>!r.is_worldwide);
-  const open=(room?:Room)=>{
+  const open=async (room?:Room)=>{
+    if(!(await requireCompleteProfile("use VIP Groups"))) return;
     if(!isVip){setUpgradeOpen(true);return;}
     if(room?.id){setGroupId(room.id);}
   };
@@ -59,7 +61,7 @@ export function VipLoungeCard(){
             <Crown className="size-4 shrink-0 text-amber-300"/>
             <h3 className="truncate text-lg font-black text-amber-100">{label}</h3>
           </div>
-          <p className="mt-1 text-xs text-amber-100/65">{isWorld?"The official Circle Panda worldwide VIP lounge":ready?"Your private VIP lounge for "+country:"Complete your country and state during onboarding to unlock this lounge."}</p>
+          <p className="mt-1 text-xs text-amber-100/65">{isWorld?"The official Circle Panda worldwide VIP lounge":ready?"Your private VIP lounge for "+country:"Complete your profile to unlock this lounge."}</p>
         </div>
         <div className="grid size-12 shrink-0 place-items-center rounded-full border-2 border-amber-300/80 bg-black/25 shadow-[0_0_20px_rgba(245,158,11,.35)]">
           <Lock className="size-6 text-amber-200"/>
