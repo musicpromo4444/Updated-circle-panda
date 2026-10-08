@@ -668,6 +668,7 @@ function CrushPage() {
                 </div>
               )}
             </div>
+            )}
 
             {!isCreator ? (
               <div className="absolute bottom-[calc(env(safe-area-inset-bottom)+4.7rem)] right-3 z-20">
