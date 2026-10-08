@@ -125,10 +125,10 @@ function SecretProfilePage() {
     if (!messageText.trim() || sendingMessage) return;
     const { data: authData } = await supabase.auth.getUser();
     if (!authData.user || authData.user.is_anonymous) { requestLogin("message this Panda"); return; }
-    if (authData.user.id === userId) { toast.error("You can't message yourself."); return; }
+    if (authData.user.id === userId) { toast.error("Sorry, you can't message yourself"); return; }
     setSendingMessage(true);
     try {
-      const result = await sendMessageRequest(userId, messageText.trim());
+      const result = await sendMessageRequest(userId, messageText.trim(), "profile", userId);
       setMessageText("");
       setMessageOpen(false);
       toast.success("Message request sent 💌", { description: "It is now in Messages while you wait for acceptance." });
