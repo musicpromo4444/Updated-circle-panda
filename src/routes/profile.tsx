@@ -256,7 +256,8 @@ function ProfilePage() {
   };
   const { coins, reputation, level, xp, posts, threads, groups, mySpotlight, isVip, vipExpiresAt } =
     useStore();
-  const pandaRank = pandaProgress(xp);\n  const tier = pandaTier(reputation);
+  const pandaRank = pandaProgress(xp);
+  const tier = pandaTier(reputation);
   const [publishedConfessions, setPublishedConfessions] = useState(0);
   useEffect(() => {
     if (!profileId) return;
