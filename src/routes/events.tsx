@@ -66,6 +66,8 @@ function EventsPage() {
       const result = await sendMessageRequest(
         current.ownerId,
         'I\'d like to know more about your event, "' + current.title + '".',
+        "event",
+        current.id,
       );
       toast.success("Message request sent 💌", { description: "The event creator can accept it from Messages." });
       void navigate({ to: "/messages", search: { request: result.id } });
