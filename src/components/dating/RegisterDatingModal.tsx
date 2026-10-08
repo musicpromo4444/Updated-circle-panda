@@ -17,11 +17,6 @@ const INTERESTS = [
   "Cooking","Coffee","Books","Late walks","Night drives","Art galleries"
 ];
 
-const PERSONALITY = [
-  "Playful","Adventurous","Social","Social-media person","Office type","Inside type","Romantic",
-  "Funny","Ambitious","Party person","Quiet/private","Family-oriented","Spontaneous","Jealous","Easygoing"
-];
-
 const PERSONALITY = ["Playful","Adventurous","Social","Social-media person","Office type","Inside type","Romantic","Funny","Ambitious","Party person","Quiet/private","Family-oriented","Spontaneous","Jealous","Easygoing","Quiet","Confident","Caring","Flirty","Introverted","Outgoing"];
 const SEXUAL_EXPERIENCE = ["Virgin","Novice","Expert","Good in bed","Pro","Prefer not to say"];
 const RELATIONSHIP_TYPES = [
