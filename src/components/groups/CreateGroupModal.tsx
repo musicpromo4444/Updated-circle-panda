@@ -31,6 +31,7 @@ export function CreateGroupModal({
   const [about, setAbout] = useState("");
   const [limitations, setLimitations] = useState("");
   const [countryRestriction, setCountryRestriction] = useState("");
+  const [creating, setCreating] = useState(false);
 
   useEffect(() => {
     if (!open) return;
@@ -47,6 +48,7 @@ export function CreateGroupModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (creating) return;
     if (!name.trim()) {
       toast.error("Please provide a group name");
       return;
@@ -56,25 +58,30 @@ export function CreateGroupModal({
       return;
     }
 
-    const { data: authData } = await supabase.auth.getUser();
-    if (!authData.user || authData.user.is_anonymous) {
+    setCreating(true);
+    try {
+      const { data: authData, error: authError } = await supabase.auth.getUser();
+      if (authError) throw authError;
+      if (!authData.user || authData.user.is_anonymous) {
+        onOpenChange(false);
+        requestLogin("create a group");
+        return;
+      }
+
+      const group = await createGroup(name.trim(), about.trim(), limitations.trim(), countryRestriction.trim());
+      if (!group) return;
+
+      setName("");
+      setAbout("");
+      setLimitations("");
+      setCountryRestriction("");
       onOpenChange(false);
-      requestLogin("create a group");
-      return;
+      void navigate({ to: "/groups/$groupId", params: { groupId: group.id } });
+    } catch (err: any) {
+      toast.error(err?.message ?? "Group could not be created. Please try again.");
+    } finally {
+      setCreating(false);
     }
-
-    const group = await createGroup(name.trim(), about.trim(), limitations.trim(), countryRestriction.trim());
-    if (!group) return;
-
-
-
-    setName("");
-    setAbout("");
-    setLimitations("");
-    setCountryRestriction("");
-    onOpenChange(false);
-
-    void group;
   };
 
   return (
