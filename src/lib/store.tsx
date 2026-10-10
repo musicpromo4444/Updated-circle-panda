@@ -322,11 +322,13 @@ export function weightedSpin(slices: SpinPrize[]): SpinPrize {
 export type Tier = { min: number; name: string; emoji: string; blurb: string };
 
 export const TIERS: Tier[] = [
-  { min: 0, name: "Cub", emoji: "🐣", blurb: "Just hatched into the circle" },
-  { min: 150, name: "Sprout", emoji: "🌱", blurb: "Finding your voice" },
-  { min: 400, name: "Bamboo", emoji: "🎋", blurb: "A regular in the groves" },
-  { min: 800, name: "Shadow", emoji: "🌑", blurb: "Anonymous and everywhere" },
-  { min: 1400, name: "Legend", emoji: "👑", blurb: "Circle Panda royalty" },
+  { min: 0, name: "Novice", emoji: "🐼", blurb: "Your Panda journey begins" },
+  { min: 8000, name: "Growing", emoji: "🌱", blurb: "Building experience in the circle" },
+  { min: 27000, name: "Kung Fu", emoji: "🥋", blurb: "Training into a skilled Panda" },
+  { min: 60000, name: "Panda General", emoji: "🐼", blurb: "Leading with experience" },
+  { min: 110000, name: "Shadow", emoji: "🥷", blurb: "A master of the shadows" },
+  { min: 250000, name: "Mysterious", emoji: "🌘", blurb: "A rare and mysterious Panda" },
+  { min: 550000, name: "Legendary", emoji: "👑", blurb: "A legendary Panda of the circle" },
 ];
 
 export function pandaTier(score: number) {
@@ -1112,7 +1114,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const createGroup = useCallback(async (name: string, about: string, limitations = "", countryRestriction = ""): Promise<GroupChat | null> => {
     if (!dbUserId || dbIsAnonymous) { requestLogin("create a group"); return null; }
-    if (!(await requireCompleteProfile("create a group"))) return null;
+    // Group creation is allowed for any signed-in account; profile completion is required when entering the chat.
     const { data, error } = await (supabase as any).rpc("create_group", {
       p_name:name.trim(),
       p_about:about.trim(),
