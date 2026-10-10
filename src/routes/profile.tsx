@@ -93,7 +93,7 @@ function ProfilePage() {
       if (!data.user.is_anonymous) {
         await (supabase as any).rpc("ensure_my_circle_panda_profile");
       }
-      const { data: profile, error: profileError } = await (supabase as any).from("profiles").select("display_name,avatar_url,gender,age,date_of_birth,country,state_province,city,area,address_line,bio").eq("id", data.user.id).maybeSingle();
+      const { data: profile, error: profileError } = await (supabase as any).from("profiles").select("display_name,avatar_id,gender,age,date_of_birth,country,state_province,city,area,address_line,bio").eq("id", data.user.id).maybeSingle();
       if (profileError) {
         toast.error(profileError.message ?? "Could not restore your saved profile");
         return;
@@ -103,7 +103,6 @@ function ProfilePage() {
         return;
       }
       if (profile?.display_name != null) setDisplayName(String(profile.display_name));
-      if (profile?.avatar_url) setAvatar(String(profile.avatar_url));
       if (profile?.age != null) setAge(Number(profile.age));
       if (profile?.date_of_birth != null) setDateOfBirth(String(profile.date_of_birth));
       if (profile?.country != null) setCountry(String(profile.country));
