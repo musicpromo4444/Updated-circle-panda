@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Eye, Upload, Crown, SmilePlus, MessageCircle, Share2, Send, AlertTriangle } from "lucide-react";
+import { Eye, Upload, SmilePlus, MessageCircle, Share2, Send, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
 import { StandardBannerAd } from "@/components/ads/StandardBannerAd";
@@ -83,8 +83,8 @@ export function ConfessionsPage() {
           (supabase as any).from("secret_comments").select("secret_id").in("secret_id", ids),
           supabase.auth.getUser(),
         ]);
-        if (reactionsError) throw reactionsError;
-        if (commentsError) throw commentsError;
+        if (reactionsError) console.error("Confession reactions could not be loaded", reactionsError);
+        if (commentsError) console.error("Confession comment counts could not be loaded", commentsError);
         const currentUser = authResult.data.user?.id ?? null;
         const next: Record<string, ReactionState> = {};
         for (const row of reactions ?? []) {
@@ -347,9 +347,6 @@ export function ConfessionsPage() {
     }
   };
 
-  const mcmCount = weekly.mcm.length;
-  const wcwCount = weekly.wcw.length;
-
   return (
     <AppShell title="Anonymous Feed" hidePageHeader>
       <div className="mx-auto w-full max-w-2xl space-y-4">
@@ -384,14 +381,14 @@ export function ConfessionsPage() {
               onClick={() => window.location.assign("/crush?kind=wcw")}
               className="flex min-w-0 flex-col items-center gap-1.5 rounded-2xl p-1.5 text-center transition-transform active:scale-95"
             >
-              <span className="relative grid size-[58px] place-items-center overflow-hidden rounded-full border-2 border-sky-400 bg-background text-2xl shadow-[0_0_12px_rgba(56,189,248,.12)] sm:size-16">
+              <span className="relative grid size-[58px] place-items-center overflow-hidden rounded-full border-2 border-pink-400 bg-background text-2xl shadow-[0_0_12px_rgba(244,114,182,.12)] sm:size-16">
                 {weekly.wcw[0]?.media_url ? (
                   weekly.wcw[0].media_type === "video" ? (
                     <video src={weekly.wcw[0].media_url} muted playsInline preload="metadata" className="size-full object-cover" />
                   ) : (
                     <img src={weekly.wcw[0].media_url} alt="WCW" className="size-full object-cover" loading="lazy" />
                   )
-                ) : "💙"}
+                ) : "❤️"}
               </span>
               <span className="w-full truncate text-[11px] font-semibold">WCW</span>
             </button>
