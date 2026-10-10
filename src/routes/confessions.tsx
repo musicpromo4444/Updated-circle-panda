@@ -53,6 +53,7 @@ export function ConfessionsPage() {
   const [commentCounts, setCommentCounts] = useState<Record<string, number>>({});
   const [items, setItems] = useState<Confession[]>([]);
   const [content, setContent] = useState("");
+  const [anonymous, setAnonymous] = useState(true);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [showSignup, setShowSignup] = useState(false);
