@@ -84,7 +84,7 @@ function GroupRoom() {
       if (!(await requireCompleteProfile("open a group"))) { if (active) setGroupLoading(false); return; }
       const [{ data: summaries, error: summariesError }, { data: messages, error: messagesError }, { data: settingsRow, error: settingsError }] = await Promise.all([
         (supabase as any).rpc("get_group_summaries", { p_country:"", p_state_province:"", p_city:"", p_area:"" }),
-        (supabase as any).from("group_messages").select("id,group_id,body,created_at,user_id,message_type,media_path,mime_type,duration_seconds,view_once").eq("group_id", groupId).order("created_at", { ascending: true }),
+        (supabase as any).from("group_messages").select("id,group_id,sender_id,body,created_at,reply_to_id,media_type,media_path,view_once").eq("group_id", groupId).order("created_at", { ascending: true }),
         (supabase as any).from("group_settings").select("edit_group_info,send_messages,approve_new_members").eq("group_id", groupId).maybeSingle(),
       ]);
       if (summariesError) {
