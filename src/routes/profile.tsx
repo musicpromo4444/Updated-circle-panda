@@ -294,7 +294,7 @@ function ProfilePage() {
             <Eye className="size-3.5" /> View
           </Link>
           <input readOnly value={pageOrigin + "/secret/" + profileId} className="cp-input min-w-0 flex-1 text-xs" aria-label="Secret profile link" />
-          <Button type="button" variant="outline" className="shrink-0 gap-1.5 border-amber-500/30" onClick={() => { const url = pageOrigin + "/secret/" + profileId; void navigator.clipboard?.writeText(url); toast.success("Secret link copied."); }}>
+          <Button type="button" variant="outline" className="shrink-0 gap-1.5 border-amber-500/30" onClick={async () => { const url = pageOrigin + "/secret/" + profileId; try { if (!navigator.clipboard?.writeText) throw new Error("Clipboard access is not available in this browser."); await navigator.clipboard.writeText(url); toast.success("Secret link copied."); } catch (error) { toast.error(error instanceof Error ? error.message : "Could not copy the secret link."); } }}>
             <Copy className="size-3.5" /> Copy
           </Button>
         </div>

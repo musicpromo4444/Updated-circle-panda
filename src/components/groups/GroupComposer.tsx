@@ -27,6 +27,7 @@ export function GroupComposer({
   onCancelReply?: () => void;
 }) {
   const [draft, setDraft] = useState("");
+  const [sendingText, setSendingText] = useState(false);
   const [recording, setRecording] = useState(false);
   const [paused, setPaused] = useState(false);
   const [stopped, setStopped] = useState(false);
@@ -67,7 +68,11 @@ export function GroupComposer({
       toast.error("Media must be 25 MB or smaller.");
       return;
     }
-    await onSendMedia({ type, file, replyToId: replyTo?.id });
+    try {
+      await onSendMedia({ type, file, replyToId: replyTo?.id });
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Media could not be sent. Please try again.");
+    }
   };
 
   const startRecording = async () => {
@@ -140,14 +145,18 @@ export function GroupComposer({
   const sendVoice = async () => {
     if (!voiceBlob || disabled) return;
     const file = new File([voiceBlob], `voice-${Date.now()}.${voiceBlob.type.includes("mp4") ? "m4a" : "webm"}`, { type: voiceBlob.type || "audio/webm" });
-    await onSendMedia({ type: "audio", file, durationSeconds: seconds, replyToId: replyTo?.id });
-    clearVoice();
+    try {
+      await onSendMedia({ type: "audio", file, durationSeconds: seconds, replyToId: replyTo?.id });
+      clearVoice();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Voice note could not be sent. Your recording has been kept so you can retry.");
+    }
   };
 
   const cancelVoice = () => clearVoice();
 
   return (
-    <form style={{position:"relative"}} onSubmit={(e) => { e.preventDefault(); const text = draft.trim(); if (!text || disabled || recording || voiceBlob) return; setDraft(""); void onSendText(text, replyTo?.id); }} className="flex items-end gap-2">
+    <form style={{position:"relative"}} onSubmit={(e) => { e.preventDefault(); const text = draft.trim(); if (!text || disabled || recording || voiceBlob) return; if (sendingText) return; setSendingText(true); void Promise.resolve().then(() => onSendText(text, replyTo?.id)).then(() => setDraft(current => current === text ? "" : current)).catch((error) => toast.error(error instanceof Error ? error.message : "Message could not be sent. Your text has been kept so you can retry.")).finally(() => setSendingText(false)); }} className="flex items-end gap-2">
       {replyTo ? <div className="absolute bottom-full left-2 right-2 mb-1 flex items-center gap-2 rounded-xl border border-border bg-card px-3 py-2 text-xs shadow-lg"><div className="min-w-0 flex-1"><b>Replying to {replyTo.author}</b><div className="truncate text-muted-foreground">{replyTo.body || "Media"}</div></div><Button type="button" variant="ghost" size="icon" onClick={onCancelReply}><X className="size-4"/></Button></div> : null}
       <input ref={imageInput} type="file" accept="image/*" className="hidden" onChange={(e) => { void pick(e.target.files?.[0], "image"); e.currentTarget.value = ""; }} />
       <input ref={videoInput} type="file" accept="video/*" className="hidden" onChange={(e) => { void pick(e.target.files?.[0], "video"); e.currentTarget.value = ""; }} />
@@ -172,7 +181,7 @@ export function GroupComposer({
             <Button type="button" variant="ghost" size="icon" disabled={disabled} onClick={() => void startRecording()} title="Voice note"><Mic className="size-5" /></Button>
           </div>
           <Input value={draft} onChange={(e) => setDraft(e.target.value)} disabled={disabled} placeholder={placeholder} maxLength={2000} className="min-w-0 flex-1 rounded-2xl" />
-          <Button type="submit" size="icon" disabled={disabled || !draft.trim()} className="shrink-0 rounded-full"><Send className="size-4" /></Button>
+          <Button type="submit" size="icon" disabled={disabled || sendingText || !draft.trim()} className="shrink-0 rounded-full"><Send className="size-4" /></Button>
         </>
       )}
     </form>

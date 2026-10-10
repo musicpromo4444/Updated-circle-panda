@@ -37,24 +37,27 @@ export function CreateEventModal({open,onOpenChange,onCreated}:{open:boolean;onO
  const uploadImage=async(file:File)=>{ if(!file.type.startsWith("image/")) return toast.error("Choose an image file."); if(file.size>8*1024*1024) return toast.error("Image must be 8MB or smaller."); setUploading(true);
   try{const {data:{user}}=await supabase.auth.getUser(); if(!user || user.is_anonymous){ requestLogin("upload an event picture"); return; } const path=`${user.id}/${crypto.randomUUID()}-${file.name.replace(/[^a-zA-Z0-9._-]/g,"_")}`; const {error}=await supabase.storage.from("event-media").upload(path,file,{upsert:false,contentType:file.type}); if(error) throw error; const {data}=supabase.storage.from("event-media").getPublicUrl(path); setImageUrl(data.publicUrl); toast.success("Event picture added.");}catch(e){toast.error(e instanceof Error?e.message:"Image upload failed.");}finally{setUploading(false);}
  };
- const submit=(e:React.FormEvent)=>{e.preventDefault(); if(publishing||uploading) return;
-  void supabase.auth.getUser().then(async ({ data }) => {
+ const submit=async(e:React.FormEvent)=>{e.preventDefault(); if(publishing||uploading) return;
+  const gateFee = price.trim() === "" ? 0 : Number(price);
+  if(!Number.isFinite(gateFee) || gateFee < 0) { toast.error("Enter a valid gate fee."); return; }
+  if(gateFee>0 && currency!=="NGN") { toast.error("Paid gate fees currently use NGN."); return; }
+  try {
+   const { data, error } = await supabase.auth.getUser();
+   if(error) throw error;
    if(!data.user || data.user.is_anonymous){ requestLogin("create an event"); return; }
    if(!(await requireCompleteProfile("create an event"))) return;
    if(!title.trim()||!date||!venue.trim()||!address.trim()||!country.trim()||!city.trim()||!blurb.trim()){ toast.error("Complete the title, date, venue, address, country, city and summary."); return; }
    setPublishing(true);
-
-  const gateFee = price.trim() === "" ? 0 : Number(price);
-  if(!Number.isFinite(gateFee) || gateFee < 0) return toast.error("Enter a valid gate fee.");
-  if(gateFee>0 && currency!=="NGN") return toast.error("Paid gate fees currently use NGN.");
-   void (async () => {
-    const created = await createEvent({title:title.trim(),tag,date,time:`${duration} minutes`,place:venue.trim(),cost:Math.max(0,gateFee),currency,blurb:blurb.trim(),details:details.trim()||blurb.trim(),coverUrl:imageUrl,venueName:venue.trim(),addressLine:address.trim(),country:country.trim(),stateProvince:state.trim(),city:city.trim(),area:area.trim(),reachScope,reachCountry:reachCountry.trim(),reachState:reachState.trim(),reachCity:reachCity.trim(),reachArea:reachArea.trim(),durationMinutes:duration});
-    if (!created) { setPublishing(false); return; }
-    setTitle("");setBlurb("");setDetails("");setVenue("");setAddress("");setCountry("");setState("");setCity("");setArea("");setPrice("");setImageUrl("");setDuration(120);onOpenChange(false);
-    onCreated?.(created);
-    setPublishing(false);
-   })();
-  });
+   const created = await createEvent({title:title.trim(),tag,date,time:`${duration} minutes`,place:venue.trim(),cost:Math.max(0,gateFee),currency,blurb:blurb.trim(),details:details.trim()||blurb.trim(),coverUrl:imageUrl,venueName:venue.trim(),addressLine:address.trim(),country:country.trim(),stateProvince:state.trim(),city:city.trim(),area:area.trim(),reachScope,reachCountry:reachCountry.trim(),reachState:reachState.trim(),reachCity:reachCity.trim(),reachArea:reachArea.trim(),durationMinutes:duration});
+   if (!created) { toast.error("The event was not confirmed as saved. Check your events before trying again."); return; }
+   setTitle("");setBlurb("");setDetails("");setVenue("");setAddress("");setCountry("");setState("");setCity("");setArea("");setPrice("");setImageUrl("");setDuration(120);
+   onOpenChange(false);
+   onCreated?.(created);
+  } catch (error) {
+   toast.error(error instanceof Error ? error.message : "Could not publish event. Please try again.");
+  } finally {
+   setPublishing(false);
+  }
  };
  return <Dialog open={open} onOpenChange={onOpenChange}><DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-2xl rounded-2xl p-6">
   <DialogHeader><div className="flex items-center gap-2"><span className="grid size-9 place-items-center rounded-xl bg-primary/15 text-primary"><CalendarPlus className="size-5"/></span><div><DialogTitle className="font-display text-xl font-bold">Create an Event</DialogTitle><DialogDescription className="text-xs">Give people everything they need to find and attend your event.</DialogDescription></div></div></DialogHeader>
