@@ -132,9 +132,9 @@ export function CreateGroupModal({
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
-            <Button type="submit" className="gap-1.5 font-bold">
+            <Button type="submit" disabled={creating} className="gap-1.5 font-bold">
               <Sparkles className="size-4" />
-              Create Group
+              {creating ? "Creating…" : "Create Group"}
             </Button>
           </DialogFooter>
         </form>
