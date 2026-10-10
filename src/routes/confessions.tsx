@@ -241,12 +241,16 @@ export function ConfessionsPage() {
       const createdId = typeof data === "string" ? data : data?.id;
       if (!createdId) throw new Error("The server did not confirm that your confession was saved.");
       const visibleIds = await load(true);
-      if (!visibleIds?.includes(createdId)) {
-        throw new Error("Your confession was submitted, but the feed could not confirm it yet. Your text has been kept so you can retry after refreshing.");
-      }
       setContent("");
       setShowSignup(false);
-      toast.success("Confession posted 🐼");
+      if (visibleIds?.includes(createdId)) {
+        toast.success("Confession posted 🐼");
+      } else {
+        // The RPC returned a created record ID, so the write succeeded. Do not
+        // keep the composer populated or invite a duplicate submission just
+        // because the feed refresh is delayed or temporarily unavailable.
+        toast.success("Confession saved 🐼", { description: "The feed did not refresh yet. Reopen or refresh the page to see your post." });
+      }
     } catch (error: any) {
       toast.error(error?.message ?? "Your confession could not be submitted.");
     } finally {
