@@ -153,6 +153,7 @@ export const CRUSH_LABEL: Record<CrushKind, string> = {
 };
 
 export const todayKey = () => new Date().toISOString().slice(0, 10);
+export const currentWeekKey = () => { const d = new Date(); const day = (d.getUTCDay() + 6) % 7; d.setUTCDate(d.getUTCDate() - day); return d.toISOString().slice(0, 10); };
 
 export type LeaderboardEntry = {
   id: string;
@@ -457,6 +458,7 @@ type StoreValue = State & {
   startDmWithAuthor: (userId: string, author: string, blurb: string) => Promise<string | null>;
   openPaidDm: (userId: string, author: string, blurb: string) => Promise<string | null>;
   refreshCoins: () => Promise<void>;
+  refreshCrushVoteUsage: () => Promise<void>;
   syncAccountEntitlements: () => Promise<void>;
   spendCoins: (amount: number, reason?: string) => boolean;
   isAdmin: boolean;
@@ -517,6 +519,20 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     const totalXp = (xpRes.data ?? []).reduce((sum:number,row:any) => sum + Number(row.amount ?? 0), 0);
     setState((s) => ({ ...s, coins: Number(walletRes.data?.balance ?? s.coins), xp: totalXp, level: pandaProgress(totalXp).index + 1 }));
   }, [dbUserId]);
+
+  const refreshCrushVoteUsage = useCallback(async () => {
+    const { data, error } = await (supabase as any).rpc("get_crush_vote_status_secure");
+    if (error) {
+      console.error("WCW/MCM weekly vote usage could not be loaded", error);
+      return;
+    }
+    if (!data) return;
+    setState((s) => ({
+      ...s,
+      votesUsedToday: Number(data.free_votes_used ?? 0),
+      voteDay: String(data.week_start ?? currentWeekKey()),
+    }));
+  }, []);
 
   const refreshThreads = useCallback(async () => {
     if (!dbUserId) return;
@@ -1062,10 +1078,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     const { data: results } = await (supabase as any).rpc("get_crush_results", { p_week_start: new Date(Date.now() - ((new Date().getDay() + 6) % 7) * 86400000).toISOString().slice(0,10) });
     const counts = new Map<string, number>((results ?? []).map((r:any)=>[r.nominee_id,Number(r.vote_count ?? r.votes ?? 0)]));
     void refreshCoins();
-    setState((s) => ({ ...s, coins: voteData?.charged_bc ? Math.max(0, s.coins - Number(voteData.charged_bc)) : s.coins, votesUsedToday: Number(voteData?.free_votes_used ?? s.votesUsedToday), voteDay: todayKey(), votedIds: s.votedIds.includes(id) ? s.votedIds : [...s.votedIds,id], nominees: s.nominees.map((n) => ({...n,votes:counts.get(n.id) ?? n.votes})) }));
+    setState((s) => ({ ...s, coins: voteData?.charged_bc ? Math.max(0, s.coins - Number(voteData.charged_bc)) : s.coins, votedIds: s.votedIds.includes(id) ? s.votedIds : [...s.votedIds,id], nominees: s.nominees.map((n) => ({...n,votes:counts.get(n.id) ?? n.votes})) }));
+    await refreshCrushVoteUsage();
     toast.success(voteData?.charged_bc ? `Vote counted · ${Number(voteData.charged_bc)} BC` : voteData?.ad_vote_credits_used ? "Vote counted · free ad vote 💗" : "Vote counted 💗");
     return true;
-  }, [refreshCoins]);
+  }, [refreshCoins, refreshCrushVoteUsage]);
 
   /** Server-authoritative WCW/MCM weekly close. */
   useEffect(() => {
@@ -1394,7 +1411,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       voteFor,
       freeVotesLeft: Math.max(
         0,
-        FREE_WEEKLY_VOTES - (state.voteDay === todayKey() ? state.votesUsedToday : 0),
+        FREE_WEEKLY_VOTES - (state.voteDay === currentWeekKey() ? state.votesUsedToday : 0),
       ),
       mySpotlight: state.spotlights.find((w) => w.name === "You (anonymous)") ?? null,
       toggleRsvp,
