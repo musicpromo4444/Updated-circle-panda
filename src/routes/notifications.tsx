@@ -38,7 +38,7 @@ function NotificationsPage() {
       if (!uid) return;
       channel = (supabase as any)
         .channel(`circle-panda-notifications-page-${uid}`)
-        .on("postgres_changes", { event: "INSERT", schema: "public", table: "cp_notifications", filter: `user_id=eq.${uid}` }, (payload: any) => {
+        .on("postgres_changes", { event: "INSERT", schema: "public", table: "notifications", filter: `user_id=eq.${uid}` }, (payload: any) => {
           setItems((current) => [payload.new, ...current.filter((x) => x.id !== payload.new.id)].slice(0, 100));
         })
         .subscribe();
