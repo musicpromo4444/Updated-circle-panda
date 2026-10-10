@@ -101,10 +101,18 @@ function MessagesPage() {
       ].filter(Boolean)));
       const profilesRes = otherIds.length ? await (supabase as any).from("profiles").select("id,display_name").in("id",otherIds) : {data:[]};
       const names = new Map((profilesRes.data ?? []).map((p:any)=>[p.id,p.display_name || "Anonymous Panda"]));
+      const threadIds = Array.from(new Set([...rowsIn, ...rowsOut].map((r:any)=>r.thread_id).filter(Boolean)));
+      const messageRes = threadIds.length
+        ? await (supabase as any).from("dm_messages").select("thread_id,body,created_at").in("thread_id",threadIds).order("created_at",{ascending:true})
+        : {data:[],error:null};
+      const messageByThread = new Map<string,string>();
+      for (const m of messageRes.data ?? []) {
+        if (m.body && !messageByThread.has(m.thread_id)) messageByThread.set(m.thread_id,String(m.body));
+      }
       const withNames = (r:any, incoming:boolean) => ({
         ...r,
         kind: r.context_type,
-        message: r.context_type === "dating" ? "Dating message request" : r.context_type === "mcm" || r.context_type === "wcw" ? "Message request from the Crush page" : "Message request",
+        message: messageByThread.get(r.thread_id) ?? (r.context_type === "dating" ? "Dating message request" : r.context_type === "mcm" || r.context_type === "wcw" ? "Message request from the Crush page" : "Message request"),
         other_name: names.get(incoming ? r.sender_id : r.recipient_id) ?? "Anonymous Panda",
       });
       const incomingRows = rowsIn.map((r:any)=>withNames(r,true));
@@ -206,7 +214,7 @@ function MessagesPage() {
                 {messageRequests.map((r:any)=>(
                   <div key={r.id} className="rounded-xl bg-background p-3">
                     <button type="button" className="w-full text-left" onClick={() => setSelectedRequestId(r.id)}>
-                      <p className="text-[10px] font-bold text-muted-foreground">Anonymous Panda · {r.context_type === "mcm" || r.context_type === "wcw" ? "MCM/WCW Message Request" : r.context_type === "dating" ? "Dating Message Request" : "Message Request"}</p>
+                      <p className="text-[10px] font-bold text-muted-foreground">Anonymous Panda · {r.source_label || (r.context_type === "confession" ? "Confession" : r.context_type === "event" ? "Events" : r.context_type === "group" ? "Group" : r.context_type === "mcm" || r.context_type === "wcw" ? "MCM/WCW" : r.context_type === "dating" ? "Dating" : "Message Request")}</p>
                       {r.message ? <p className="mt-1 line-clamp-2 text-sm">{r.message}</p> : null}
                     </button>
                     <div className="mt-2 flex gap-2">
@@ -232,7 +240,7 @@ function MessagesPage() {
                 {sentRequests.map((r:any) => (
                   <div key={r.id} className="rounded-xl bg-background p-3">
                     <p className="text-[10px] font-bold text-muted-foreground">
-                      Anonymous Panda · {r.kind === "dating" ? "Dating Message Request" : r.kind === "crush" ? "MCM/WCW Message Request" : "Message Request"}
+                      Anonymous Panda · {r.source_label || (r.context_type === "confession" ? "Confession" : r.context_type === "event" ? "Events" : r.context_type === "group" ? "Group" : r.context_type === "mcm" || r.context_type === "wcw" ? "MCM/WCW" : r.context_type === "dating" ? "Dating" : "Message Request")}
                     </p>
                     <p className="mt-1 text-sm font-semibold">
                       {r.status === "pending" ? "Request sent · Waiting for acceptance" : r.context_type === "dating" ? "Dating request accepted 💗" : "Request accepted 💗"}
@@ -296,7 +304,7 @@ function MessagesPage() {
               <div className="flex items-center gap-3 border-b border-border bg-card px-3 py-3">
                 <Button variant="ghost" size="icon" onClick={() => setSelectedRequestId(null)}><ChevronLeft className="size-5"/></Button>
                 <span className="grid size-10 place-items-center rounded-full bg-secondary text-xl">🐼</span>
-                <div className="min-w-0 flex-1"><p className="font-semibold">{request.other_name || "Anonymous Panda"}</p><p className="text-[11px] text-muted-foreground">{request.context_type === "mcm" || request.context_type === "wcw" ? "MCM/WCW Message Request" : request.context_type === "dating" ? "Dating Message Request" : "Message Request"}</p></div>
+                <div className="min-w-0 flex-1"><p className="font-semibold">{request.other_name || "Anonymous Panda"}</p><p className="text-[11px] text-muted-foreground">{request.source_label || (request.context_type === "confession" ? "Confession" : request.context_type === "event" ? "Events" : request.context_type === "group" ? "Group" : request.context_type === "mcm" || request.context_type === "wcw" ? "MCM/WCW" : request.context_type === "dating" ? "Dating" : "Message Request")}</p></div>
               </div>
               <div className="flex-1 overflow-y-auto bg-secondary/20 p-4">
                 <div className="max-w-[82%] rounded-2xl rounded-tl-md bg-card px-4 py-3 text-sm shadow-sm">{request.message || "This Panda sent you a message request."}</div>
