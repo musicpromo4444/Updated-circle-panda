@@ -35,7 +35,7 @@ export function AdminOperationsCenter(){
  return <section className="panda-panel rounded-3xl p-4 sm:p-5">
   <div className="flex items-start gap-3"><div className="grid size-10 place-items-center rounded-2xl bg-primary/10 text-primary"><Database className="size-5"/></div><div><h2 className="font-display text-lg font-black">Operations & Money Center</h2><p className="mt-1 text-xs text-muted-foreground">Store, sweepstakes, Hot Seat operations, moderation and payment health. Every sensitive change is server-checked and audited.</p></div></div>
   <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
-   {[["Successful payments",data?.finance.successful,Coins],["Pending",data?.finance.pending,Activity],["Pending confessions",data?.content.confessions_pending,Flag],["Groups",data?.content.groups,Users]].map(([l,v,I])=><div key={String(l)} className="rounded-2xl border bg-card p-3"><I className="size-4 text-primary"/><p className="mt-2 text-[10px] uppercase tracking-wider text-muted-foreground">{l}</p><p className="text-xl font-black">{Number(v??0).toLocaleString()}</p></div>)}
+   {[["Successful payments",data?.finance.successful,Coins],["Pending",data?.finance.pending,Activity],["Confessions",data?.content.confessions_pending,Flag],["Groups",data?.content.groups,Users]].map(([l,v,I])=><div key={String(l)} className="rounded-2xl border bg-card p-3"><I className="size-4 text-primary"/><p className="mt-2 text-[10px] uppercase tracking-wider text-muted-foreground">{l}</p><p className="text-xl font-black">{Number(v??0).toLocaleString()}</p></div>)}
   </div>
   <div className="mt-4 rounded-2xl border p-4">
    <div className="flex items-center gap-2"><Coins className="size-4 text-primary"/><h3 className="font-bold">Store & BC products</h3></div>
