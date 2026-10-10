@@ -2,7 +2,6 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, ChevronLeft, ChevronRight, Flag, Heart, MessageCircle, Send, Share2, Smile, Trophy } from "lucide-react";
 import { toast } from "sonner";
-import { sendMessageRequest, isSelfMessageError } from "@/lib/messageRequests";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -28,7 +27,7 @@ export const Route = createFileRoute("/crush")({
   component: CrushPage,
 });
 
-const REACTIONS = ["🐼", "❤️", "👍", "⚡", "🌧️"];
+const REACTIONS = ["❤️", "😂", "😮", "😡", "🐼"];
 
 const CRUSH_BUCKET = "circle-panda-crush";
 
@@ -69,12 +68,13 @@ async function resolveCrushMediaFallback(value: string): Promise<string | null> 
 }
 
 function CrushPage() {
-  const { nominees, voteFor, freeVotesLeft, spotlights } = useStore();
+  const { nominees, voteFor, freeVotesLeft, spotlights, refreshCoins } = useStore();
   const { complete } = useActionSuccess();
   const [kind, setKind] = useState<CrushKind>("wcw");
   const [index, setIndex] = useState(0);
   const [commentOpen, setCommentOpen] = useState(false);
   const [comment, setComment] = useState("");
+  const [comments, setComments] = useState<any[]>([]);
   const [reactionOpen, setReactionOpen] = useState(false);
   const [reactions, setReactions] = useState<Record<string, number>>({});
   const [mineReaction, setMineReaction] = useState<string | null>(null);
@@ -282,7 +282,12 @@ function CrushPage() {
   }, []);
 
   async function loadCardData(id: string) {
-    const { data: reactionsData } = await (supabase as any).rpc("get_crush_reactions", { p_nominee_id: id });
+    const [{ data: reactionsData, error: reactionsError }, { data: commentRows, error: commentsError }] = await Promise.all([
+      (supabase as any).rpc("get_crush_reactions", { p_nominee_id: id }),
+      (supabase as any).from("crush_comments").select("id,user_id,body,created_at").eq("nominee_id", id).order("created_at", { ascending: true }).limit(100),
+    ]);
+    if (reactionsError) toast.error(reactionsError.message ?? "Reactions could not be loaded");
+    if (commentsError) toast.error(commentsError.message ?? "Comments could not be loaded");
     const counts: Record<string, number> = {};
     let mine: string | null = null;
     (reactionsData ?? []).forEach((r: any) => {
@@ -291,6 +296,7 @@ function CrushPage() {
     });
     setReactions(counts);
     setMineReaction(mine);
+    setComments(commentRows ?? []);
   }
 
   const next = (direction: 1 | -1) => {
@@ -388,6 +394,31 @@ function CrushPage() {
     await loadCardData(card.id);
   };
 
+  const votePaid = async () => {
+    if (!card || card.mine || voteAdBusy) return;
+    setVoteAdBusy(true);
+    try {
+      const { data: authData } = await supabase.auth.getUser();
+      if (!authData.user || authData.user.is_anonymous) {
+        setVoteChoiceOpen(false);
+        setPendingVote(true);
+        setShowQuickSignup(true);
+        return;
+      }
+      const { data, error } = await (supabase as any).rpc("cast_crush_vote_paid_secure", { p_nominee_id: card.id });
+      if (error) throw error;
+      setVoteChoiceOpen(false);
+      await refreshCoins();
+      await refreshLiveNominees();
+      toast.success(`Vote counted · ${Number(data?.charged_bc ?? 50)} BC`);
+      next(1);
+    } catch (e: any) {
+      toast.error(e?.message ?? "Paid vote could not be counted");
+    } finally {
+      setVoteAdBusy(false);
+    }
+  };
+
   const startVoteAd = async () => {
     if (voteAdBusy) return;
     setVoteAdBusy(true);
@@ -438,17 +469,20 @@ function CrushPage() {
 
   const sendComment = async () => {
     if (!card || card.mine || !comment.trim() || sending) return;
-    const recipientId = String((card as any).userId ?? "");
-    if (!recipientId) { toast.error("This Crush post is missing its owner."); return; }
     setSending(true);
     try {
-      await sendMessageRequest(recipientId, comment.trim(), card.kind === "mcm" ? "mcm" : "wcw");
+      const { error } = await (supabase as any).rpc("add_crush_comment_secure", {
+        p_nominee_id: card.id,
+        p_body: comment.trim(),
+        p_attachment_url: null,
+        p_attachment_type: null,
+      });
+      if (error) throw error;
       setComment("");
-      setCommentOpen(false);
-      complete("private_message");
-      toast.success("Message request sent 💌", { description: "It is now in Messages while you wait for acceptance." });
+      await loadCardData(card.id);
+      toast.success("Comment posted");
     } catch (e: any) {
-      if (!isSelfMessageError(e)) toast.error(e?.message ?? "Message request could not be sent");
+      toast.error(e?.message ?? "Comment could not be posted");
     } finally {
       setSending(false);
     }
@@ -593,12 +627,6 @@ function CrushPage() {
                 </p>
               </div>
             </div>
-            {!isCreator && mineReaction ? (
-              <div className="absolute bottom-[calc(env(safe-area-inset-bottom)+5.25rem)] right-4 z-30 grid size-12 place-items-center rounded-full border border-white/20 bg-black/75 text-2xl shadow-2xl backdrop-blur-md" aria-label={`Your reaction: ${mineReaction}`}>
-                {mineReaction}
-              </div>
-            ) : null}
-
             {isCreator ? (
               <div className="absolute inset-x-0 bottom-0 z-30 flex items-center justify-end border-t border-white/10 bg-black/80 px-3 pt-2 backdrop-blur-xl pb-[max(0.65rem,env(safe-area-inset-bottom))]">
                 <Button type="button" variant="destructive" size="sm" disabled={deleting} onClick={() => void deleteSubmission()}>
@@ -607,6 +635,12 @@ function CrushPage() {
               </div>
             ) : (
             <div className="absolute inset-x-0 bottom-0 z-30 border-t border-white/10 bg-black/80 px-3 pt-2 backdrop-blur-xl pb-[max(0.65rem,env(safe-area-inset-bottom))]">
+              {!isCreator ? (
+                <div className="mb-2 flex items-center justify-between gap-2 text-[11px] text-white/70">
+                  <span>{Object.values(reactions).reduce((sum:number, count:number) => sum + Number(count || 0), 0)} reactions · {comments.length} comments</span>
+                  {mineReaction ? <span className="rounded-full bg-white/10 px-2 py-1 text-base" aria-label={`Your reaction: ${mineReaction}`}>{mineReaction}</span> : null}
+                </div>
+              ) : null}
               {reactionOpen ? (
                 <div className="mb-2 flex items-center justify-end">
                   <div className="flex items-center gap-1.5 rounded-full border border-white/15 bg-black/90 px-2 py-1.5 shadow-2xl backdrop-blur-xl">
@@ -629,7 +663,15 @@ function CrushPage() {
               ) : null}
 
               {commentOpen ? (
-                <form className="flex items-center gap-2" onSubmit={(e) => { e.preventDefault(); void sendComment(); }}>
+                <div className="space-y-2">
+                  {comments.length ? (
+                    <div className="max-h-24 space-y-1 overflow-y-auto rounded-xl bg-white/5 p-2">
+                      {comments.slice(-3).map((item:any) => (
+                        <p key={item.id} className="text-[11px] leading-4 text-white/80"><span className="font-bold">Anonymous Panda</span> · {item.body}</p>
+                      ))}
+                    </div>
+                  ) : null}
+                  <form className="flex items-center gap-2" onSubmit={(e) => { e.preventDefault(); void sendComment(); }}>
                   <Input
                     autoFocus
                     value={comment}
@@ -645,7 +687,8 @@ function CrushPage() {
                   >
                     <Send className="size-5" />
                   </button>
-                </form>
+                  </form>
+                </div>
               ) : (
                 <div className="flex items-center gap-2">
                   <button
@@ -654,7 +697,7 @@ function CrushPage() {
                     className="flex h-12 min-w-0 flex-1 items-center rounded-full border border-white/15 bg-[#20262a] px-4 text-left text-sm text-white/65"
                   >
                     <MessageCircle className="mr-2 size-5 shrink-0" />
-                    Comment
+                    Comment · {comments.length}
                   </button>
 
                   <button
@@ -692,10 +735,11 @@ function CrushPage() {
 
       <Dialog open={voteChoiceOpen} onOpenChange={setVoteChoiceOpen}>
         <DialogContent className="max-w-sm">
-          <DialogTitle>Sorry, you're out of votes.</DialogTitle>
-          <DialogDescription>Would you like to get three more votes for free?</DialogDescription>
+          <DialogTitle>You're out of free votes</DialogTitle>
+          <DialogDescription>Use 50 BC for one vote, or watch a sponsored video to unlock three additional free votes.</DialogDescription>
           <div className="grid gap-2">
-            <Button onClick={() => void startVoteAd()} disabled={voteAdBusy}>Get for free</Button>
+            <Button onClick={() => void votePaid()} disabled={voteAdBusy}>Vote for 50 BC</Button>
+            <Button variant="outline" onClick={() => void startVoteAd()} disabled={voteAdBusy}>Watch ad · Get 3 free votes</Button>
           </div>
         </DialogContent>
       </Dialog>
@@ -712,11 +756,15 @@ function CrushPage() {
       <QuickVoteSignup
         open={showQuickSignup}
         onOpenChange={setShowQuickSignup}
-        onComplete={() => {
+        onComplete={async () => {
           if (pendingVote && card) {
             setPendingVote(false);
-            voteFor(card.id);
-            next(1);
+            const ok = await voteFor(card.id);
+            if (ok) {
+              complete(card.kind === "mcm" ? "mcm_vote" : "wcw_vote");
+              await refreshLiveNominees();
+              next(1);
+            }
           }
         }}
       />
