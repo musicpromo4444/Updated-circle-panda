@@ -68,7 +68,7 @@ async function resolveCrushMediaFallback(value: string): Promise<string | null> 
 }
 
 function CrushPage() {
-  const { nominees, voteFor, freeVotesLeft, spotlights, refreshCoins } = useStore();
+  const { nominees, voteFor, freeVotesLeft, spotlights, refreshCoins, refreshCrushVoteUsage } = useStore();
   const { complete } = useActionSuccess();
   const [kind, setKind] = useState<CrushKind>("wcw");
   const [index, setIndex] = useState(0);
@@ -117,6 +117,7 @@ function CrushPage() {
   }, [swipeCount]);
 
   const refreshLiveNominees = async () => {
+    void refreshCrushVoteUsage();
     const currentUid = (await supabase.auth.getUser()).data.user?.id;
     setCurrentUserId(currentUid ?? null);
     const { data: cycle } = await (supabase as any)
@@ -409,6 +410,7 @@ function CrushPage() {
       if (error) throw error;
       setVoteChoiceOpen(false);
       await refreshCoins();
+      await refreshCrushVoteUsage();
       await refreshLiveNominees();
       toast.success(`Vote counted · ${Number(data?.charged_bc ?? 50)} BC`);
       next(1);
