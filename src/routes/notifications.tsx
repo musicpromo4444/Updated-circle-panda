@@ -19,10 +19,15 @@ function NotificationsPage() {
 
   const load = async () => {
     setLoading(true);
-    const { data, error } = await (supabase as any).rpc("get_my_notifications", { p_limit: 100 });
-    if (error) toast.error(error.message ?? "Notifications could not be loaded");
-    setItems(data ?? []);
-    setLoading(false);
+    try {
+      const { data, error } = await (supabase as any).rpc("get_my_notifications", { p_limit: 100 });
+      if (error) throw error;
+      setItems(data ?? []);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Notifications could not be loaded");
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
