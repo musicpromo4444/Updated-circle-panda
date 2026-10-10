@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { requestLogin } from "@/components/auth/LoginRequiredDialog";
 
 export type MessageRequestResult = { id: string; status: string };
 export const SELF_MESSAGE_ERROR = "SELF_MESSAGE_BLOCKED";
@@ -13,7 +14,10 @@ export function isSelfMessageError(error: unknown) {
 
 export async function sendMessageRequest(recipientId: string, message: string, contextType: "direct"|"profile"|"event"|"group"|"dating"|"mcm"|"wcw"|"confession" = "direct", contextId?: string): Promise<MessageRequestResult> {
   const { data:userData } = await supabase.auth.getUser();
-  if (!userData.user) throw new Error("Please sign in before messaging.");
+  if (!userData.user || userData.user.is_anonymous) {
+    requestLogin("send messages");
+    throw new Error("Please sign in before messaging.");
+  }
   if (recipientId === userData.user.id) {
     showSelfMessageBlocked();
     throw new Error(SELF_MESSAGE_ERROR);
