@@ -191,7 +191,7 @@ function ProfilePage() {
   const openSupportChat = async () => {
     setSupportBusy(true);
     try {
-      const { data: admins, error } = await (supabase as any).from("app_admins").select("user_id");
+      const { data: admins, error } = await (supabase as any).from("admin_roles").select("user_id,role").eq("role","admin");
       if (error) throw error;
       const admin = (admins ?? []).find((row:any) => row.user_id && row.user_id !== profileId);
       if (!admin?.user_id) throw new Error("Anonymous Admin is not available yet.");
@@ -223,8 +223,8 @@ function ProfilePage() {
   const [publishedConfessions, setPublishedConfessions] = useState(0);
   useEffect(() => {
     if (!profileId) return;
-    void (supabase as any).from("confessions").select("id", { count: "exact", head: true })
-      .eq("author_id", profileId).eq("is_published", true)
+    void (supabase as any).from("secret_posts").select("id", { count: "exact", head: true })
+      .eq("author_id", profileId)
       .then(({ count }: any) => setPublishedConfessions(Number(count ?? 0)));
   }, [profileId]);
   const myPosts = posts.filter((p) => p.authorId === profileId || p.author === "You (anonymous)").length + publishedConfessions;
