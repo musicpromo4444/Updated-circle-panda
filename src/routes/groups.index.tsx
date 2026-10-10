@@ -124,7 +124,7 @@ function GroupsPage() {
       <div className="mb-5">
         <Button
           size="lg"
-          onClick={async () => { if (await requireCompleteProfile("create a group")) setCreateGroupOpen(true); }}
+          onClick={async () => { const { data } = await (await import("@/integrations/supabase/client")).supabase.auth.getUser(); if (!data.user || data.user.is_anonymous) { const { requestLogin } = await import("@/components/auth/LoginRequiredDialog"); requestLogin("create a group"); return; } setCreateGroupOpen(true); }}
           className="w-full gap-2.5 rounded-2xl py-6 text-sm sm:text-base font-bold shadow-lg shadow-primary/20 transition-all hover:opacity-95 active:scale-[0.99] cursor-pointer"
         >
           <PlusCircle className="size-5" />
