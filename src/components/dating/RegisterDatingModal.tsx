@@ -116,7 +116,9 @@ export function RegisterDatingModal({open,onOpenChange}:{open:boolean;onOpenChan
         }));
 
         if(currentDating?.blurredPhotoPath){
-          setPhotoPreview(supabase.storage.from("dating-photo-blur").getPublicUrl(currentDating.blurredPhotoPath).data.publicUrl);
+          const { data: blurPreview, error: blurPreviewError } = await supabase.storage.from("dating-photo-blur").createSignedUrl(currentDating.blurredPhotoPath, 60 * 60);
+          if (active && !blurPreviewError && blurPreview?.signedUrl) setPhotoPreview(blurPreview.signedUrl);
+          else if (active) setPhotoPreview(null);
         } else {
           setPhotoPreview(null);
         }
