@@ -87,14 +87,24 @@ function MessagesPage() {
     let active = true;
     const loadRequests = async () => {
       const uid = (await supabase.auth.getUser()).data.user?.id;
-      if (!uid || !active) return;
+      if (!active) return;
+      if (!uid) {
+        setMessageRequests([]);
+        setSentRequests([]);
+        return;
+      }
       const [incomingRes, outgoingRes] = await Promise.all([
         (supabase as any).from("dm_requests").select("id,sender_id,recipient_id,context_type,context_id,source_label,created_at,status,responded_at,thread_id").eq("recipient_id",uid).eq("status","pending").order("created_at",{ascending:false}),
         (supabase as any).from("dm_requests").select("id,sender_id,recipient_id,context_type,context_id,source_label,created_at,status,responded_at,thread_id").eq("sender_id",uid).in("status",["pending","accepted"]).order("created_at",{ascending:false}).limit(50),
       ]);
       if (!active) return;
-      const rowsIn = incomingRes.error ? [] : (incomingRes.data ?? []);
-      const rowsOut = outgoingRes.error ? [] : (outgoingRes.data ?? []);
+      if (incomingRes.error || outgoingRes.error) {
+        console.error("Message request refresh failed", incomingRes.error ?? outgoingRes.error);
+        toast.error("Message requests could not be refreshed. Your existing cards have been kept.");
+        return;
+      }
+      const rowsIn = incomingRes.data ?? [];
+      const rowsOut = outgoingRes.data ?? [];
       const otherIds = Array.from(new Set([
         ...rowsIn.map((r:any)=>r.sender_id),
         ...rowsOut.map((r:any)=>r.recipient_id),
@@ -130,6 +140,15 @@ function MessagesPage() {
       if (search.request && incomingRows.some((r:any) => r.id === search.request)) setSelectedRequestId(search.request);
     };
     void loadRequests();
+    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!session?.user) {
+        setMessageRequests([]);
+        setSentRequests([]);
+        setSelectedRequestId(null);
+      } else {
+        void loadRequests();
+      }
+    });
     const requestChannel = supabase.channel("message-requests-live")
       .on("postgres_changes", {event:"*", schema:"public", table:"dm_requests"}, () => void loadRequests())
       .subscribe();
@@ -138,6 +157,7 @@ function MessagesPage() {
     });
     return () => {
       active = false;
+      authListener.subscription.unsubscribe();
       void supabase.removeChannel(requestChannel);
     };
   }, [search.request]);
