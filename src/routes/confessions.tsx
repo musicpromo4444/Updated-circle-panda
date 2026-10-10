@@ -53,7 +53,6 @@ export function ConfessionsPage() {
   const [commentCounts, setCommentCounts] = useState<Record<string, number>>({});
   const [items, setItems] = useState<Confession[]>([]);
   const [content, setContent] = useState("");
-  const [anonymous, setAnonymous] = useState(true);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [showSignup, setShowSignup] = useState(false);
@@ -70,18 +69,23 @@ export function ConfessionsPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const remaining = useMemo(() => 2000 - content.length, [content.length]);
 
-  const load = async (background = false) => {
+  const load = async (background = false): Promise<string[] | null> => {
     if (background) setRefreshing(true); else setLoading(true);
-    const { data, error } = await (supabase as any).rpc("get_public_confessions", { p_limit: 50 });
-    if (error) {
-      toast.error(error.message ?? "Could not load confessions");
-    } else {
+    try {
+      const { data, error } = await (supabase as any).rpc("get_public_confessions", { p_limit: 50 });
+      if (error) throw error;
       const nextItems = (data ?? []).map((row: any) => ({ id:row.id, content:row.body, is_anonymous:Boolean(row.is_anonymous), created_at:row.created_at, author_id:row.author_id ?? null })) as Confession[];
       setItems(nextItems);
-      if (nextItems.length) {
-        const ids = nextItems.map((x) => x.id);
-        const { data: reactions } = await (supabase as any).from("secret_reactions").select("secret_id,user_id,reaction").in("secret_id", ids);
-        const currentUser = (await supabase.auth.getUser()).data.user?.id ?? null;
+      const ids = nextItems.map((x) => x.id);
+      if (ids.length) {
+        const [{ data: reactions, error: reactionsError }, { data: commentRows, error: commentsError }, authResult] = await Promise.all([
+          (supabase as any).from("secret_reactions").select("secret_id,user_id,reaction").in("secret_id", ids),
+          (supabase as any).from("secret_comments").select("secret_id").in("secret_id", ids),
+          supabase.auth.getUser(),
+        ]);
+        if (reactionsError) throw reactionsError;
+        if (commentsError) throw commentsError;
+        const currentUser = authResult.data.user?.id ?? null;
         const next: Record<string, ReactionState> = {};
         for (const row of reactions ?? []) {
           const state = next[row.secret_id] ?? { reaction:null, heart_count:0, laugh_count:0, wow_count:0, sad_count:0, angry_count:0, panda_count:0 };
@@ -91,14 +95,21 @@ export function ConfessionsPage() {
           next[row.secret_id] = state;
         }
         setReactionState(next);
-        const { data: commentRows } = await (supabase as any).from("secret_comments").select("secret_id").in("secret_id", ids);
         const counts: Record<string, number> = {};
         for (const row of commentRows ?? []) counts[row.secret_id] = (counts[row.secret_id] ?? 0) + 1;
         setCommentCounts(counts);
-      } else { setReactionState({}); setCommentCounts({}); }
+      } else {
+        setReactionState({});
+        setCommentCounts({});
+      }
+      return ids;
+    } catch (error: any) {
+      toast.error(error?.message ?? "Could not load confessions");
+      return null;
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
     }
-    setLoading(false);
-    setRefreshing(false);
   };
 
   const loadWeekly = async () => {
@@ -222,14 +233,25 @@ export function ConfessionsPage() {
   };
 
   const submitNow = async (trimmed: string) => {
+    if (submitting) return;
     setSubmitting(true);
-    const { data, error } = await (supabase as any).rpc("create_confession", { p_body: trimmed });
-    setSubmitting(false);
-    if (error) return toast.error(error.message ?? "Your confession could not be submitted.");
-    setContent("");
-    setShowSignup(false);
-    toast.success("Confession posted 🐼");
-    await load(true);
+    try {
+      const { data, error } = await (supabase as any).rpc("create_confession", { p_body: trimmed });
+      if (error) throw error;
+      const createdId = typeof data === "string" ? data : data?.id;
+      if (!createdId) throw new Error("The server did not confirm that your confession was saved.");
+      const visibleIds = await load(true);
+      if (!visibleIds?.includes(createdId)) {
+        throw new Error("Your confession was submitted, but the feed could not confirm it yet. Your text has been kept so you can retry after refreshing.");
+      }
+      setContent("");
+      setShowSignup(false);
+      toast.success("Confession posted 🐼");
+    } catch (error: any) {
+      toast.error(error?.message ?? "Your confession could not be submitted.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const submit = async () => {
@@ -337,9 +359,7 @@ export function ConfessionsPage() {
               <h1 className="font-display text-2xl font-black leading-tight sm:text-3xl">Anonymous Feed</h1>
               <p className="mt-1 text-sm leading-5 text-muted-foreground">Nobody knows it's you. Replies are public.</p>
             </div>
-            <Button variant="outline" size="sm" className="shrink-0 rounded-full text-xs" onClick={() => window.location.assign("/leaders")}>
-              <Crown className="mr-1 size-3.5" /> Leaders
-            </Button>
+
           </div>
         </section>
 
@@ -361,6 +381,23 @@ export function ConfessionsPage() {
 
             <button
               type="button"
+              onClick={() => window.location.assign("/crush?kind=wcw")}
+              className="flex min-w-0 flex-col items-center gap-1.5 rounded-2xl p-1.5 text-center transition-transform active:scale-95"
+            >
+              <span className="relative grid size-[58px] place-items-center overflow-hidden rounded-full border-2 border-sky-400 bg-background text-2xl shadow-[0_0_12px_rgba(56,189,248,.12)] sm:size-16">
+                {weekly.wcw[0]?.media_url ? (
+                  weekly.wcw[0].media_type === "video" ? (
+                    <video src={weekly.wcw[0].media_url} muted playsInline preload="metadata" className="size-full object-cover" />
+                  ) : (
+                    <img src={weekly.wcw[0].media_url} alt="WCW" className="size-full object-cover" loading="lazy" />
+                  )
+                ) : "💙"}
+              </span>
+              <span className="w-full truncate text-[11px] font-semibold">WCW</span>
+            </button>
+
+            <button
+              type="button"
               onClick={() => window.location.assign("/crush?kind=mcm")}
               className="flex min-w-0 flex-col items-center gap-1.5 rounded-2xl p-1.5 text-center transition-transform active:scale-95"
             >
@@ -374,23 +411,6 @@ export function ConfessionsPage() {
                 ) : "💙"}
               </span>
               <span className="w-full truncate text-[11px] font-semibold">MCM</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => window.location.assign("/crush?kind=wcw")}
-              className="flex min-w-0 flex-col items-center gap-1.5 rounded-2xl p-1.5 text-center transition-transform active:scale-95"
-            >
-              <span className="relative grid size-[58px] place-items-center overflow-hidden rounded-full border-2 border-pink-400 bg-background text-2xl shadow-[0_0_12px_rgba(244,114,182,.12)] sm:size-16">
-                {weekly.wcw[0]?.media_url ? (
-                  weekly.wcw[0].media_type === "video" ? (
-                    <video src={weekly.wcw[0].media_url} muted playsInline preload="metadata" className="size-full object-cover" />
-                  ) : (
-                    <img src={weekly.wcw[0].media_url} alt="WCW" className="size-full object-cover" loading="lazy" />
-                  )
-                ) : "❤️"}
-              </span>
-              <span className="w-full truncate text-[11px] font-semibold">WCW</span>
             </button>
           </div>
 
@@ -416,10 +436,7 @@ export function ConfessionsPage() {
           <div className="mt-4 flex items-end justify-between gap-3 border-t border-border/50 pt-3">
             <div className="min-w-0">
               <p className="text-xs leading-4 text-muted-foreground">Posting is free · messages cost 1 BC</p>
-              <label className="mt-2 flex items-center gap-2 text-[11px] text-muted-foreground">
-                <input type="checkbox" checked={anonymous} onChange={(e) => setAnonymous(e.target.checked)} disabled={submitting} />
-                Post anonymously
-              </label>
+
             </div>
             <Button onClick={() => void submit()} disabled={submitting || content.trim().length < 3} className="shrink-0 rounded-full px-4 text-xs font-bold">
               {submitting ? "Posting…" : "Post anonymously"}
