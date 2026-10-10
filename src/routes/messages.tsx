@@ -103,16 +103,24 @@ function MessagesPage() {
       const names = new Map((profilesRes.data ?? []).map((p:any)=>[p.id,p.display_name || "Anonymous Panda"]));
       const threadIds = Array.from(new Set([...rowsIn, ...rowsOut].map((r:any)=>r.thread_id).filter(Boolean)));
       const messageRes = threadIds.length
-        ? await (supabase as any).from("dm_messages").select("thread_id,body,created_at").in("thread_id",threadIds).order("created_at",{ascending:true})
+        ? await (supabase as any).from("dm_messages").select("thread_id,sender_id,body,created_at").in("thread_id",threadIds).order("created_at",{ascending:true})
         : {data:[],error:null};
-      const messageByThread = new Map<string,string>();
-      for (const m of messageRes.data ?? []) {
-        if (m.body && !messageByThread.has(m.thread_id)) messageByThread.set(m.thread_id,String(m.body));
+      const messages = messageRes.data ?? [];
+      const messageByRequest = new Map<string,string>();
+      for (const r of [...rowsIn, ...rowsOut]) {
+        const candidates = messages.filter((m:any) =>
+          m.thread_id === r.thread_id &&
+          m.sender_id === r.sender_id &&
+          m.body &&
+          new Date(m.created_at).getTime() >= new Date(r.created_at).getTime()
+        );
+        const latest = candidates[candidates.length - 1];
+        if (latest?.body) messageByRequest.set(r.id, String(latest.body));
       }
       const withNames = (r:any, incoming:boolean) => ({
         ...r,
         kind: r.context_type,
-        message: messageByThread.get(r.thread_id) ?? (r.context_type === "dating" ? "Dating message request" : r.context_type === "mcm" || r.context_type === "wcw" ? "Message request from the Crush page" : "Message request"),
+        message: messageByRequest.get(r.id) ?? (r.context_type === "dating" ? "Dating message request" : r.context_type === "mcm" || r.context_type === "wcw" ? "Message request from the Crush page" : "Message request"),
         other_name: names.get(incoming ? r.sender_id : r.recipient_id) ?? "Anonymous Panda",
       });
       const incomingRows = rowsIn.map((r:any)=>withNames(r,true));
