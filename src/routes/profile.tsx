@@ -93,13 +93,23 @@ function ProfilePage() {
       if (!data.user.is_anonymous) {
         await (supabase as any).rpc("ensure_my_circle_panda_profile");
       }
-      const { data: profile } = await (supabase as any).from("profiles").select("display_name,avatar_url,gender,age,date_of_birth,country,state_province,city,area,address_line,bio").eq("id", data.user.id).maybeSingle();
+      const { data: profile, error: profileError } = await (supabase as any).from("profiles").select("display_name,avatar_url,gender,age,date_of_birth,country,state_province,city,area,address_line,bio").eq("id", data.user.id).maybeSingle();
+      if (profileError) {
+        toast.error(profileError.message ?? "Could not restore your saved profile");
+        return;
+      }
+      if (!profile) {
+        toast.error("Your profile record could not be found. Please try saving again.");
+        return;
+      }
       if (profile?.display_name != null) setDisplayName(String(profile.display_name));
       if (profile?.avatar_url) setAvatar(String(profile.avatar_url));
       if (profile?.age != null) setAge(Number(profile.age));
       if (profile?.date_of_birth != null) setDateOfBirth(String(profile.date_of_birth));
       if (profile?.country != null) setCountry(String(profile.country));
-      if (profile?.date_of_birth && profile?.country) setProfileSaved(true);
+      const complete = Boolean(profile?.date_of_birth && String(profile?.country ?? "").trim());
+      setProfileSaved(complete);
+      setProfileDetailsOpen(!complete);
       if (profile?.state_province != null) setStateProvince(String(profile.state_province));
       if (profile?.city != null) setCity(String(profile.city));
       if (profile?.area != null) setArea(String(profile.area));
