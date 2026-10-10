@@ -381,18 +381,19 @@ function CrushPage() {
 
   const react = async (emoji: string) => {
     if (!card || card.mine) return;
-    const { error } = await (supabase as any).rpc("react_to_crush_secure", {
-      p_nominee_id: card.id,
-      p_reaction: emoji,
-    });
-    if (error) {
-      toast.error(error.message ?? "Reaction could not be saved");
-      return;
+    try {
+      const { error } = await (supabase as any).rpc("react_to_crush_secure", {
+        p_nominee_id: card.id,
+        p_reaction: emoji,
+      });
+      if (error) throw error;
+      setReactionOpen(false);
+      setMineReaction(emoji);
+      complete("reaction");
+      await loadCardData(card.id);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Reaction could not be saved");
     }
-    setReactionOpen(false);
-    setMineReaction(emoji);
-    complete("reaction");
-    await loadCardData(card.id);
   };
 
   const votePaid = async () => {
@@ -492,17 +493,18 @@ function CrushPage() {
 
   const report = async () => {
     if (!card) return;
-    const { error } = await (supabase as any).rpc("report_crush_secure", {
-      p_nominee_id: card.id,
-      p_reason: reportReason,
-      p_details: null,
-    });
-    if (error) {
-      toast.error(error.message ?? "Report could not be submitted");
-      return;
+    try {
+      const { error } = await (supabase as any).rpc("report_crush_secure", {
+        p_nominee_id: card.id,
+        p_reason: reportReason,
+        p_details: null,
+      });
+      if (error) throw error;
+      setReportOpen(false);
+      toast.success("Report received. Thank you for helping keep Circle Panda safe.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Report could not be submitted");
     }
-    setReportOpen(false);
-    toast.success("Report received. Thank you for helping keep Circle Panda safe.");
   };
 
   return (
