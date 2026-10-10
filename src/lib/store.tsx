@@ -1182,9 +1182,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       }),
     ]);
     if (ownRes.error) { toast.error(ownRes.error.message ?? "Your Dating profile could not be loaded"); return false; }
-    if (discoveryRes.error) { toast.error(discoveryRes.error.message ?? "Dating discovery could not be loaded"); return false; }
+    if (discoveryRes.error) toast.error(discoveryRes.error.message ?? "Dating discovery could not be loaded");
     const ownRow = Array.isArray(ownRes.data) ? ownRes.data[0] : ownRes.data;
-    const discoveryRows = Array.isArray(discoveryRes.data) ? discoveryRes.data : [];
+    const discoveryRows = !discoveryRes.error && Array.isArray(discoveryRes.data) ? discoveryRes.data : [];
     const mapProfile = (d:any): DatingProfile => ({
       userId:d.user_id,name:d.name ?? "Anonymous Panda",age:Number(d.age ?? 18),vibe:d.vibe ?? "",emoji:d.emoji ?? "🐼",bio:d.bio ?? "",interests:d.interests ?? [],location:d.location ?? "",country:d.country ?? "",stateProvince:d.state_province ?? "",gender:d.gender ?? "",relationshipGoal:d.relationship_goal ?? "",lookingFor:d.looking_for ?? [],aboutTraits:d.about_traits ?? [],lifestyle:d.lifestyle ?? [],personality:d.personality ?? [],loveLanguage:d.love_language ?? "",smoking:d.smoking ?? "",drinking:d.drinking ?? "",children:d.children ?? "",education:d.education ?? "",occupation:d.occupation ?? "",sexualExperience:d.sexual_experience ?? "",intimacyPreference:d.intimacy_preference ?? "",relationshipStatus:d.relationship_status ?? "single",heightCm:d.height_cm ?? null,zodiac:d.zodiac ?? "",favoriteDate:d.favorite_date ?? "",photoPath:d.photo_path ?? "",blurredPhotoPath:d.blurred_photo_path ?? "",registeredAt:d.updated_at ? new Date(d.updated_at).getTime() : Date.now()
     });
@@ -1238,6 +1238,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         p_favorite_date:"",p_emoji:p.emoji,p_photo_path:p.photoPath||null,p_blurred_photo_path:p.blurredPhotoPath||null
       });
       if (error) { toast.error(error.message ?? "Dating profile could not be saved"); return false; }
+      if (data === false) { toast.error("The server did not save your Dating profile. Please try again."); return false; }
       const refreshed = await refreshDatingData();
       if (!refreshed) {
         toast.error("The database did not confirm your Dating card. Please retry; your details have not been marked as published.");
