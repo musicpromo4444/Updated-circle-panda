@@ -108,7 +108,7 @@ function EventsPage() {
     setFreePromotionProcessing(true);
     try {
       const { data, error } = await (supabase as any).rpc("claim_free_event_promotion_secure", {
-        p_event_id: current.id, p_target_scope: targetScope, p_target_country: targetCountry || null,
+        p_event_id: event.id, p_target_scope: targetScope, p_target_country: targetCountry || null,
         p_target_state: targetState || null, p_target_city: targetCity || null, p_target_area: targetArea || null,
       });
       if (error) throw new Error(error.message);
