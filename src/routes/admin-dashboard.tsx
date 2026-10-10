@@ -11,6 +11,7 @@ import { PaymentProviderSetup } from "@/components/admin/PaymentProviderSetup";
 import { UniversalWinnerManager } from "@/components/admin/UniversalWinnerManager";
 import { AdminIntegrationCenter } from "@/components/admin/AdminIntegrationCenter";
 import { AdminControlCenter } from "@/components/admin/AdminControlCenter";
+import AdminRewardWheelManager from "@/components/admin/AdminRewardWheelManager";
 import { AdminPermissionManager } from "@/components/admin/AdminPermissionManager";
 import { UniversalFloatingIconManager } from "@/components/admin/UniversalFloatingIconManager";
 import { AdminOperationsCenter } from "@/components/admin/AdminOperationsCenter";
@@ -149,6 +150,7 @@ function AdminDashboardPage() {
   return <AppShell title="Admin Dashboard" hidePageHeader>
     <main className="mx-auto max-w-4xl space-y-5 p-4 pb-24 sm:p-6">
       <AdminControlCenter />
+      <AdminRewardWheelManager />
       <AdminGroupMediaManager />
       <VipGroupCallSettings />
       <VipGroupSponsorSettings />
