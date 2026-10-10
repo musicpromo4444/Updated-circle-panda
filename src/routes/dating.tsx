@@ -170,7 +170,7 @@ function DatingPage() {
     window.addEventListener("focus", onFocus);
     const channel = supabase.channel("dating-discovery-live")
       .on("postgres_changes", {event:"*", schema:"public", table:"dating_profiles"}, () => {
-        void refreshDatingData({sameCountryOnly:false});
+        void refreshDatingData();
       })
       .subscribe();
     return () => {
@@ -210,8 +210,7 @@ function DatingPage() {
   const connectionFor = (userId?: string) => connections.find((x:any) => userId && ((x.user_a === userId && x.user_b === datingProfile?.userId) || (x.user_b === userId && x.user_a === datingProfile?.userId)));
 
   const allMatches: Match[] = datingMatches.filter((m:any) => m.userId && m.userId !== datingProfile?.userId);
-  const filteredMatches = allMatches.filter((m:any, idx) => {
-    if (idx === 0) return true;
+  const filteredMatches = allMatches.filter((m:any) => {
     if (sameCountryOnly && datingProfile?.country && String(m.country).toLowerCase() !== String(datingProfile.country).toLowerCase()) return false;
     if (countryFilter && String(m.country ?? "").toLowerCase() !== countryFilter.toLowerCase()) return false;
     if (stateFilter && String(m.stateProvince ?? "").toLowerCase() !== stateFilter.toLowerCase()) return false;
@@ -312,7 +311,7 @@ setSameCountryOnly(false);
               <div key={r.id} className="flex items-center gap-2 rounded-xl bg-background/70 p-3">
                 <span className="grid size-9 place-items-center rounded-full bg-secondary">🐼</span><span className="flex-1 text-sm">{r.sender_name || "Anonymous Panda"}</span>
                 <Button size="sm" onClick={()=>void (async()=>{const {data:req}=await (supabase as any).from("dm_requests").select("id").eq("context_type","dating").eq("context_id",r.id).eq("recipient_id",r.recipient_id).eq("status","pending").maybeSingle(); if(!req?.id){toast.error("Dating message request is no longer available");return;} const {data,error}=await (supabase as any).rpc("respond_direct_message_request_secure",{p_request_id:req.id,p_accept:true}); if(error){toast.error(error.message??"Could not accept Dating message request");return;} await loadConnections(); toast.success("Dating request accepted 💗",{description:"Your free 72-hour Dating Chat has started."}); if(data?.thread_id) void navigate({to:"/messages",search:{thread:String(data.thread_id)}}); })()}>Accept</Button>
-                <Button size="sm" variant="outline" onClick={()=>void (async()=>{const {data:req}=await (supabase as any).from("direct_message_requests").select("id").eq("context_type","dating").eq("context_id",r.id).eq("status","pending").maybeSingle(); if(!req?.id){toast.error("Dating request is no longer available");return;} const {error}=await (supabase as any).rpc("respond_direct_message_request_secure",{p_request_id:req.id,p_accept:false}); if(error){toast.error(error.message??"Could not decline request");return;} setIncoming(x=>x.filter(y=>y.id!==r.id)); })()}>Decline</Button>
+                <Button size="sm" variant="outline" onClick={()=>void (async()=>{const {data:req}=await (supabase as any).from("dm_requests").select("id").eq("context_type","dating").eq("context_id",r.id).eq("recipient_id",r.recipient_id).eq("status","pending").maybeSingle(); if(!req?.id){toast.error("Dating request is no longer available");return;} const {error}=await (supabase as any).rpc("respond_direct_message_request_secure",{p_request_id:req.id,p_accept:false}); if(error){toast.error(error.message??"Could not decline request");return;} setIncoming(x=>x.filter(y=>y.id!==r.id)); })()}>Decline</Button>
               </div>
             ))}
           </div>
