@@ -334,7 +334,7 @@ export function ConfessionsPage() {
     if (!messagePost?.author_id || !messageText.trim()) return;
     setSendingMessage(true);
     try {
-      const result = await sendMessageRequest(messagePost.author_id, messageText.trim(), "profile", messagePost.author_id);
+      const result = await sendMessageRequest(messagePost.author_id, messageText.trim(), "confession", messagePost.id);
       setMessageText("");
       setMessagePost(null);
       toast.success("Message request sent 💌", { description: "It is now in Messages while you wait for acceptance." });
