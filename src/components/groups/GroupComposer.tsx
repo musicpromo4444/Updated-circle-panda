@@ -140,8 +140,12 @@ export function GroupComposer({
   const sendVoice = async () => {
     if (!voiceBlob || disabled) return;
     const file = new File([voiceBlob], `voice-${Date.now()}.${voiceBlob.type.includes("mp4") ? "m4a" : "webm"}`, { type: voiceBlob.type || "audio/webm" });
-    await onSendMedia({ type: "audio", file, durationSeconds: seconds, replyToId: replyTo?.id });
-    clearVoice();
+    try {
+      await onSendMedia({ type: "audio", file, durationSeconds: seconds, replyToId: replyTo?.id });
+      clearVoice();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Voice note could not be sent. Your recording has been kept so you can retry.");
+    }
   };
 
   const cancelVoice = () => clearVoice();
