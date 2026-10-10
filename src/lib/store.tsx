@@ -534,6 +534,27 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     }));
   }, []);
 
+  const refreshSpinStatus = useCallback(async () => {
+    if (!dbUserId) {
+      setState((s) => ({ ...s, lastSpinAt: null }));
+      return;
+    }
+    const { data: campaign, error: campaignError } = await (supabase as any)
+      .from("cp_reward_campaigns").select("id").eq("enabled", true)
+      .order("created_at", { ascending: true }).limit(1).maybeSingle();
+    if (campaignError || !campaign?.id) return;
+    const { data, error } = await (supabase as any).rpc("cp_get_reward_status", { p_campaign_id: campaign.id });
+    if (error || !data) {
+      console.error("Spin Wheel status could not be restored", error);
+      return;
+    }
+    setState((s) => ({ ...s, lastSpinAt: data.last_spin_at ? new Date(data.last_spin_at).getTime() : null }));
+  }, [dbUserId]);
+
+  useEffect(() => {
+    void refreshSpinStatus();
+  }, [refreshSpinStatus]);
+
   const refreshThreads = useCallback(async () => {
     if (!dbUserId) return;
     const uid = dbUserId;
@@ -1291,6 +1312,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const buyTicket = useCallback((draw: DrawKind) => {
     if (!dbUserId) { requestLogin("buy a ticket"); return false; }
     void (async()=>{
+      const { data: authData } = await supabase.auth.getUser();
+      if (!authData.user || authData.user.is_anonymous) { requestLogin("buy a ticket"); return; }
       const { data, error } = await (supabase as any).rpc("buy_sweepstake_ticket_secure", { p_draw: draw });
       if (error) { toast.error(error.message ?? "Could not secure ticket"); return; }
       setState((s) => ({ ...s, coins: Number(data?.balance ?? Math.max(0, s.coins - TICKET_COST)), sweepTickets: [...s.sweepTickets, { id: String(data?.ticket_id ?? data?.id), draw, at: Date.now() }] }));
@@ -1301,6 +1324,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const spinWheel = useCallback(async (): Promise<SpinPrize | null> => {
     if (!dbUserId) { requestLogin("spin"); return null; }
+    const { data: authData } = await supabase.auth.getUser();
+    if (!authData.user || authData.user.is_anonymous) { requestLogin("spin"); return null; }
     const { data: campaign, error: campaignError } = await (supabase as any)
       .from("cp_reward_campaigns")
       .select("id")
@@ -1315,6 +1340,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     const { data: status, error: statusError } = await (supabase as any)
       .rpc("cp_get_reward_status", { p_campaign_id: campaign.id });
     if (statusError) { toast.error(statusError.message ?? "Could not check the wheel."); return null; }
+    if (status?.last_spin_at) setState((s) => ({ ...s, lastSpinAt: new Date(status.last_spin_at).getTime() }));
     if (!status?.can_spin) {
       toast.error("Your free spin is not ready yet.");
       return null;
