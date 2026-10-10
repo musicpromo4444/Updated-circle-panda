@@ -90,7 +90,7 @@ export function AdminDailyGamesManager() {
       const [label, amount] = line.split(":");
       return { label: label?.trim() || "Reward", amount: Number(amount) || 0 };
     }).filter((r) => r.amount >= 0);
-    const { error } = await (supabase as any).rpc("admin_update_daily_game", {
+    const { error } = await (supabase as any).rpc("admin_update_seven_day_activity_config", {
       p_slug: game.slug,
       p_enabled: game.is_enabled,
       p_free_attempts: game.free_attempts,
