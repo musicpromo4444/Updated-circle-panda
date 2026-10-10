@@ -555,6 +555,31 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     void refreshSpinStatus();
   }, [refreshSpinStatus]);
 
+  useEffect(() => {
+    let active = true;
+    if (!dbUserId) {
+      setState((s) => ({ ...s, sweepTickets: [] }));
+      return () => { active = false; };
+    }
+    void (async () => {
+      const { data, error } = await (supabase as any)
+        .from("sweepstakes_tickets").select("id,draw,created_at")
+        .eq("user_id", dbUserId).order("created_at", { ascending: false });
+      if (!active) return;
+      if (error) {
+        console.error("Sweepstakes tickets could not be restored", error);
+        return;
+      }
+      setState((s) => ({
+        ...s,
+        sweepTickets: (data ?? []).map((ticket: any) => ({
+          id: String(ticket.id), draw: ticket.draw, at: new Date(ticket.created_at).getTime(),
+        })),
+      }));
+    })();
+    return () => { active = false; };
+  }, [dbUserId]);
+
   const refreshThreads = useCallback(async () => {
     if (!dbUserId) return;
     const uid = dbUserId;
