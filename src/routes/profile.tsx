@@ -94,17 +94,17 @@ function ProfilePage() {
         await (supabase as any).rpc("ensure_my_circle_panda_profile");
       }
       const { data: profile } = await (supabase as any).from("profiles").select("display_name,avatar_url,gender,age,date_of_birth,country,state_province,city,area,address_line,bio").eq("id", data.user.id).maybeSingle();
-      if (profile?.display_name) setDisplayName(profile.display_name);
+      if (profile?.display_name != null) setDisplayName(String(profile.display_name));
       if (profile?.avatar_url) setAvatar(String(profile.avatar_url));
-      if (profile?.age) setAge(Number(profile.age));
-      if (profile?.date_of_birth) setDateOfBirth(String(profile.date_of_birth));
-      if (profile?.country) setCountry(profile.country);
+      if (profile?.age != null) setAge(Number(profile.age));
+      if (profile?.date_of_birth != null) setDateOfBirth(String(profile.date_of_birth));
+      if (profile?.country != null) setCountry(String(profile.country));
       if (profile?.date_of_birth && profile?.country) setProfileSaved(true);
-      if (profile?.state_province) setStateProvince(profile.state_province);
-      if (profile?.city) setCity(profile.city);
-      if (profile?.area) setArea(profile.area);
-      if (profile?.address_line) setAddressLine(profile.address_line);
-      if (profile?.bio) setBio(profile.bio);
+      if (profile?.state_province != null) setStateProvince(String(profile.state_province));
+      if (profile?.city != null) setCity(String(profile.city));
+      if (profile?.area != null) setArea(String(profile.area));
+      if (profile?.address_line != null) setAddressLine(String(profile.address_line));
+      if (profile?.bio != null) setBio(String(profile.bio));
       if (profile?.gender === "male" || profile?.gender === "female") setAccountGender(profile.gender);
       const { data: settings } = await (supabase as any).rpc("get_my_account_settings_secure");
       if (settings) {
@@ -378,17 +378,37 @@ function ProfilePage() {
         </div>
         <Button className="mt-3 w-full rounded-xl" disabled={savingProfile} onClick={() => void (async () => {
           setSavingProfile(true);
-          const { data, error } = await (supabase as any).rpc("update_profile_completion_secure", {
-            p_country: country, p_state_province: stateProvince, p_city: city, p_area: area, p_address_line: addressLine, p_date_of_birth: dateOfBirth || null,
-          });
-          setSavingProfile(false);
-          if (error) { toast.error(error.message ?? "Profile could not be saved"); return; }
-          setAge(data?.age ? Number(data.age) : age); setDateOfBirth(data?.date_of_birth ?? dateOfBirth); setCountry(data?.country ?? country); setStateProvince(data?.state_province ?? stateProvince);
-          setCity(data?.city ?? city); setArea(data?.area ?? area); setAddressLine(data?.address_line ?? addressLine);
-          const saved = Boolean((data?.date_of_birth ?? dateOfBirth) && (data?.country ?? country));
-          setProfileSaved(saved);
-          if (saved) setProfileDetailsOpen(false);
-          toast.success("Profile details saved 🐼");
+          try {
+            const { data, error } = await (supabase as any).rpc("update_profile_completion_secure", {
+              p_country: country, p_state_province: stateProvince, p_city: city, p_area: area, p_address_line: addressLine, p_date_of_birth: dateOfBirth || null,
+            });
+            if (error) throw error;
+            const returned = Array.isArray(data) ? data[0] : data;
+            const { data: authData, error: authError } = await supabase.auth.getUser();
+            if (authError || !authData.user) throw authError ?? new Error("Your session expired. Please sign in again.");
+            const { data: persisted, error: readError } = await (supabase as any).from("profiles")
+              .select("age,date_of_birth,country,state_province,city,area,address_line")
+              .eq("id", authData.user.id).maybeSingle();
+            if (readError) throw readError;
+            const savedDob = persisted?.date_of_birth ?? returned?.date_of_birth ?? dateOfBirth;
+            const savedCountry = persisted?.country ?? returned?.country ?? country;
+            setAge(persisted?.age != null ? Number(persisted.age) : returned?.age != null ? Number(returned.age) : age);
+            setDateOfBirth(savedDob ?? "");
+            setCountry(savedCountry ?? "");
+            setStateProvince(persisted?.state_province ?? returned?.state_province ?? stateProvince);
+            setCity(persisted?.city ?? returned?.city ?? city);
+            setArea(persisted?.area ?? returned?.area ?? area);
+            setAddressLine(persisted?.address_line ?? returned?.address_line ?? addressLine);
+            const saved = Boolean(savedDob && savedCountry);
+            setProfileSaved(saved);
+            if (!saved) throw new Error("The database did not confirm your date of birth and country. Your profile has not been marked as saved.");
+            setProfileDetailsOpen(false);
+            toast.success("Profile details saved and verified 🐼");
+          } catch (err: any) {
+            toast.error(err?.message ?? "Profile could not be saved");
+          } finally {
+            setSavingProfile(false);
+          }
         })()}>
           {savingProfile ? "Saving…" : "Save profile details"}
         </Button>
@@ -486,7 +506,7 @@ function ProfilePage() {
             >
               <span className="text-base">{t.emoji}</span>
               <span className="min-w-0 flex-1 truncate font-medium">{t.name}</span>
-              <span className="shrink-0 tabular-nums">{t.min}+ rep</span>
+              <span className="shrink-0 tabular-nums">{t.min.toLocaleString()} XP</span>
             </div>
           ))}
         </div>
