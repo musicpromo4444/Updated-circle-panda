@@ -67,7 +67,11 @@ export function GroupComposer({
       toast.error("Media must be 25 MB or smaller.");
       return;
     }
-    await onSendMedia({ type, file, replyToId: replyTo?.id });
+    try {
+      await onSendMedia({ type, file, replyToId: replyTo?.id });
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Media could not be sent. Please try again.");
+    }
   };
 
   const startRecording = async () => {
