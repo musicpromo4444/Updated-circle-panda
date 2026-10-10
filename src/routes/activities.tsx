@@ -368,7 +368,10 @@ function ActivitiesPage() {
           <p className="cp-eyebrow">CIRCLE PANDA</p><h1>Play · Connect · Earn</h1>
           <p>Real playable activities with server-verified rewards and sponsor-result ads.</p>
         </div>
-        <div className="cp-activity-progress"><Trophy className="size-4" /><b>{completed}/{total}</b><span>done</span></div>
+        <div className="flex flex-col items-end gap-2">
+          <div className="cp-activity-progress"><Trophy className="size-4" /><b>{completed}/{total}</b><span>done</span></div>
+          <Button type="button" size="sm" variant="outline" onClick={() => setSpinOpen(true)}><Sparkles className="mr-1.5 size-4" /> Spin Wheel</Button>
+        </div>
       </section>
       <section className="cp-activity-list">
         <div className="cp-activity-section-head"><div><p className="cp-eyebrow">YOUR GAMES</p><h2>Today’s Activity</h2></div><span>{activities[0]?.attempts_left ?? 0} attempt{(activities[0]?.attempts_left ?? 0) === 1 ? "" : "s"} left</span></div>
