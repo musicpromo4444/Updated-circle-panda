@@ -47,18 +47,26 @@ function NotificationsPage() {
   }, []);
 
   const markRead = async () => {
-    const { error } = await (supabase as any).rpc("mark_notifications_read");
-    if (error) { toast.error(error.message ?? "Could not mark notifications read"); return; }
-    setItems((current) => current.map((x) => ({ ...x, read_at: x.read_at ?? new Date().toISOString() })));
-    window.dispatchEvent(new CustomEvent("circle-panda-notifications-refresh"));
-    toast.success("Notifications marked as read");
+    try {
+      const { error } = await (supabase as any).rpc("mark_notifications_read");
+      if (error) throw error;
+      setItems((current) => current.map((x) => ({ ...x, read_at: x.read_at ?? new Date().toISOString() })));
+      window.dispatchEvent(new CustomEvent("circle-panda-notifications-refresh"));
+      toast.success("Notifications marked as read");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not mark notifications read");
+    }
   };
 
   const markOneRead = async (id: string) => {
-    const { error } = await (supabase as any).rpc("mark_notification_read", { p_id: id });
-    if (error) { toast.error(error.message ?? "Could not mark notification read"); return; }
-    setItems((current) => current.map((x) => x.id === id ? { ...x, read_at: x.read_at ?? new Date().toISOString() } : x));
-    window.dispatchEvent(new CustomEvent("circle-panda-notifications-refresh"));
+    try {
+      const { error } = await (supabase as any).rpc("mark_notification_read", { p_id: id });
+      if (error) throw error;
+      setItems((current) => current.map((x) => x.id === id ? { ...x, read_at: x.read_at ?? new Date().toISOString() } : x));
+      window.dispatchEvent(new CustomEvent("circle-panda-notifications-refresh"));
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not mark notification read");
+    }
   };
 
   return (
