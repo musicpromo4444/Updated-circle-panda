@@ -28,15 +28,18 @@ export function AdminDailyGamesManager() {
 
   const load = async () => {
     setLoading(true);
-    const { data, error } = await (supabase as any).rpc("admin_get_daily_games");
-    if (error) {
-      toast.error(error.message ?? "Could not load game controls");
+    const [{ data: gameData, error: gamesError }, { data: scheduleData, error: scheduleError }] = await Promise.all([
+      (supabase as any).rpc("admin_get_seven_day_activity_catalog"),
+      (supabase as any).rpc("admin_get_seven_day_activity_schedule"),
+    ]);
+    if (gamesError || scheduleError) {
+      toast.error((gamesError ?? scheduleError)?.message ?? "Could not load game controls");
       setLoading(false);
       return;
     }
-    const nextGames = (data?.games ?? []) as GameConfig[];
+    const nextGames = (gameData ?? []) as GameConfig[];
     setGames(nextGames);
-    setSchedule((data?.schedule ?? []) as ScheduleRow[]);
+    setSchedule((scheduleData ?? []) as ScheduleRow[]);
     setRewardText(Object.fromEntries(nextGames.map((g) => [
       g.slug,
       (g.reward_pool ?? []).map((r) => `${r.label ?? "Reward"}:${r.amount ?? 0}`).join("\n"),
@@ -50,9 +53,9 @@ export function AdminDailyGamesManager() {
 
   const setDay = async (day: number, slug: string) => {
     setSaving(`day-${day}`);
-    const { error } = await (supabase as any).rpc("admin_set_daily_game", {
-      p_day: day,
-      p_slug: slug,
+    const { error } = await (supabase as any).rpc("admin_set_seven_day_activity", {
+      p_day_number: day,
+      p_activity_slug: slug,
       p_enabled: true,
     });
     setSaving(null);
@@ -67,7 +70,7 @@ export function AdminDailyGamesManager() {
       const [label, amount] = line.split(":");
       return { label: label?.trim() || "Reward", amount: Number(amount) || 0 };
     }).filter((r) => r.amount >= 0);
-    const { error } = await (supabase as any).rpc("admin_update_daily_game", {
+    const { error } = await (supabase as any).rpc("admin_update_seven_day_activity_config", {
       p_slug: game.slug,
       p_enabled: enabled,
       p_free_attempts: game.free_attempts,
