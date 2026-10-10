@@ -147,7 +147,7 @@ export function GroupComposer({
   const cancelVoice = () => clearVoice();
 
   return (
-    <form style={{position:"relative"}} onSubmit={(e) => { e.preventDefault(); const text = draft.trim(); if (!text || disabled || recording || voiceBlob) return; setDraft(""); void onSendText(text, replyTo?.id); }} className="flex items-end gap-2">
+    <form style={{position:"relative"}} onSubmit={(e) => { e.preventDefault(); const text = draft.trim(); if (!text || disabled || recording || voiceBlob) return; void Promise.resolve(onSendText(text, replyTo?.id)).then(() => setDraft(current => current === text ? "" : current)).catch((error) => toast.error(error instanceof Error ? error.message : "Message could not be sent. Your text has been kept so you can retry.")); }} className="flex items-end gap-2">
       {replyTo ? <div className="absolute bottom-full left-2 right-2 mb-1 flex items-center gap-2 rounded-xl border border-border bg-card px-3 py-2 text-xs shadow-lg"><div className="min-w-0 flex-1"><b>Replying to {replyTo.author}</b><div className="truncate text-muted-foreground">{replyTo.body || "Media"}</div></div><Button type="button" variant="ghost" size="icon" onClick={onCancelReply}><X className="size-4"/></Button></div> : null}
       <input ref={imageInput} type="file" accept="image/*" className="hidden" onChange={(e) => { void pick(e.target.files?.[0], "image"); e.currentTarget.value = ""; }} />
       <input ref={videoInput} type="file" accept="video/*" className="hidden" onChange={(e) => { void pick(e.target.files?.[0], "video"); e.currentTarget.value = ""; }} />
