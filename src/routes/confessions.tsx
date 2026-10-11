@@ -164,9 +164,9 @@ export function ConfessionsPage() {
     setUploadOpen(false);
     setGenderPromptOpen(true);
   };
-  const saveGender = async (gender: "male" | "female") => {
+  const saveGender = async (gender: "male" | "female"): Promise<void> => {
     const { data, error } = await (supabase as any).rpc("set_profile_gender_secure", { p_gender: gender });
-    if (error) return toast.error(error.message ?? "Gender could not be saved");
+    if (error) { toast.error(error.message ?? "Gender could not be saved"); return; }
     const savedGender = data === "male" || data === "female" ? data : gender;
     setAccountGender(savedGender);
     setGenderPromptOpen(false);
@@ -198,13 +198,13 @@ export function ConfessionsPage() {
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-  const uploadCrush = async () => {
+  const uploadCrush = async (): Promise<void> => {
     if (!accountGender) {
       setUploadOpen(false);
       setGenderPromptOpen(true);
       return;
     }
-    if (!uploadFile) return toast.error("Tap Choose photo or video first.");
+    if (!uploadFile) { toast.error("Tap Choose photo or video first."); return; }
     setUploading(true);
     try {
       const { data: authData } = await supabase.auth.getUser();
@@ -272,10 +272,10 @@ export function ConfessionsPage() {
     }
   };
 
-  const submit = async () => {
+  const submit = async (): Promise<void> => {
     const trimmed = content.trim();
-    if (trimmed.length < 3) return toast.error("Write at least 3 characters first.");
-    if (trimmed.length > 2000) return toast.error("Your confession is too long.");
+    if (trimmed.length < 3) { toast.error("Write at least 3 characters first."); return; }
+    if (trimmed.length > 2000) { toast.error("Your confession is too long."); return; }
 
     const { data: authData } = await supabase.auth.getUser();
     if (!authData.user || authData.user.is_anonymous) {
@@ -596,7 +596,7 @@ export function ConfessionsPage() {
               })()}
               {commentsByPost[item.id]?.length ? (
                 <div className="mt-3 space-y-2 rounded-2xl bg-secondary/30 p-3">
-                  {commentsByPost[item.id].slice(-3).map((comment) => <div key={comment.id} className="text-sm"><span className="font-semibold">Anonymous Panda</span><span className="text-muted-foreground"> · {comment.body}</span></div>)}
+                  {(commentsByPost[item.id] ?? []).slice(-3).map((comment) => <div key={comment.id} className="text-sm"><span className="font-semibold">Anonymous Panda</span><span className="text-muted-foreground"> · {comment.body}</span></div>)}
                 </div>
               ) : null}
             </article>
