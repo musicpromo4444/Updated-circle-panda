@@ -1,22 +1,11 @@
 import type { CoinPackage, PricingConfig, VipPlan } from "@/lib/pricingTypes";
 import { supabase } from "@/integrations/supabase/client";
+import type { AndroidBridgeApi, AndroidLegacyApi } from "@/lib/nativeBridgeTypes";
 
 declare global {
   interface Window {
-    AndroidBridge?: {
-      openUrl?: (url: string) => void;
-      initiatePayment?: (payloadJson: string) => boolean;
-      isWebView?: () => boolean;
-      onPaymentComplete?: (success: boolean, transactionId: string) => void;
-    getDistribution?: () => "google_play" | "external";
-      requestGooglePlayPurchase?: (payloadJson: string) => boolean;
-      onPurchaseResult?: (payloadJson: string) => void;
-    };
-    Android?: {
-      openUrl?: (url: string) => void;
-      initiatePayment?: (payloadJson: string) => boolean;
-      requestGooglePlayPurchase?: (payloadJson: string) => boolean;
-    };
+    AndroidBridge?: AndroidBridgeApi;
+    Android?: AndroidLegacyApi;
     CirclePandaIOS?: {
       requestApplePurchase?: (payloadJson: string) => boolean;
       onPurchaseResult?: (payloadJson: string) => void;
