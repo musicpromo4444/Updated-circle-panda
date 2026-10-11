@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -94,3 +94,9 @@ export default function UpdatePasswordPage() {
     </main>
   );
 }
+
+
+export const Route = createFileRoute("/update-password")({
+  head: () => ({ meta: [{ title: "Reset Password — Circle Panda" }] }),
+  component: UpdatePasswordPage,
+});
