@@ -18,10 +18,38 @@ const CATALOG=[
 
 export function AdminIntegrationCenter(){
  const [items,setItems]=useState<Integration[]>([]); const [draft,setDraft]=useState<Record<string,Integration>>({}); const [secrets,setSecrets]=useState<Record<string,Record<string,string>>>({}); const [loading,setLoading]=useState(true); const [saving,setSaving]=useState<string|null>(null);
- const load=async()=>{setLoading(true);const {data,error}=await (supabase as any).rpc("admin_get_integrations");setLoading(false);if(error)return toast.error(error.message);const rows=(data??[]) as Integration[];setItems(rows);setDraft(Object.fromEntries(rows.map(x=>[x.key,structuredClone(x)])));};
+  const load = async (): Promise<void> => {
+    setLoading(true);
+    const { data, error } = await (supabase as any).rpc("admin_get_integrations");
+    setLoading(false);
+    if (error) { toast.error(error.message); return; }
+    const rows = (data ?? []) as Integration[];
+    setItems(rows);
+    setDraft(Object.fromEntries(rows.map((item) => [item.key, structuredClone(item)])));
+  };
  useEffect(()=>{void load()},[]);
- const updatePublic=(key:string,name:string,value:string)=>setDraft(d=>({...d,[key]:{...d[key],public_config:{...d[key].public_config,[name]:value}}}));
- const save=async(key:string)=>{const x=draft[key];if(!x)return;setSaving(key);const {data,error}=await (supabase as any).rpc("admin_upsert_integration",{p_key:key,p_label:x.label,p_enabled:x.enabled,p_public_config:x.public_config,p_secrets:secrets[key]??{}});setSaving(null);if(error)return toast.error(error.message);setDraft(d=>({...d,[key]:data}));setItems(v=>v.map(i=>i.key===key?data:i));setSecrets(s=>({...s,[key]:{}}));toast.success(x.label+" integration saved");};
+  const updatePublic = (key: string, name: string, value: string) => setDraft((current) => {
+    const existing = current[key] ?? items.find((item) => item.key === key);
+    if (!existing) return current;
+    return { ...current, [key]: { ...existing, public_config: { ...(existing.public_config ?? {}), [name]: value } } };
+  });
+  const save = async (key: string): Promise<void> => {
+    const item = draft[key];
+    if (!item) return;
+    setSaving(key);
+    const { data, error } = await (supabase as any).rpc("admin_upsert_integration", {
+      p_key: key, p_label: item.label, p_enabled: item.enabled,
+      p_public_config: item.public_config, p_secrets: secrets[key] ?? {},
+    });
+    setSaving(null);
+    if (error) { toast.error(error.message); return; }
+    if (!data) { toast.error("The server did not return the saved integration."); return; }
+    const updated = data as Integration;
+    setDraft((current) => ({ ...current, [key]: updated }));
+    setItems((current) => current.map((existing) => existing.key === key ? updated : existing));
+    setSecrets((current) => ({ ...current, [key]: {} }));
+    toast.success(item.label + " integration saved");
+  };
  if(loading)return <section className="panda-panel rounded-3xl p-5"><Loader2 className="mx-auto size-7 animate-spin text-primary"/></section>;
  return <section className="panda-panel rounded-3xl p-4 sm:p-5">
   <div className="flex items-start gap-3"><div className="grid size-10 shrink-0 place-items-center rounded-2xl bg-primary/10 text-primary"><KeyRound className="size-5"/></div><div><h2 className="font-display font-bold">API & Integration Center</h2><p className="mt-1 text-xs text-muted-foreground">All optional third-party connections have a place here. Public IDs stay in configuration; private keys are stored in Supabase Vault and are never displayed back.</p></div></div>
