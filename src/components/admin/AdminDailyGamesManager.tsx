@@ -48,7 +48,7 @@ export function AdminDailyGamesManager() {
 
   const gameMap = useMemo(() => new Map(games.map((g) => [g.slug, g])), [games]);
 
-  const setDay = async (day: number, slug: string) => {
+  const setDay = async (day: number, slug: string): Promise<void> => {
     setSaving(`day-${day}`);
     const { error } = await (supabase as any).rpc("admin_set_daily_game", {
       p_day: day,
@@ -61,7 +61,7 @@ export function AdminDailyGamesManager() {
     toast.success(`Day ${day} now uses ${gameMap.get(slug)?.title ?? slug}`);
   };
 
-  const toggleGame = async (game: GameConfig, enabled: boolean) => {
+  const toggleGame = async (game: GameConfig, enabled: boolean): Promise<void> => {
     setSaving(game.slug);
     const rewards = (rewardText[game.slug] ?? "").split("\n").map((line) => {
       const [label, amount] = line.split(":");
@@ -81,7 +81,7 @@ export function AdminDailyGamesManager() {
     toast.success(`${game.title} updated`);
   };
 
-  const saveGame = async (game: GameConfig) => {
+  const saveGame = async (game: GameConfig): Promise<void> => {
     setSaving(game.slug);
     const rewards = (rewardText[game.slug] ?? "").split("\n").map((line) => {
       const [label, amount] = line.split(":");
