@@ -80,7 +80,7 @@ export function AdminHotSeatManager() {
     })();
   }, []);
 
-  const start = async () => {
+  const start = async (): Promise<void> => {
     setSaving(true);
     const { data, error } = await (supabase as any).rpc("admin_hot_seat_start", {
       p_alias: alias,
@@ -101,7 +101,7 @@ export function AdminHotSeatManager() {
     toast.success(startAt && new Date(startAt).getTime() > Date.now() ? "Hot Seat scheduled" : "Hot Seat is live");
   };
 
-  const end = async () => {
+  const end = async (): Promise<void> => {
     if (!active) return;
     setSaving(true);
     const { error } = await (supabase as any).rpc("admin_hot_seat_end", { p_host_id: active.id });
@@ -111,7 +111,7 @@ export function AdminHotSeatManager() {
     toast.success("Hot Seat ended");
   };
 
-  const togglePresence = async () => {
+  const togglePresence = async (): Promise<void> => {
     setPresenceSaving(true);
     const { data, error } = await (supabase as any).rpc("admin_set_hot_seat_presence", {
       p_enabled: !presenceEnabled,
