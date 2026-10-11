@@ -22,7 +22,7 @@ export function GroupComposer({
   disabled?: boolean;
   placeholder?: string;
   onSendText: (body: string, replyToId?: string) => Promise<void> | void;
-  onSendMedia: (media: OutgoingGroupMedia) => Promise<void>; 
+  onSendMedia: (media: OutgoingGroupMedia) => Promise<boolean | void>; 
   replyTo?: { id: string; author: string; body: string } | null;
   onCancelReply?: () => void;
 }) {
@@ -140,7 +140,8 @@ export function GroupComposer({
   const sendVoice = async () => {
     if (!voiceBlob || disabled) return;
     const file = new File([voiceBlob], `voice-${Date.now()}.${voiceBlob.type.includes("mp4") ? "m4a" : "webm"}`, { type: voiceBlob.type || "audio/webm" });
-    await onSendMedia({ type: "audio", file, durationSeconds: seconds, ...(replyTo?.id ? { replyToId: replyTo.id } : {}) });
+    const sent = await onSendMedia({ type: "audio", file, durationSeconds: seconds, ...(replyTo?.id ? { replyToId: replyTo.id } : {}) });
+    if (sent === false) return;
     clearVoice();
   };
 
