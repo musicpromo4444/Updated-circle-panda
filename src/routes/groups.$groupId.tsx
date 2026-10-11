@@ -202,12 +202,12 @@ function GroupRoom() {
     );
   };
 
-  const uploadMedia = async (file: File, messageType: "image" | "video" | "audio", durationSeconds?: number) => {
-    if (!group) return;
+  const uploadMedia = async (file: File, messageType: "image" | "video" | "audio", durationSeconds?: number): Promise<boolean> => {
+    if (!group) return false;
     const uid = (await supabase.auth.getUser()).data.user?.id;
     if (!uid) {
       toast.error("Please sign in again before sending media.");
-      return;
+      return false;
     }
 
     const uploadFile = file;
@@ -221,7 +221,7 @@ function GroupRoom() {
 
     if (uploadError) {
       toast.error(uploadError.message ?? "Media upload failed");
-      return;
+      return false;
     }
 
     const { data, error } = await (supabase as any).rpc("send_group_message", {
@@ -242,7 +242,7 @@ function GroupRoom() {
       } else {
         toast.error(message);
       }
-      return;
+      return false;
     }
 
     const mediaUrl = messageType === "audio" ? await signedMediaUrl(path, 3600) : null;
@@ -267,7 +267,7 @@ function GroupRoom() {
     complete(messageType === "audio" ? "group_voice" : "group_media");
     setMediaMenuOpen(false);
     toast.success(messageType === "image" ? "Photo sent" : messageType === "video" ? "Video sent" : "Voice note sent");
-
+    return true;
   };
 
   const handleMediaPick = async (file?: File) => {
@@ -396,7 +396,7 @@ function GroupRoom() {
     if (!voiceBlob) return;
     const duration = recordingSeconds;
     const file = new File([voiceBlob], `voice-${Date.now()}.webm`, { type: voiceBlob.type || "audio/webm" });
-    await maybeOpenGroupRewardAd(async () => { await uploadMedia(file, "audio", duration); clearVoiceDraft(); });
+    await maybeOpenGroupRewardAd(async () => { const sent = await uploadMedia(file, "audio", duration); if (sent) clearVoiceDraft(); });
   };
 
   const openViewOnceMedia = async (m: any) => {
