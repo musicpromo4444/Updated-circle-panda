@@ -1137,7 +1137,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, [dbUserId]);
 
   const createGroup = useCallback(async (name: string, about: string, limitations = "", countryRestriction = ""): Promise<GroupChat | null> => {
-    if (!dbUserId || dbIsAnonymous) { requestLogin("create a group"); return null; }
+    const { data: authData, error: authError } = await supabase.auth.getUser();
+    if (authError) { toast.error(authError.message ?? "Could not verify your login."); return null; }
+    const creatorId = authData.user?.id;
+    if (!creatorId || authData.user?.is_anonymous) { requestLogin("create a group"); return null; }
     // Group creation is allowed for any signed-in account; profile completion is required when entering the chat.
     const { data, error } = await (supabase as any).rpc("create_group", {
       p_name:name.trim(),
@@ -1149,13 +1152,13 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     });
     if (error) { toast.error(error.message ?? "Group could not be created"); return null; }
     const groupId = String(data);
-    const group: GroupChat = { id:groupId, name:name.trim(), topic:about.trim(), members:1, ownerId:dbUserId, memberRole:"owner", editGroupInfo:"admins", sendMessages:true, approveNewMembers:false, joinPending:false, openedAt:null, closedAt:null, latitude:null, longitude:null, messages:[], country:countryRestriction.trim(), stateProvince:"", city:"", area:"" };
+    const group: GroupChat = { id:groupId, name:name.trim(), topic:about.trim(), members:1, ownerId:creatorId, memberRole:"owner", editGroupInfo:"admins", sendMessages:true, approveNewMembers:false, joinPending:false, openedAt:null, closedAt:null, latitude:null, longitude:null, messages:[], country:countryRestriction.trim(), stateProvince:"", city:"", area:"" };
     setState((state) => ({ ...state, groups:[group, ...state.groups] }));
     void refreshGroupsAndEvents();
     window.dispatchEvent(new CustomEvent("circle-panda-action", { detail: { title: "Group created!", emoji: "👥" } }));
     toast.success("Group created 🐼");
     return group;
-  }, [dbUserId, dbIsAnonymous, refreshGroupsAndEvents]);
+  }, [refreshGroupsAndEvents]);
 
   const createEvent = useCallback(async (eventData: Omit<PandaEvent, "id" | "rsvp">): Promise<PandaEvent | null> => {
     // Read the live Supabase session at submit time instead of relying on a
