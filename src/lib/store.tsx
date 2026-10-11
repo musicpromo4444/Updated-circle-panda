@@ -1447,7 +1447,6 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       isAdmin: dbIsAdmin,
       createGroup,
       createEvent,
-      toggleEventInterest,
       refreshEvents,
       startEventBlast,
       registerDatingProfile,
