@@ -553,13 +553,13 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       rawThreads.length ? (supabase as any).from("dm_messages").select("id,thread_id,sender_id,body,created_at,media_type,media_path").in("thread_id",rawThreads.map((t:any)=>t.id)).order("created_at",{ascending:true}).limit(2000) : {data:[]},
       rawThreads.length ? (supabase as any).from("dm_requests").select("thread_id,context_type,status,created_at").in("thread_id",rawThreads.map((t:any)=>t.id)).eq("status","accepted").order("created_at",{ascending:false}) : {data:[]},
     ]);
-    const profileMap=new Map((profilesRes.data??[]).map((p:any)=>[p.id,{name:p.display_name||"Anonymous Panda",vip:Boolean(p.is_vip&&(!p.vip_expires_at||new Date(p.vip_expires_at).getTime()>Date.now()))}]));
+    const profileMap = new Map<string, { name: string; vip: boolean }>((profilesRes.data ?? []).map((p: any) => [p.id, { name: p.display_name || "Anonymous Panda", vip: Boolean(p.is_vip && (!p.vip_expires_at || new Date(p.vip_expires_at).getTime() > Date.now())) }] as [string, { name: string; vip: boolean }]));
     const requestKind=new Map<string,string>();
     for(const r of (requestsRes.data??[])) if(!requestKind.has(r.thread_id)) requestKind.set(r.thread_id,r.context_type??"direct");
     const threads=rawThreads.map((t:any)=>{
       const other=t.user_a===uid?t.user_b:t.user_a; const p=profileMap.get(other);
       const isDating=requestKind.get(t.id)==="dating";
-      return {id:t.id,otherUserId:other,otherVip:Boolean(p?.vip),name:p?.name??"Anonymous Panda",kind:(isDating?"dating":"dm") as const,blurb:isDating?"Dating Chat":"Direct message",messages:(messagesRes.data??[]).filter((m:any)=>m.thread_id===t.id).map((m:any)=>({id:m.id,body:m.body??"",at:new Date(m.created_at).getTime(),mine:m.sender_id===uid,messageType:m.media_type==="dating_photo"?"dating_photo":"text",mediaPath:m.media_path??undefined})),startedAt:new Date(t.created_at).getTime()};
+      return {id:t.id,otherUserId:other,otherVip:Boolean(p?.vip),name:p?.name??"Anonymous Panda",kind: (isDating ? "dating" : "dm") as "dating" | "dm",blurb:isDating?"Dating Chat":"Direct message",messages:(messagesRes.data??[]).filter((m:any)=>m.thread_id===t.id).map((m:any)=>({id:m.id,body:m.body??"",at:new Date(m.created_at).getTime(),mine:m.sender_id===uid,messageType:m.media_type==="dating_photo"?"dating_photo":"text",mediaPath:m.media_path??undefined})),startedAt:new Date(t.created_at).getTime()};
     });
     setState(s=>({...s,threads}));
   },[dbUserId]);
@@ -906,7 +906,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         ...g,
         members: joined ? g.members + 1 : g.members,
         joinPending: status === "pending",
-        memberRole: joined ? (g.memberRole ?? "member") : g.memberRole,
+        ...(joined ? { memberRole: g.memberRole ?? "member" } : {}),
         openedAt: data?.activated_at ? new Date(data.activated_at).getTime() : g.openedAt,
       } : g) }));
       if (joined) void refreshCoins();
@@ -924,7 +924,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     if (!dbUserId) { toast.error("Sign in to leave this group"); return false; }
     const { error } = await (supabase as any).rpc("leave_group", { p_group_id: id });
     if (error) { toast.error(error.message ?? "Could not leave group"); return false; }
-    setState((s) => ({ ...s, groups: s.groups.map((g) => g.id === id ? { ...g, members: Math.max(0, g.members - 1), memberRole: undefined } : g) }));
+    setState((s) => ({ ...s, groups: s.groups.map((g) => { if (g.id !== id) return g; const { memberRole: _memberRole, ...rest } = g; return { ...rest, members: Math.max(0, g.members - 1) }; }) }));
     toast.success("You left the group");
     return true;
   }, [dbUserId]);
@@ -1287,11 +1287,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         const threadRes = await (supabase as any).rpc("get_or_create_dating_thread_secure",{p_other:userId});
         if (!threadRes.error && threadRes.data) threadId = String(threadRes.data);
       }
-      const result = {
+      const result: { status: string; requestId?: string; threadId?: string } = {
         status: String(data?.status ?? "pending"),
-        requestId: data?.request_id ? String(data.request_id) : undefined,
-        threadId,
       };
+      if (data?.request_id) result.requestId = String(data.request_id);
+      if (threadId) result.threadId = threadId;
       toast.success(result.status==="matched"?"It's a mutual match 💗":"Dating message request sent 💌");
       return result;
     })();
