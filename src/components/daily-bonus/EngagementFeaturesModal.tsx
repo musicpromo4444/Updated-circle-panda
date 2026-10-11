@@ -30,7 +30,6 @@ import {
 } from "@/components/ui/dialog";
 import { useActiveAdCreative, useLiveEngagementConfig } from "@/components/ads/adInventoryStorage";
 import { openAdExternalUrl } from "@/components/ads/platformAdBridge";
-import { useStore } from "@/lib/store";
 
 export interface EngagementFeaturesModalProps {
   open: boolean;
@@ -47,7 +46,6 @@ export interface EngagementFeaturesModalProps {
  */
 export function EngagementFeaturesModal({ open, onClose }: EngagementFeaturesModalProps) {
   const navigate = useNavigate();
-  const { addCoins } = useStore();
 
   // Live admin configurations
   const engagementConfig = useLiveEngagementConfig();
@@ -82,9 +80,8 @@ export function EngagementFeaturesModal({ open, onClose }: EngagementFeaturesMod
     setIsQuizCorrect(correct);
 
     if (correct) {
-      addCoins(reward, "Daily Community Trivia Reward");
       toast.success("Correct answer! 🎉", {
-        description: `+${reward} BC added to your balance.`,
+        description: "This quiz is not connected to server-verified BC rewards yet, so no coins were added.",
       });
     } else {
       toast.error("Not quite! Better luck on tomorrow's question.");
@@ -107,12 +104,8 @@ export function EngagementFeaturesModal({ open, onClose }: EngagementFeaturesMod
   };
 
   const handleCompleteSurvey = () => {
-    const reward = externalSurvey?.rewardBc || 35;
-    addCoins(reward, `${externalSurvey?.providerName || "Partner"} Survey Reward`);
     setSurveyStep("done");
-    toast.success(`Survey completed! 🎉`, {
-      description: `+${reward} BC verified and credited to your wallet.`,
-    });
+    toast.info("Survey completion must be verified by the partner before BC can be credited. No coins were added.");
   };
 
   return (
@@ -289,7 +282,7 @@ export function EngagementFeaturesModal({ open, onClose }: EngagementFeaturesMod
                             Daily Campus Trivia
                           </span>
                           <span className="rounded bg-purple-500/15 px-1.5 py-0.5 text-[9px] font-bold text-purple-400 uppercase">
-                            +{engagementConfig.quizRewardBc || 15} BC
+                            Reward pending server verification
                           </span>
                         </div>
                         <p className="mt-0.5 text-xs text-muted-foreground leading-relaxed">
@@ -358,7 +351,7 @@ export function EngagementFeaturesModal({ open, onClose }: EngagementFeaturesMod
                           onClick={handleQuizSubmit}
                           className="mt-2.5 h-8 w-full rounded-lg bg-purple-600 text-xs font-semibold text-white hover:bg-purple-700"
                         >
-                          Submit Answer (+{engagementConfig.quizRewardBc || 15} BC)
+                          Submit Answer
                         </Button>
                       ) : (
                         <p className="mt-2 text-center text-[11px] font-semibold text-muted-foreground">
