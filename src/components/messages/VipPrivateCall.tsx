@@ -25,6 +25,7 @@ export function VipPrivateCall({ callId, incoming = false, onClose }: Props) {
     if (!callId || !accepted) return;
     let dead = false;
     let timer: number | undefined;
+    setConnected(false);
     appliedOffer.current = false;
     appliedAnswer.current = false;
     seenCandidates.current.clear();
