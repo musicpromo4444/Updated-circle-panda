@@ -183,7 +183,7 @@ export async function loadUserThreads(userId: string): Promise<Thread[] | null> 
         kind,
         blurb: kind === "dating" ? "Dating Chat" : "Direct message",
         messages,
-        startedAt: row.created_at ? new Date(row.created_at).getTime() : undefined,
+        ...(row.created_at ? { startedAt: new Date(row.created_at).getTime() } : {}),
         otherVip: Boolean(profile?.is_vip && (!profile?.vip_expires_at || new Date(profile.vip_expires_at).getTime() > Date.now())),
       };
       return thread;
