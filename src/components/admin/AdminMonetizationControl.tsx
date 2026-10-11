@@ -195,8 +195,8 @@ export function AdminMonetizationControl({
           sponsor: sponsor.trim(),
           headline: headline.trim(),
           description: description.trim(),
-          imageUrl: imageUrl.trim() || undefined,
-          videoUrl: videoUrl.trim() || undefined,
+          ...(imageUrl.trim() ? { imageUrl: imageUrl.trim() } : {}),
+          ...(videoUrl.trim() ? { videoUrl: videoUrl.trim() } : {}),
           destinationUrl: destinationUrl.trim(),
           placement,
           category: category.trim(),
@@ -211,7 +211,7 @@ export function AdminMonetizationControl({
           sponsor: sponsor.trim(),
           headline: headline.trim(),
           description: description.trim(),
-          imageUrl: imageUrl.trim() || undefined,
+          ...(imageUrl.trim() ? { imageUrl: imageUrl.trim() } : {}),
           destinationUrl: destinationUrl.trim(),
           placement,
           category: category.trim(),
@@ -791,7 +791,7 @@ export function AdminMonetizationControl({
                         />
                       ) : (
                         <div className="grid size-12 shrink-0 place-items-center rounded-lg bg-primary/20 text-primary text-xl font-black">
-                          {sponsor ? sponsor[0].toUpperCase() : "★"}
+                          {sponsor?.[0]?.toUpperCase() || "★"}
                         </div>
                       )}
 
