@@ -13,19 +13,22 @@ export function VipPrivateCall({ callId, incoming = false, onClose }: Props) {
   const [connected, setConnected] = useState(false);
   const [muted, setMuted] = useState(false);
   const [camera, setCamera] = useState(true);
-  const [remoteOffer, setRemoteOffer] = useState<any>(null);
-  const [remoteAnswer, setRemoteAnswer] = useState<any>(null);
+  const appliedOffer = useRef(false);
+  const appliedAnswer = useRef(false);
   const pc = useRef<RTCPeerConnection | null>(null);
   const localStream = useRef<MediaStream | null>(null);
   const remoteVideo = useRef<HTMLVideoElement | null>(null);
   const seenCandidates = useRef(new Set<string>());
-  const startedAt = useRef<number | null>(null);
   const usageRecorded = useRef(false);
 
   useEffect(() => {
     if (!callId || !accepted) return;
     let dead = false;
     let timer: number | undefined;
+    appliedOffer.current = false;
+    appliedAnswer.current = false;
+    seenCandidates.current.clear();
+    usageRecorded.current = false;
     const run = async () => {
       const { data: session, error } = await (supabase as any).rpc("get_vip_call", { p_call_id: callId });
       if (error || !session || dead) throw error ?? new Error("Call unavailable");
@@ -38,9 +41,9 @@ export function VipPrivateCall({ callId, incoming = false, onClose }: Props) {
       localStream.current = stream;
       stream.getTracks().forEach((t) => connection.addTrack(t, stream));
       connection.ontrack = (e) => {
-        if (remoteVideo.current) remoteVideo.current.srcObject = e.streams[0];
+        const remoteStream = e.streams[0];
+        if (remoteVideo.current && remoteStream) remoteVideo.current.srcObject = remoteStream;
         setConnected(true);
-        if (startedAt.current === null) startedAt.current = Date.now();
       };
       connection.onicecandidate = (e) => {
         if (e.candidate) void (supabase as any).rpc("add_vip_call_candidate", { p_call_id: callId, p_candidate: e.candidate.toJSON() });
@@ -56,15 +59,15 @@ export function VipPrivateCall({ callId, incoming = false, onClose }: Props) {
           if (!dead) onClose();
           return;
         }
-        if (!initiator && s.offer && !remoteOffer) {
-          setRemoteOffer(s.offer);
+        if (!initiator && s.offer && !appliedOffer.current) {
+          appliedOffer.current = true;
           await connection.setRemoteDescription(s.offer);
           const answer = await connection.createAnswer();
           await connection.setLocalDescription(answer);
           await (supabase as any).rpc("set_vip_call_answer", { p_call_id: callId, p_answer: answer });
         }
-        if (initiator && s.answer && !remoteAnswer) {
-          setRemoteAnswer(s.answer);
+        if (initiator && s.answer && !appliedAnswer.current) {
+          appliedAnswer.current = true;
           await connection.setRemoteDescription(s.answer);
         }
         const { data: candidates } = await (supabase as any).rpc("get_vip_call_candidates", { p_call_id: callId });
@@ -91,22 +94,7 @@ export function VipPrivateCall({ callId, incoming = false, onClose }: Props) {
     };
   }, [callId, accepted]);
 
-  useEffect(() => {
-    if (!callId || !connected || limitOpen || adOpen) return;
-    const tick = window.setInterval(() => {
-      const base = startedAt.current ?? Date.now();
-      const extensionBase = extensionStartedAt.current;
-      const elapsed = Math.floor((Date.now() - base) / 1000);
-      const extensionElapsed = extensionBase ? Math.floor((Date.now() - extensionBase) / 1000) : 0;
-      const left = extensionBase ? Math.max(0, FREE_CALL_SECONDS - extensionElapsed) : Math.max(0, FREE_CALL_SECONDS - elapsed);
-      setRemaining(left);
-      if (left <= 0) {
-        setLimitOpen(true);
-        window.clearInterval(tick);
-      }
-    }, 1000);
-    return () => window.clearInterval(tick);
-  }, [callId, connected, limitOpen, adOpen]);
+
 
   const end = async () => {
     if (callId && !usageRecorded.current) {
