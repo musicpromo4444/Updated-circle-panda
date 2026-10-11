@@ -28,9 +28,7 @@ export interface AdPerformanceMetrics {
   eCpmAndroid: number; // e.g. $2.40
 }
 
-export type AdPlacementTarget =
-  "popup_1_daily_login" | "popup_1_daily_login_bottom" | "popup_2_engagement" | "main_feed_card" | "crush_native" | "crush_interstitial" | "crush_popup" | "crush_banner" | "crush_playable" | "speed_dating_interstitial" |
-  "group_message_rewarded" | "vip_group_sponsor" | "hot_seat_comments" | "hot_seat_questions" | "hot_seat_water_break" | "secret_profile_slot_1" | "secret_profile_slot_2" | "secret_profile_slot_3" | "secret_profile_slot_4";
+export type AdPlacementTarget = import("@/components/ads/AdTypes").AdPlacementTarget;
 
 export type AdCreative = import("@/components/ads/AdTypes").AdCreative;
 
