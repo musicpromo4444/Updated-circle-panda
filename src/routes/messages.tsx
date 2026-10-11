@@ -63,6 +63,7 @@ function MessagesPage() {
   const [sentRequests, setSentRequests] = useState<any[]>([]);
   const [pendingDating, setPendingDating] = useState<PendingDatingDecision | null>(null);
   const [decisionBusy, setDecisionBusy] = useState(false);
+  const [respondingRequestId, setRespondingRequestId] = useState<string | null>(null);
   const [photoPreviewUrl, setPhotoPreviewUrl] = useState<string | null>(null);
   const [callId, setCallId] = useState<string | null>(null);
   const [incomingCallId, setIncomingCallId] = useState<string | null>(null);
@@ -163,27 +164,41 @@ function MessagesPage() {
   }, [search.request]);
 
   const respondRequest = async (request: any, accept: boolean) => {
+    if (!request?.id || respondingRequestId === request.id) return;
+    setRespondingRequestId(request.id);
     try {
-      const { data, error } = await (supabase as any).rpc("respond_direct_message_request_secure", { p_request_id: request.id, p_accept: accept });
+      const { data, error } = await (supabase as any).rpc("respond_direct_message_request_secure", {
+        p_request_id: request.id,
+        p_accept: accept,
+      });
       if (error) throw error;
-      // Accepting/declining directly from Messages must also clear the matching
-      // notification badge; otherwise the request looks unread forever.
-      await (supabase as any).rpc("mark_message_request_notifications_read", { p_request_id: request.id });
+
+      // Notification cleanup is secondary to the authoritative request result.
+      // If it fails, do not report the accepted/declined request as failed.
+      const { error: notificationError } = await (supabase as any).rpc(
+        "mark_message_request_notifications_read",
+        { p_request_id: request.id },
+      );
+      if (notificationError) console.warn("Could not mark request notifications read", notificationError);
       window.dispatchEvent(new CustomEvent("circle-panda-notifications-refresh"));
+
       setMessageRequests((current) => current.filter((r) => r.id !== request.id));
-      setSentRequests((current) => current.map((r) => r.id === request.id ? { ...r, status: accept ? "accepted" : "declined", thread_id: data?.thread_id ?? r.thread_id } : r));
+      setSentRequests((current) => current.map((r) => r.id === request.id
+        ? { ...r, status: accept ? "accepted" : "declined", thread_id: data?.thread_id ?? r.thread_id }
+        : r));
       setSelectedRequestId((current) => current === request.id ? null : current);
+
       if (accept && data?.thread_id) {
-        // Acceptance converts the request into a real thread. Refresh the shared
-        // thread store first so the chat card is present before navigation.
         await refreshThreads();
         toast.success("Request accepted 💬");
         void navigate({ to: "/messages", search: { thread: data.thread_id } });
       } else if (!accept) {
         toast.success("Request declined");
       }
-    } catch (e:any) {
+    } catch (e: any) {
       toast.error(e?.message ?? "Could not respond to request");
+    } finally {
+      setRespondingRequestId(null);
     }
   };
 
@@ -246,8 +261,8 @@ function MessagesPage() {
                       {r.message ? <p className="mt-1 line-clamp-2 text-sm">{r.message}</p> : null}
                     </button>
                     <div className="mt-2 flex gap-2">
-                      <Button size="sm" className="gap-1" onClick={() => void respondRequest(r,true)}><Check className="size-3.5"/>Accept</Button>
-                      <Button size="sm" variant="outline" className="gap-1" onClick={() => void respondRequest(r,false)}><X className="size-3.5"/>Decline</Button>
+                      <Button size="sm" className="gap-1" disabled={respondingRequestId === r.id} onClick={() => void respondRequest(r,true)}><Check className="size-3.5"/>{respondingRequestId === r.id ? "Working…" : "Accept"}</Button>
+                      <Button size="sm" variant="outline" className="gap-1" disabled={respondingRequestId === r.id} onClick={() => void respondRequest(r,false)}><X className="size-3.5"/>Decline</Button>
                       <Button size="sm" variant="ghost" className="gap-1 text-destructive" onClick={() => void (supabase as any).rpc("block_user_secure",{p_user_id:r.sender_id}).then(({error}:any)=>{if(error)throw error;setMessageRequests(x=>x.filter(y=>y.id!==r.id));}).catch((e:any)=>toast.error(e?.message??"Could not block user"))}><ShieldBan className="size-3.5"/>Block</Button>
                     </div>
                   </div>
@@ -338,8 +353,8 @@ function MessagesPage() {
                 <div className="max-w-[82%] rounded-2xl rounded-tl-md bg-card px-4 py-3 text-sm shadow-sm">{request.message || "This Panda sent you a message request."}</div>
               </div>
               <div className="grid grid-cols-2 gap-2 border-t border-border bg-card p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
-                <Button variant="outline" onClick={() => void respondRequest(request,false)}>Decline</Button>
-                <Button onClick={() => void respondRequest(request,true)} className="gap-2"><Check className="size-4"/>{request.context_type === "dating" ? "Accept & Start Dating Chat" : "Accept & Reply"}</Button>
+                <Button variant="outline" disabled={respondingRequestId === request.id} onClick={() => void respondRequest(request,false)}>Decline</Button>
+                <Button disabled={respondingRequestId === request.id} onClick={() => void respondRequest(request,true)} className="gap-2"><Check className="size-4"/>{respondingRequestId === request.id ? "Working…" : request.context_type === "dating" ? "Accept & Start Dating Chat" : "Accept & Reply"}</Button>
               </div>
             </div>;
           })()}
