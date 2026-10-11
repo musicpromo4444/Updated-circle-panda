@@ -1151,7 +1151,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, [dbUserId, dbIsAnonymous, refreshGroupsAndEvents]);
 
   const createEvent = useCallback(async (eventData: Omit<PandaEvent, "id" | "rsvp">): Promise<PandaEvent | null> => {
-    if (!dbUserId || dbIsAnonymous) { requestLogin("create an event"); return null; }
+    // Read the live Supabase session at submit time instead of relying on a
+    // possibly stale store snapshot after a fresh login or token refresh.
+    const { data: authData, error: authError } = await supabase.auth.getUser();
+    if (authError) { toast.error(authError.message ?? "Could not verify your login."); return null; }
+    const eventOwnerId = authData.user?.id;
+    if (!eventOwnerId || authData.user?.is_anonymous) { requestLogin("create an event"); return null; }
     if (!(await requireCompleteProfile("create an event"))) return null;
     const startsAt = eventData.date ? new Date(eventData.date).toISOString() : new Date(Date.now() + 60 * 60 * 1000).toISOString();
     const durationMinutes = Math.max(15, Math.min(10080, Number(eventData.durationMinutes) || 120));
@@ -1165,12 +1170,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       p_latitude:eventData.latitude ?? null,p_longitude:eventData.longitude ?? null,p_cover_url:eventData.coverUrl ?? null,
     });
     if (error || !data?.id) { toast.error(error?.message ?? "Could not publish event"); return null; }
-    const created: PandaEvent = { ...eventData, id:String(data.id), rsvp:false, attendeeCount:0, interestedCount:0, responseCount:0, reachCount:0, ownerId:dbUserId };
+    const created: PandaEvent = { ...eventData, id:String(data.id), rsvp:false, attendeeCount:0, interestedCount:0, responseCount:0, reachCount:0, ownerId:eventOwnerId };
     setState((s) => ({ ...s, events:[created, ...s.events] }));
     void refreshGroupsAndEvents();
     toast.success("Event published 🐼");
     return created;
-  }, [dbUserId, dbIsAnonymous, refreshGroupsAndEvents]);
+  }, [refreshGroupsAndEvents]);
 
   const refreshEvents = useCallback(async () => {
     await refreshGroupsAndEvents();
