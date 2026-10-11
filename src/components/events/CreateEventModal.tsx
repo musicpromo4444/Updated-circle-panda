@@ -34,7 +34,10 @@ export function CreateEventModal({open,onOpenChange,onCreated}:{open:boolean;onO
   return () => { active = false; };
  }, [open, onOpenChange]);
 
- const uploadImage=async(file:File)=>{ if(!file.type.startsWith("image/")) return toast.error("Choose an image file."); if(file.size>8*1024*1024) return toast.error("Image must be 8MB or smaller."); setUploading(true);
+ const uploadImage = async (file: File): Promise<void> => {
+  if (!file.type.startsWith("image/")) { toast.error("Choose an image file."); return; }
+  if (file.size > 8 * 1024 * 1024) { toast.error("Image must be 8MB or smaller."); return; }
+  setUploading(true);
   try{const {data:{user}}=await supabase.auth.getUser(); if(!user || user.is_anonymous){ requestLogin("upload an event picture"); return; } const path=`${user.id}/${crypto.randomUUID()}-${file.name.replace(/[^a-zA-Z0-9._-]/g,"_")}`; const {error}=await supabase.storage.from("event-media").upload(path,file,{upsert:false,contentType:file.type}); if(error) throw error; const {data}=supabase.storage.from("event-media").getPublicUrl(path); setImageUrl(data.publicUrl); toast.success("Event picture added.");}catch(e){toast.error(e instanceof Error?e.message:"Image upload failed.");}finally{setUploading(false);}
  };
  const submit = async (e: React.FormEvent) => {
