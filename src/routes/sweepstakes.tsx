@@ -75,7 +75,7 @@ function PrizeCardView({
 
   const runAction = () => {
     if (prize.action_type === "activity") {
-      if (!activity) return toast.error("The contest activity is not currently available.");
+      if (!activity) { toast.error("The contest activity is not currently available."); return; }
       onOpenActivity();
       return;
     }
