@@ -293,7 +293,7 @@ export function ConfessionsPage() {
   const reactionOptions = [
     { key:"heart", emoji:"❤️", label:"Heart" },
     { key:"laugh", emoji:"😂", label:"Laugh" },
-    { key:"wow", emoji:"😮", label:"Surprised" },
+    { key:"surprised", emoji:"😮", label:"Surprised" },
     { key:"angry", emoji:"😡", label:"Angry" },
     { key:"panda", emoji:"🐼", label:"Panda" },
   ];
