@@ -94,7 +94,7 @@ export function AdminHotSeatManager() {
       p_duration_hours: duration,
     });
     setSaving(false);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     setActive(data);
     const { data: slots } = await supabase.from("hot_seat_session_hosts").select("*").eq("session_id", data.id).eq("is_active", true).order("host_order");
     setSessionHosts(slots ?? []);
@@ -106,7 +106,7 @@ export function AdminHotSeatManager() {
     setSaving(true);
     const { error } = await (supabase as any).rpc("admin_hot_seat_end", { p_host_id: active.id });
     setSaving(false);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     setActive(null);
     toast.success("Hot Seat ended");
   };
@@ -117,7 +117,7 @@ export function AdminHotSeatManager() {
       p_enabled: !presenceEnabled,
     });
     setPresenceSaving(false);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     setPresenceEnabled(Boolean(data?.enabled));
     toast.success(data?.enabled ? "Hot Seat icon + notification are ON" : "Hot Seat icon is OFF");
   };
