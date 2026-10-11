@@ -1,22 +1,11 @@
 import type { CoinPackage, PricingConfig, VipPlan } from "@/lib/pricingTypes";
 import { supabase } from "@/integrations/supabase/client";
+import type { AndroidBridgeApi, AndroidLegacyApi } from "@/lib/nativeBridgeTypes";
 
 declare global {
   interface Window {
-    AndroidBridge?: {
-      openUrl?: (url: string) => void;
-      initiatePayment?: (payloadJson: string) => boolean;
-      isWebView?: () => boolean;
-      onPaymentComplete?: (success: boolean, transactionId: string) => void;
-    getDistribution?: () => "google_play" | "external";
-      requestGooglePlayPurchase?: (payloadJson: string) => boolean;
-      onPurchaseResult?: (payloadJson: string) => void;
-    };
-    Android?: {
-      openUrl?: (url: string) => void;
-      initiatePayment?: (payloadJson: string) => boolean;
-      requestGooglePlayPurchase?: (payloadJson: string) => boolean;
-    };
+    AndroidBridge?: AndroidBridgeApi;
+    Android?: AndroidLegacyApi;
     CirclePandaIOS?: {
       requestApplePurchase?: (payloadJson: string) => boolean;
       onPurchaseResult?: (payloadJson: string) => void;
@@ -180,7 +169,7 @@ export async function executeNativeStoreCheckout(
     const body: Record<string, unknown> = platform === "google_play"
       ? { reference, itemId: item.id, itemType, purchaseToken: nativeResult.purchaseToken }
       : { reference, itemId: item.id, itemType, signedTransaction: nativeResult.signedTransaction || nativeResult.jwsRepresentation };
-    if (!body.purchaseToken && !body.signedTransaction) throw new Error("Native purchase receipt/token was not returned.");
+    if (!body["purchaseToken"] && !body["signedTransaction"]) throw new Error("Native purchase receipt/token was not returned.");
     const verification = await supabase.functions.invoke(functionName, { body });
     (window as any).__circlePandaNativeCleanup?.();
     if (verification.error || !verification.data?.ok) throw new Error(verification.data?.error || verification.error?.message || "Native store verification failed");
@@ -199,7 +188,7 @@ export async function executeWebPaystackCheckout(
   if (!key) {
     const { data: paystackConfig, error: configError } = await supabase.rpc("get_paystack_public_config");
     if (configError) throw new Error("Paystack configuration could not be loaded.");
-    key = String(paystackConfig?.public_key || "").trim();
+    key = String((paystackConfig as any)?.["public_key"] || "").trim();
   }
   if (!key) throw new Error("Paystack public key is not configured.");
   if (typeof window === "undefined") throw new Error("Web checkout is unavailable.");

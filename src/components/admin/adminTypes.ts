@@ -28,35 +28,16 @@ export interface AdPerformanceMetrics {
   eCpmAndroid: number; // e.g. $2.40
 }
 
-export type AdPlacementTarget =
-  "popup_1_daily_login" | "popup_1_daily_login_bottom" | "popup_2_engagement" | "main_feed_card" | "crush_native" | "crush_interstitial" | "crush_popup" | "crush_banner" | "crush_playable" | "speed_dating_interstitial" |
-  "group_message_rewarded" | "vip_group_sponsor" | "hot_seat_comments" | "hot_seat_questions" | "hot_seat_water_break" | "secret_profile_slot_1" | "secret_profile_slot_2" | "secret_profile_slot_3" | "secret_profile_slot_4";
+export type AdPlacementTarget = import("@/components/ads/AdTypes").AdPlacementTarget;
 
-export interface AdCreative {
-  id: string;
-  sponsor: string;
-  headline: string;
-  description: string;
-  imageUrl?: string;
-  posterUrl?: string;
-  videoUrl?: string;
-  tagline?: string;
-  durationSeconds?: number;
-  skipAfterSeconds?: number;
-  destinationUrl: string;
-  placement: AdPlacementTarget;
-  format?: "banner" | "native" | "sponsor" | "playable" | "interstitial" | "rewarded" | "offerwall" | "link";
-  category: string;
-  callToAction: string;
-  status: "active" | "paused";
-  impressions: number;
-  clicks: number;
-  createdAt: string;
-}
+export type AdCreative = import("@/components/ads/AdTypes").AdCreative;
 
 export interface AdPlacementConfig {
   dailyLoginPopupBanner: boolean;
+  engagementPopupBanner?: boolean;
   mainFeedBanner: boolean;
+  sevenDayBannerEnabled?: boolean;
+  sevenDayPlayableEnabled?: boolean;
   feedBannerInterval: number; // inject ad every N items
   videoAdCrushFrequency: number; // every N swipes
   androidNativeBridgeEnabled: boolean; // use Android interface or URL fallback
@@ -76,7 +57,7 @@ export interface AdPlacementConfig {
 }
 
 export type ExternalSurveyProvider = "tapresearch" | "pollfish" | "bitlabs" | "custom";
-export type SurveyIntegrationMode = "iframe_overlay" | "external_redirect" | "native_bridge";
+export type SurveyIntegrationMode = "iframe_overlay" | "external_redirect" | "webview_intent" | "native_bridge";
 
 export interface ExternalSurveyConfig {
   enabled: boolean; // true = use external partner survey/wall; false = internal trivia

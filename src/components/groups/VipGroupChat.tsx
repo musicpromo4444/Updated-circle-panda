@@ -17,6 +17,8 @@ type VipMessage = GroupMediaItem & {
   replyToId?: string | null;
   avatarId?: string | null;
   country?: string | null;
+  durationSeconds?: number | null;
+  viewOnce?: boolean;
 };
 type CallConfig = { enabled: boolean; voice_enabled: boolean; video_enabled: boolean };
 type MemberProfile = { id: string; display_name: string | null; avatar_id: string | null; country: string | null };
@@ -43,8 +45,8 @@ export function VipGroupChat({open,groupId,onOpenChange}:{open:boolean;groupId:s
   const loadProfiles = useCallback(async(ids:string[])=>{
     const unique=[...new Set(ids.filter(Boolean))];
     if(!unique.length)return;
-    const {data,error}=await supabase.from("profiles").select("id,display_name,avatar_id,country").in("id",unique);
-    if(!error)setProfiles(prev=>({...prev,...Object.fromEntries((data??[]).map(p=>[p.id,p]))}));
+    const {data,error}=await (supabase as any).from("profiles").select("id,display_name,avatar_id,country").in("id",unique);
+    if(!error)setProfiles(prev=>({...prev,...Object.fromEntries((data??[]).map((p: any)=>[p.id,p]))}));
   },[]);
 
   const loadReactions = useCallback(async(ids:string[])=>{
@@ -72,9 +74,14 @@ export function VipGroupChat({open,groupId,onOpenChange}:{open:boolean;groupId:s
       return {
         id:row.id,userId:row.user_id,author:row.user_id===uid?"You":row.display_name||"VIP Member",
         body:row.body??"",at:new Date(row.created_at).getTime(),mine:row.user_id===uid,
-        messageType:row.message_type??"text",mediaPath:row.media_path??undefined,mediaUrl,
-        durationSeconds:row.duration_seconds,viewOnce:false,replyToId:row.reply_to_id,
-        avatarId:row.avatar_id,country:row.country
+        messageType:row.message_type??"text",
+        ...(row.media_path ? { mediaPath: String(row.media_path) } : {}),
+        ...(mediaUrl ? { mediaUrl } : {}),
+        ...(row.duration_seconds != null ? { durationSeconds: Number(row.duration_seconds) } : {}),
+        viewOnce: false,
+        ...(row.reply_to_id ? { replyToId: String(row.reply_to_id) } : {}),
+        ...(row.avatar_id ? { avatarId: String(row.avatar_id) } : {}),
+        ...(row.country ? { country: String(row.country) } : {})
       };
     }));
     setMessages(mapped);
@@ -120,19 +127,58 @@ export function VipGroupChat({open,groupId,onOpenChange}:{open:boolean;groupId:s
     await loadMessages();
   };
 
-  const sendMedia=async({type,file,durationSeconds,replyToId}:OutgoingGroupMedia)=>{
-    const user=(await supabase.auth.getUser()).data.user;
-    if(!user){toast.error("Sign in to send media");return;}
-    if(file.size>25*1024*1024){toast.error("Media must be 25 MB or smaller.");return;}
-    const uploadFile=file;
-    const ext=uploadFile.name.split(".").pop()?.toLowerCase()??(type==="image"?"jpg":type==="video"?"mp4":"webm");
-    const path=`vip/${user.id}/${groupId}/${crypto.randomUUID()}.${ext}`;
-    const {error:uploadError}=await supabase.storage.from("circle-panda-group-media").upload(path,uploadFile,{contentType:uploadFile.type||"application/octet-stream",upsert:false});
-    if(uploadError){toast.error(uploadError.message??"Media upload failed");return;}
-    const {error}=await (supabase as any).rpc("send_vip_group_media_secure",{p_group_id:groupId,p_message_type:type,p_media_path:path,p_mime_type:uploadFile.type||null,p_duration_seconds:durationSeconds??null,p_body:"",p_view_once:false,p_reply_to_id:replyToId??null});
-    if(error){await supabase.storage.from("circle-panda-group-media").remove([path]);toast.error(error.message??"VIP media could not be sent");return;}
-    setReplyTo(null);
-    await loadMessages();
+  const sendMedia = async ({ type, file, durationSeconds, replyToId }: OutgoingGroupMedia): Promise<boolean> => {
+    let uploadedPath: string | null = null;
+    try {
+      const user = (await supabase.auth.getUser()).data.user;
+      if (!user || user.is_anonymous) {
+        toast.error("Sign in to send media");
+        return false;
+      }
+      if (file.size > 25 * 1024 * 1024) {
+        toast.error("Media must be 25 MB or smaller.");
+        return false;
+      }
+
+      const ext = file.name.split(".").pop()?.toLowerCase() ?? (type === "image" ? "jpg" : type === "video" ? "mp4" : "webm");
+      const path = `vip/${user.id}/${groupId}/${crypto.randomUUID()}.${ext}`;
+      const { error: uploadError } = await supabase.storage
+        .from("circle-panda-group-media")
+        .upload(path, file, { contentType: file.type || "application/octet-stream", upsert: false });
+      if (uploadError) {
+        toast.error(uploadError.message ?? "Media upload failed");
+        return false;
+      }
+      uploadedPath = path;
+
+      const { error } = await (supabase as any).rpc("send_vip_group_media_secure", {
+        p_group_id: groupId,
+        p_message_type: type,
+        p_media_path: path,
+        p_mime_type: file.type || null,
+        p_duration_seconds: durationSeconds ?? null,
+        p_body: "",
+        p_view_once: false,
+        p_reply_to_id: replyToId ?? null,
+      });
+      if (error) {
+        await supabase.storage.from("circle-panda-group-media").remove([path]);
+        uploadedPath = null;
+        toast.error(error.message ?? "VIP media could not be sent");
+        return false;
+      }
+
+      uploadedPath = null; // The message now owns this uploaded asset.
+      setReplyTo(null);
+      await loadMessages();
+      return true;
+    } catch (error: any) {
+      if (uploadedPath) {
+        await supabase.storage.from("circle-panda-group-media").remove([uploadedPath]).catch(() => {});
+      }
+      toast.error(error?.message ?? "VIP media could not be sent");
+      return false;
+    }
   };
 
   const deleteMessage=async(m:VipMessage)=>{

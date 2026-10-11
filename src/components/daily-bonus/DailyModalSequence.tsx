@@ -103,7 +103,7 @@ export function DailyModalSequence({ forceOpen = false }: DailyModalSequenceProp
         open={activeStep === 1}
         streak={streakState.streak}
         rewardAmount={streakState.reward}
-        calendar={streakState.calendar}
+        {...(streakState.calendar ? { calendar: streakState.calendar } : {})}
         onClaim={handleClaimReward}
         onClose={handleCloseModal1}
       />

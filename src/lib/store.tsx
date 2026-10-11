@@ -79,10 +79,11 @@ export type Thread = {
   messages: ChatMessage[];
   /** When a dating match started; billing is free for the first 72h after the mutual match. */
   startedAt?: number;
+  otherVip?: boolean;
 };
 export type PandaEvent = {
   id: string; ownerId?: string; title: string; tag: string; date: string; time: string; place: string;
-  cost: number; currency?: string; blurb: string; details: string; rsvp: boolean; attendeeCount?: number;
+  cost: number; currency?: string; blurb: string; details: string; rsvp: boolean; attendeeCount?: number; interestedCount?: number; responseCount?: number; reachCount?: number; interested?: boolean;
   coverUrl?: string; venueName?: string; addressLine?: string; country?: string;
   stateProvince?: string; city?: string; area?: string; latitude?: number | null; longitude?: number | null;
   reachScope?: "worldwide" | "country" | "state" | "city" | "area"; reachCountry?: string; reachState?: string; reachCity?: string; reachArea?: string; durationMinutes?: number;
@@ -443,12 +444,13 @@ const initialState: State = {
 
 
 type StoreValue = State & {
+  hydrated: boolean;
   addPost: (body: string) => void;
   addReply: (postId: string, body: string) => void;
   openGroup: (id: string) => void;
   sendGroupMessage: (id: string, body: string) => void;
   joinGroup: (id: string) => void;
-  leaveGroup: (id: string) => void;
+  leaveGroup: (id: string) => Promise<boolean>;
   updateGroupInfo: (id: string, name: string, topic: string) => void;
   updateGroupSettings: (id: string, editGroupInfo: "admins" | "admins_members", sendMessages: boolean, approveNewMembers: boolean) => void;
   isGroupExpired: (g: GroupChat) => boolean;
@@ -458,6 +460,7 @@ type StoreValue = State & {
   startDmWithAuthor: (userId: string, author: string, blurb: string) => Promise<string | null>;
   openPaidDm: (userId: string, author: string, blurb: string) => Promise<string | null>;
   refreshCoins: () => Promise<void>;
+  syncCoins: () => Promise<void>;
   refreshCrushVoteUsage: () => Promise<void>;
   syncAccountEntitlements: () => Promise<void>;
   spendCoins: (amount: number, reason?: string) => boolean;
@@ -551,13 +554,13 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       rawThreads.length ? (supabase as any).from("dm_messages").select("id,thread_id,sender_id,body,created_at,media_type,media_path").in("thread_id",rawThreads.map((t:any)=>t.id)).order("created_at",{ascending:true}).limit(2000) : {data:[]},
       rawThreads.length ? (supabase as any).from("dm_requests").select("thread_id,context_type,status,created_at").in("thread_id",rawThreads.map((t:any)=>t.id)).eq("status","accepted").order("created_at",{ascending:false}) : {data:[]},
     ]);
-    const profileMap=new Map((profilesRes.data??[]).map((p:any)=>[p.id,{name:p.display_name||"Anonymous Panda",vip:Boolean(p.is_vip&&(!p.vip_expires_at||new Date(p.vip_expires_at).getTime()>Date.now()))}]));
+    const profileMap = new Map<string, { name: string; vip: boolean }>((profilesRes.data ?? []).map((p: any) => [p.id, { name: p.display_name || "Anonymous Panda", vip: Boolean(p.is_vip && (!p.vip_expires_at || new Date(p.vip_expires_at).getTime() > Date.now())) }] as [string, { name: string; vip: boolean }]));
     const requestKind=new Map<string,string>();
     for(const r of (requestsRes.data??[])) if(!requestKind.has(r.thread_id)) requestKind.set(r.thread_id,r.context_type??"direct");
     const threads=rawThreads.map((t:any)=>{
       const other=t.user_a===uid?t.user_b:t.user_a; const p=profileMap.get(other);
       const isDating=requestKind.get(t.id)==="dating";
-      return {id:t.id,otherUserId:other,otherVip:Boolean(p?.vip),name:p?.name??"Anonymous Panda",kind:(isDating?"dating":"dm") as const,blurb:isDating?"Dating Chat":"Direct message",messages:(messagesRes.data??[]).filter((m:any)=>m.thread_id===t.id).map((m:any)=>({id:m.id,body:m.body??"",at:new Date(m.created_at).getTime(),mine:m.sender_id===uid,messageType:m.media_type==="dating_photo"?"dating_photo":"text",mediaPath:m.media_path??undefined})),startedAt:new Date(t.created_at).getTime()};
+      return {id:t.id,otherUserId:other,otherVip:Boolean(p?.vip),name:p?.name??"Anonymous Panda",kind: (isDating ? "dating" : "dm") as "dating" | "dm",blurb:isDating?"Dating Chat":"Direct message",messages:(messagesRes.data??[]).filter((m:any)=>m.thread_id===t.id).map((m:any)=>({id:m.id,body:m.body??"",at:new Date(m.created_at).getTime(),mine:m.sender_id===uid,messageType:m.media_type==="dating_photo"?"dating_photo":"text",mediaPath:m.media_path??undefined})),startedAt:new Date(t.created_at).getTime()};
     });
     setState(s=>({...s,threads}));
   },[dbUserId]);
@@ -684,6 +687,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     const hydrationFallback = window.setTimeout(() => {
       if (!cancelled) setHydrated(true);
     }, 3000);
+    let resolvedHydrationUserId: string | null = null;
     void (async () => {
       let session = (await supabase.auth.getSession()).data.session;
       if (!session) {
@@ -713,6 +717,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       }
     void (supabase as any).from("admin_roles").select("role").eq("user_id",session.user.id).maybeSingle().then(({data}: any) => setDbIsAdmin(Boolean(data?.role)));
       const uid = session.user.id;
+      resolvedHydrationUserId = uid;
       // Location is optional and must never block app hydration.
       void new Promise<{latitude:number;longitude:number}|null>((resolve) => { if (typeof navigator === "undefined" || !navigator.geolocation) return resolve(null); navigator.geolocation.getCurrentPosition((pos) => resolve({ latitude:pos.coords.latitude, longitude:pos.coords.longitude }), () => resolve(null), { enableHighAccuracy:false, maximumAge:300000, timeout:3000 }); });
       const [postsRes, repliesRes, reactionsRes, groupsRes, groupMessagesRes, eventsRes, attendeesRes, datingRes, datingOwnRes, walletRes, xpRes, crushResultsRes, crushWinnersRes] = await Promise.all([
@@ -742,7 +747,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       }
       const postAuthorIds = Array.from(new Set(rawPosts.map((p:any)=>p.author_id).concat(replies.map((r:any)=>r.author_id)).filter(Boolean)));
       const postProfilesRes = postAuthorIds.length ? await (supabase as any).from("profiles").select("id,display_name,is_vip,vip_expires_at").in("id",postAuthorIds) : {data:[]};
-      const postProfiles = new Map((postProfilesRes.data??[]).map((p:any)=>[p.id,p]));
+      const postProfiles = new Map<string, any>((postProfilesRes.data ?? []).map((p: any) => [p.id, p] as [string, any]));
       const posts = rawPosts.map((p:any)=>({
         id:p.id,author:p.author_id===uid?"You (anonymous)":"Anonymous Panda",authorId:p.author_id,
         authorVip:Boolean(postProfiles.get(p.author_id)?.is_vip && (!postProfiles.get(p.author_id)?.vip_expires_at || new Date(postProfiles.get(p.author_id).vip_expires_at).getTime()>Date.now())),
@@ -757,14 +762,14 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         return {id:g.id,name:g.name,topic:g.about??"",ownerId:g.creator_id,memberRole:g.member_role,editGroupInfo:settings?.edit_group_info??"admins",sendMessages:settings?.send_messages??true,approveNewMembers:settings?.approve_new_members??false,joinPending:Boolean(g.join_pending),members:Number(g.member_count??0),openedAt:g.activated_at?new Date(g.activated_at).getTime():null,closedAt:g.closed_at?new Date(g.closed_at).getTime():null,expiresAt:null,country:g.country??"",stateProvince:g.state_province??"",city:g.city??"",area:g.area??"",messages:groupMessages.filter((m:any)=>m.group_id===g.id).map((m:any)=>({id:m.id,author:m.sender_id===uid?"You (anonymous)":"Anonymous Panda",body:m.body,at:new Date(m.created_at).getTime(),mine:m.sender_id===uid}))};
       });
       const attendees=attendeesRes.data??[];
-      const events=(eventsRes.data??[]).map((e:any)=>{const start=e.starts_at?new Date(e.starts_at):null;const end=e.ends_at?new Date(e.ends_at):null;return {id:e.id,ownerId:e.creator_id,title:e.title,tag:e.category??"Meetup",date:start?start.toLocaleDateString():"",time:start?start.toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"}):"",place:e.location??"",cost:Number(e.entry_fee_amount??0),currency:e.entry_fee_currency??"NGN",blurb:e.description??"",details:e.description??"",rsvp:Boolean(e.viewer_going??attendees.some((a:any)=>a.event_id===e.id&&a.user_id===uid)),attendeeCount:Number(e.attendee_count??attendees.filter((a:any)=>a.event_id===e.id).length),interestedCount:Number(e.interested_count??0),responseCount:Number(e.response_count??0),reachCount:Number(e.reach_count??0),reachScope:e.reach_scope??"worldwide",reachCountry:e.reach_country??"",reachState:e.reach_state??"",reachCity:e.reach_city??"",reachArea:e.reach_area??"",durationMinutes:Number(e.duration_minutes??120),coverUrl:e.cover_url??"",venueName:e.venue_name??"",addressLine:e.address_line??"",country:e.country??"",stateProvince:e.state_province??"",city:e.city??"",area:e.area??"",latitude:e.latitude??null,longitude:e.longitude??null};});
+      const events=(eventsRes.data??[]).map((e:any)=>{const start=e.starts_at?new Date(e.starts_at):null;const end=e.ends_at?new Date(e.ends_at):null;return {id:e.id,ownerId:e.creator_id,title:e.title,tag:e.category??"Meetup",date:start?start.toLocaleDateString():"",time:start?start.toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"}):"",place:e.location??"",cost:Number(e.entry_fee_amount??0),currency:e.entry_fee_currency??"NGN",blurb:e.description??"",details:e.description??"",rsvp:Boolean(e.viewer_going??attendees.some((a:any)=>a.event_id===e.id&&a.user_id===uid)),interested:Boolean(e.viewer_interested),attendeeCount:Number(e.attendee_count??attendees.filter((a:any)=>a.event_id===e.id).length),interestedCount:Number(e.interested_count??0),responseCount:Number(e.response_count??0),reachCount:Number(e.reach_count??0),reachScope:e.reach_scope??"worldwide",reachCountry:e.reach_country??"",reachState:e.reach_state??"",reachCity:e.reach_city??"",reachArea:e.reach_area??"",durationMinutes:Number(e.duration_minutes??120),coverUrl:e.cover_url??"",venueName:e.venue_name??"",addressLine:e.address_line??"",country:e.country??"",stateProvince:e.state_province??"",city:e.city??"",area:e.area??"",latitude:e.latitude??null,longitude:e.longitude??null};});
       const dating=datingOwnRes.data;
       const crushCounts=new Map<string,number>((crushResultsRes.data??[]).map((r:any)=>[r.nominee_id,Number(r.vote_count??r.votes??0)]));
       const nominees=(crushResultsRes.data??[]).map((n:any)=>({id:n.nominee_id,name:n.display_name,kind:n.kind,emoji:n.emoji,blurb:n.blurb,votes:Number(n.vote_count??0),avatarUrl:n.media_url,mediaUrl:n.media_url,mediaType:n.media_type,mine:Boolean(n.mine)}));
       const totalXp=(xpRes.data??[]).reduce((sum:number,row:any)=>sum+Number(row.amount??0),0);
       setState(prev=>({...prev,coins:Number(walletRes.data?.balance??prev.coins),level:pandaProgress(totalXp).index+1,xp:totalXp,posts,groups,events,nominees,spotlights:(crushWinnersRes.data??[]).map((w:any)=>({kind:w.kind,name:w.display_name,wonAt:new Date(w.created_at).getTime()})),datingProfile:dating?{userId:dating.user_id,name:dating.name,age:Number(dating.age??18),vibe:dating.vibe??"",emoji:dating.emoji??"🐼",bio:dating.bio??"",interests:dating.interests??[],location:dating.location??"",country:dating.country??"",stateProvince:dating.state_province??"",gender:dating.gender??"",relationshipGoal:dating.relationship_goal??"",lookingFor:dating.looking_for??[],aboutTraits:dating.about_traits??[],lifestyle:dating.lifestyle??[],personality:dating.personality??[],loveLanguage:dating.love_language??"",smoking:dating.smoking??"",drinking:dating.drinking??"",children:dating.children??"",education:dating.education??"",occupation:dating.occupation??"",sexualExperience:dating.sexual_experience??"",intimacyPreference:dating.intimacy_preference??"",relationshipStatus:dating.relationship_status??"single",heightCm:dating.height_cm??null,zodiac:dating.zodiac??"",favoriteDate:dating.favorite_date??"",photoPath:dating.photo_path??"",blurredPhotoPath:dating.blurred_photo_path??"",registeredAt:dating.updated_at?new Date(dating.updated_at).getTime():Date.now()}:null,datingMatches:(datingRes.data??[]).filter((d:any)=>d.user_id!==uid).map((d:any)=>({...d,userId:d.user_id,registeredAt:d.updated_at?new Date(d.updated_at).getTime():Date.now()}))}));    })().catch(() => {}).finally(() => {
       if (!cancelled) {
-        hydratedUserRef.current = uid;
+        if (resolvedHydrationUserId) hydratedUserRef.current = resolvedHydrationUserId;
         setHydrated(true);
       }
     });
@@ -837,7 +842,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       if (error || !id) { toast.error(error?.message ?? "Post could not be created"); return; }
       const data = { id, xp: 7, reward_bc: 0, created_at: new Date().toISOString(), author_vip_at: false };
       setState((s) => {
-        const { level, xp } = gainXp(s.level, s.xp, Number(data.xp ?? 7));
+        const xp = s.xp + Number(data.xp ?? 7);
+        const level = pandaProgress(xp).index + 1;
         return { ...s, coins: s.coins + Number(data.reward_bc ?? 2), reputation: s.reputation + Number(data.xp ?? 15), level, xp, posts: [{ id, author:"You (anonymous)", authorId:dbUserId, authorVip:Boolean(data.author_vip_at ?? s.isVip), body, at:data.created_at ? new Date(data.created_at).getTime() : Date.now(), replies:[] }, ...s.posts] };
       });
       toast.success("Posted anonymously 🐼", { description: `+${Number(data.reward_bc ?? 0)} BC · +${Number(data.xp ?? 0)} XP earned.` });
@@ -851,7 +857,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       if (error) { toast.error(error.message ?? "Reply could not be created"); return; }
       const id = data.id;
       setState((s) => {
-        const { level, xp } = gainXp(s.level, s.xp, Number(data.xp ?? 5));
+        const xp = s.xp + Number(data.xp ?? 5);
+        const level = pandaProgress(xp).index + 1;
         return { ...s, coins: s.coins + Number(data.reward_bc ?? 1), reputation: s.reputation + Number(data.xp ?? 5), level, xp, posts:s.posts.map((p)=>p.id===postId?{...p,replies:[...p.replies,{id,author:"You (anonymous)",body,at:Date.now()}]}:p) };
       });
     })();
@@ -902,7 +909,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         ...g,
         members: joined ? g.members + 1 : g.members,
         joinPending: status === "pending",
-        memberRole: joined ? (g.memberRole ?? "member") : g.memberRole,
+        ...(joined ? { memberRole: g.memberRole ?? "member" } : {}),
         openedAt: data?.activated_at ? new Date(data.activated_at).getTime() : g.openedAt,
       } : g) }));
       if (joined) void refreshCoins();
@@ -920,7 +927,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     if (!dbUserId) { toast.error("Sign in to leave this group"); return false; }
     const { error } = await (supabase as any).rpc("leave_group", { p_group_id: id });
     if (error) { toast.error(error.message ?? "Could not leave group"); return false; }
-    setState((s) => ({ ...s, groups: s.groups.map((g) => g.id === id ? { ...g, members: Math.max(0, g.members - 1), memberRole: undefined } : g) }));
+    setState((s) => ({ ...s, groups: s.groups.map((g) => { if (g.id !== id) return g; const { memberRole: _memberRole, ...rest } = g; return { ...rest, members: Math.max(0, g.members - 1) }; }) }));
     toast.success("You left the group");
     return true;
   }, [dbUserId]);
@@ -1130,7 +1137,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, [dbUserId]);
 
   const createGroup = useCallback(async (name: string, about: string, limitations = "", countryRestriction = ""): Promise<GroupChat | null> => {
-    if (!dbUserId || dbIsAnonymous) { requestLogin("create a group"); return null; }
+    const { data: authData, error: authError } = await supabase.auth.getUser();
+    if (authError) { toast.error(authError.message ?? "Could not verify your login."); return null; }
+    const creatorId = authData.user?.id;
+    if (!creatorId || authData.user?.is_anonymous) { requestLogin("create a group"); return null; }
     // Group creation is allowed for any signed-in account; profile completion is required when entering the chat.
     const { data, error } = await (supabase as any).rpc("create_group", {
       p_name:name.trim(),
@@ -1142,16 +1152,21 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     });
     if (error) { toast.error(error.message ?? "Group could not be created"); return null; }
     const groupId = String(data);
-    const group: GroupChat = { id:groupId, name:name.trim(), topic:about.trim(), members:1, ownerId:dbUserId, memberRole:"owner", editGroupInfo:"admins", sendMessages:true, approveNewMembers:false, joinPending:false, openedAt:null, closedAt:null, latitude:null, longitude:null, messages:[], country:countryRestriction.trim(), stateProvince:"", city:"", area:"" };
+    const group: GroupChat = { id:groupId, name:name.trim(), topic:about.trim(), members:1, ownerId:creatorId, memberRole:"owner", editGroupInfo:"admins", sendMessages:true, approveNewMembers:false, joinPending:false, openedAt:null, closedAt:null, latitude:null, longitude:null, messages:[], country:countryRestriction.trim(), stateProvince:"", city:"", area:"" };
     setState((state) => ({ ...state, groups:[group, ...state.groups] }));
     void refreshGroupsAndEvents();
     window.dispatchEvent(new CustomEvent("circle-panda-action", { detail: { title: "Group created!", emoji: "👥" } }));
     toast.success("Group created 🐼");
     return group;
-  }, [dbUserId, dbIsAnonymous, refreshGroupsAndEvents]);
+  }, [refreshGroupsAndEvents]);
 
   const createEvent = useCallback(async (eventData: Omit<PandaEvent, "id" | "rsvp">): Promise<PandaEvent | null> => {
-    if (!dbUserId || dbIsAnonymous) { requestLogin("create an event"); return null; }
+    // Read the live Supabase session at submit time instead of relying on a
+    // possibly stale store snapshot after a fresh login or token refresh.
+    const { data: authData, error: authError } = await supabase.auth.getUser();
+    if (authError) { toast.error(authError.message ?? "Could not verify your login."); return null; }
+    const eventOwnerId = authData.user?.id;
+    if (!eventOwnerId || authData.user?.is_anonymous) { requestLogin("create an event"); return null; }
     if (!(await requireCompleteProfile("create an event"))) return null;
     const startsAt = eventData.date ? new Date(eventData.date).toISOString() : new Date(Date.now() + 60 * 60 * 1000).toISOString();
     const durationMinutes = Math.max(15, Math.min(10080, Number(eventData.durationMinutes) || 120));
@@ -1165,12 +1180,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       p_latitude:eventData.latitude ?? null,p_longitude:eventData.longitude ?? null,p_cover_url:eventData.coverUrl ?? null,
     });
     if (error || !data?.id) { toast.error(error?.message ?? "Could not publish event"); return null; }
-    const created: PandaEvent = { ...eventData, id:String(data.id), rsvp:false, attendeeCount:0, interestedCount:0, responseCount:0, reachCount:0, ownerId:dbUserId };
+    const created: PandaEvent = { ...eventData, id:String(data.id), rsvp:false, attendeeCount:0, interestedCount:0, responseCount:0, reachCount:0, ownerId:eventOwnerId };
     setState((s) => ({ ...s, events:[created, ...s.events] }));
     void refreshGroupsAndEvents();
     toast.success("Event published 🐼");
     return created;
-  }, [dbUserId, dbIsAnonymous, refreshGroupsAndEvents]);
+  }, [refreshGroupsAndEvents]);
 
   const refreshEvents = useCallback(async () => {
     await refreshGroupsAndEvents();
@@ -1267,10 +1282,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     })();
   }, [refreshDatingData]);
 
-  const requestDatingMatch = useCallback((userId:string) => {
-    if (!dbUserId) { requestLogin("use Dating"); return Promise.resolve(null); }
+  const requestDatingMatch = useCallback((userId: string) => {
     if (!userId) return Promise.resolve(null);
     return (async () => {
+      const { data: authData, error: authError } = await supabase.auth.getUser();
+      if (authError) { toast.error(authError.message ?? "Could not verify your login."); return null; }
+      if (!authData.user || authData.user.is_anonymous) { requestLogin("use Dating"); return null; }
       const {data,error}=await (supabase as any).rpc("request_dating_match_secure",{p_recipient_id:userId});
       if(error){toast.error(error.message??"Could not send dating request");return null;}
       let threadId = data?.thread_id ? String(data.thread_id) : undefined;
@@ -1278,15 +1295,15 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         const threadRes = await (supabase as any).rpc("get_or_create_dating_thread_secure",{p_other:userId});
         if (!threadRes.error && threadRes.data) threadId = String(threadRes.data);
       }
-      const result = {
+      const result: { status: string; requestId?: string; threadId?: string } = {
         status: String(data?.status ?? "pending"),
-        requestId: data?.request_id ? String(data.request_id) : undefined,
-        threadId,
       };
+      if (data?.request_id) result.requestId = String(data.request_id);
+      if (threadId) result.threadId = threadId;
       toast.success(result.status==="matched"?"It's a mutual match 💗":"Dating message request sent 💌");
       return result;
     })();
-  },[dbUserId]);
+  },[]);
 
   const buyTicket = useCallback((draw: DrawKind) => {
     if (!dbUserId) { requestLogin("buy a ticket"); return false; }
@@ -1406,6 +1423,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       startDmWithAuthor,
       openPaidDm,
       syncCoins: refreshCoins,
+      refreshCoins,
+      refreshCrushVoteUsage,
       syncAccountEntitlements,
       nominate,
       voteFor,
@@ -1436,12 +1455,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       isAdmin: dbIsAdmin,
       createGroup,
       createEvent,
-      toggleEventInterest,
       refreshEvents,
       startEventBlast,
       registerDatingProfile,
       refreshDatingData,
-      requestDatingMatch,
+      searchDatingProfiles,
     }),
     [
       state,
@@ -1461,6 +1479,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       startDmWithAuthor,
       openPaidDm,
       refreshCoins,
+      refreshCrushVoteUsage,
+      searchDatingProfiles,
       syncAccountEntitlements,
       nominate,
       voteFor,

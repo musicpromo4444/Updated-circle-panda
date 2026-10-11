@@ -35,7 +35,7 @@ interface VipLoungeSpaceProps {
   onOpenChange: (open: boolean) => void;
 }
 
-type TabKey = "events" | "polls" | "notes";
+type TabKey = "events" | "giveaways" | "polls" | "notes";
 
 export function VipLoungeSpace({ open, onOpenChange }: VipLoungeSpaceProps) {
   const [data, setData] = useState({ events: [], giveaways: [], polls: [], notes: [] } as any);
@@ -152,7 +152,7 @@ export function VipLoungeSpace({ open, onOpenChange }: VipLoungeSpaceProps) {
     } catch { toast.error("Camera/microphone permission is required to record a VIP drop"); }
   };
 
-  const handleSubmitNote = () => { if(!mediaForm.title.trim()){toast.error("Please add a title for your note");return;} if(!chunksRef.current.length){toast.error("Record the note before dropping it");return;} const blob=new Blob(chunksRef.current,{type:recordingMime||undefined}); void (async()=>{ const {data:{user}}=await supabase.auth.getUser(); if(!user){toast.error("Sign in required");return;} const ext=noteKind==="video"?"webm":"webm"; const path=`${user.id}/${crypto.randomUUID()}.${ext}`; const {error:uploadError}=await (supabase as any).storage.from("vip-lounge-media").upload(path,blob,{contentType:recordingMime||blob.type||"application/octet-stream",upsert:false}); if(uploadError){toast.error(uploadError.message);return;} const {error}=await (supabase as any).rpc("vip_lounge_create_note",{p_kind:noteKind,p_title:mediaForm.title,p_caption:mediaForm.caption,p_media_path:path,p_duration_seconds:Math.max(1,recordSeconds)}); if(error){await (supabase as any).storage.from("vip-lounge-media").remove([path]);toast.error(error.message);return;} toast.success(noteKind==="voice"?"🎙️ Voice note dropped into VIP Lounge!":"📹 Video note dropped into VIP Lounge!"); setRecordNoteModal(false); setIsRecording(false); setRecordSeconds(0); setMediaForm({title:"",caption:""}); chunksRef.current=[]; await refresh(); })(); };
+  const handleSubmitNote = () => { if(!mediaForm.title.trim()){toast.error("Please add a title for your note");return;} if(!chunksRef.current.length){toast.error("Record the note before dropping it");return;} const blob=new Blob(chunksRef.current, recordingMime ? { type: recordingMime } : {}); void (async()=>{ const {data:{user}}=await supabase.auth.getUser(); if(!user){toast.error("Sign in required");return;} const ext=noteKind==="video"?"webm":"webm"; const path=`${user.id}/${crypto.randomUUID()}.${ext}`; const {error:uploadError}=await (supabase as any).storage.from("vip-lounge-media").upload(path,blob,{contentType:recordingMime||blob.type||"application/octet-stream",upsert:false}); if(uploadError){toast.error(uploadError.message);return;} const {error}=await (supabase as any).rpc("vip_lounge_create_note",{p_kind:noteKind,p_title:mediaForm.title,p_caption:mediaForm.caption,p_media_path:path,p_duration_seconds:Math.max(1,recordSeconds)}); if(error){await (supabase as any).storage.from("vip-lounge-media").remove([path]);toast.error(error.message);return;} toast.success(noteKind==="voice"?"🎙️ Voice note dropped into VIP Lounge!":"📹 Video note dropped into VIP Lounge!"); setRecordNoteModal(false); setIsRecording(false); setRecordSeconds(0); setMediaForm({title:"",caption:""}); chunksRef.current=[]; await refresh(); })(); };
 
   const handleToggleLike = (id: string) => { void (async()=>{const {error}=await (supabase as any).rpc("vip_lounge_toggle_note_like",{p_note_id:id}); if(error){toast.error(error.message);return;} await refresh();})(); };
 
@@ -202,6 +202,14 @@ export function VipLoungeSpace({ open, onOpenChange }: VipLoungeSpaceProps) {
 
               <button
                 type="button"
+                onClick={() => setActiveTab("giveaways")}
+                className={activeTab === "giveaways" ? "flex-1 flex items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-semibold bg-gradient-to-r from-amber-500/20 to-yellow-500/20 text-amber-500 border border-amber-400/40 shadow-sm" : "flex-1 flex items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-semibold text-muted-foreground hover:text-foreground"}
+              >
+                <Gift className="size-3.5" /> Giveaways ({data.giveaways.length})
+              </button>
+
+              <button
+                type="button"
                 onClick={() => setActiveTab("polls")}
                 className={`flex-1 flex items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-semibold transition-all ${
                   activeTab === "polls"
@@ -247,7 +255,7 @@ export function VipLoungeSpace({ open, onOpenChange }: VipLoungeSpaceProps) {
                 </div>
 
                 <div className="space-y-3">
-                  {data.events.map((event) => (
+                  {data.events.map((event: any) => (
                     <div
                       key={event.id}
                       className="rounded-2xl border border-amber-400/30 bg-card p-4 shadow-sm transition-all hover:border-amber-400/60"
@@ -323,7 +331,7 @@ export function VipLoungeSpace({ open, onOpenChange }: VipLoungeSpaceProps) {
                 </div>
 
                 <div className="space-y-3">
-                  {data.giveaways.map((gw) => (
+                  {data.giveaways.map((gw: any) => (
                     <div
                       key={gw.id}
                       className="rounded-2xl border border-amber-400/30 bg-gradient-to-br from-card to-amber-950/10 p-4 shadow-sm"
@@ -401,7 +409,7 @@ export function VipLoungeSpace({ open, onOpenChange }: VipLoungeSpaceProps) {
                 </div>
 
                 <div className="space-y-4">
-                  {data.polls.map((poll) => (
+                  {data.polls.map((poll: any) => (
                     <div
                       key={poll.id}
                       className="rounded-2xl border border-amber-400/30 bg-card p-4 shadow-sm"
@@ -418,7 +426,7 @@ export function VipLoungeSpace({ open, onOpenChange }: VipLoungeSpaceProps) {
 
                       {/* Options */}
                       <div className="mt-3 space-y-2">
-                        {poll.options.map((opt) => {
+                        {poll.options.map((opt: any) => {
                           const pct =
                             poll.totalVotes > 0
                               ? Math.round((opt.votes / poll.totalVotes) * 100)
@@ -502,7 +510,7 @@ export function VipLoungeSpace({ open, onOpenChange }: VipLoungeSpaceProps) {
                 </div>
 
                 <div className="grid gap-3 sm:grid-cols-2">
-                  {data.notes.map((note) => {
+                  {data.notes.map((note: any) => {
                     const isPlaying = playingNoteId === note.id;
 
                     return (

@@ -8,25 +8,21 @@ import {
   INITIAL_CREATIVES,
 } from "@/components/ads/adInventoryStorage";
 import {
-  type ActionLogCategory,
   type AdCreative,
   type AdminActivityLog,
   type AdminUser,
   type AdPerformanceMetrics,
   type AdPlacementConfig,
-  type AndroidBridgeGatewayConfig,
-  type CoinPackage,
   type EngagementConfig,
   type ExternalSurveyConfig,
-  type PaystackGatewayConfig,
-  type PricingConfig,
-  type VipPlan,
 } from "./adminTypes";
 import {
   DEFAULT_PRICING_CONFIG,
   getPricingConfig,
+  loadPricingConfig,
   savePricingConfig,
 } from "@/components/store/pricingStorage";
+import type { AndroidBridgeGatewayConfig, CoinPackage, PaystackGatewayConfig, PricingConfig, VipPlan } from "@/lib/pricingTypes";
 
 const INITIAL_AD_METRICS: AdPerformanceMetrics = {
   impressionsWeb: 0, impressionsAndroid: 0, revenueWeb: 0, revenueAndroid: 0,
@@ -79,7 +75,7 @@ export function useAdminStore() {
         timestamp: row.created_at ? new Date(row.created_at).toLocaleString() : "",
         adminAction: String(row.action ?? "ADMIN_ACTION"),
         details: String(row.metadata?.details ?? ""),
-        targetUser: row.target_user_id ? String(row.target_user_id) : undefined,
+        ...(row.target_user_id ? { targetUser: String(row.target_user_id) } : {}),
       })));
     })();
   }, []);
@@ -150,7 +146,7 @@ export function useAdminStore() {
       timestamp: "Just now",
       adminAction,
       details,
-      targetUser,
+      ...(targetUser ? { targetUser } : {}),
     };
     setLogs((prev) => [newLog, ...prev]);
     void (supabase as any).rpc("admin_record_audit", {
@@ -166,7 +162,7 @@ export function useAdminStore() {
             timestamp: row.created_at ? new Date(row.created_at).toLocaleString() : "",
             adminAction: String(row.action ?? "ADMIN_ACTION"),
             details: String(row.metadata?.details ?? ""),
-            targetUser: row.target_user_id ? String(row.target_user_id) : undefined,
+            ...(row.target_user_id ? { targetUser: String(row.target_user_id) } : {}),
           })));
         }
       });

@@ -72,7 +72,7 @@ export function injectAdsIntoList<T>(
   for (let i = 0; i < items.length; i++) {
     result.push({
       type: "item",
-      item: items[i],
+      item: items[i]!,
       originalIndex: i,
     });
 
@@ -102,7 +102,11 @@ export function useInjectedAds<T>(
   const { interval = 4, minItemsBeforeFirstAd, keyPrefix } = options;
 
   return useMemo(() => {
-    return injectAdsIntoList(items, { interval, minItemsBeforeFirstAd, keyPrefix });
+    return injectAdsIntoList(items, {
+      interval,
+      ...(minItemsBeforeFirstAd !== undefined ? { minItemsBeforeFirstAd } : {}),
+      ...(keyPrefix !== undefined ? { keyPrefix } : {}),
+    });
   }, [items, interval, minItemsBeforeFirstAd, keyPrefix]);
 }
 

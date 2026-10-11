@@ -40,7 +40,7 @@ function GroupRoom() {
   } = useStore();
   const [adOpen, setAdOpen] = useState(false);
   const [groupRewardSessionId, setGroupRewardSessionId] = useState<string | null>(null);
-  const pendingRewardActionRef = useRef<(() => Promise<void>) | null>(null);
+  const pendingRewardActionRef = useRef<(() => Promise<void | boolean>) | null>(null);
   const [draft, setDraft] = useState("");
   const bottom = useRef<HTMLDivElement>(null);
   const [showActivation, setShowActivation] = useState(false);
@@ -127,9 +127,9 @@ function GroupRoom() {
     return data?.signedUrl ?? null;
   };
 
-  const maybeOpenGroupRewardAd = async (afterAd: () => Promise<void>) => {
+  const maybeOpenGroupRewardAd = async (afterAd: () => Promise<void | boolean>) => {
     if (!group) { await afterAd(); return; }
-    const { data, error } = await supabase.rpc("start_group_reward_ad_secure", { p_group_id: group.id });
+    const { data, error } = await (supabase as any).rpc("start_group_reward_ad_secure", { p_group_id: group.id });
     if (error || !(data as any)?.show || !(data as any)?.session_id) { await afterAd(); return; }
     pendingRewardActionRef.current = afterAd;
     setGroupRewardSessionId((data as any).session_id);
@@ -151,6 +151,9 @@ function GroupRoom() {
 
   const blockMember = async (userId: string) => {
     setMemberMenuOpen(null);
+    const { data: authData, error: authError } = await supabase.auth.getUser();
+    if (authError) { toast.error(authError.message ?? "Could not verify your account."); return; }
+    const currentUserId = authData.user?.id;
     if (!currentUserId || currentUserId === userId) return;
     if (!window.confirm("Block this Panda? They will no longer be able to message you.")) return;
     try {
@@ -199,12 +202,12 @@ function GroupRoom() {
     );
   };
 
-  const uploadMedia = async (file: File, messageType: "image" | "video" | "audio", durationSeconds?: number) => {
-    if (!group) return;
+  const uploadMedia = async (file: File, messageType: "image" | "video" | "audio", durationSeconds?: number): Promise<boolean> => {
+    if (!group) return false;
     const uid = (await supabase.auth.getUser()).data.user?.id;
     if (!uid) {
       toast.error("Please sign in again before sending media.");
-      return;
+      return false;
     }
 
     const uploadFile = file;
@@ -218,7 +221,7 @@ function GroupRoom() {
 
     if (uploadError) {
       toast.error(uploadError.message ?? "Media upload failed");
-      return;
+      return false;
     }
 
     const { data, error } = await (supabase as any).rpc("send_group_message", {
@@ -239,7 +242,7 @@ function GroupRoom() {
       } else {
         toast.error(message);
       }
-      return;
+      return false;
     }
 
     const mediaUrl = messageType === "audio" ? await signedMediaUrl(path, 3600) : null;
@@ -264,7 +267,7 @@ function GroupRoom() {
     complete(messageType === "audio" ? "group_voice" : "group_media");
     setMediaMenuOpen(false);
     toast.success(messageType === "image" ? "Photo sent" : messageType === "video" ? "Video sent" : "Voice note sent");
-
+    return true;
   };
 
   const handleMediaPick = async (file?: File) => {
@@ -393,7 +396,7 @@ function GroupRoom() {
     if (!voiceBlob) return;
     const duration = recordingSeconds;
     const file = new File([voiceBlob], `voice-${Date.now()}.webm`, { type: voiceBlob.type || "audio/webm" });
-    await maybeOpenGroupRewardAd(async () => { await uploadMedia(file, "audio", duration); clearVoiceDraft(); });
+    await maybeOpenGroupRewardAd(async () => { const sent = await uploadMedia(file, "audio", duration); if (sent) clearVoiceDraft(); });
   };
 
   const openViewOnceMedia = async (m: any) => {

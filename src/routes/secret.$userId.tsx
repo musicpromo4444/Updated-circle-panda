@@ -83,11 +83,11 @@ function SecretProfilePage() {
     return true;
   };
 
-  const react = async (id:string, reaction:string) => {
+  const react = async (id: string, reaction: string): Promise<void> => {
     const { data: authData } = await supabase.auth.getUser();
     if (!authData.user || authData.user.is_anonymous) { requestLogin("react to a secret"); return; }
     const { error } = await (supabase as any).rpc("react_to_profile_secret_secure", { p_secret_id:id, p_reaction:reaction });
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     setReactionMenuId(null);
     await load();
   };
@@ -108,10 +108,10 @@ function SecretProfilePage() {
     }
   };
 
-  const submitComment = async () => {
+  const submitComment = async (): Promise<void> => {
     if (!commentPost || !commentText.trim()) return;
     const { error } = await (supabase as any).rpc("add_profile_secret_comment_secure", { p_secret_id:commentPost.id, p_body:commentText.trim() });
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     const { data } = await (supabase as any).rpc("get_profile_secret_comments", { p_secret_id:commentPost.id });
     setCommentsBySecret((current) => ({ ...current, [commentPost.id]: data ?? [] }));
     setInteractions((current) => ({ ...current, [commentPost.id]: { ...(current[commentPost.id] ?? {reaction:null,reaction_count:0,heart_count:0,laugh_count:0,wow_count:0,sad_count:0,angry_count:0,panda_count:0}), comment_count:data?.length ?? 0 } }));
@@ -215,7 +215,7 @@ function SecretProfilePage() {
                   </div>
                   {expandedCommentsId === secret.id && commentsBySecret[secret.id]?.length ? <div className="mt-3 space-y-3 rounded-2xl bg-secondary/30 p-3">
                     <div className="space-y-2">
-                      {commentsBySecret[secret.id].map((comment)=><div key={comment.id} className="text-sm leading-6"><span className="font-semibold">Anonymous Panda</span><span className="text-muted-foreground"> · {comment.body}</span></div>)}
+                      {(commentsBySecret[secret.id] ?? []).map((comment)=><div key={comment.id} className="text-sm leading-6"><span className="font-semibold">Anonymous Panda</span><span className="text-muted-foreground"> · {comment.body}</span></div>)}
                     </div>
                     <button type="button" className="w-full rounded-xl border border-border/60 bg-card px-3 py-2 text-left text-xs text-muted-foreground" onClick={() => setCommentPost(secret)}>
                       Write a comment…

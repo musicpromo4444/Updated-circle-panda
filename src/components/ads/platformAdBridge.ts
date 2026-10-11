@@ -11,24 +11,13 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
+import type { AndroidBridgeApi, AndroidLegacyApi } from "@/lib/nativeBridgeTypes";
 
 // Extend window interface for potential Android WebView JavaScriptInterface bridges
 declare global {
   interface Window {
-    /** Injected Android JavaScriptInterface (e.g. from WebSettings.addJavascriptInterface) */
-    AndroidBridge?: {
-      openUrl?: (url: string) => void;
-      trackAdImpression?: (adId: string, format: string) => void;
-      trackAdClick?: (adId: string, format: string) => void;
-      onRewardedAdComplete?: (rewardAmount: number) => void;
-      showNativeInterstitial?: (placementId: string) => boolean;
-      isWebView?: () => boolean;
-    };
-    Android?: {
-      openUrl?: (url: string) => void;
-      trackAdImpression?: (adId: string, format: string) => void;
-      trackAdClick?: (adId: string, format: string) => void;
-    };
+    AndroidBridge?: AndroidBridgeApi;
+    Android?: AndroidLegacyApi;
   }
 }
 

@@ -48,13 +48,18 @@ export function ConfessionsPage() {
   const [uploadPreviewUrl, setUploadPreviewUrl] = useState<string | null>(null);
   const [uploadCaption, setUploadCaption] = useState("");
   const [uploading, setUploading] = useState(false);
+  const uploadLock = useRef(false);
   const [accountGender, setAccountGender] = useState<"male" | "female" | null>(null);
   const [genderPromptOpen, setGenderPromptOpen] = useState(false);
   const [commentCounts, setCommentCounts] = useState<Record<string, number>>({});
   const [items, setItems] = useState<Confession[]>([]);
   const [content, setContent] = useState("");
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const confessionSubmitLock = useRef(false);
+  const commentSubmitLock = useRef(false);
+  const messageSubmitLock = useRef(false);
   const [showSignup, setShowSignup] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [reactionMenuId, setReactionMenuId] = useState<string | null>(null);
@@ -62,6 +67,9 @@ export function ConfessionsPage() {
   const [commentPost, setCommentPost] = useState<Confession | null>(null);
   const navigate = useNavigate();
   const [commentText, setCommentText] = useState("");
+  const [submittingComment, setSubmittingComment] = useState(false);
+  const confessionSubmitLock = useRef(false);
+  const commentSubmitLock = useRef(false);
   const [commentsByPost, setCommentsByPost] = useState<Record<string, ConfessionComment[]>>({});
   const [messagePost, setMessagePost] = useState<Confession | null>(null);
   const [messageText, setMessageText] = useState("");
@@ -75,6 +83,7 @@ export function ConfessionsPage() {
       const { data, error } = await (supabase as any).rpc("get_public_confessions", { p_limit: 50 });
       if (error) throw error;
       const nextItems = (data ?? []).map((row: any) => ({ id:row.id, content:row.body, is_anonymous:Boolean(row.is_anonymous), created_at:row.created_at, author_id:row.author_id ?? null })) as Confession[];
+      setLoadError(null);
       setItems(nextItems);
       const ids = nextItems.map((x) => x.id);
       if (ids.length) {
@@ -89,7 +98,8 @@ export function ConfessionsPage() {
         const next: Record<string, ReactionState> = {};
         for (const row of reactions ?? []) {
           const state = next[row.secret_id] ?? { reaction:null, heart_count:0, laugh_count:0, wow_count:0, sad_count:0, angry_count:0, panda_count:0 };
-          const key = row.reaction === "surprised" ? "wow_count" : row.reaction === "heart" ? "heart_count" : row.reaction === "laugh" ? "laugh_count" : row.reaction === "angry" ? "angry_count" : "panda_count";
+          const key = row.reaction === "wow" || row.reaction === "surprised" ? "wow_count" : row.reaction === "heart" ? "heart_count" : row.reaction === "laugh" ? "laugh_count" : row.reaction === "angry" ? "angry_count" : row.reaction === "panda" ? "panda_count" : null;
+          if (!key) continue;
           state[key] = Number(state[key] ?? 0) + 1;
           if (row.user_id === currentUser) state.reaction = row.reaction;
           next[row.secret_id] = state;
@@ -103,8 +113,10 @@ export function ConfessionsPage() {
         setCommentCounts({});
       }
       return ids;
-    } catch (error: any) {
-      toast.error(error?.message ?? "Could not load confessions");
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Could not load confessions";
+      setLoadError(message);
+      if (items.length === 0) toast.error(message);
       return null;
     } finally {
       setLoading(false);
@@ -130,6 +142,14 @@ export function ConfessionsPage() {
     void (async () => { const { data } = await (supabase as any).rpc("get_my_profile_gender"); if (data === "male" || data === "female") setAccountGender(data); })();
   }, []);
 
+  useEffect(() => {
+    if (loading || !items.length) return;
+    const targetId = window.location.hash.slice(1);
+    if (!targetId) return;
+    const target = document.getElementById(targetId);
+    if (target) window.setTimeout(() => target.scrollIntoView({ behavior: "smooth", block: "start" }), 0);
+  }, [loading, items]);
+
   const chooseFile = () => fileInputRef.current?.click();
   const openCrushUpload = async () => {
     if (accountGender) {
@@ -152,9 +172,9 @@ export function ConfessionsPage() {
     setUploadOpen(false);
     setGenderPromptOpen(true);
   };
-  const saveGender = async (gender: "male" | "female") => {
+  const saveGender = async (gender: "male" | "female"): Promise<void> => {
     const { data, error } = await (supabase as any).rpc("set_profile_gender_secure", { p_gender: gender });
-    if (error) return toast.error(error.message ?? "Gender could not be saved");
+    if (error) { toast.error(error.message ?? "Gender could not be saved"); return; }
     const savedGender = data === "male" || data === "female" ? data : gender;
     setAccountGender(savedGender);
     setGenderPromptOpen(false);
@@ -186,14 +206,17 @@ export function ConfessionsPage() {
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-  const uploadCrush = async () => {
+  const uploadCrush = async (): Promise<void> => {
     if (!accountGender) {
       setUploadOpen(false);
       setGenderPromptOpen(true);
       return;
     }
-    if (!uploadFile) return toast.error("Tap Choose photo or video first.");
+    if (!uploadFile) { toast.error("Tap Choose photo or video first."); return; }
+    if (uploadLock.current) return;
+    uploadLock.current = true;
     setUploading(true);
+    let uploadedPath: string | null = null;
     try {
       const { data: authData } = await supabase.auth.getUser();
       const uid = authData.user?.id;
@@ -209,6 +232,7 @@ export function ConfessionsPage() {
           cacheControl: "3600",
         });
       if (uploadError) throw uploadError;
+      uploadedPath = path;
 
       const publicUrl = supabase.storage.from("circle-panda-crush").getPublicUrl(path).data.publicUrl;
       const { error } = await (supabase as any).rpc("submit_crush_media_secure", {
@@ -218,6 +242,7 @@ export function ConfessionsPage() {
         p_emoji: "🐼",
       });
       if (error) throw error;
+      uploadedPath = null;
 
       toast.success("Your WCW/MCM entry is uploaded.");
       clearUpload();
@@ -226,14 +251,17 @@ export function ConfessionsPage() {
       window.dispatchEvent(new Event("circle-panda-crush-refresh"));
       await loadWeekly();
     } catch (e: any) {
+      if (uploadedPath) await supabase.storage.from("circle-panda-crush").remove([uploadedPath]).catch(() => {});
       toast.error(e?.message ?? "Upload failed.");
     } finally {
+      uploadLock.current = false;
       setUploading(false);
     }
   };
 
   const submitNow = async (trimmed: string) => {
-    if (submitting) return;
+    if (confessionSubmitLock.current || submitting) return;
+    confessionSubmitLock.current = true;
     setSubmitting(true);
     try {
       const { data, error } = await (supabase as any).rpc("create_confession", { p_body: trimmed });
@@ -254,14 +282,15 @@ export function ConfessionsPage() {
     } catch (error: any) {
       toast.error(error?.message ?? "Your confession could not be submitted.");
     } finally {
+      confessionSubmitLock.current = false;
       setSubmitting(false);
     }
   };
 
-  const submit = async () => {
+  const submit = async (): Promise<void> => {
     const trimmed = content.trim();
-    if (trimmed.length < 3) return toast.error("Write at least 3 characters first.");
-    if (trimmed.length > 2000) return toast.error("Your confession is too long.");
+    if (trimmed.length < 3) { toast.error("Write at least 3 characters first."); return; }
+    if (trimmed.length > 2000) { toast.error("Your confession is too long."); return; }
 
     const { data: authData } = await supabase.auth.getUser();
     if (!authData.user || authData.user.is_anonymous) {
@@ -279,48 +308,113 @@ export function ConfessionsPage() {
   const reactionOptions = [
     { key:"heart", emoji:"❤️", label:"Heart" },
     { key:"laugh", emoji:"😂", label:"Laugh" },
-    { key:"wow", emoji:"😮", label:"Surprised" },
+    { key:"surprised", emoji:"😮", label:"Surprised" },
     { key:"angry", emoji:"😡", label:"Angry" },
     { key:"panda", emoji:"🐼", label:"Panda" },
   ];
   const react = async (id: string, reaction: string) => {
-    const { data: authData } = await supabase.auth.getUser();
-    if (!authData.user || authData.user.is_anonymous) {
-      requestLogin("react to a confession");
+    try {
+      const { data: authData, error: authError } = await supabase.auth.getUser();
+      if (authError) throw authError;
+      if (!authData.user || authData.user.is_anonymous) {
+        requestLogin("react to a confession");
+        return;
+      }
+
+      const { error } = await (supabase as any).rpc("toggle_secret_reaction", {
+        p_secret_id: id,
+        p_reaction: reaction,
+      });
+      if (error) throw error;
+      await load(true);
+    } catch (error: any) {
+      toast.error(error?.message ?? "Your reaction could not be saved.");
+    } finally {
       setReactionMenuId(null);
-      return;
     }
-    const { data, error } = await (supabase as any).rpc("toggle_secret_reaction", { p_secret_id:id, p_reaction:reaction });
-    if (error) return toast.error(error.message);
-    await load(true);
-    setReactionMenuId(null);
   };
 
   const openComments = async (item: Confession) => {
-    const { data: authData } = await supabase.auth.getUser();
-    if (!authData.user || authData.user.is_anonymous) return requestLogin("comment on a confession");
-    setCommentPost(item);
-    setCommentText("");
-    const { data } = await (supabase as any).from("secret_comments").select("id,author_id,body,created_at").eq("secret_id",item.id).order("created_at",{ascending:true});
-    setCommentsByPost((current) => ({ ...current, [item.id]: data ?? [] }));
+    try {
+      const { data: authData, error: authError } = await supabase.auth.getUser();
+      if (authError) throw authError;
+      if (!authData.user || authData.user.is_anonymous) {
+        requestLogin("comment on a confession");
+        return;
+      }
+
+      const { data, error } = await (supabase as any)
+        .from("secret_comments")
+        .select("id,author_id,body,created_at")
+        .eq("secret_id", item.id)
+        .order("created_at", { ascending: true });
+      if (error) throw error;
+
+      setCommentsByPost((current) => ({ ...current, [item.id]: data ?? [] }));
+      setCommentText("");
+      setCommentPost(item);
+    } catch (error: any) {
+      toast.error(error?.message ?? "Comments could not be loaded.");
+    }
   };
 
   const submitComment = async () => {
-    if (!commentPost || !commentText.trim()) return;
-    const { error } = await (supabase as any).rpc("add_secret_comment", { p_secret_id:commentPost.id, p_body:commentText.trim() });
-    if (error) return toast.error(error.message);
-    const { data } = await (supabase as any).from("secret_comments").select("id,author_id,body,created_at").eq("secret_id",commentPost.id).order("created_at",{ascending:true});
-    setCommentsByPost((current) => ({ ...current, [commentPost.id]: data ?? [] }));
-    setCommentText("");
-    setCommentPost(null);
-    toast.success("Comment posted");
+    const post = commentPost;
+    const body = commentText.trim();
+    if (!post || !body || commentSubmitLock.current || submittingComment) return;
+    commentSubmitLock.current = true;
+    setSubmittingComment(true);
+    try {
+      const { error } = await (supabase as any).rpc("add_secret_comment", {
+        p_secret_id: post.id,
+        p_body: body,
+      });
+      if (error) throw error;
+
+      const { data, error: reloadError } = await (supabase as any)
+        .from("secret_comments")
+        .select("id,author_id,body,created_at")
+        .eq("secret_id", post.id)
+        .order("created_at", { ascending: true });
+
+      if (reloadError) {
+        // The write already succeeded. Update the visible count even if the
+        // follow-up read is temporarily unavailable, avoiding a misleading UI.
+        setCommentCounts((current) => ({
+          ...current,
+          [post.id]: (current[post.id] ?? 0) + 1,
+        }));
+      } else {
+        setCommentsByPost((current) => ({ ...current, [post.id]: data ?? [] }));
+        setCommentCounts((current) => ({
+          ...current,
+          [post.id]: (data ?? []).length,
+        }));
+      }
+
+      setCommentText("");
+      setCommentPost(null);
+      toast.success("Comment posted");
+    } catch (error: any) {
+      toast.error(error?.message ?? "Comment could not be posted.");
+    } finally {
+      commentSubmitLock.current = false;
+      setSubmittingComment(false);
+    }
   };
 
   const shareConfession = async (item: Confession) => {
     const url = window.location.origin + "/confessions#" + item.id;
     try {
-      if (navigator.share) await navigator.share({ title:"Circle Panda Anonymous Feed", text:item.content, url });
-      else { await navigator.clipboard.writeText(url); toast.success("Share link copied"); }
+      if (navigator.share) {
+        await navigator.share({ title:"Circle Panda Anonymous Feed", text:item.content, url });
+      } else if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(url);
+        toast.success("Share link copied");
+      } else {
+        // Older browsers and some embedded webviews do not expose Clipboard API.
+        window.prompt("Copy this confession link", url);
+      }
     } catch (e:any) {
       if (e?.name !== "AbortError") toast.error("Could not share this confession.");
     }
@@ -335,7 +429,8 @@ export function ConfessionsPage() {
   };
 
   const sendMessage = async () => {
-    if (!messagePost?.author_id || !messageText.trim()) return;
+    if (!messagePost?.author_id || !messageText.trim() || messageSubmitLock.current) return;
+    messageSubmitLock.current = true;
     setSendingMessage(true);
     try {
       const result = await sendMessageRequest(messagePost.author_id, messageText.trim(), "confession", messagePost.id);
@@ -347,6 +442,7 @@ export function ConfessionsPage() {
       if (isSelfMessageError(e)) return;
       toast.error(e?.message ?? "Message request could not be sent");
     } finally {
+      messageSubmitLock.current = false;
       setSendingMessage(false);
     }
   };
@@ -446,13 +542,25 @@ export function ConfessionsPage() {
         </section>
 
         {loading ? <div className="rounded-3xl border border-border/70 bg-card p-8 text-center text-sm text-muted-foreground">Loading confessions…</div> : null}
-        {!loading && items.length === 0 ? (
+        {!loading && loadError && items.length === 0 ? (
+          <div role="alert" className="rounded-3xl border border-destructive/30 bg-card p-6 text-center">
+            <p className="text-sm text-muted-foreground">We could not load the confession feed.</p>
+            <p className="mt-1 break-words text-xs text-muted-foreground">{loadError}</p>
+            <Button type="button" variant="outline" onClick={() => void load()} className="mt-4 rounded-full">Try again</Button>
+          </div>
+        ) : null}
+        {!loading && !loadError && items.length === 0 ? (
           <div className="rounded-3xl border border-dashed border-border p-10 text-center text-sm text-muted-foreground">No published confessions yet. Be the first.</div>
+        ) : null}
+        {!loading && loadError && items.length > 0 ? (
+          <div role="status" className="rounded-2xl border border-border bg-card px-4 py-3 text-sm text-muted-foreground">
+            Could not refresh the feed. Your previously loaded confessions are still shown. <button type="button" className="ml-1 font-semibold text-primary underline underline-offset-4" onClick={() => void load(true)}>Retry</button>
+          </div>
         ) : null}
 
         {items.map((item, idx) => (
           <div key={item.id} className="space-y-4">
-            <article className={`rounded-[1.65rem] border border-border/70 bg-card p-5 shadow-sm ${item.author_vip_at ? "vip-content-card" : ""}`}>
+            <article id={item.id} className={`scroll-mt-20 rounded-[1.65rem] border border-border/70 bg-card p-5 shadow-sm ${item.author_vip_at ? "vip-content-card" : ""}`}>
               <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
                 <div className="flex min-w-0 items-center gap-2">
                   <VipIdentity isVip={Boolean(item.author_vip_at)} seed={item.author_id ?? item.id} compact />
@@ -524,7 +632,7 @@ export function ConfessionsPage() {
               })()}
               {commentsByPost[item.id]?.length ? (
                 <div className="mt-3 space-y-2 rounded-2xl bg-secondary/30 p-3">
-                  {commentsByPost[item.id].slice(-3).map((comment) => <div key={comment.id} className="text-sm"><span className="font-semibold">Anonymous Panda</span><span className="text-muted-foreground"> · {comment.body}</span></div>)}
+                  {(commentsByPost[item.id] ?? []).slice(-3).map((comment) => <div key={comment.id} className="text-sm"><span className="font-semibold">Anonymous Panda</span><span className="text-muted-foreground"> · {comment.body}</span></div>)}
                 </div>
               ) : null}
             </article>
@@ -613,7 +721,7 @@ export function ConfessionsPage() {
           <DialogTitle>Comment on this confession</DialogTitle>
           <DialogDescription>Your comment is public and shown as Anonymous Panda.</DialogDescription>
           <Textarea value={commentText} onChange={(e) => setCommentText(e.target.value)} maxLength={1000} placeholder="Write a comment..." className="min-h-28 rounded-2xl" />
-          <Button onClick={() => void submitComment()} disabled={!commentText.trim()} className="w-full rounded-2xl">Post comment</Button>
+          <Button onClick={() => void submitComment()} disabled={submittingComment || !commentText.trim()} className="w-full rounded-2xl">{submittingComment ? "Posting…" : "Post comment"}</Button>
         </DialogContent>
       </Dialog>
 

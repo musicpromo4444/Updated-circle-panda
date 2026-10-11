@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
+import { supabase } from "@/integrations/supabase/client";
 import {
   Armchair,
   ArrowRight,
@@ -47,7 +48,7 @@ export interface EngagementFeaturesModalProps {
  */
 export function EngagementFeaturesModal({ open, onClose }: EngagementFeaturesModalProps) {
   const navigate = useNavigate();
-  const { addCoins } = useStore();
+  const { syncCoins } = useStore();
 
   // Live admin configurations
   const engagementConfig = useLiveEngagementConfig();
@@ -73,18 +74,28 @@ export function EngagementFeaturesModal({ open, onClose }: EngagementFeaturesMod
   };
 
   // Handle Internal Manual Quiz Answer
-  const handleQuizSubmit = () => {
+  const handleQuizSubmit = async (): Promise<void> => {
     if (selectedOption === null || quizAnswered) return;
-    const correctIndex = engagementConfig.quizCorrectIndex ?? 1;
-    const reward = engagementConfig.quizRewardBc || 15;
-    const correct = selectedOption === correctIndex;
     setQuizAnswered(true);
+    const { data, error } = await (supabase as any).rpc("submit_engagement_quiz_answer", {
+      p_answer_index: selectedOption,
+    });
+    if (error) {
+      setQuizAnswered(false);
+      toast.error(error.message ?? "Your quiz answer could not be verified.");
+      return;
+    }
+    if (data?.result === "already_claimed") {
+      toast.info("You have already used today's quiz attempt.");
+      return;
+    }
+    const correct = data?.result === "correct";
     setIsQuizCorrect(correct);
-
     if (correct) {
-      addCoins(reward, "Daily Community Trivia Reward");
+      const reward = Number(data?.reward_bc ?? 0);
+      if (reward > 0) await syncCoins();
       toast.success("Correct answer! 🎉", {
-        description: `+${reward} BC added to your balance.`,
+        description: reward > 0 ? `+${reward} BC credited by the server.` : "Correct answer recorded.",
       });
     } else {
       toast.error("Not quite! Better luck on tomorrow's question.");
@@ -107,12 +118,8 @@ export function EngagementFeaturesModal({ open, onClose }: EngagementFeaturesMod
   };
 
   const handleCompleteSurvey = () => {
-    const reward = externalSurvey?.rewardBc || 35;
-    addCoins(reward, `${externalSurvey?.providerName || "Partner"} Survey Reward`);
     setSurveyStep("done");
-    toast.success(`Survey completed! 🎉`, {
-      description: `+${reward} BC verified and credited to your wallet.`,
-    });
+    toast.info("Survey completion must be verified by the partner before BC can be credited. No coins were added.");
   };
 
   return (
@@ -249,12 +256,12 @@ export function EngagementFeaturesModal({ open, onClose }: EngagementFeaturesMod
                             {externalSurvey.providerName || "Campus Survey Wall"}
                           </span>
                           <span className="rounded bg-purple-500/15 px-1.5 py-0.5 text-[9px] font-bold text-purple-400 uppercase">
-                            +{externalSurvey.rewardBc} BC
+                            Up to {externalSurvey.rewardBc} BC
                           </span>
                         </div>
                         <p className="mt-0.5 text-xs text-muted-foreground leading-relaxed">
                           Take a 2-minute partner research survey on campus lifestyle &amp; tech to
-                          earn instant coins.
+                          Rewards are credited only after the partner verifies survey completion.
                         </p>
                       </div>
                     </div>
@@ -265,14 +272,14 @@ export function EngagementFeaturesModal({ open, onClose }: EngagementFeaturesMod
                       onClick={handleStartSurvey}
                       className="flex min-h-[36px] shrink-0 items-center gap-1 rounded-xl bg-purple-600 px-3 text-xs font-semibold text-white shadow-sm hover:bg-purple-700 active:scale-95"
                     >
-                      <span>Earn {externalSurvey.rewardBc} BC</span>
+                      <span>Continue to survey</span>
                       <ExternalLink className="size-3.5" />
                     </Button>
                   </div>
 
                   <div className="mt-2.5 flex items-center justify-between text-[11px] text-muted-foreground border-t border-border/50 pt-2">
                     <span>Topic: {externalSurvey.surveyTopicFilter || "Campus Lifestyle"}</span>
-                    <span>Guaranteed: +{externalSurvey.screenoutRewardBc || 5} BC</span>
+                    <span>Screen-out reward after verification: up to {externalSurvey.screenoutRewardBc || 5} BC</span>
                   </div>
                 </div>
               ) : (
@@ -358,7 +365,7 @@ export function EngagementFeaturesModal({ open, onClose }: EngagementFeaturesMod
                           onClick={handleQuizSubmit}
                           className="mt-2.5 h-8 w-full rounded-lg bg-purple-600 text-xs font-semibold text-white hover:bg-purple-700"
                         >
-                          Submit Answer (+{engagementConfig.quizRewardBc || 15} BC)
+                          Submit Answer
                         </Button>
                       ) : (
                         <p className="mt-2 text-center text-[11px] font-semibold text-muted-foreground">
@@ -490,7 +497,7 @@ export function EngagementFeaturesModal({ open, onClose }: EngagementFeaturesMod
                   <ul className="list-disc pl-4 space-y-1 text-muted-foreground">
                     <li>Topic: {externalSurvey.surveyTopicFilter || "Campus Student Lifestyle"}</li>
                     <li>Estimated Duration: 1-2 Minutes</li>
-                    <li>Reward: +{externalSurvey.rewardBc} BC instant wallet payout</li>
+                    <li>Reward: up to +{externalSurvey.rewardBc} BC after provider verification</li>
                   </ul>
                 </div>
 
@@ -542,10 +549,10 @@ export function EngagementFeaturesModal({ open, onClose }: EngagementFeaturesMod
                 </div>
                 <div>
                   <p className="font-display text-base font-bold text-foreground">
-                    Survey Completed!
+                    Awaiting Partner Verification
                   </p>
                   <p className="text-xs text-emerald-500 font-bold">
-                    +{externalSurvey.rewardBc} BC credited to your Circle Panda wallet.
+                    No BC has been credited. The provider must verify completion first.
                   </p>
                 </div>
                 <Button

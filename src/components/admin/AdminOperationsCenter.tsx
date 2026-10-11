@@ -8,6 +8,8 @@ import { supabase } from "@/integrations/supabase/client";
 type Product={id:string;name:string;price_usd:number;price_ngn:number;coins:number;vip_days:number;enabled:boolean;is_popular:boolean;is_best_value:boolean;is_highlighted:boolean};
 type Sweep={id:string;draw:string;ticket_price_bc:number;prize_name:string;prize_description:string|null;closes_at:string|null;is_active:boolean;winner_mode:string;qualification_enabled:boolean;qualification_config:Record<string,unknown>};
 type Ops={store:Product[];sweepstakes:Sweep[];finance:Record<string,number>;content:Record<string,number>;hotseat:Record<string,number>;hotseat_presence?:{enabled:boolean;title:string;message:string}};
+const PRODUCT_FIELDS = [{label:"USD",key:"price_usd"},{label:"NGN",key:"price_ngn"},{label:"BC",key:"coins"},{label:"VIP days",key:"vip_days"}] as const;
+const PRODUCT_FLAGS = [{label:"Popular",key:"is_popular"},{label:"Best value",key:"is_best_value"},{label:"Highlight",key:"is_highlighted"}] as const;
 
 export function AdminOperationsCenter(){
  const [data,setData]=useState<Ops|null>(null);
@@ -35,16 +37,21 @@ export function AdminOperationsCenter(){
  return <section className="panda-panel rounded-3xl p-4 sm:p-5">
   <div className="flex items-start gap-3"><div className="grid size-10 place-items-center rounded-2xl bg-primary/10 text-primary"><Database className="size-5"/></div><div><h2 className="font-display text-lg font-black">Operations & Money Center</h2><p className="mt-1 text-xs text-muted-foreground">Store, sweepstakes, Hot Seat operations, moderation and payment health. Every sensitive change is server-checked and audited.</p></div></div>
   <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
-   {[["Successful payments",data?.finance.successful,Coins],["Pending",data?.finance.pending,Activity],["Pending confessions",data?.content.confessions_pending,Flag],["Groups",data?.content.groups,Users]].map(([l,v,I])=><div key={String(l)} className="rounded-2xl border bg-card p-3"><I className="size-4 text-primary"/><p className="mt-2 text-[10px] uppercase tracking-wider text-muted-foreground">{l}</p><p className="text-xl font-black">{Number(v??0).toLocaleString()}</p></div>)}
+   {[
+    { label: "Successful payments", value: data?.finance["successful"], Icon: Coins },
+    { label: "Pending", value: data?.finance["pending"], Icon: Activity },
+    { label: "Pending confessions", value: data?.content["confessions_pending"], Icon: Flag },
+    { label: "Groups", value: data?.content["groups"], Icon: Users },
+   ].map(({ label, value, Icon }) => <div key={label} className="rounded-2xl border bg-card p-3"><Icon className="size-4 text-primary"/><p className="mt-2 text-[10px] uppercase tracking-wider text-muted-foreground">{label}</p><p className="text-xl font-black">{Number(value ?? 0).toLocaleString()}</p></div>)}
   </div>
   <div className="mt-4 rounded-2xl border p-4">
    <div className="flex items-center gap-2"><Coins className="size-4 text-primary"/><h3 className="font-bold">Store & BC products</h3></div>
    <div className="mt-3 space-y-3">{(data?.store??[]).map(p=><div key={p.id} className="rounded-2xl border bg-card p-3">
     <div className="flex items-center justify-between gap-2"><div><p className="font-semibold">{p.name}</p><p className="text-[10px] text-muted-foreground">{p.id}</p></div><Switch checked={p.enabled} onCheckedChange={v=>setData(x=>x?{...x,store:x.store.map(a=>a.id===p.id?{...a,enabled:v}:a)}:x)}/></div>
     <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
-     {[["USD","price_usd"],["NGN","price_ngn"],["BC","coins"],["VIP days","vip_days"]].map(([label,key])=><label key={key} className="text-[10px] font-semibold">{label}<input type="number" min={0} value={(p as any)[key]} onChange={e=>setData(x=>x?{...x,store:x.store.map(a=>a.id===p.id?{...a,[key]:Math.max(0,Number(e.target.value)||0)}:a)}:x)} className="mt-1 h-9 w-full rounded-xl border bg-background px-2 text-sm"/></label>)}
+     {PRODUCT_FIELDS.map(({label,key})=><label key={key} className="text-[10px] font-semibold">{label}<input type="number" min={0} value={p[key]} onChange={e=>setData(x=>x?{...x,store:x.store.map(a=>a.id===p.id?{...a,[key]:Math.max(0,Number(e.target.value)||0)}:a)}:x)} className="mt-1 h-9 w-full rounded-xl border bg-background px-2 text-sm"/></label>)}
     </div>
-    <div className="mt-2 flex flex-wrap gap-3 text-xs">{[["Popular","is_popular"],["Best value","is_best_value"],["Highlight","is_highlighted"]].map(([l,k])=><label key={k} className="flex items-center gap-2"><input type="checkbox" checked={(p as any)[k]} onChange={e=>setData(x=>x?{...x,store:x.store.map(a=>a.id===p.id?{...a,[k]:e.target.checked}:a)}:x)}/>{l}</label>)}</div>
+    <div className="mt-2 flex flex-wrap gap-3 text-xs">{PRODUCT_FLAGS.map(({label,key})=><label key={key} className="flex items-center gap-2"><input type="checkbox" checked={p[key]} onChange={e=>setData(x=>x?{...x,store:x.store.map(a=>a.id===p.id?{...a,[key]:e.target.checked}:a)}:x)}/>{label}</label>)}</div>
     <Button className="mt-3" size="sm" disabled={saving==="p:"+p.id} onClick={()=>void saveProduct(p)}><Save className="mr-2 size-3.5"/>{saving==="p:"+p.id?"Saving…":"Save product"}</Button>
    </div>)}</div>
   </div>

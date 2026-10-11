@@ -70,10 +70,11 @@ export function useCurrentUser() {
       .getUser())
       .then(({ data }) => {
         if (data?.user?.email) {
+          const displayName = (data.user.user_metadata?.["name"] as string | undefined) || data.user.email.split("@")[0];
           const supaUser: AuthUser = {
             id: data.user.id,
             email: data.user.email,
-            name: (data.user.user_metadata?.["name"] as string) || data.user.email.split("@")[0],
+            ...(displayName ? { name: displayName } : {}),
             role: "user",
           };
           setStoredUser(supaUser);

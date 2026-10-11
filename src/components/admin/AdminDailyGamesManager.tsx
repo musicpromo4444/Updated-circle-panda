@@ -48,7 +48,7 @@ export function AdminDailyGamesManager() {
 
   const gameMap = useMemo(() => new Map(games.map((g) => [g.slug, g])), [games]);
 
-  const setDay = async (day: number, slug: string) => {
+  const setDay = async (day: number, slug: string): Promise<void> => {
     setSaving(`day-${day}`);
     const { error } = await (supabase as any).rpc("admin_set_daily_game", {
       p_day: day,
@@ -56,12 +56,12 @@ export function AdminDailyGamesManager() {
       p_enabled: true,
     });
     setSaving(null);
-    if (error) return toast.error(error.message ?? "Could not set activity");
+    if (error) { toast.error(error.message ?? "Could not set activity"); return; }
     setSchedule((prev) => prev.map((row) => row.day_number === day ? { ...row, activity_slug: slug, enabled: true } : row));
     toast.success(`Day ${day} now uses ${gameMap.get(slug)?.title ?? slug}`);
   };
 
-  const toggleGame = async (game: GameConfig, enabled: boolean) => {
+  const toggleGame = async (game: GameConfig, enabled: boolean): Promise<void> => {
     setSaving(game.slug);
     const rewards = (rewardText[game.slug] ?? "").split("\n").map((line) => {
       const [label, amount] = line.split(":");
@@ -76,12 +76,12 @@ export function AdminDailyGamesManager() {
       p_puzzle_bank: game.puzzle_bank ?? [],
     });
     setSaving(null);
-    if (error) return toast.error(error.message ?? "Could not save game");
+    if (error) { toast.error(error.message ?? "Could not save game"); return; }
     setGames((prev) => prev.map((g) => g.slug === game.slug ? { ...g, is_enabled: enabled, reward_pool: rewards } : g));
     toast.success(`${game.title} updated`);
   };
 
-  const saveGame = async (game: GameConfig) => {
+  const saveGame = async (game: GameConfig): Promise<void> => {
     setSaving(game.slug);
     const rewards = (rewardText[game.slug] ?? "").split("\n").map((line) => {
       const [label, amount] = line.split(":");
@@ -96,7 +96,7 @@ export function AdminDailyGamesManager() {
       p_puzzle_bank: game.puzzle_bank ?? [],
     });
     setSaving(null);
-    if (error) return toast.error(error.message ?? "Could not save game");
+    if (error) { toast.error(error.message ?? "Could not save game"); return; }
     setGames((prev) => prev.map((g) => g.slug === game.slug ? { ...g, reward_pool: rewards } : g));
     toast.success(`${game.title} saved`);
   };

@@ -15,7 +15,34 @@ export const DEFAULT_AD_CONFIG = {
   sponsorPartners: [],
   creatives: INITIAL_CREATIVES,
 };
-export const DEFAULT_ENGAGEMENT_CONFIG = {
+export interface LiveEngagementConfig {
+  standardDailyReward: number;
+  streakMilestoneReward: number;
+  streakMilestoneDays: number;
+  freeSpinsActive: boolean;
+  dailyQuizzesActive: boolean;
+  hotSeatActive: boolean;
+  crushSwipesActive: boolean;
+  quizQuestion: string;
+  quizOptions: string[];
+  quizCorrectIndex: number;
+  quizRewardBc: number;
+  externalSurvey: {
+    enabled: boolean;
+    provider: "custom" | "tapresearch" | "pollfish";
+    providerName: string;
+    apiKey: string;
+    apiKeyConfigured?: boolean;
+    endpointUrl: string;
+    integrationMode: "iframe_overlay" | "external_redirect" | "webview_intent" | "native_bridge";
+    rewardBc: number;
+    screenoutRewardBc: number;
+    dailySurveyCap: number;
+    surveyTopicFilter: string;
+  };
+}
+
+export const DEFAULT_ENGAGEMENT_CONFIG: LiveEngagementConfig = {
   standardDailyReward: 10,
   streakMilestoneReward: 50,
   streakMilestoneDays: 3,
@@ -24,16 +51,16 @@ export const DEFAULT_ENGAGEMENT_CONFIG = {
   hotSeatActive: true,
   crushSwipesActive: true,
   quizQuestion: "",
-  quizOptions: [],
+  quizOptions: [] as string[],
   quizCorrectIndex: 0,
   quizRewardBc: 10,
   externalSurvey: {
     enabled: false,
-    provider: "custom",
+    provider: "custom" as const,
     providerName: "",
     apiKey: "",
     endpointUrl: "",
-    integrationMode: "external_redirect",
+    integrationMode: "external_redirect" as const,
     rewardBc: 10,
     screenoutRewardBc: 1,
     dailySurveyCap: 3,
@@ -44,6 +71,40 @@ export const EVENT_AD_CONFIG_UPDATED = "cp-ad-config-updated";
 export const EVENT_ENGAGEMENT_UPDATED = "cp-engagement-updated";
 export const STORAGE_KEY_AD_CONFIG = "cp_ad_config";
 export const STORAGE_KEY_ENGAGEMENT = "cp_engagement_config";
+export function useLiveEngagementConfig(): LiveEngagementConfig {
+  const [config, setConfig] = useState<LiveEngagementConfig>(DEFAULT_ENGAGEMENT_CONFIG);
+
+  useEffect(() => {
+    let cancelled = false;
+    const load = async () => {
+      const { data, error } = await (supabase as any).rpc("get_engagement_runtime_config");
+      if (cancelled || error || !data?.config) return;
+      const incoming = data.config as Partial<LiveEngagementConfig>;
+      setConfig({
+        ...DEFAULT_ENGAGEMENT_CONFIG,
+        ...incoming,
+        externalSurvey: {
+          ...DEFAULT_ENGAGEMENT_CONFIG.externalSurvey,
+          ...(incoming.externalSurvey ?? {}),
+          // The public runtime RPC deliberately never exposes provider secrets.
+          apiKey: "",
+        },
+      });
+    };
+    const handleUpdate = () => { void load(); };
+    void load();
+    window.addEventListener(EVENT_ENGAGEMENT_UPDATED, handleUpdate);
+    window.addEventListener("storage", handleUpdate);
+    return () => {
+      cancelled = true;
+      window.removeEventListener(EVENT_ENGAGEMENT_UPDATED, handleUpdate);
+      window.removeEventListener("storage", handleUpdate);
+    };
+  }, []);
+
+  return config;
+}
+
 
 const UNIVERSAL_PLACEMENT_MAP: Partial<Record<AdPlacementTarget, string>> = {
   popup_1_daily_login: "login_top",

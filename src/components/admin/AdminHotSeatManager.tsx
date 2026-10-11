@@ -80,7 +80,7 @@ export function AdminHotSeatManager() {
     })();
   }, []);
 
-  const start = async () => {
+  const start = async (): Promise<void> => {
     setSaving(true);
     const { data, error } = await (supabase as any).rpc("admin_hot_seat_start", {
       p_alias: alias,
@@ -94,30 +94,30 @@ export function AdminHotSeatManager() {
       p_duration_hours: duration,
     });
     setSaving(false);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     setActive(data);
     const { data: slots } = await supabase.from("hot_seat_session_hosts").select("*").eq("session_id", data.id).eq("is_active", true).order("host_order");
     setSessionHosts(slots ?? []);
     toast.success(startAt && new Date(startAt).getTime() > Date.now() ? "Hot Seat scheduled" : "Hot Seat is live");
   };
 
-  const end = async () => {
+  const end = async (): Promise<void> => {
     if (!active) return;
     setSaving(true);
     const { error } = await (supabase as any).rpc("admin_hot_seat_end", { p_host_id: active.id });
     setSaving(false);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     setActive(null);
     toast.success("Hot Seat ended");
   };
 
-  const togglePresence = async () => {
+  const togglePresence = async (): Promise<void> => {
     setPresenceSaving(true);
     const { data, error } = await (supabase as any).rpc("admin_set_hot_seat_presence", {
       p_enabled: !presenceEnabled,
     });
     setPresenceSaving(false);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     setPresenceEnabled(Boolean(data?.enabled));
     toast.success(data?.enabled ? "Hot Seat icon + notification are ON" : "Hot Seat icon is OFF");
   };

@@ -52,7 +52,7 @@ export function StandardBannerAd({
         rating: 4.9,
         callToAction: liveAdminCreative.callToAction || "Learn More",
         ctaUrl: liveAdminCreative.destinationUrl,
-        imageUrl: liveAdminCreative.imageUrl,
+        ...(liveAdminCreative.imageUrl ? { imageUrl: liveAdminCreative.imageUrl } : {}),
         badge: "Ad · Partner",
         iconEmoji: "⭐",
       }

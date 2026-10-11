@@ -86,7 +86,7 @@ export function PaymentProviderSetup() {
 
   useEffect(() => { void load(); }, []);
 
-  const saveProviders = async () => {
+  const saveProviders = async (): Promise<void> => {
     setSaving(true);
     const { data, error } = await (supabase as any).rpc("admin_save_payment_provider_settings", {
       p_google_enabled: settings.google_enabled,
@@ -106,13 +106,13 @@ export function PaymentProviderSetup() {
       p_paystack_secret_key: paystackSecret.trim() || null,
     });
     setSaving(false);
-    if (error) return toast.error(error.message ?? "Could not save payment settings");
+    if (error) { toast.error(error.message ?? "Could not save payment settings"); return; }
     setSettings(data ?? settings);
     setGoogleJson(""); setRtdnSecret(""); setAppleKey(""); setPaystackSecret("");
     toast.success("Payment setup saved securely");
   };
 
-  const saveProduct = async (product: StoreProduct) => {
+  const saveProduct = async (product: StoreProduct): Promise<void> => {
     setSavingProduct(product.id);
     const { data, error } = await (supabase as any).rpc("admin_update_store_product_ids", {
       p_id: product.id,
@@ -120,7 +120,7 @@ export function PaymentProviderSetup() {
       p_ios_product_id: product.ios_product_id ?? "",
     });
     setSavingProduct(null);
-    if (error) return toast.error(error.message ?? "Could not save product IDs");
+    if (error) { toast.error(error.message ?? "Could not save product IDs"); return; }
     setProducts(prev => prev.map(p => p.id === product.id ? { ...p, ...data } : p));
     toast.success(product.name + " product IDs saved");
   };

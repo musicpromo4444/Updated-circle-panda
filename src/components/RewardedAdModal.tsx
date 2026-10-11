@@ -27,7 +27,7 @@ export function RewardedAdModal({ open, groupId: _groupId, sessionId, onClose }:
 
   useEffect(()=>{if(phase!=="failed")return;const timer=window.setTimeout(onClose,900);return()=>window.clearTimeout(timer);},[phase,onClose]);
 
-  const claim=async()=>{if(!sessionId||claiming)return;setClaiming(true);const {data,error}=await supabase.rpc("complete_group_reward_ad_secure",{p_session_id:sessionId});setClaiming(false);
+  const claim=async()=>{if(!sessionId||claiming)return;setClaiming(true);const {data,error}=await (supabase as any).rpc("complete_group_reward_ad_secure",{p_session_id:sessionId});setClaiming(false);
     if(error){toast.error(error.message??"Reward could not be claimed");return;}
     toast.success(`+${Number((data as any)?.reward_bc??3)} BC earned`);onClose();
   };

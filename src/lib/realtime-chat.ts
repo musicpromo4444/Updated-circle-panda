@@ -1,4 +1,4 @@
-import { supabase, hasSupabaseConfig } from "@/integrations/supabase/client";
+import { supabase } from "@/integrations/supabase/client";
 import type { ChatMessage, Thread } from "./store";
 
 export interface SendMessageResult {
@@ -9,99 +9,100 @@ export interface SendMessageResult {
 }
 
 /**
- * Sends a real-time message through Supabase's secure server RPC,
- * which enforces 1 BC deduction atomically in PostgreSQL and verifies RLS.
+ * Sends through Circle Panda's canonical, server-authoritative DM RPC.
+ * BC charging and message permissions remain enforced by Supabase.
  */
 export async function sendRealtimeMessage(
   threadId: string,
   body: string,
   currentUserId?: string,
 ): Promise<SendMessageResult> {
-  const isReady = hasSupabaseConfig();
-  if (!isReady || !currentUserId) {
-    return {
-      success: false,
-      error: "LOCAL_FALLBACK",
-    };
-  }
+  const trimmed = body.trim();
+  if (!currentUserId) return { success: false, error: "NOT_AUTHENTICATED" };
+  if (!threadId || !trimmed) return { success: false, error: "Write a message first." };
 
   try {
-    const { data, error } = await supabase.rpc("send_chat_message", {
+    const { data: messageId, error } = await (supabase as any).rpc("send_dm_message", {
       p_thread_id: threadId,
-      p_body: body.trim(),
+      p_body: trimmed,
+      p_media_path: null,
+      p_media_type: null,
+      p_idempotency_key: crypto.randomUUID(),
     });
+    if (error) return { success: false, error: error.message ?? "Message could not be sent." };
+    if (!messageId) return { success: false, error: "The server did not confirm the message." };
 
-    if (error) {
+    const [{ data: row }, { data: wallet }] = await Promise.all([
+      (supabase as any).from("dm_messages")
+        .select("id,body,created_at,sender_id,media_type,media_path")
+        .eq("id", messageId)
+        .maybeSingle(),
+      (supabase as any).from("wallets")
+        .select("balance")
+        .eq("user_id", currentUserId)
+        .maybeSingle(),
+    ]);
+
+    if (!row) {
+      // The RPC already confirmed the write; return a minimal message rather
+      // than treating a delayed follow-up read as a failed send.
       return {
-        success: false,
-        error: error.message,
+        success: true,
+        message: { id: String(messageId), body: trimmed, at: Date.now(), mine: true },
+        ...(wallet?.balance != null ? { newBalance: Number(wallet.balance) } : {}),
       };
     }
-
-    const payload = data as {
-      message_id: string;
-      thread_id: string;
-      sender_id: string;
-      body: string;
-      created_at: string;
-      new_balance: number;
-    };
 
     return {
       success: true,
       message: {
-        id: payload.message_id,
-        body: payload.body,
-        at: new Date(payload.created_at).getTime(),
-        mine: true,
+        id: String(row.id),
+        body: String(row.body ?? trimmed),
+        at: row.created_at ? new Date(row.created_at).getTime() : Date.now(),
+        mine: row.sender_id === currentUserId,
+        messageType: row.media_type === "dating_photo" ? "dating_photo" : "text",
+        ...(row.media_path ? { mediaPath: String(row.media_path) } : {}),
       },
-      newBalance: payload.new_balance,
+      ...(wallet?.balance != null ? { newBalance: Number(wallet.balance) } : {}),
     };
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : "Failed to send message";
     return {
       success: false,
-      error: message,
+      error: err instanceof Error ? err.message : "Failed to send message.",
     };
   }
 }
 
-/**
- * Subscribes to new messages in a specific thread via Supabase Realtime (WebSockets)
- */
+/** Subscribe to inserts in the canonical dm_messages table. */
 export function subscribeToThreadMessages(
   threadId: string,
   currentUserId: string | undefined,
   onNewMessage: (msg: ChatMessage) => void,
 ) {
-  if (!hasSupabaseConfig()) return () => {};
+  if (!threadId) return () => {};
 
   const channel = supabase
-    .channel(`chat_thread_${threadId}`)
+    .channel(`dm_thread_${threadId}`)
     .on(
       "postgres_changes",
-      {
-        event: "INSERT",
-        schema: "public",
-        table: "chat_messages",
-        filter: `thread_id=eq.${threadId}`,
-      },
+      { event: "INSERT", schema: "public", table: "dm_messages", filter: `thread_id=eq.${threadId}` },
       (payload) => {
         const row = payload.new as {
           id: string;
           sender_id: string;
-          body: string;
+          body: string | null;
           created_at: string;
+          media_type?: string | null;
+          media_path?: string | null;
         };
-
-        const incomingMsg: ChatMessage = {
+        onNewMessage({
           id: row.id,
-          body: row.body,
+          body: row.body ?? "",
           at: new Date(row.created_at).getTime(),
           mine: Boolean(currentUserId && row.sender_id === currentUserId),
-        };
-
-        onNewMessage(incomingMsg);
+          messageType: row.media_type === "dating_photo" ? "dating_photo" : "text",
+          ...(row.media_path ? { mediaPath: row.media_path } : {}),
+        });
       },
     )
     .subscribe();
@@ -111,60 +112,81 @@ export function subscribeToThreadMessages(
   };
 }
 
-/**
- * Loads real database chat threads and participants for the authenticated user
- */
+/** Load conversation threads from the same canonical tables used by Messages. */
 export async function loadUserThreads(userId: string): Promise<Thread[] | null> {
-  if (!hasSupabaseConfig() || !userId) return null;
+  if (!userId) return null;
 
   try {
-    // 1. Fetch conversations the user is participating in
-    const { data: participants, error: partError } = await supabase
-      .from("chat_participants")
-      .select("thread_id")
-      .eq("user_id", userId);
+    const { data: threadRows, error: threadError } = await (supabase as any)
+      .from("dm_threads")
+      .select("id,user_a,user_b,status,created_at,updated_at")
+      .or(`user_a.eq.${userId},user_b.eq.${userId}`)
+      .order("updated_at", { ascending: false })
+      .limit(100);
+    if (threadError) return null;
 
-    if (partError || !participants || participants.length === 0) {
-      return null;
+    const rows = threadRows ?? [];
+    if (!rows.length) return [];
+
+    const threadIds = rows.map((row: any) => String(row.id));
+    const otherUserIds = Array.from(new Set(rows.map((row: any) =>
+      row.user_a === userId ? row.user_b : row.user_a,
+    ).filter(Boolean)));
+
+    const [profilesResult, messagesResult, requestsResult] = await Promise.all([
+      otherUserIds.length
+        ? (supabase as any).from("profiles").select("id,display_name,is_vip,vip_expires_at").in("id", otherUserIds)
+        : Promise.resolve({ data: [], error: null }),
+      (supabase as any).from("dm_messages")
+        .select("id,thread_id,sender_id,body,created_at,media_type,media_path")
+        .in("thread_id", threadIds)
+        .order("created_at", { ascending: true })
+        .limit(2000),
+      (supabase as any).from("dm_requests")
+        .select("thread_id,context_type,status,created_at")
+        .in("thread_id", threadIds)
+        .eq("status", "accepted")
+        .order("created_at", { ascending: false }),
+    ]);
+
+    if (messagesResult.error || requestsResult.error) return null;
+
+    const profiles = new Map<string, any>((profilesResult.data ?? []).map((profile: any) => [
+      String(profile.id),
+      profile,
+    ]));
+    const kindByThread = new Map<string, string>();
+    for (const request of requestsResult.data ?? []) {
+      if (!kindByThread.has(String(request.thread_id))) {
+        kindByThread.set(String(request.thread_id), String(request.context_type ?? "direct"));
+      }
     }
 
-    const threadIds = participants.map((p) => p.thread_id);
-
-    // 2. Fetch conversation metadata
-    const { data: convs, error: convError } = await supabase
-      .from("chat_conversations")
-      .select("*")
-      .in("id", threadIds)
-      .order("updated_at", { ascending: false });
-
-    if (convError || !convs) return null;
-
-    // 3. Fetch recent messages for these threads
-    const { data: msgs, error: msgError } = await supabase
-      .from("chat_messages")
-      .select("*")
-      .in("thread_id", threadIds)
-      .order("created_at", { ascending: true });
-
-    if (msgError) return null;
-
-    return convs.map((c) => {
-      const threadMsgs = (msgs || [])
-        .filter((m) => m.thread_id === c.id)
-        .map((m) => ({
-          id: m.id,
-          body: m.body,
-          at: new Date(m.created_at).getTime(),
-          mine: m.sender_id === userId,
+    return rows.map((row: any) => {
+      const otherUserId = row.user_a === userId ? row.user_b : row.user_a;
+      const profile = profiles.get(String(otherUserId));
+      const kind = kindByThread.get(String(row.id)) === "dating" ? "dating" : "dm";
+      const messages: ChatMessage[] = (messagesResult.data ?? [])
+        .filter((message: any) => message.thread_id === row.id)
+        .map((message: any) => ({
+          id: String(message.id),
+          body: String(message.body ?? ""),
+          at: new Date(message.created_at).getTime(),
+          mine: message.sender_id === userId,
+          messageType: message.media_type === "dating_photo" ? "dating_photo" : "text",
+          ...(message.media_path ? { mediaPath: String(message.media_path) } : {}),
         }));
 
-      return {
-        id: c.id,
-        name: c.title,
-        kind: (c.kind as "dm" | "dating") || "dm",
-        blurb: c.blurb || "Anonymous chat",
-        messages: threadMsgs,
+      const thread: Thread = {
+        id: String(row.id),
+        name: String(profile?.display_name || "Anonymous Panda"),
+        kind,
+        blurb: kind === "dating" ? "Dating Chat" : "Direct message",
+        messages,
+        ...(row.created_at ? { startedAt: new Date(row.created_at).getTime() } : {}),
+        otherVip: Boolean(profile?.is_vip && (!profile?.vip_expires_at || new Date(profile.vip_expires_at).getTime() > Date.now())),
       };
+      return thread;
     });
   } catch {
     return null;

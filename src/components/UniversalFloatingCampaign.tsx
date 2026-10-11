@@ -31,7 +31,7 @@ const FUN_TIME_CATALOG = [
   ];
 
 function FunTimeCatalog({campaign,onClose}:{campaign:Campaign;onClose:()=>void}) {
-  const keys = Array.isArray(campaign.targeting?.fun_time_catalog) ? campaign.targeting?.fun_time_catalog.map(String) : [];
+  const keys = Array.isArray(campaign.targeting?.["fun_time_catalog"]) ? campaign.targeting?.["fun_time_catalog"].map(String) : [];
   const items = FUN_TIME_CATALOG.filter(item=>keys.includes(item.key));
   return <Dialog open onOpenChange={(open)=>{if(!open) onClose();}}>
     <DialogContent className="max-h-[82vh] max-w-md overflow-y-auto rounded-3xl border-white/10 bg-neutral-950/95 text-white backdrop-blur-2xl">
@@ -80,7 +80,7 @@ export function UniversalFloatingCampaign({pageKey}:{pageKey:string}) {
       const script=document.createElement("script");
       script.type="module";
       script.src="https://cdn.jsdelivr.net/npm/@lottiefiles/dotlottie-wc@latest/dist/dotlottie-wc.js";
-      script.dataset.circlePandaLottie="true";
+      script.dataset["circlePandaLottie"]="true";
       document.head.appendChild(script);
     }
     return()=>{active=false;};

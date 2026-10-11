@@ -57,10 +57,10 @@ export function PostCard({ post }: { post: Post }) {
     const colors = ["#f43f5e", "#ec4899", "#fb7185", "#f97316", "#e11d48"];
     const newParticles: MiniHeartParticle[] = Array.from({ length: 6 }).map((_, i) => ({
       id: `${Date.now()}-${i}-${Math.random()}`,
-      emoji: emojis[Math.floor(Math.random() * emojis.length)],
+      emoji: emojis[Math.floor(Math.random() * emojis.length)] ?? "❤️",
       dx: (Math.random() - 0.5) * 60,
       rot: Math.floor(Math.random() * 40) - 20,
-      color: colors[Math.floor(Math.random() * colors.length)],
+      color: colors[Math.floor(Math.random() * colors.length)] ?? "#f43f5e",
     }));
 
     setMiniHearts((prev) => [...prev, ...newParticles]);

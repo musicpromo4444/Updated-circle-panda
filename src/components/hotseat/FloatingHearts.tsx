@@ -47,8 +47,8 @@ export function useFloatingHearts() {
       id: `${Date.now()}-${Math.random()}`,
       x: targetX,
       y: targetY,
-      emoji: emojis[Math.floor(Math.random() * emojis.length)],
-      color: colors[Math.floor(Math.random() * colors.length)],
+      emoji: emojis[Math.floor(Math.random() * emojis.length)] ?? "❤️",
+      color: colors[Math.floor(Math.random() * colors.length)] ?? "#f43f5e",
       rotation: Math.floor(Math.random() * 30) - 15,
     };
 

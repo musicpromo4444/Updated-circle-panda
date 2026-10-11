@@ -17,6 +17,7 @@ export interface CoinPackage {
 }
 
 export interface VipPlan {
+  paystackProductCode?: string;
   id: string;
   name: string;
   price: number;

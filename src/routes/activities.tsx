@@ -66,7 +66,7 @@ function iconFor(type: string) {
 }
 
 function SponsorCard({ compact = false }: { compact?: boolean }) {
-  return <StandardBannerAd placement="activities" variant={compact ? "compact" : "card"} className={compact ? "mb-2" : "mb-3"} />;
+  return <StandardBannerAd placement="home_inline" variant={compact ? "compact" : "card"} className={compact ? "mb-2" : "mb-3"} />;
 }
 
 export function GameModal({ activity, onClose, onDone }: { activity: Activity; onClose: () => void; onDone: () => void }) {
@@ -150,14 +150,14 @@ export function GameModal({ activity, onClose, onDone }: { activity: Activity; o
     })();
   }, [timer, started, slug, syncCoins]);
 
-  const startChoiceGame = async () => {
+  const startChoiceGame = async (): Promise<any | null> => {
     setBusy(true);
     const { data, error } = await (supabase as any).rpc("play_daily_choice_game", {
       p_slug: slug,
       p_action: "start",
     });
     setBusy(false);
-    if (error) return toast.error(error.message ?? "Game could not start");
+    if (error) { toast.error(error.message ?? "Game could not start"); return null; }
     setStarted(true);
     setTargetHits(0);
     setMessage(slug === "target"
@@ -175,7 +175,7 @@ export function GameModal({ activity, onClose, onDone }: { activity: Activity; o
       p_hits: targetHits,
     });
     setBusy(false);
-    if (error) return toast.error(error.message ?? "Game could not finish");
+    if (error) { toast.error(error.message ?? "Game could not finish"); return; }
     setReward(Number(data?.reward_bc ?? 0));
     await syncCoins();
     setPhase("ad");
@@ -189,8 +189,8 @@ export function GameModal({ activity, onClose, onDone }: { activity: Activity; o
       p_words: [choice],
     });
     setBusy(false);
-    if (error) return toast.error(error.message ?? "Secret could not be revealed");
-    if (data?.result !== "completed") return toast.error("Secret Reveal is not ready.");
+    if (error) { toast.error(error.message ?? "Secret could not be revealed"); return; }
+    if (data?.result !== "completed") { toast.error("Secret Reveal is not ready."); return; }
     setMessage(choice === "yes" ? "Secret revealed." : "Secret kept hidden.");
     setReward(Number(data?.reward_bc ?? reward ?? 0));
     setPhase("result");
@@ -202,7 +202,7 @@ export function GameModal({ activity, onClose, onDone }: { activity: Activity; o
       setBusy(true);
       const { error } = await (supabase as any).rpc("play_lucky_card", { p_action: "start" });
       setBusy(false);
-      if (error) return toast.error(error.message ?? "Lucky Card unavailable");
+      if (error) { toast.error(error.message ?? "Lucky Card unavailable"); return; }
       setMessage("Choose one card to reveal.");
       return;
     }
@@ -210,7 +210,7 @@ export function GameModal({ activity, onClose, onDone }: { activity: Activity; o
       setBusy(true);
       const { data, error } = await (supabase as any).rpc("play_secret_reveal", { p_action: "start", p_words: [] });
       setBusy(false);
-      if (error) return toast.error(error.message ?? "Secret Reveal unavailable");
+      if (error) { toast.error(error.message ?? "Secret Reveal unavailable"); return; }
       setSecretPieces((data?.pieces ?? []) as string[]);
       setMessage("Tap the confession pieces in the correct order.");
       return;
@@ -226,7 +226,7 @@ export function GameModal({ activity, onClose, onDone }: { activity: Activity; o
       setBusy(true);
       const { data, error } = await (supabase as any).rpc("play_lucky_card", { p_action: "reveal", p_card: index });
       setBusy(false);
-      if (error) return toast.error(error.message ?? "Card could not be revealed");
+      if (error) { toast.error(error.message ?? "Card could not be revealed"); return; }
       setReward(Number(data?.reward_bc ?? 0));
       await syncCoins();
       setPhase("ad");
@@ -259,8 +259,8 @@ export function GameModal({ activity, onClose, onDone }: { activity: Activity; o
     setBusy(true);
     const { data, error } = await (supabase as any).rpc("play_secret_reveal", { p_action: "solve", p_words: secretAnswer });
     setBusy(false);
-    if (error) return toast.error(error.message ?? "Puzzle could not be checked");
-    if (data?.result !== "solved") return toast.error("Not quite. Try again.");
+    if (error) { toast.error(error.message ?? "Puzzle could not be checked"); return; }
+    if (data?.result !== "solved") { toast.error("Not quite. Try again."); return; }
     setReward(Number(data?.reward_bc ?? 0));
     setSecretSolved(true);
     await syncCoins();

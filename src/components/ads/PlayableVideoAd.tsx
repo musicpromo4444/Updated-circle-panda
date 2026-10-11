@@ -120,6 +120,7 @@ export function PlayableVideoAd({
   };
 
   const handleSkip = () => {
+    if (!ad) return;
     setIsDismissed(true);
     notifyAdEvent("skipped", { adId: ad.id, format: "video" });
     toast.info("Video ad skipped");
@@ -135,6 +136,7 @@ export function PlayableVideoAd({
   };
 
   const handleCtaClick = (e: React.MouseEvent) => {
+    if (!ad) return;
     e.preventDefault();
     notifyAdEvent("click", { adId: ad.id, format: "video" });
     toast.success(`Opening ${ad.sponsor}`);
@@ -151,7 +153,7 @@ export function PlayableVideoAd({
           type="button"
           onClick={() => {
             setIsDismissed(false);
-            setSecondsUntilSkip(ad.skipAfterSeconds);
+            setSecondsUntilSkip(ad?.skipAfterSeconds ?? 5);
           }}
           className="flex min-h-[44px] items-center gap-1 font-medium text-primary hover:underline active:scale-95"
         >
