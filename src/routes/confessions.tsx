@@ -395,8 +395,15 @@ export function ConfessionsPage() {
   const shareConfession = async (item: Confession) => {
     const url = window.location.origin + "/confessions#" + item.id;
     try {
-      if (navigator.share) await navigator.share({ title:"Circle Panda Anonymous Feed", text:item.content, url });
-      else { await navigator.clipboard.writeText(url); toast.success("Share link copied"); }
+      if (navigator.share) {
+        await navigator.share({ title:"Circle Panda Anonymous Feed", text:item.content, url });
+      } else if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(url);
+        toast.success("Share link copied");
+      } else {
+        // Older browsers and some embedded webviews do not expose Clipboard API.
+        window.prompt("Copy this confession link", url);
+      }
     } catch (e:any) {
       if (e?.name !== "AbortError") toast.error("Could not share this confession.");
     }
