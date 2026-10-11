@@ -62,6 +62,7 @@ export function ConfessionsPage() {
   const [commentPost, setCommentPost] = useState<Confession | null>(null);
   const navigate = useNavigate();
   const [commentText, setCommentText] = useState("");
+  const [submittingComment, setSubmittingComment] = useState(false);
   const [commentsByPost, setCommentsByPost] = useState<Record<string, ConfessionComment[]>>({});
   const [messagePost, setMessagePost] = useState<Confession | null>(null);
   const [messageText, setMessageText] = useState("");
@@ -306,14 +307,47 @@ export function ConfessionsPage() {
   };
 
   const submitComment = async () => {
-    if (!commentPost || !commentText.trim()) return;
-    const { error } = await (supabase as any).rpc("add_secret_comment", { p_secret_id:commentPost.id, p_body:commentText.trim() });
-    if (error) return toast.error(error.message);
-    const { data } = await (supabase as any).from("secret_comments").select("id,author_id,body,created_at").eq("secret_id",commentPost.id).order("created_at",{ascending:true});
-    setCommentsByPost((current) => ({ ...current, [commentPost.id]: data ?? [] }));
-    setCommentText("");
-    setCommentPost(null);
-    toast.success("Comment posted");
+    const post = commentPost;
+    const body = commentText.trim();
+    if (!post || !body || submittingComment) return;
+
+    setSubmittingComment(true);
+    try {
+      const { error } = await (supabase as any).rpc("add_secret_comment", {
+        p_secret_id: post.id,
+        p_body: body,
+      });
+      if (error) throw error;
+
+      const { data, error: reloadError } = await (supabase as any)
+        .from("secret_comments")
+        .select("id,author_id,body,created_at")
+        .eq("secret_id", post.id)
+        .order("created_at", { ascending: true });
+
+      if (reloadError) {
+        // The write already succeeded. Update the visible count even if the
+        // follow-up read is temporarily unavailable, avoiding a misleading UI.
+        setCommentCounts((current) => ({
+          ...current,
+          [post.id]: (current[post.id] ?? 0) + 1,
+        }));
+      } else {
+        setCommentsByPost((current) => ({ ...current, [post.id]: data ?? [] }));
+        setCommentCounts((current) => ({
+          ...current,
+          [post.id]: (data ?? []).length,
+        }));
+      }
+
+      setCommentText("");
+      setCommentPost(null);
+      toast.success("Comment posted");
+    } catch (error: any) {
+      toast.error(error?.message ?? "Comment could not be posted.");
+    } finally {
+      setSubmittingComment(false);
+    }
   };
 
   const shareConfession = async (item: Confession) => {
@@ -613,7 +647,7 @@ export function ConfessionsPage() {
           <DialogTitle>Comment on this confession</DialogTitle>
           <DialogDescription>Your comment is public and shown as Anonymous Panda.</DialogDescription>
           <Textarea value={commentText} onChange={(e) => setCommentText(e.target.value)} maxLength={1000} placeholder="Write a comment..." className="min-h-28 rounded-2xl" />
-          <Button onClick={() => void submitComment()} disabled={!commentText.trim()} className="w-full rounded-2xl">Post comment</Button>
+          <Button onClick={() => void submitComment()} disabled={submittingComment || !commentText.trim()} className="w-full rounded-2xl">{submittingComment ? "Posting…" : "Post comment"}</Button>
         </DialogContent>
       </Dialog>
 
