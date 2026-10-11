@@ -14,7 +14,7 @@ export const DEFAULT_PRICING_CONFIG: PricingConfig = {
   packages: DEFAULT_COIN_PACKAGES,
   vipPlans: DEFAULT_VIP_PLANS,
   paystack: {
-    publicKey: (import.meta.env.VITE_PAYSTACK_PUBLIC_KEY as string | undefined) ?? "",
+    publicKey: (import.meta.env["VITE_PAYSTACK_PUBLIC_KEY"] as string | undefined) ?? "",
     currency: "NGN",
     exchangeRateNgn: 1, // Store prices are maintained directly in NGN
     testMode: false,
