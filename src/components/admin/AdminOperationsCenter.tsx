@@ -49,9 +49,9 @@ export function AdminOperationsCenter(){
    <div className="mt-3 space-y-3">{(data?.store??[]).map(p=><div key={p.id} className="rounded-2xl border bg-card p-3">
     <div className="flex items-center justify-between gap-2"><div><p className="font-semibold">{p.name}</p><p className="text-[10px] text-muted-foreground">{p.id}</p></div><Switch checked={p.enabled} onCheckedChange={v=>setData(x=>x?{...x,store:x.store.map(a=>a.id===p.id?{...a,enabled:v}:a)}:x)}/></div>
     <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
-     {PRODUCT_FIELDS.map(({label,key})=><label key={key} className="text-[10px] font-semibold">{label}<input type="number" min={0} value={(p as any)[key]} onChange={e=>setData(x=>x?{...x,store:x.store.map(a=>a.id===p.id?{...a,[key]:Math.max(0,Number(e.target.value)||0)}:a)}:x)} className="mt-1 h-9 w-full rounded-xl border bg-background px-2 text-sm"/></label>)}
+     {PRODUCT_FIELDS.map(({label,key})=><label key={key} className="text-[10px] font-semibold">{label}<input type="number" min={0} value={p[key]} onChange={e=>setData(x=>x?{...x,store:x.store.map(a=>a.id===p.id?{...a,[key]:Math.max(0,Number(e.target.value)||0)}:a)}:x)} className="mt-1 h-9 w-full rounded-xl border bg-background px-2 text-sm"/></label>)}
     </div>
-    <div className="mt-2 flex flex-wrap gap-3 text-xs">{PRODUCT_FLAGS.map(({label,key})=><label key={key} className="flex items-center gap-2"><input type="checkbox" checked={p[key]} onChange={e=>setData(x=>x?{...x,store:x.store.map(a=>a.id===p.id?{...a,[key]:e.target.checked}:a)}:x)}/>{l}</label>)}</div>
+    <div className="mt-2 flex flex-wrap gap-3 text-xs">{PRODUCT_FLAGS.map(({label,key})=><label key={key} className="flex items-center gap-2"><input type="checkbox" checked={p[key]} onChange={e=>setData(x=>x?{...x,store:x.store.map(a=>a.id===p.id?{...a,[key]:e.target.checked}:a)}:x)}/>{label}</label>)}</div>
     <Button className="mt-3" size="sm" disabled={saving==="p:"+p.id} onClick={()=>void saveProduct(p)}><Save className="mr-2 size-3.5"/>{saving==="p:"+p.id?"Saving…":"Save product"}</Button>
    </div>)}</div>
   </div>
