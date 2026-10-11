@@ -71,8 +71,19 @@ function MessagesPage() {
   const bottom = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (search.thread) setActiveId(search.thread);
-    // A request deep-link only opens the request dialog when it belongs to the recipient.\n    // Senders should land on their persistent sent-request card instead of an empty dialog.
+    if (search.thread) {
+      setActiveId(search.thread);
+      setSelectedRequestId(null);
+      return;
+    }
+
+    if (search.request) {
+      // A request link must show the request inbox, not leave an old chat
+      // selected. The loader opens the request dialog only if this user is
+      // the recipient; senders see their persistent sent-request card.
+      setActiveId(null);
+      setSelectedRequestId(null);
+    }
   }, [search.thread, search.request]);
 
   useEffect(() => {
