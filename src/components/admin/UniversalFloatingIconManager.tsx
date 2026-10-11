@@ -85,13 +85,13 @@ export function UniversalFloatingIconManager() {
   const setField=(key:string,value:any)=>setDraft((d:any)=>d?{...d,[key]:value}:d);
   const togglePage=(key:string)=>setDraft((d:any)=>d?{...d,page_keys:d.page_keys.includes(key)?d.page_keys.filter((x:string)=>x!==key):[...d.page_keys,key]}:d);
 
-  const save=async()=>{
+  const save=async():Promise<void>=>{
     if(!draft)return;
-    if(!draft.name.trim()) return toast.error("Campaign name is required");
-    if(!draft.page_keys.length) return toast.error("Choose at least one page");
-    if(draft.action_type==="external_url" && !/^https?:\/\//i.test(draft.action_target.trim())) return toast.error("External action needs an http/https link");
-    if(draft.action_type==="fun_time" && !(draft.targeting?.fun_time_catalog?.length)) return toast.error("Choose at least one Fun Time item");
-    if(draft.creative_type!=="icon" && !/^https?:\/\//i.test(draft.creative_url.trim())) return toast.error("Animated/media creative needs an http/https URL");
+    if(!draft.name.trim()) { toast.error("Campaign name is required"); return; }
+    if(!draft.page_keys.length) { toast.error("Choose at least one page"); return; }
+    if(draft.action_type==="external_url" && !/^https?:\/\//i.test(draft.action_target.trim())) { toast.error("External action needs an http/https link"); return; }
+    if(draft.action_type==="fun_time" && !(draft.targeting?.fun_time_catalog?.length)) { toast.error("Choose at least one Fun Time item"); return; }
+    if(draft.creative_type!=="icon" && !/^https?:\/\//i.test(draft.creative_url.trim())) { toast.error("Animated/media creative needs an http/https URL"); return; }
     setSaving(true);
     const {data,error}=await (supabase as any).rpc("admin_upsert_floating_campaign",{
       p_id:draft.id??null,p_name:draft.name,p_sponsor_name:draft.sponsor_name,p_enabled:draft.enabled,p_page_keys:draft.page_keys,
@@ -113,7 +113,7 @@ export function UniversalFloatingIconManager() {
     setCampaigns(prev=>prev.filter(x=>x.id!==id)); toast.success("Campaign deleted");
   };
   const edit=(c:Campaign)=>setDraft({...c,targeting:c.targeting??{},starts_at:toLocalInput(c.starts_at),ends_at:toLocalInput(c.ends_at)});
-  const add=()=>setDraft({...EMPTY,page_keys:pages.length?[pages[0].page_key]:[]});
+  const add=()=>{const firstPage=pages[0];setDraft({...EMPTY,page_keys:firstPage?[firstPage.page_key]:[]});};
 
   return <section className="panda-panel rounded-3xl p-4 sm:p-5">
     <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
