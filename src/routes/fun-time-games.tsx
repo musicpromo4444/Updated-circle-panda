@@ -42,7 +42,7 @@ function FunTimeGamesPage() {
         </div>
         <div className="mt-5 grid gap-3 sm:grid-cols-2">
           {games.map(game => {
-            const meta = GAME_META[game.activity_type];
+            const meta = GAME_META[game.activity_type] ?? { icon: Gamepad2, label: game.activity_type };
             return <button key={game.id} type="button" onClick={() => setSelected(game)} className="flex items-center gap-3 rounded-2xl border border-border/70 bg-card p-4 text-left transition hover:border-primary/50 active:scale-[.99]">
               <span className="text-3xl">{meta.icon}</span>
               <span className="min-w-0 flex-1"><span className="block font-black">{meta.label}</span><span className="mt-1 block text-xs text-muted-foreground">{game.description}</span></span>
