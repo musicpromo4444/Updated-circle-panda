@@ -76,7 +76,7 @@ export interface AdPlacementConfig {
 }
 
 export type ExternalSurveyProvider = "tapresearch" | "pollfish" | "bitlabs" | "custom";
-export type SurveyIntegrationMode = "iframe_overlay" | "external_redirect" | "native_bridge";
+export type SurveyIntegrationMode = "iframe_overlay" | "external_redirect" | "webview_intent" | "native_bridge";
 
 export interface ExternalSurveyConfig {
   enabled: boolean; // true = use external partner survey/wall; false = internal trivia
