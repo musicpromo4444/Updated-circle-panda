@@ -64,6 +64,7 @@ function MessagesPage() {
   const [pendingDating, setPendingDating] = useState<PendingDatingDecision | null>(null);
   const [decisionBusy, setDecisionBusy] = useState(false);
   const [respondingRequestId, setRespondingRequestId] = useState<string | null>(null);
+  const respondingRequestLock = useRef<string | null>(null);
   const [photoPreviewUrl, setPhotoPreviewUrl] = useState<string | null>(null);
   const [callId, setCallId] = useState<string | null>(null);
   const [incomingCallId, setIncomingCallId] = useState<string | null>(null);
@@ -164,7 +165,8 @@ function MessagesPage() {
   }, [search.request]);
 
   const respondRequest = async (request: any, accept: boolean) => {
-    if (!request?.id || respondingRequestId === request.id) return;
+    if (!request?.id || respondingRequestLock.current === request.id) return;
+    respondingRequestLock.current = request.id;
     setRespondingRequestId(request.id);
     try {
       const { data, error } = await (supabase as any).rpc("respond_direct_message_request_secure", {
@@ -198,6 +200,7 @@ function MessagesPage() {
     } catch (e: any) {
       toast.error(e?.message ?? "Could not respond to request");
     } finally {
+      respondingRequestLock.current = null;
       setRespondingRequestId(null);
     }
   };
