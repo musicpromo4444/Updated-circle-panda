@@ -39,6 +39,10 @@ begin
     raise exception 'QUIZ_DISABLED';
   end if;
 
+  if p_answer_index is null or p_answer_index < 0 or p_answer_index >= jsonb_array_length(coalesce(v_config->'quizOptions', '[]'::jsonb)) then
+    raise exception 'INVALID_ANSWER';
+  end if;
+
   v_correct_index := greatest(0, coalesce((v_config->>'quizCorrectIndex')::integer, 0));
   v_reward := least(1000, greatest(0, coalesce((v_config->>'quizRewardBc')::integer, 0)));
   v_correct := p_answer_index = v_correct_index;
