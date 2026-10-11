@@ -444,6 +444,7 @@ const initialState: State = {
 
 
 type StoreValue = State & {
+  hydrated: boolean;
   addPost: (body: string) => void;
   addReply: (postId: string, body: string) => void;
   openGroup: (id: string) => void;
