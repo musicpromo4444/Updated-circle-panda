@@ -121,19 +121,58 @@ export function VipGroupChat({open,groupId,onOpenChange}:{open:boolean;groupId:s
     await loadMessages();
   };
 
-  const sendMedia=async({type,file,durationSeconds,replyToId}:OutgoingGroupMedia)=>{
-    const user=(await supabase.auth.getUser()).data.user;
-    if(!user){toast.error("Sign in to send media");return;}
-    if(file.size>25*1024*1024){toast.error("Media must be 25 MB or smaller.");return;}
-    const uploadFile=file;
-    const ext=uploadFile.name.split(".").pop()?.toLowerCase()??(type==="image"?"jpg":type==="video"?"mp4":"webm");
-    const path=`vip/${user.id}/${groupId}/${crypto.randomUUID()}.${ext}`;
-    const {error:uploadError}=await supabase.storage.from("circle-panda-group-media").upload(path,uploadFile,{contentType:uploadFile.type||"application/octet-stream",upsert:false});
-    if(uploadError){toast.error(uploadError.message??"Media upload failed");return;}
-    const {error}=await (supabase as any).rpc("send_vip_group_media_secure",{p_group_id:groupId,p_message_type:type,p_media_path:path,p_mime_type:uploadFile.type||null,p_duration_seconds:durationSeconds??null,p_body:"",p_view_once:false,p_reply_to_id:replyToId??null});
-    if(error){await supabase.storage.from("circle-panda-group-media").remove([path]);toast.error(error.message??"VIP media could not be sent");return;}
-    setReplyTo(null);
-    await loadMessages();
+  const sendMedia = async ({ type, file, durationSeconds, replyToId }: OutgoingGroupMedia): Promise<boolean> => {
+    let uploadedPath: string | null = null;
+    try {
+      const user = (await supabase.auth.getUser()).data.user;
+      if (!user || user.is_anonymous) {
+        toast.error("Sign in to send media");
+        return false;
+      }
+      if (file.size > 25 * 1024 * 1024) {
+        toast.error("Media must be 25 MB or smaller.");
+        return false;
+      }
+
+      const ext = file.name.split(".").pop()?.toLowerCase() ?? (type === "image" ? "jpg" : type === "video" ? "mp4" : "webm");
+      const path = `vip/${user.id}/${groupId}/${crypto.randomUUID()}.${ext}`;
+      const { error: uploadError } = await supabase.storage
+        .from("circle-panda-group-media")
+        .upload(path, file, { contentType: file.type || "application/octet-stream", upsert: false });
+      if (uploadError) {
+        toast.error(uploadError.message ?? "Media upload failed");
+        return false;
+      }
+      uploadedPath = path;
+
+      const { error } = await (supabase as any).rpc("send_vip_group_media_secure", {
+        p_group_id: groupId,
+        p_message_type: type,
+        p_media_path: path,
+        p_mime_type: file.type || null,
+        p_duration_seconds: durationSeconds ?? null,
+        p_body: "",
+        p_view_once: false,
+        p_reply_to_id: replyToId ?? null,
+      });
+      if (error) {
+        await supabase.storage.from("circle-panda-group-media").remove([path]);
+        uploadedPath = null;
+        toast.error(error.message ?? "VIP media could not be sent");
+        return false;
+      }
+
+      uploadedPath = null; // The message now owns this uploaded asset.
+      setReplyTo(null);
+      await loadMessages();
+      return true;
+    } catch (error: any) {
+      if (uploadedPath) {
+        await supabase.storage.from("circle-panda-group-media").remove([uploadedPath]).catch(() => {});
+      }
+      toast.error(error?.message ?? "VIP media could not be sent");
+      return false;
+    }
   };
 
   const deleteMessage=async(m:VipMessage)=>{
