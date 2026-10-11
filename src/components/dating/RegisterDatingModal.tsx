@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Heart, Sparkles, Upload, Image as ImageIcon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -64,6 +64,7 @@ export function RegisterDatingModal({open,onOpenChange}:{open:boolean;onOpenChan
   const [uploadingPhoto,setUploadingPhoto]=useState(false);
   const [accountReady,setAccountReady]=useState(false);
   const [publishing,setPublishing]=useState(false);
+  const submitLock = useRef(false);
 
   useEffect(()=>{
     if(!open) return;
@@ -159,13 +160,14 @@ export function RegisterDatingModal({open,onOpenChange}:{open:boolean;onOpenChan
   };
   const submit=async(e:React.FormEvent)=>{
     e.preventDefault();
-    if(!accountReady)return;
+    if(!accountReady || submitLock.current || publishing)return;
     if(!p.age || Number(p.age)<18 || !p.gender || !p.country){
       toast.error("Complete your Circle Panda profile with age, gender and country before publishing Dating.");
       return;
     }
     if(!p.relationshipGoal){toast.error("Choose the type of relationship you're looking for");setStep(1);return;}
     if(!photoFile && !p.photoPath){toast.error("Upload your Dating photo");return;}
+    submitLock.current = true;
     setUploadingPhoto(true);
     setPublishing(true);
     try{
@@ -189,7 +191,7 @@ export function RegisterDatingModal({open,onOpenChange}:{open:boolean;onOpenChan
     }catch(err:any){
       toast.error(err?.message??"Could not save Dating profile");
       setPublishing(false);
-    }finally{setUploadingPhoto(false);setPublishing(false);}
+    }finally{submitLock.current = false;setUploadingPhoto(false);setPublishing(false);}
   };
 
   if(!accountReady && open)return (
