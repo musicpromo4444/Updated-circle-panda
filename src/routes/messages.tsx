@@ -16,8 +16,10 @@ type Search = { thread?: string; request?: string };
 type PendingDatingDecision = { connection_id:string; other_id:string; other_name:string; other_age:number; other_vibe:string; other_blurred_photo_path:string; reveal_at:string; matched_at:string };
 
 export const Route = createFileRoute("/messages")({
-  validateSearch: (search: Record<string, unknown>): Search =>
-    typeof search["thread"] === "string" || typeof search["request"] === "string" ? { thread: typeof search["thread"] === "string" ? search["thread"] : undefined, request: typeof search["request"] === "string" ? search["request"] : undefined } : {},
+  validateSearch: (search: Record<string, unknown>): Search => ({
+    ...(typeof search["thread"] === "string" ? { thread: search["thread"] } : {}),
+    ...(typeof search["request"] === "string" ? { request: search["request"] } : {}),
+  }),
   head: () => ({
     meta: [
       { title: "Direct Messages — Circle Panda" },
@@ -457,7 +459,7 @@ function MessagesPage() {
               <div key={m.id} className="space-y-2.5">
                 <div className={m.mine ? "text-right" : ""}>
                   {m.messageType === "dating_photo" && active.kind === "dating" ? (
-                    <DatingPhotoBubble path={m.mediaPath} onOpen={setPhotoPreviewUrl} />
+                    <DatingPhotoBubble path={m.mediaPath ?? ""} onOpen={setPhotoPreviewUrl} />
                   ) : (
                     <p className={`inline-block max-w-[80%] rounded-2xl px-3.5 py-2 text-sm ${
                       m.mine
