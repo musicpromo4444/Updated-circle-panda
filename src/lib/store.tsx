@@ -686,6 +686,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     const hydrationFallback = window.setTimeout(() => {
       if (!cancelled) setHydrated(true);
     }, 3000);
+    let resolvedHydrationUserId: string | null = null;
     void (async () => {
       let session = (await supabase.auth.getSession()).data.session;
       if (!session) {
@@ -715,6 +716,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       }
     void (supabase as any).from("admin_roles").select("role").eq("user_id",session.user.id).maybeSingle().then(({data}: any) => setDbIsAdmin(Boolean(data?.role)));
       const uid = session.user.id;
+      resolvedHydrationUserId = uid;
       // Location is optional and must never block app hydration.
       void new Promise<{latitude:number;longitude:number}|null>((resolve) => { if (typeof navigator === "undefined" || !navigator.geolocation) return resolve(null); navigator.geolocation.getCurrentPosition((pos) => resolve({ latitude:pos.coords.latitude, longitude:pos.coords.longitude }), () => resolve(null), { enableHighAccuracy:false, maximumAge:300000, timeout:3000 }); });
       const [postsRes, repliesRes, reactionsRes, groupsRes, groupMessagesRes, eventsRes, attendeesRes, datingRes, datingOwnRes, walletRes, xpRes, crushResultsRes, crushWinnersRes] = await Promise.all([
@@ -766,7 +768,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       const totalXp=(xpRes.data??[]).reduce((sum:number,row:any)=>sum+Number(row.amount??0),0);
       setState(prev=>({...prev,coins:Number(walletRes.data?.balance??prev.coins),level:pandaProgress(totalXp).index+1,xp:totalXp,posts,groups,events,nominees,spotlights:(crushWinnersRes.data??[]).map((w:any)=>({kind:w.kind,name:w.display_name,wonAt:new Date(w.created_at).getTime()})),datingProfile:dating?{userId:dating.user_id,name:dating.name,age:Number(dating.age??18),vibe:dating.vibe??"",emoji:dating.emoji??"🐼",bio:dating.bio??"",interests:dating.interests??[],location:dating.location??"",country:dating.country??"",stateProvince:dating.state_province??"",gender:dating.gender??"",relationshipGoal:dating.relationship_goal??"",lookingFor:dating.looking_for??[],aboutTraits:dating.about_traits??[],lifestyle:dating.lifestyle??[],personality:dating.personality??[],loveLanguage:dating.love_language??"",smoking:dating.smoking??"",drinking:dating.drinking??"",children:dating.children??"",education:dating.education??"",occupation:dating.occupation??"",sexualExperience:dating.sexual_experience??"",intimacyPreference:dating.intimacy_preference??"",relationshipStatus:dating.relationship_status??"single",heightCm:dating.height_cm??null,zodiac:dating.zodiac??"",favoriteDate:dating.favorite_date??"",photoPath:dating.photo_path??"",blurredPhotoPath:dating.blurred_photo_path??"",registeredAt:dating.updated_at?new Date(dating.updated_at).getTime():Date.now()}:null,datingMatches:(datingRes.data??[]).filter((d:any)=>d.user_id!==uid).map((d:any)=>({...d,userId:d.user_id,registeredAt:d.updated_at?new Date(d.updated_at).getTime():Date.now()}))}));    })().catch(() => {}).finally(() => {
       if (!cancelled) {
-        hydratedUserRef.current = uid;
+        if (resolvedHydrationUserId) hydratedUserRef.current = resolvedHydrationUserId;
         setHydrated(true);
       }
     });
