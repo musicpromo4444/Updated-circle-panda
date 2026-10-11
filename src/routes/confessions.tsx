@@ -54,6 +54,7 @@ export function ConfessionsPage() {
   const [items, setItems] = useState<Confession[]>([]);
   const [content, setContent] = useState("");
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [showSignup, setShowSignup] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -78,6 +79,7 @@ export function ConfessionsPage() {
       const { data, error } = await (supabase as any).rpc("get_public_confessions", { p_limit: 50 });
       if (error) throw error;
       const nextItems = (data ?? []).map((row: any) => ({ id:row.id, content:row.body, is_anonymous:Boolean(row.is_anonymous), created_at:row.created_at, author_id:row.author_id ?? null })) as Confession[];
+      setLoadError(null);
       setItems(nextItems);
       const ids = nextItems.map((x) => x.id);
       if (ids.length) {
@@ -107,8 +109,10 @@ export function ConfessionsPage() {
         setCommentCounts({});
       }
       return ids;
-    } catch (error: any) {
-      toast.error(error?.message ?? "Could not load confessions");
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Could not load confessions";
+      setLoadError(message);
+      if (items.length === 0) toast.error(message);
       return null;
     } finally {
       setLoading(false);
@@ -518,8 +522,20 @@ export function ConfessionsPage() {
         </section>
 
         {loading ? <div className="rounded-3xl border border-border/70 bg-card p-8 text-center text-sm text-muted-foreground">Loading confessions…</div> : null}
-        {!loading && items.length === 0 ? (
+        {!loading && loadError && items.length === 0 ? (
+          <div role="alert" className="rounded-3xl border border-destructive/30 bg-card p-6 text-center">
+            <p className="text-sm text-muted-foreground">We could not load the confession feed.</p>
+            <p className="mt-1 break-words text-xs text-muted-foreground">{loadError}</p>
+            <Button type="button" variant="outline" onClick={() => void load()} className="mt-4 rounded-full">Try again</Button>
+          </div>
+        ) : null}
+        {!loading && !loadError && items.length === 0 ? (
           <div className="rounded-3xl border border-dashed border-border p-10 text-center text-sm text-muted-foreground">No published confessions yet. Be the first.</div>
+        ) : null}
+        {!loading && loadError && items.length > 0 ? (
+          <div role="status" className="rounded-2xl border border-border bg-card px-4 py-3 text-sm text-muted-foreground">
+            Could not refresh the feed. Your previously loaded confessions are still shown. <button type="button" className="ml-1 font-semibold text-primary underline underline-offset-4" onClick={() => void load(true)}>Retry</button>
+          </div>
         ) : null}
 
         {items.map((item, idx) => (
