@@ -56,7 +56,7 @@ export function AdminDailyGamesManager() {
       p_enabled: true,
     });
     setSaving(null);
-    if (error) return toast.error(error.message ?? "Could not set activity");
+    if (error) { toast.error(error.message ?? "Could not set activity"); return; }
     setSchedule((prev) => prev.map((row) => row.day_number === day ? { ...row, activity_slug: slug, enabled: true } : row));
     toast.success(`Day ${day} now uses ${gameMap.get(slug)?.title ?? slug}`);
   };
@@ -76,7 +76,7 @@ export function AdminDailyGamesManager() {
       p_puzzle_bank: game.puzzle_bank ?? [],
     });
     setSaving(null);
-    if (error) return toast.error(error.message ?? "Could not save game");
+    if (error) { toast.error(error.message ?? "Could not save game"); return; }
     setGames((prev) => prev.map((g) => g.slug === game.slug ? { ...g, is_enabled: enabled, reward_pool: rewards } : g));
     toast.success(`${game.title} updated`);
   };
@@ -96,7 +96,7 @@ export function AdminDailyGamesManager() {
       p_puzzle_bank: game.puzzle_bank ?? [],
     });
     setSaving(null);
-    if (error) return toast.error(error.message ?? "Could not save game");
+    if (error) { toast.error(error.message ?? "Could not save game"); return; }
     setGames((prev) => prev.map((g) => g.slug === game.slug ? { ...g, reward_pool: rewards } : g));
     toast.success(`${game.title} saved`);
   };
