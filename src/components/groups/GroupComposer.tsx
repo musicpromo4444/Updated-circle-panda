@@ -67,7 +67,7 @@ export function GroupComposer({
       toast.error("Media must be 25 MB or smaller.");
       return;
     }
-    await onSendMedia({ type, file, replyToId: replyTo?.id });
+    await onSendMedia({ type, file, ...(replyTo?.id ? { replyToId: replyTo.id } : {}) });
   };
 
   const startRecording = async () => {
@@ -140,7 +140,7 @@ export function GroupComposer({
   const sendVoice = async () => {
     if (!voiceBlob || disabled) return;
     const file = new File([voiceBlob], `voice-${Date.now()}.${voiceBlob.type.includes("mp4") ? "m4a" : "webm"}`, { type: voiceBlob.type || "audio/webm" });
-    await onSendMedia({ type: "audio", file, durationSeconds: seconds, replyToId: replyTo?.id });
+    await onSendMedia({ type: "audio", file, durationSeconds: seconds, ...(replyTo?.id ? { replyToId: replyTo.id } : {}) });
     clearVoice();
   };
 
