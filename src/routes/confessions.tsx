@@ -56,6 +56,9 @@ export function ConfessionsPage() {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const confessionSubmitLock = useRef(false);
+  const commentSubmitLock = useRef(false);
+  const messageSubmitLock = useRef(false);
   const [showSignup, setShowSignup] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [reactionMenuId, setReactionMenuId] = useState<string | null>(null);
@@ -418,7 +421,8 @@ export function ConfessionsPage() {
   };
 
   const sendMessage = async () => {
-    if (!messagePost?.author_id || !messageText.trim()) return;
+    if (!messagePost?.author_id || !messageText.trim() || messageSubmitLock.current) return;
+    messageSubmitLock.current = true;
     setSendingMessage(true);
     try {
       const result = await sendMessageRequest(messagePost.author_id, messageText.trim(), "confession", messagePost.id);
@@ -430,6 +434,7 @@ export function ConfessionsPage() {
       if (isSelfMessageError(e)) return;
       toast.error(e?.message ?? "Message request could not be sent");
     } finally {
+      messageSubmitLock.current = false;
       setSendingMessage(false);
     }
   };
