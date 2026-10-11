@@ -41,7 +41,7 @@ export function SevenDayPlayableAd() {
               <p className="mt-1 text-sm text-muted-foreground">Watch the sponsored placement to the end. This activity is ad-only and does not award BC.</p>
             </div>
           </div>
-          <Button className="shrink-0 gap-2" onClick={start} disabled={!ad?.videoUrl}><Play className="size-4" /> {ad ? "Watch & earn" : "Sponsored ad unavailable"}</Button>
+          <Button className="shrink-0 gap-2" onClick={start} disabled={!ad?.videoUrl}><Play className="size-4" /> {ad ? "Watch sponsored ad" : "Sponsored ad unavailable"}</Button>
         </div>
       </section>
 
