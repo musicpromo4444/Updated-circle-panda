@@ -63,6 +63,8 @@ export function ConfessionsPage() {
   const navigate = useNavigate();
   const [commentText, setCommentText] = useState("");
   const [submittingComment, setSubmittingComment] = useState(false);
+  const confessionSubmitLock = useRef(false);
+  const commentSubmitLock = useRef(false);
   const [commentsByPost, setCommentsByPost] = useState<Record<string, ConfessionComment[]>>({});
   const [messagePost, setMessagePost] = useState<Confession | null>(null);
   const [messageText, setMessageText] = useState("");
@@ -235,7 +237,8 @@ export function ConfessionsPage() {
   };
 
   const submitNow = async (trimmed: string) => {
-    if (submitting) return;
+    if (confessionSubmitLock.current || submitting) return;
+    confessionSubmitLock.current = true;
     setSubmitting(true);
     try {
       const { data, error } = await (supabase as any).rpc("create_confession", { p_body: trimmed });
@@ -256,6 +259,7 @@ export function ConfessionsPage() {
     } catch (error: any) {
       toast.error(error?.message ?? "Your confession could not be submitted.");
     } finally {
+      confessionSubmitLock.current = false;
       setSubmitting(false);
     }
   };
@@ -334,8 +338,8 @@ export function ConfessionsPage() {
   const submitComment = async () => {
     const post = commentPost;
     const body = commentText.trim();
-    if (!post || !body || submittingComment) return;
-
+    if (!post || !body || commentSubmitLock.current || submittingComment) return;
+    commentSubmitLock.current = true;
     setSubmittingComment(true);
     try {
       const { error } = await (supabase as any).rpc("add_secret_comment", {
@@ -371,6 +375,7 @@ export function ConfessionsPage() {
     } catch (error: any) {
       toast.error(error?.message ?? "Comment could not be posted.");
     } finally {
+      commentSubmitLock.current = false;
       setSubmittingComment(false);
     }
   };
