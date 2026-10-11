@@ -201,7 +201,6 @@ export function VipLoungeSpace({ open, onOpenChange }: VipLoungeSpaceProps) {
               </button>
 
               <button
-              <button
                 type="button"
                 onClick={() => setActiveTab("giveaways")}
                 className={activeTab === "giveaways" ? "flex-1 flex items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-semibold bg-gradient-to-r from-amber-500/20 to-yellow-500/20 text-amber-500 border border-amber-400/40 shadow-sm" : "flex-1 flex items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-semibold text-muted-foreground hover:text-foreground"}
@@ -209,6 +208,7 @@ export function VipLoungeSpace({ open, onOpenChange }: VipLoungeSpaceProps) {
                 <Gift className="size-3.5" /> Giveaways ({data.giveaways.length})
               </button>
 
+              <button
                 type="button"
                 onClick={() => setActiveTab("polls")}
                 className={`flex-1 flex items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-semibold transition-all ${
