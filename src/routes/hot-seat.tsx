@@ -171,6 +171,7 @@ function HotSeatPage() {
   const [muted, setMuted] = useState(true);
   const [windowSeconds, setWindowSeconds] = useState(0);
   const [likeCount, setLikeCount] = useState(0);
+  const [isFollowing, setIsFollowing] = useState(false);
   const [questions, setQuestions] = useState<HotSeatQuestion[]>([]);
   const [chatMessages, setChatMessages] = useState<LiveChatMessage[]>([]);
   const [giftBanner, setGiftBanner] = useState<string | null>(null);
@@ -396,6 +397,22 @@ function HotSeatPage() {
     if (!activeHost) return;
     void (supabase as any).from("hot_seat_follows").select("user_id").eq("host_id", activeHost.id).eq("user_id", userId).maybeSingle().then((r:any)=>setIsFollowing(Boolean(r.data)));
   }, [userId, activeHost?.id]);
+
+  const toggleHostFollow = async () => {
+    if (!activeHost?.id) return;
+    const { data: authData, error: authError } = await supabase.auth.getUser();
+    if (authError) { toast.error(authError.message ?? "Could not verify your account."); return; }
+    if (!authData.user || authData.user.is_anonymous) {
+      toast.error("Sign in to follow a Hot Seat host.");
+      return;
+    }
+    const { data, error } = await (supabase as any).rpc("toggle_hot_seat_follow_secure", {
+      p_host_id: activeHost.id,
+    });
+    if (error) { toast.error(error.message ?? "Could not update host follow."); return; }
+    setIsFollowing(Boolean(data));
+    toast.success(data ? "Following Hot Seat host" : "Unfollowed Hot Seat host");
+  };
 
   // Live chat is now driven by Supabase Realtime; no synthetic messages are generated.
 
@@ -835,6 +852,8 @@ function HotSeatPage() {
         open={hostProfileOpen && Boolean(activeHost)}
         onOpenChange={setHostProfileOpen}
         windowSeconds={windowSeconds}
+        isFollowing={isFollowing}
+        onToggleFollow={() => void toggleHostFollow()}
         onOpenWaitingRoom={() => setWaitingRoomOpen(true)}
         hostName={activeHost?.alias ?? ""}
         reputation={Number(activeHost?.reputation ?? 0)}
