@@ -746,7 +746,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       }
       const postAuthorIds = Array.from(new Set(rawPosts.map((p:any)=>p.author_id).concat(replies.map((r:any)=>r.author_id)).filter(Boolean)));
       const postProfilesRes = postAuthorIds.length ? await (supabase as any).from("profiles").select("id,display_name,is_vip,vip_expires_at").in("id",postAuthorIds) : {data:[]};
-      const postProfiles = new Map((postProfilesRes.data??[]).map((p:any)=>[p.id,p]));
+      const postProfiles = new Map<string, any>((postProfilesRes.data ?? []).map((p: any) => [p.id, p] as [string, any]));
       const posts = rawPosts.map((p:any)=>({
         id:p.id,author:p.author_id===uid?"You (anonymous)":"Anonymous Panda",authorId:p.author_id,
         authorVip:Boolean(postProfiles.get(p.author_id)?.is_vip && (!postProfiles.get(p.author_id)?.vip_expires_at || new Date(postProfiles.get(p.author_id).vip_expires_at).getTime()>Date.now())),
