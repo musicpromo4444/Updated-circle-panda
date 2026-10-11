@@ -17,6 +17,7 @@ type VipMessage = GroupMediaItem & {
   replyToId?: string | null;
   avatarId?: string | null;
   country?: string | null;
+  durationSeconds?: number | null;
 };
 type CallConfig = { enabled: boolean; voice_enabled: boolean; video_enabled: boolean };
 type MemberProfile = { id: string; display_name: string | null; avatar_id: string | null; country: string | null };
@@ -43,7 +44,7 @@ export function VipGroupChat({open,groupId,onOpenChange}:{open:boolean;groupId:s
   const loadProfiles = useCallback(async(ids:string[])=>{
     const unique=[...new Set(ids.filter(Boolean))];
     if(!unique.length)return;
-    const {data,error}=await supabase.from("profiles").select("id,display_name,avatar_id,country").in("id",unique);
+    const {data,error}=await (supabase as any).from("profiles").select("id,display_name,avatar_id,country").in("id",unique);
     if(!error)setProfiles(prev=>({...prev,...Object.fromEntries((data??[]).map(p=>[p.id,p]))}));
   },[]);
 
