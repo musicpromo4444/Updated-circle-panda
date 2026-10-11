@@ -61,16 +61,16 @@ export function SubmitCrushPhotoModal({ open, onOpenChange, defaultKind = "wcw",
     if (inputRef.current) inputRef.current.value = "";
   };
 
-  const saveGender = async (next: "male" | "female") => {
+  const saveGender = async (next: "male" | "female"): Promise<void> => {
     const { data, error } = await (supabase as any).rpc("set_profile_gender_secure", { p_gender: next });
-    if (error) return toast.error(error.message ?? "Gender could not be saved");
+    if (error) { toast.error(error.message ?? "Gender could not be saved"); return; }
     setGender(data === "male" ? "male" : "female");
     setKind(data === "male" ? "mcm" : "wcw");
   };
 
-  const submit = async () => {
-    if (!file) return toast.error("Choose a photo or video first.");
-    if (!gender) return toast.error("Choose your account gender first.");
+  const submit = async (): Promise<void> => {
+    if (!file) { toast.error("Choose a photo or video first."); return; }
+    if (!gender) { toast.error("Choose your account gender first."); return; }
     setSaving(true);
     try {
       const { data: auth } = await supabase.auth.getUser();
