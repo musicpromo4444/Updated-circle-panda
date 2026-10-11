@@ -80,7 +80,7 @@ export function AdminSweepstakesManager() {
 
   const visiblePrizes = useMemo(() => [...prizes].sort((a, b) => a.display_order - b.display_order || a.id.localeCompare(b.id)), [prizes]);
 
-  const saveConfig = async () => {
+  const saveConfig = async (): Promise<void> => {
     setSaving("config");
     const { error } = await (supabase as any).rpc("admin_update_sweepstakes_page_config", { p_card_limit: cardLimit });
     if (!error && selectedActivity) {
@@ -92,11 +92,11 @@ export function AdminSweepstakesManager() {
       }
     }
     setSaving(null);
-    if (error) return toast.error(error.message ?? "Could not save Sweepstakes settings");
+    if (error) { toast.error(error.message ?? "Could not save Sweepstakes settings"); return; }
     toast.success("Sweepstakes settings saved");
   };
 
-  const savePrize = async (prize: Prize) => {
+  const savePrize = async (prize: Prize): Promise<void> => {
     setSaving(prize.id);
     const { error } = await (supabase as any).rpc("admin_upsert_sweepstake_prize", {
       p_id: prize.id,
@@ -119,24 +119,24 @@ export function AdminSweepstakesManager() {
       p_display_order: Number(prize.display_order) || 0,
     });
     setSaving(null);
-    if (error) return toast.error(error.message ?? "Could not save prize");
+    if (error) { toast.error(error.message ?? "Could not save prize"); return; }
     toast.success(`${prize.name || "Prize"} saved`);
     await load();
   };
 
-  const deletePrize = async (id: string) => {
+  const deletePrize = async (id: string): Promise<void> => {
     if (!window.confirm("Remove this prize card?")) return;
     setSaving(id);
     const { error } = await (supabase as any).rpc("admin_delete_sweepstake_prize", { p_id: id });
     setSaving(null);
-    if (error) return toast.error(error.message ?? "Could not remove prize");
+    if (error) { toast.error(error.message ?? "Could not remove prize"); return; }
     setPrizes((prev) => prev.filter((p) => p.id !== id));
     toast.success("Prize card removed");
   };
 
-  const uploadImage = async (prize: Prize, file: File) => {
-    if (!file.type.startsWith("image/")) return toast.error("Choose an image file");
-    if (file.size > 5 * 1024 * 1024) return toast.error("Image must be 5MB or smaller");
+  const uploadImage = async (prize: Prize, file: File): Promise<void> => {
+    if (!file.type.startsWith("image/")) { toast.error("Choose an image file"); return; }
+    if (file.size > 5 * 1024 * 1024) { toast.error("Image must be 5MB or smaller"); return; }
     setSaving(`upload-${prize.id}`);
     const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
     const path = `prizes/${prize.id}-${crypto.randomUUID()}.${ext}`;
@@ -147,7 +147,8 @@ export function AdminSweepstakesManager() {
     });
     if (error) {
       setSaving(null);
-      return toast.error(error.message ?? "Image upload failed");
+      toast.error(error.message ?? "Image upload failed");
+      return;
     }
     const { data } = supabase.storage.from("circle-panda-sweepstakes").getPublicUrl(path);
     setPrizes((prev) => prev.map((p) => p.id === prize.id ? { ...p, image_url: data.publicUrl } : p));
