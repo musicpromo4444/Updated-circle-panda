@@ -224,7 +224,7 @@ function EventsPage() {
                   </Button>
                 </>
               ) : null}
-              {current.ownerId === currentUserId ? <Button type="button" variant="outline" onClick={openBlast} className="gap-2"><Rocket className="size-4" /> Event Blast</Button> : null}
+              {current.ownerId === currentUserId ? <Button type="button" variant="outline" onClick={() => openBlast()} className="gap-2"><Rocket className="size-4" /> Event Blast</Button> : null}
             </div>
             </div>
           </> : null}
