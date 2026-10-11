@@ -90,7 +90,8 @@ export function ConfessionsPage() {
         const next: Record<string, ReactionState> = {};
         for (const row of reactions ?? []) {
           const state = next[row.secret_id] ?? { reaction:null, heart_count:0, laugh_count:0, wow_count:0, sad_count:0, angry_count:0, panda_count:0 };
-          const key = row.reaction === "surprised" ? "wow_count" : row.reaction === "heart" ? "heart_count" : row.reaction === "laugh" ? "laugh_count" : row.reaction === "angry" ? "angry_count" : "panda_count";
+          const key = row.reaction === "wow" || row.reaction === "surprised" ? "wow_count" : row.reaction === "heart" ? "heart_count" : row.reaction === "laugh" ? "laugh_count" : row.reaction === "angry" ? "angry_count" : row.reaction === "panda" ? "panda_count" : null;
+          if (!key) continue;
           state[key] = Number(state[key] ?? 0) + 1;
           if (row.user_id === currentUser) state.reaction = row.reaction;
           next[row.secret_id] = state;
@@ -285,25 +286,49 @@ export function ConfessionsPage() {
     { key:"panda", emoji:"🐼", label:"Panda" },
   ];
   const react = async (id: string, reaction: string) => {
-    const { data: authData } = await supabase.auth.getUser();
-    if (!authData.user || authData.user.is_anonymous) {
-      requestLogin("react to a confession");
+    try {
+      const { data: authData, error: authError } = await supabase.auth.getUser();
+      if (authError) throw authError;
+      if (!authData.user || authData.user.is_anonymous) {
+        requestLogin("react to a confession");
+        return;
+      }
+
+      const { error } = await (supabase as any).rpc("toggle_secret_reaction", {
+        p_secret_id: id,
+        p_reaction: reaction,
+      });
+      if (error) throw error;
+      await load(true);
+    } catch (error: any) {
+      toast.error(error?.message ?? "Your reaction could not be saved.");
+    } finally {
       setReactionMenuId(null);
-      return;
     }
-    const { data, error } = await (supabase as any).rpc("toggle_secret_reaction", { p_secret_id:id, p_reaction:reaction });
-    if (error) return toast.error(error.message);
-    await load(true);
-    setReactionMenuId(null);
   };
 
   const openComments = async (item: Confession) => {
-    const { data: authData } = await supabase.auth.getUser();
-    if (!authData.user || authData.user.is_anonymous) return requestLogin("comment on a confession");
-    setCommentPost(item);
-    setCommentText("");
-    const { data } = await (supabase as any).from("secret_comments").select("id,author_id,body,created_at").eq("secret_id",item.id).order("created_at",{ascending:true});
-    setCommentsByPost((current) => ({ ...current, [item.id]: data ?? [] }));
+    try {
+      const { data: authData, error: authError } = await supabase.auth.getUser();
+      if (authError) throw authError;
+      if (!authData.user || authData.user.is_anonymous) {
+        requestLogin("comment on a confession");
+        return;
+      }
+
+      const { data, error } = await (supabase as any)
+        .from("secret_comments")
+        .select("id,author_id,body,created_at")
+        .eq("secret_id", item.id)
+        .order("created_at", { ascending: true });
+      if (error) throw error;
+
+      setCommentsByPost((current) => ({ ...current, [item.id]: data ?? [] }));
+      setCommentText("");
+      setCommentPost(item);
+    } catch (error: any) {
+      toast.error(error?.message ?? "Comments could not be loaded.");
+    }
   };
 
   const submitComment = async () => {
