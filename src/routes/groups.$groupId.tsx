@@ -129,7 +129,7 @@ function GroupRoom() {
 
   const maybeOpenGroupRewardAd = async (afterAd: () => Promise<void>) => {
     if (!group) { await afterAd(); return; }
-    const { data, error } = await supabase.rpc("start_group_reward_ad_secure", { p_group_id: group.id });
+    const { data, error } = await (supabase as any).rpc("start_group_reward_ad_secure", { p_group_id: group.id });
     if (error || !(data as any)?.show || !(data as any)?.session_id) { await afterAd(); return; }
     pendingRewardActionRef.current = afterAd;
     setGroupRewardSessionId((data as any).session_id);
@@ -151,6 +151,9 @@ function GroupRoom() {
 
   const blockMember = async (userId: string) => {
     setMemberMenuOpen(null);
+    const { data: authData, error: authError } = await supabase.auth.getUser();
+    if (authError) { toast.error(authError.message ?? "Could not verify your account."); return; }
+    const currentUserId = authData.user?.id;
     if (!currentUserId || currentUserId === userId) return;
     if (!window.confirm("Block this Panda? They will no longer be able to message you.")) return;
     try {
