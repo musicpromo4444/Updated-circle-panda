@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { CalendarPlus, ImagePlus, MapPin, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -18,7 +18,7 @@ export function CreateEventModal({open,onOpenChange,onCreated}:{open:boolean;onO
  const [duration,setDuration]=useState(120); const [venue,setVenue]=useState(""); const [address,setAddress]=useState("");
  const [country,setCountry]=useState(""); const [state,setState]=useState(""); const [city,setCity]=useState(""); const [area,setArea]=useState("");
  const [price,setPrice]=useState<string>(""); const [currency,setCurrency]=useState("NGN"); const [blurb,setBlurb]=useState(""); const [details,setDetails]=useState("");
- const [imageUrl,setImageUrl]=useState(""); const [uploading,setUploading]=useState(false); const [publishing,setPublishing]=useState(false);
+ const [imageUrl,setImageUrl]=useState(""); const [uploading,setUploading]=useState(false); const [publishing,setPublishing]=useState(false); const submitLock = useRef(false);
  const [reachScope,setReachScope]=useState<"worldwide"|"country"|"state"|"city"|"area">("worldwide");
  const [reachCountry,setReachCountry]=useState(""); const [reachState,setReachState]=useState(""); const [reachCity,setReachCity]=useState(""); const [reachArea,setReachArea]=useState("");
 
@@ -39,7 +39,8 @@ export function CreateEventModal({open,onOpenChange,onCreated}:{open:boolean;onO
  };
  const submit = async (e: React.FormEvent) => {
   e.preventDefault();
-  if (publishing || uploading) return;
+  if (submitLock.current || publishing || uploading) return;
+  submitLock.current = true;
 
   try {
    const { data, error: authError } = await supabase.auth.getUser();
@@ -99,6 +100,7 @@ export function CreateEventModal({open,onOpenChange,onCreated}:{open:boolean;onO
   } catch (error) {
    toast.error(error instanceof Error ? error.message : "Event could not be published. Please try again.");
   } finally {
+   submitLock.current = false;
    setPublishing(false);
   }
  };
