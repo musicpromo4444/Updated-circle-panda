@@ -32,20 +32,20 @@ export function NewUserOnboarding({ onComplete }: { onComplete: () => void }) {
     if(!area.trim()){setError("Please enter your area.");return;}
     setBusy(true);setError("");
     try {
-      const {error:e}=await supabase.rpc("update_profile_completion_secure",{p_country:country,p_state_province:state,p_city:null,p_area:area.trim(),p_address_line:address.trim()||null,p_date_of_birth:null});
+      const {error:e}=await (supabase as any).rpc("update_profile_completion_secure",{p_country:country,p_state_province:state,p_city:null,p_area:area.trim(),p_address_line:address.trim()||null,p_date_of_birth:null});
       if(e) throw e;
       await claimReward();
     } catch(e) { setError(e instanceof Error?e.message:"Could not save your location.");setBusy(false); }
   }
   async function claimReward(){
     try {
-      const {data,error:e}=await supabase.rpc("claim_new_member_onboarding");
+      const {data,error:e}=await (supabase as any).rpc("claim_new_member_onboarding");
       if(e) throw e;
       setReward(Number((data as any)?.welcome_bc??0));setStep("reward");
     } catch(e){setError(e instanceof Error?e.message:"Could not complete onboarding.");}
     finally{setBusy(false);}
   }
-  async function finish(){try{await supabase.rpc("mark_member_intro_seen");}catch{}setStep("ready");}
+  async function finish(){try{await (supabase as any).rpc("mark_member_intro_seen");}catch{}setStep("ready");}
 
   return <div className="fixed inset-0 z-[100] grid place-items-center bg-black/80 p-4 backdrop-blur-sm">
     <div className="w-full max-w-md rounded-[2rem] border border-amber-300/25 bg-[#0b1d18] p-6 text-white shadow-[0_0_45px_rgba(245,158,11,.12)]">
