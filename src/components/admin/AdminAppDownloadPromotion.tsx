@@ -44,7 +44,7 @@ export function AdminAppDownloadPromotion() {
     void (async () => {
       const { data, error } = await (supabase as any).rpc("admin_get_app_control_center");
       setLoading(false);
-      if (error) return toast.error(error.message);
+      if (error) { toast.error(error.message); return; }
       setValue(v => ({ ...v, ...(data?.app ?? {}) }));
     })();
   }, []);
@@ -52,10 +52,10 @@ export function AdminAppDownloadPromotion() {
   const set = <K extends keyof AppSettings>(key: K, next: AppSettings[K]) =>
     setValue(v => ({ ...v, [key]: next }));
 
-  const save = async () => {
+  const save = async (): Promise<void> => {
     setSaving(true);
     const { data: current, error: loadError } = await (supabase as any).rpc("admin_get_app_control_center");
-    if (loadError) { setSaving(false); return toast.error(loadError.message); }
+    if (loadError) { setSaving(false); toast.error(loadError.message); return; }
     const app = { ...(current?.app ?? {}), ...value };
     const { data, error } = await (supabase as any).rpc("admin_save_app_control_center", {
       p_app: app,
