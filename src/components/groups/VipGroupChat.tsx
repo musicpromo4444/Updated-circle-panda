@@ -74,9 +74,14 @@ export function VipGroupChat({open,groupId,onOpenChange}:{open:boolean;groupId:s
       return {
         id:row.id,userId:row.user_id,author:row.user_id===uid?"You":row.display_name||"VIP Member",
         body:row.body??"",at:new Date(row.created_at).getTime(),mine:row.user_id===uid,
-        messageType:row.message_type??"text",mediaPath:row.media_path??undefined,mediaUrl,
-        durationSeconds:row.duration_seconds,viewOnce:false,replyToId:row.reply_to_id,
-        avatarId:row.avatar_id,country:row.country
+        messageType:row.message_type??"text",
+        ...(row.media_path ? { mediaPath: String(row.media_path) } : {}),
+        ...(mediaUrl ? { mediaUrl } : {}),
+        ...(row.duration_seconds != null ? { durationSeconds: Number(row.duration_seconds) } : {}),
+        viewOnce: false,
+        ...(row.reply_to_id ? { replyToId: String(row.reply_to_id) } : {}),
+        ...(row.avatar_id ? { avatarId: String(row.avatar_id) } : {}),
+        ...(row.country ? { country: String(row.country) } : {})
       };
     }));
     setMessages(mapped);
