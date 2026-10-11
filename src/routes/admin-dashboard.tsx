@@ -65,7 +65,7 @@ function AdminDashboardPage() {
   const [crushBlocks, setCrushBlocks] = useState<Record<string, CrushAdBlock[]>>({});
   const [savingCrushKind, setSavingCrushKind] = useState<string | null>(null);
 
-  const load = async () => {
+  const load = async (): Promise<void> => {
     setLoading(true);
     const [catalog, schedule, global, sweep] = await Promise.all([
       (supabase as any).rpc("admin_get_seven_day_activity_catalog"),
@@ -74,7 +74,7 @@ function AdminDashboardPage() {
       (supabase as any).rpc("get_sweepstakes_activity_config"),
     ]);
     setLoading(false);
-    if (catalog.error || schedule.error || global.error || sweep.error) return toast.error((catalog.error ?? schedule.error ?? global.error ?? sweep.error)?.message ?? "Admin data could not load");
+    if (catalog.error || schedule.error || global.error || sweep.error) { toast.error((catalog.error ?? schedule.error ?? global.error ?? sweep.error)?.message ?? "Admin data could not load"); return; }
     const loadedActivities = (catalog.data ?? []) as Activity[];
     setActivities(loadedActivities);
     setSavedActivities(Object.fromEntries(loadedActivities.map(activity => [activity.slug, structuredClone(activity)])));
@@ -116,9 +116,9 @@ function AdminDashboardPage() {
 
   const removeRewardItem = (slug: string, index: number) => setActivities(prev => prev.map(item => item.slug === slug ? { ...item, reward_pool: (item.reward_pool ?? []).filter((_, i) => i !== index) } : item));
 
-  const saveActivity = async (activity: Activity) => {
+  const saveActivity = async (activity: Activity): Promise<void> => {
     const rewardPool = (activity.reward_pool ?? []).map(item => ({ label: item.label.trim(), amount: Math.max(0, Math.floor(Number(item.amount) || 0)) }));
-    if (rewardPool.some(item => !item.label || item.label.length > 80)) return toast.error("Reward labels must be 1–80 characters");
+    if (rewardPool.some(item => !item.label || item.label.length > 80)) { toast.error("Reward labels must be 1–80 characters"); return; }
     setSavingActivity(activity.slug);
     const { data, error } = await (supabase as any).rpc("admin_update_seven_day_activity_config", {
       p_slug: activity.slug,
@@ -128,18 +128,18 @@ function AdminDashboardPage() {
       p_timer_seconds: activity.timer_seconds,
     });
     setSavingActivity(null);
-    if (error) return toast.error(error.message ?? "Could not update activity");
+    if (error) { toast.error(error.message ?? "Could not update activity"); return; }
     const saved = { ...activity, is_enabled: data.enabled, free_attempts: data.free_attempts, timer_seconds: data.timer_seconds, reward_pool: data.reward_pool ?? rewardPool };
     setActivities(prev => prev.map(item => item.slug === activity.slug ? saved : item));
     setSavedActivities(prev => ({ ...prev, [activity.slug]: structuredClone(saved) }));
     toast.success(`${activity.title} settings saved`);
   };
 
-  const save = async (day: number, slug: string | null) => {
+  const save = async (day: number, slug: string | null): Promise<void> => {
     setSaving(day);
     const { data, error } = await (supabase as any).rpc("admin_set_seven_day_activity", { p_day_number: day, p_activity_slug: slug, p_enabled: Boolean(slug) });
     setSaving(null);
-    if (error) return toast.error(error.message ?? "Could not update the activity schedule");
+    if (error) { toast.error(error.message ?? "Could not update the activity schedule"); return; }
     setDays(prev => prev.map(row => row.day_number === day ? { ...row, activity_slug: data.activity_slug, activity_title: activities.find(a => a.slug === data.activity_slug)?.title ?? null, enabled: data.enabled, updated_at: data.updated_at } : row));
     toast.success(`${DAYS[day-1]} activity updated`);
   };
