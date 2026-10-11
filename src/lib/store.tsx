@@ -459,6 +459,7 @@ type StoreValue = State & {
   startDmWithAuthor: (userId: string, author: string, blurb: string) => Promise<string | null>;
   openPaidDm: (userId: string, author: string, blurb: string) => Promise<string | null>;
   refreshCoins: () => Promise<void>;
+  syncCoins: () => Promise<void>;
   refreshCrushVoteUsage: () => Promise<void>;
   syncAccountEntitlements: () => Promise<void>;
   spendCoins: (amount: number, reason?: string) => boolean;
@@ -838,7 +839,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       if (error || !id) { toast.error(error?.message ?? "Post could not be created"); return; }
       const data = { id, xp: 7, reward_bc: 0, created_at: new Date().toISOString(), author_vip_at: false };
       setState((s) => {
-        const { level, xp } = gainXp(s.level, s.xp, Number(data.xp ?? 7));
+        const xp = s.xp + Number(data.xp ?? 7);
+        const level = pandaProgress(xp).index + 1;
         return { ...s, coins: s.coins + Number(data.reward_bc ?? 2), reputation: s.reputation + Number(data.xp ?? 15), level, xp, posts: [{ id, author:"You (anonymous)", authorId:dbUserId, authorVip:Boolean(data.author_vip_at ?? s.isVip), body, at:data.created_at ? new Date(data.created_at).getTime() : Date.now(), replies:[] }, ...s.posts] };
       });
       toast.success("Posted anonymously 🐼", { description: `+${Number(data.reward_bc ?? 0)} BC · +${Number(data.xp ?? 0)} XP earned.` });
@@ -852,7 +854,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       if (error) { toast.error(error.message ?? "Reply could not be created"); return; }
       const id = data.id;
       setState((s) => {
-        const { level, xp } = gainXp(s.level, s.xp, Number(data.xp ?? 5));
+        const xp = s.xp + Number(data.xp ?? 5);
+        const level = pandaProgress(xp).index + 1;
         return { ...s, coins: s.coins + Number(data.reward_bc ?? 1), reputation: s.reputation + Number(data.xp ?? 5), level, xp, posts:s.posts.map((p)=>p.id===postId?{...p,replies:[...p.replies,{id,author:"You (anonymous)",body,at:Date.now()}]}:p) };
       });
     })();
@@ -1447,7 +1450,6 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       startEventBlast,
       registerDatingProfile,
       refreshDatingData,
-      requestDatingMatch,
     }),
     [
       state,
