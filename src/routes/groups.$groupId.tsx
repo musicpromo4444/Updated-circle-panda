@@ -40,7 +40,7 @@ function GroupRoom() {
   } = useStore();
   const [adOpen, setAdOpen] = useState(false);
   const [groupRewardSessionId, setGroupRewardSessionId] = useState<string | null>(null);
-  const pendingRewardActionRef = useRef<(() => Promise<void>) | null>(null);
+  const pendingRewardActionRef = useRef<(() => Promise<void | boolean>) | null>(null);
   const [draft, setDraft] = useState("");
   const bottom = useRef<HTMLDivElement>(null);
   const [showActivation, setShowActivation] = useState(false);
@@ -127,7 +127,7 @@ function GroupRoom() {
     return data?.signedUrl ?? null;
   };
 
-  const maybeOpenGroupRewardAd = async (afterAd: () => Promise<void>) => {
+  const maybeOpenGroupRewardAd = async (afterAd: () => Promise<void | boolean>) => {
     if (!group) { await afterAd(); return; }
     const { data, error } = await (supabase as any).rpc("start_group_reward_ad_secure", { p_group_id: group.id });
     if (error || !(data as any)?.show || !(data as any)?.session_id) { await afterAd(); return; }
