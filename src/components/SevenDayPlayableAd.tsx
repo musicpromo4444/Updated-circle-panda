@@ -16,11 +16,9 @@ export function SevenDayPlayableAd() {
 
 
   const close = () => {
-    if (!claiming) {
-      setOpen(false);
-      setPhase("idle");
-      setProgress(0);
-      }
+    setOpen(false);
+    setPhase("idle");
+    setProgress(0);
   };
 
   const start = () => {
@@ -50,7 +48,7 @@ export function SevenDayPlayableAd() {
       <Dialog open={open} onOpenChange={(value) => !value && close()}>
         <DialogContent className="max-w-sm">
           <DialogTitle className="flex items-center gap-2 font-display"><Clapperboard className="size-4 text-primary" /> Sponsored playable</DialogTitle>
-          <DialogDescription>Watch the complete placement to unlock the reward.</DialogDescription>
+          <DialogDescription>Watch the complete sponsored placement, then continue. This activity does not award BC.</DialogDescription>
           {phase === "playing" && ad?.videoUrl ? (
             <div className="space-y-4 py-2">
               <video
@@ -70,7 +68,7 @@ export function SevenDayPlayableAd() {
           {phase === "done" ? (
             <div className="space-y-4 py-2 text-center">
               <div className="mx-auto grid size-20 place-items-center rounded-full bg-primary/15 text-primary"><Gift className="size-9" /></div>
-              <p className="text-sm text-muted-foreground">The ad is complete. Claim your server-verified reward.</p>
+              <p className="text-sm text-muted-foreground">The sponsored placement is complete. You can continue to the next activity.</p>
               <Button className="w-full gap-2" onClick={close}><Sparkles className="size-4" /> Continue</Button>
             </div>
           ) : null}
