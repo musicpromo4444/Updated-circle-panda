@@ -141,7 +141,7 @@ function AdminDashboardPage() {
               <Shield className="size-3 text-primary" />
               <span className="font-semibold">Master Admin:</span>
               <span className="font-mono text-xs opacity-90 hidden sm:inline">
-                {user?.email || MASTER_ADMIN_EMAIL}
+                {user?.email || "Authorized administrator"}
               </span>
             </div>
 
