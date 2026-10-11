@@ -63,7 +63,7 @@ export function AdminAppDownloadPromotion() {
       p_crush: current?.crush ?? {},
     });
     setSaving(false);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     setValue(v => ({ ...v, ...(data?.app ?? {}) }));
     toast.success("App download promotion saved");
   };
