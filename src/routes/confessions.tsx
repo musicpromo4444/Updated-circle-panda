@@ -48,6 +48,7 @@ export function ConfessionsPage() {
   const [uploadPreviewUrl, setUploadPreviewUrl] = useState<string | null>(null);
   const [uploadCaption, setUploadCaption] = useState("");
   const [uploading, setUploading] = useState(false);
+  const uploadLock = useRef(false);
   const [accountGender, setAccountGender] = useState<"male" | "female" | null>(null);
   const [genderPromptOpen, setGenderPromptOpen] = useState(false);
   const [commentCounts, setCommentCounts] = useState<Record<string, number>>({});
@@ -212,7 +213,10 @@ export function ConfessionsPage() {
       return;
     }
     if (!uploadFile) { toast.error("Tap Choose photo or video first."); return; }
+    if (uploadLock.current) return;
+    uploadLock.current = true;
     setUploading(true);
+    let uploadedPath: string | null = null;
     try {
       const { data: authData } = await supabase.auth.getUser();
       const uid = authData.user?.id;
@@ -228,6 +232,7 @@ export function ConfessionsPage() {
           cacheControl: "3600",
         });
       if (uploadError) throw uploadError;
+      uploadedPath = path;
 
       const publicUrl = supabase.storage.from("circle-panda-crush").getPublicUrl(path).data.publicUrl;
       const { error } = await (supabase as any).rpc("submit_crush_media_secure", {
@@ -237,6 +242,7 @@ export function ConfessionsPage() {
         p_emoji: "🐼",
       });
       if (error) throw error;
+      uploadedPath = null;
 
       toast.success("Your WCW/MCM entry is uploaded.");
       clearUpload();
@@ -245,8 +251,10 @@ export function ConfessionsPage() {
       window.dispatchEvent(new Event("circle-panda-crush-refresh"));
       await loadWeekly();
     } catch (e: any) {
+      if (uploadedPath) await supabase.storage.from("circle-panda-crush").remove([uploadedPath]).catch(() => {});
       toast.error(e?.message ?? "Upload failed.");
     } finally {
+      uploadLock.current = false;
       setUploading(false);
     }
   };
