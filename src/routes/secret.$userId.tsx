@@ -111,7 +111,7 @@ function SecretProfilePage() {
   const submitComment = async (): Promise<void> => {
     if (!commentPost || !commentText.trim()) return;
     const { error } = await (supabase as any).rpc("add_profile_secret_comment_secure", { p_secret_id:commentPost.id, p_body:commentText.trim() });
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     const { data } = await (supabase as any).rpc("get_profile_secret_comments", { p_secret_id:commentPost.id });
     setCommentsBySecret((current) => ({ ...current, [commentPost.id]: data ?? [] }));
     setInteractions((current) => ({ ...current, [commentPost.id]: { ...(current[commentPost.id] ?? {reaction:null,reaction_count:0,heart_count:0,laugh_count:0,wow_count:0,sad_count:0,angry_count:0,panda_count:0}), comment_count:data?.length ?? 0 } }));
