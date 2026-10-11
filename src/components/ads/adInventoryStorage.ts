@@ -29,11 +29,11 @@ export const DEFAULT_ENGAGEMENT_CONFIG = {
   quizRewardBc: 10,
   externalSurvey: {
     enabled: false,
-    provider: "custom",
+    provider: "custom" as const,
     providerName: "",
     apiKey: "",
     endpointUrl: "",
-    integrationMode: "external_redirect",
+    integrationMode: "external_redirect" as const,
     rewardBc: 10,
     screenoutRewardBc: 1,
     dailySurveyCap: 3,
