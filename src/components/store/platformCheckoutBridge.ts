@@ -169,7 +169,7 @@ export async function executeNativeStoreCheckout(
     const body: Record<string, unknown> = platform === "google_play"
       ? { reference, itemId: item.id, itemType, purchaseToken: nativeResult.purchaseToken }
       : { reference, itemId: item.id, itemType, signedTransaction: nativeResult.signedTransaction || nativeResult.jwsRepresentation };
-    if (!body.purchaseToken && !body.signedTransaction) throw new Error("Native purchase receipt/token was not returned.");
+    if (!body["purchaseToken"] && !body["signedTransaction"]) throw new Error("Native purchase receipt/token was not returned.");
     const verification = await supabase.functions.invoke(functionName, { body });
     (window as any).__circlePandaNativeCleanup?.();
     if (verification.error || !verification.data?.ok) throw new Error(verification.data?.error || verification.error?.message || "Native store verification failed");
@@ -188,7 +188,7 @@ export async function executeWebPaystackCheckout(
   if (!key) {
     const { data: paystackConfig, error: configError } = await supabase.rpc("get_paystack_public_config");
     if (configError) throw new Error("Paystack configuration could not be loaded.");
-    key = String(paystackConfig?.public_key || "").trim();
+    key = String((paystackConfig as any)?.["public_key"] || "").trim();
   }
   if (!key) throw new Error("Paystack public key is not configured.");
   if (typeof window === "undefined") throw new Error("Web checkout is unavailable.");
