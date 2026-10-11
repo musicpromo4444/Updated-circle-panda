@@ -47,11 +47,11 @@ export function AppDownloadPromotion() {
   }, []);
 
   useEffect(() => {
-    if (!reward || reward.admin || !settings?.download_popup_enabled) return;
+    if (!reward || reward.admin || !settings?.download_popup_enabled) return undefined;
 
     if (reward.eligible) {
       setWelcomeOpen(true);
-      return;
+      return undefined;
     }
 
     const next = reward.next_download_prompt_at ? new Date(reward.next_download_prompt_at).getTime() : 0;
@@ -59,6 +59,7 @@ export function AppDownloadPromotion() {
       const timer = window.setTimeout(() => setDownloadOpen(true), 300);
       return () => window.clearTimeout(timer);
     }
+    return undefined;
   }, [reward, settings]);
 
   const claim = async () => {
