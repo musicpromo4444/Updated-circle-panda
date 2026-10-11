@@ -134,6 +134,14 @@ export function ConfessionsPage() {
     void (async () => { const { data } = await (supabase as any).rpc("get_my_profile_gender"); if (data === "male" || data === "female") setAccountGender(data); })();
   }, []);
 
+  useEffect(() => {
+    if (loading || !items.length) return;
+    const targetId = window.location.hash.slice(1);
+    if (!targetId) return;
+    const target = document.getElementById(targetId);
+    if (target) window.setTimeout(() => target.scrollIntoView({ behavior: "smooth", block: "start" }), 0);
+  }, [loading, items]);
+
   const chooseFile = () => fileInputRef.current?.click();
   const openCrushUpload = async () => {
     if (accountGender) {
@@ -516,7 +524,7 @@ export function ConfessionsPage() {
 
         {items.map((item, idx) => (
           <div key={item.id} className="space-y-4">
-            <article className={`rounded-[1.65rem] border border-border/70 bg-card p-5 shadow-sm ${item.author_vip_at ? "vip-content-card" : ""}`}>
+            <article id={item.id} className={`scroll-mt-20 rounded-[1.65rem] border border-border/70 bg-card p-5 shadow-sm ${item.author_vip_at ? "vip-content-card" : ""}`}>
               <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
                 <div className="flex min-w-0 items-center gap-2">
                   <VipIdentity isVip={Boolean(item.author_vip_at)} seed={item.author_id ?? item.id} compact />
