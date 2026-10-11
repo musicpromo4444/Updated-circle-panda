@@ -74,7 +74,6 @@ export function EngagementFeaturesModal({ open, onClose }: EngagementFeaturesMod
   const handleQuizSubmit = () => {
     if (selectedOption === null || quizAnswered) return;
     const correctIndex = engagementConfig.quizCorrectIndex ?? 1;
-    const reward = engagementConfig.quizRewardBc || 15;
     const correct = selectedOption === correctIndex;
     setQuizAnswered(true);
     setIsQuizCorrect(correct);
