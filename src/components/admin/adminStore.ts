@@ -13,7 +13,6 @@ import {
   type AdminUser,
   type AdPerformanceMetrics,
   type AdPlacementConfig,
-  type AndroidBridgeGatewayConfig,
   type EngagementConfig,
   type ExternalSurveyConfig,
 } from "./adminTypes";
