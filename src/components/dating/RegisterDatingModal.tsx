@@ -39,7 +39,7 @@ const STYLE_TYPES = ["Casual","Smart","Streetwear","Glamorous","Feminine","Mascu
 const TARGET_TRAITS = [...SKIN_COLORS,...BODY_TYPES,...HEIGHT_TYPES,...HAIR_COLORS,...HAIR_STYLES,...EYE_COLORS,...STYLE_TYPES];
 
 const emptyProfile: Omit<DatingProfile,"registeredAt"|"userId"> = {
-  name:"Anonymous Panda",age:18,vibe:"",emoji:"🐼",bio:"",interests:[],location:"",country:"",gender:"",
+  name:"Anonymous Panda",age:18,vibe:"",emoji:"🐼",bio:"",interests:[],location:"",country:"",stateProvince:"",gender:"",
   relationshipGoal:"",lookingFor:[],aboutTraits:[],lifestyle:[],personality:[],loveLanguage:"",
   smoking:"Prefer not to say",drinking:"Prefer not to say",children:"Prefer not to say",education:"",
   occupation:"",sexualExperience:"",intimacyPreference:"",relationshipStatus:"single",heightCm:null,zodiac:"",
