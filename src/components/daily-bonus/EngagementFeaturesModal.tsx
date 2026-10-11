@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/dialog";
 import { useActiveAdCreative, useLiveEngagementConfig } from "@/components/ads/adInventoryStorage";
 import { openAdExternalUrl } from "@/components/ads/platformAdBridge";
+import { useStore } from "@/lib/store";
 
 export interface EngagementFeaturesModalProps {
   open: boolean;
@@ -46,6 +47,7 @@ export interface EngagementFeaturesModalProps {
  */
 export function EngagementFeaturesModal({ open, onClose }: EngagementFeaturesModalProps) {
   const navigate = useNavigate();
+  const { syncCoins } = useStore();
 
   // Live admin configurations
   const engagementConfig = useLiveEngagementConfig();
@@ -71,16 +73,28 @@ export function EngagementFeaturesModal({ open, onClose }: EngagementFeaturesMod
   };
 
   // Handle Internal Manual Quiz Answer
-  const handleQuizSubmit = () => {
+  const handleQuizSubmit = async (): Promise<void> => {
     if (selectedOption === null || quizAnswered) return;
-    const correctIndex = engagementConfig.quizCorrectIndex ?? 1;
-    const correct = selectedOption === correctIndex;
     setQuizAnswered(true);
+    const { data, error } = await (supabase as any).rpc("submit_engagement_quiz_answer", {
+      p_answer_index: selectedOption,
+    });
+    if (error) {
+      setQuizAnswered(false);
+      toast.error(error.message ?? "Your quiz answer could not be verified.");
+      return;
+    }
+    if (data?.result === "already_claimed") {
+      toast.info("You have already used today's quiz attempt.");
+      return;
+    }
+    const correct = data?.result === "correct";
     setIsQuizCorrect(correct);
-
     if (correct) {
+      const reward = Number(data?.reward_bc ?? 0);
+      if (reward > 0) await syncCoins();
       toast.success("Correct answer! 🎉", {
-        description: "This quiz is not connected to server-verified BC rewards yet, so no coins were added.",
+        description: reward > 0 ? `+${reward} BC credited by the server.` : "Correct answer recorded.",
       });
     } else {
       toast.error("Not quite! Better luck on tomorrow's question.");
@@ -281,7 +295,7 @@ export function EngagementFeaturesModal({ open, onClose }: EngagementFeaturesMod
                             Daily Campus Trivia
                           </span>
                           <span className="rounded bg-purple-500/15 px-1.5 py-0.5 text-[9px] font-bold text-purple-400 uppercase">
-                            Reward pending server verification
+                            +{engagementConfig.quizRewardBc || 15} BC
                           </span>
                         </div>
                         <p className="mt-0.5 text-xs text-muted-foreground leading-relaxed">
