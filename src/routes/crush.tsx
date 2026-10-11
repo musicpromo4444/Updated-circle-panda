@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, ChevronLeft, ChevronRight, Flag, Heart, MessageCircle, Send, Share2, Smile, Trophy } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -84,6 +84,9 @@ function CrushPage() {
   const [swipeCount, setSwipeCount] = useState(0);
   const [adSlotIndex, setAdSlotIndex] = useState(0);
   const [sending, setSending] = useState(false);
+  const voteLock = useRef(false);
+  const reactionLock = useRef(false);
+  const commentSubmitLock = useRef(false);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [showAuth, setShowAuth] = useState(false);
   const [showQuickSignup, setShowQuickSignup] = useState(false);
@@ -363,36 +366,48 @@ function CrushPage() {
   };
 
   const vote = async () => {
-    if (!card || card.mine) return;
-    const { data } = await supabase.auth.getUser();
-    if (!data.user || data.user.is_anonymous) {
-      setPendingVote(true);
-      setShowQuickSignup(true);
-      toast("Quick signup to vote.", { description: "Use your phone or email and password. Your vote will continue automatically." });
-      return;
-    }
-    const ok = await voteFor(card.id);
-    if (ok) {
-      complete(card.kind === "mcm" ? "mcm_vote" : "wcw_vote");
-      await refreshLiveNominees();
-      next(1);
+    if (!card || card.mine || voteLock.current) return;
+    voteLock.current = true;
+    try {
+      const { data, error } = await supabase.auth.getUser();
+      if (error) throw error;
+      if (!data.user || data.user.is_anonymous) {
+        setPendingVote(true);
+        setShowQuickSignup(true);
+        toast("Quick signup to vote.", { description: "Use your phone or email and password. Your vote will continue automatically." });
+        return;
+      }
+      const ok = await voteFor(card.id);
+      if (ok) {
+        complete(card.kind === "mcm" ? "mcm_vote" : "wcw_vote");
+        await refreshLiveNominees();
+        next(1);
+      }
+    } catch (error: any) {
+      toast.error(error?.message ?? "Your vote could not be counted.");
+    } finally {
+      voteLock.current = false;
     }
   };
 
   const react = async (emoji: string) => {
-    if (!card || card.mine) return;
-    const { error } = await (supabase as any).rpc("react_to_crush_secure", {
-      p_nominee_id: card.id,
-      p_reaction: emoji,
-    });
-    if (error) {
-      toast.error(error.message ?? "Reaction could not be saved");
-      return;
+    if (!card || card.mine || reactionLock.current) return;
+    reactionLock.current = true;
+    try {
+      const { error } = await (supabase as any).rpc("react_to_crush_secure", {
+        p_nominee_id: card.id,
+        p_reaction: emoji,
+      });
+      if (error) throw error;
+      setReactionOpen(false);
+      setMineReaction(emoji);
+      complete("reaction");
+      await loadCardData(card.id);
+    } catch (error: any) {
+      toast.error(error?.message ?? "Reaction could not be saved");
+    } finally {
+      reactionLock.current = false;
     }
-    setReactionOpen(false);
-    setMineReaction(emoji);
-    complete("reaction");
-    await loadCardData(card.id);
   };
 
   const votePaid = async () => {
@@ -470,7 +485,8 @@ function CrushPage() {
   };
 
   const sendComment = async () => {
-    if (!card || card.mine || !comment.trim() || sending) return;
+    if (!card || card.mine || !comment.trim() || sending || commentSubmitLock.current) return;
+    commentSubmitLock.current = true;
     setSending(true);
     try {
       const { error } = await (supabase as any).rpc("add_crush_comment_secure", {
@@ -486,6 +502,7 @@ function CrushPage() {
     } catch (e: any) {
       toast.error(e?.message ?? "Comment could not be posted");
     } finally {
+      commentSubmitLock.current = false;
       setSending(false);
     }
   };
