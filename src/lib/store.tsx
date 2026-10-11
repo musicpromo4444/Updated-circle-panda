@@ -1279,10 +1279,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     })();
   }, [refreshDatingData]);
 
-  const requestDatingMatch = useCallback((userId:string) => {
-    if (!dbUserId) { requestLogin("use Dating"); return Promise.resolve(null); }
+  const requestDatingMatch = useCallback((userId: string) => {
     if (!userId) return Promise.resolve(null);
     return (async () => {
+      const { data: authData, error: authError } = await supabase.auth.getUser();
+      if (authError) { toast.error(authError.message ?? "Could not verify your login."); return null; }
+      if (!authData.user || authData.user.is_anonymous) { requestLogin("use Dating"); return null; }
       const {data,error}=await (supabase as any).rpc("request_dating_match_secure",{p_recipient_id:userId});
       if(error){toast.error(error.message??"Could not send dating request");return null;}
       let threadId = data?.thread_id ? String(data.thread_id) : undefined;
@@ -1298,7 +1300,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       toast.success(result.status==="matched"?"It's a mutual match 💗":"Dating message request sent 💌");
       return result;
     })();
-  },[dbUserId]);
+  },[]);
 
   const buyTicket = useCallback((draw: DrawKind) => {
     if (!dbUserId) { requestLogin("buy a ticket"); return false; }
