@@ -31,7 +31,7 @@ async function copyText(value:string,label:string){
 
 function downloadCsv(name:string, rows:Record<string,unknown>[]){
   if(!rows.length){toast.error("There is no report data to export yet.");return;}
-  const keys=Object.keys(rows[0]); const esc=(v:unknown)=>`"${String(v??"").replaceAll('"','""')}"`;
+  const keys=Object.keys(rows[0] ?? {}); const esc=(v:unknown)=>`"${String(v??"").replaceAll('"','""')}"`;
   const csv=[keys.map(esc).join(","),...rows.map(r=>keys.map(k=>esc(r[k])).join(","))].join("\n");
   const blob=new Blob([csv],{type:"text/csv;charset=utf-8"}); const url=URL.createObjectURL(blob); const a=document.createElement("a"); a.href=url; a.download=name; a.click(); URL.revokeObjectURL(url);
 }
