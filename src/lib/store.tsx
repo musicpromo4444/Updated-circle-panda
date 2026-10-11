@@ -79,10 +79,11 @@ export type Thread = {
   messages: ChatMessage[];
   /** When a dating match started; billing is free for the first 72h after the mutual match. */
   startedAt?: number;
+  otherVip?: boolean;
 };
 export type PandaEvent = {
   id: string; ownerId?: string; title: string; tag: string; date: string; time: string; place: string;
-  cost: number; currency?: string; blurb: string; details: string; rsvp: boolean; attendeeCount?: number;
+  cost: number; currency?: string; blurb: string; details: string; rsvp: boolean; attendeeCount?: number; interestedCount?: number; responseCount?: number; reachCount?: number; interested?: boolean;
   coverUrl?: string; venueName?: string; addressLine?: string; country?: string;
   stateProvince?: string; city?: string; area?: string; latitude?: number | null; longitude?: number | null;
   reachScope?: "worldwide" | "country" | "state" | "city" | "area"; reachCountry?: string; reachState?: string; reachCity?: string; reachArea?: string; durationMinutes?: number;
