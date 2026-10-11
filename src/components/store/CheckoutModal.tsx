@@ -78,7 +78,7 @@ export function CheckoutModal({ open, onOpenChange, item, itemType }: CheckoutMo
         item,
         itemType,
         userEmail: customerEmail,
-        userName: user?.name,
+        ...(user?.name ? { userName: user.name } : {}),
         paystackPublicKey: pricingConfig.paystack.publicKey,
         exchangeRateNgn: item.priceNgn ? item.priceNgn / item.price : exchangeRate,
         pricingConfig,
