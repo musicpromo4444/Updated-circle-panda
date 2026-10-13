@@ -11,7 +11,7 @@ type BlastPlan = {
   unique_reach: number;
   duration_minutes: number;
   price_usd: number | string | null;
-  price_bc: number | string | null;
+  bc_price: number | string | null;
   enabled: boolean;
 };
 
@@ -51,7 +51,7 @@ export function AdminEventBlastPlans() {
     unique_reach: String(plan.unique_reach ?? 100),
     duration_minutes: String(plan.duration_minutes ?? 1440),
     price_usd: plan.price_usd == null ? "" : String(plan.price_usd),
-    price_bc: plan.price_bc == null ? "" : String(plan.price_bc),
+    price_bc: plan.bc_price == null ? "" : String(plan.bc_price),
     enabled: Boolean(plan.enabled),
   });
 
@@ -70,12 +70,12 @@ export function AdminEventBlastPlans() {
     }
     setSaving(true);
     const { error } = await (supabase as any).rpc("admin_upsert_event_blast_plan", {
-      p_plan_id: form.id || null,
+      p_id: form.id || null,
       p_name: form.name.trim(),
       p_unique_reach: reach,
       p_duration_minutes: duration,
       p_price_usd: usd,
-      p_price_bc: bc,
+      p_bc_price: bc,
       p_enabled: form.enabled,
     });
     setSaving(false);
@@ -141,7 +141,7 @@ export function AdminEventBlastPlans() {
                 <div className="min-w-0">
                   <p className="font-semibold">{plan.name}</p>
                   <p className="text-xs text-muted-foreground">
-                    Reach {plan.unique_reach} · {plan.duration_minutes} minutes · USD {plan.price_usd ?? "not set"} · {plan.price_bc == null ? "BC not set" : plan.price_bc + " BC"} · {plan.enabled ? "Enabled" : "Disabled"}
+                    Reach {plan.unique_reach} · {plan.duration_minutes} minutes · USD {plan.price_usd ?? "not set"} · {plan.bc_price == null ? "BC not set" : plan.bc_price + " BC"} · {plan.enabled ? "Enabled" : "Disabled"}
                   </p>
                   <p className="break-all font-mono text-[10px] text-muted-foreground">{plan.id}</p>
                 </div>
