@@ -13,7 +13,7 @@ export function VipPrivateCall({ callId, incoming = false, onClose }: Props) {
   const [connected, setConnected] = useState(false);
   const [limitOpen, setLimitOpen] = useState(false);
   const [adOpen] = useState(false);
-  const [, setRemaining] = useState(300);
+  const [remaining, setRemaining] = useState(300);
   const extensionStartedAt = useRef<number | null>(null);
   const FREE_CALL_SECONDS = 300;
   const [muted, setMuted] = useState(false);
@@ -107,6 +107,8 @@ export function VipPrivateCall({ callId, incoming = false, onClose }: Props) {
       setRemaining(left);
       if (left <= 0) {
         setLimitOpen(true);
+        localStream.current?.getTracks().forEach((track) => track.stop());
+        pc.current?.close();
         window.clearInterval(tick);
       }
     }, 1000);
@@ -129,6 +131,8 @@ export function VipPrivateCall({ callId, incoming = false, onClose }: Props) {
         <DialogTitle className="sr-only">VIP private call</DialogTitle>
         <div className="relative min-h-[520px] bg-black">
           <video ref={remoteVideo} autoPlay playsInline className={type === "video" ? "absolute inset-0 size-full object-cover" : "hidden"} />
+          {connected && !limitOpen && <div className="absolute right-3 top-3 rounded-full bg-black/65 px-3 py-1 text-xs font-semibold text-white">{Math.floor(remaining / 60)}:{String(remaining % 60).padStart(2, "0")}</div>}
+          {limitOpen && <div className="absolute inset-0 z-20 grid place-items-center bg-black/85 p-6 text-center text-white"><div><p className="text-lg font-bold">Call time limit reached</p><p className="mt-2 text-sm text-white/70">End the call to release your microphone and camera.</p><Button className="mt-4 bg-red-600" onClick={() => void end()}><PhoneOff className="mr-2 size-4"/>End call</Button></div></div>}
           {!connected && <div className="absolute inset-0 grid place-items-center text-center text-white"><div><div className="mx-auto mb-3 grid size-20 place-items-center rounded-full bg-primary/20 text-4xl">🐼</div><p className="font-bold">{incoming ? "Incoming VIP call" : "Calling VIP…"}</p><p className="mt-1 text-xs text-white/60">Private VIP-to-VIP call</p></div></div>}
           {type === "voice" && connected && <div className="absolute inset-0 grid place-items-center text-white"><div className="text-5xl">🐼</div></div>}
           <div className="absolute bottom-5 left-1/2 flex -translate-x-1/2 gap-3">
