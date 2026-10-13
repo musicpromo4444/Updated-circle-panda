@@ -48,10 +48,10 @@ export function AuthModal({ open, onOpenChange, defaultTab = "signin", onOpenBac
   };
 
   const normalizePhone = (value: string) => {
-    const raw = value.replace(/[\\s().-]/g, "");
+    const raw = value.replace(/[\s().-]/g, "");
     if (raw.startsWith("+")) return raw;
     if (raw.startsWith("00")) return "+" + raw.slice(2);
-    if (/^0\\d{10}$/.test(raw)) return "+234" + raw.slice(1);
+    if (/^0\d{10}$/.test(raw)) return "+234" + raw.slice(1);
     return raw;
   };
 
