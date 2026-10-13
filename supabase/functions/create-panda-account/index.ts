@@ -41,7 +41,7 @@ Deno.serve(async (req) => {
 
     const admin = createClient(url, serviceKey, { auth: { persistSession: false, autoRefreshToken: false } });
     const isEmail = identifier.includes("@");
-    const userMetadata = { ...metadata, name };
+    const userMetadata = { ...metadata, name, display_name: name, full_name: name };
 
     const result = isEmail
       ? await admin.auth.admin.createUser({
