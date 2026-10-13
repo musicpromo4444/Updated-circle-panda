@@ -17,7 +17,6 @@ function createSupabaseFetch(supabaseKey: string): typeof fetch {
       new Headers(init.headers).forEach((value, key) => headers.set(key, value));
     }
 
-    // New Supabase API keys are opaque strings, not bearer JWTs.
     if (
       isNewSupabaseApiKey(supabaseKey) &&
       headers.get("Authorization") === `Bearer ${supabaseKey}`
@@ -27,24 +26,20 @@ function createSupabaseFetch(supabaseKey: string): typeof fetch {
 
     headers.set("apikey", supabaseKey);
 
-    // Surface every server-authoritative insufficient-BC response through one
-    // global recovery dialog. The original response is returned unchanged so
-    // each caller keeps its normal error handling.
     return fetch(input, { ...init, headers }).then(async (response) => {
       if (!response.ok && typeof window !== "undefined") {
         try {
-          const clone = response.clone();
-          const payload = await clone.json();
+          const payload = await response.clone().json();
           const message = String(payload?.message ?? payload?.error_description ?? "");
-          if (/insufficient\\s+(panda\\s+)?coins?|insufficient\\s+bc|no\\s+equivalent\\s+bc/i.test(message)) {
-            const requiredMatch = message.match(/required\\s*[:=]\\s*(\\d+)/i);
-            const balanceMatch = message.match(/(?:balance|available)\\s*[:=]\\s*(\\d+)/i);
+          if (/insufficient\s+(panda\s+)?coins?|insufficient\s+bc|no\s+equivalent\s+bc/i.test(message)) {
+            const requiredMatch = message.match(/required\s*[:=]\s*(\d+)/i);
+            const balanceMatch = message.match(/(?:balance|available)\s*[:=]\s*(\d+)/i);
             window.dispatchEvent(new CustomEvent("circle-panda-insufficient-bc", {
               detail: {
                 required: requiredMatch ? Number(requiredMatch[1]) : undefined,
                 balance: balanceMatch ? Number(balanceMatch[1]) : undefined,
                 reason: message,
-                noEquivalent: /no\\s+equivalent\\s+bc/i.test(message),
+                noEquivalent: /no\s+equivalent\s+bc/i.test(message),
               },
             }));
           }
@@ -58,19 +53,16 @@ function createSupabaseFetch(supabaseKey: string): typeof fetch {
 }
 
 function createSupabaseClient() {
-  // Use import.meta.env for client-side (Vite build-time replacement)
-  // Fall back to process.env for SSR (server-side rendering)
-  // Production fallback keeps the public Supabase client usable even when Vercel
-  // has not yet received project environment variables. These are public client
-  // values; privileged service-role secrets must never be placed here.
+  // The active production backend is Circle Panda Rebuilt (chcyncvieekjousgzlrg).
+  // Public client values only; never place service-role secrets in client code.
   const SUPABASE_URL =
     import.meta.env["VITE_SUPABASE_URL"] ||
     process.env["SUPABASE_URL"] ||
-    "https://nwmbbhuepbycbkjirqeg.supabase.co";
+    "https://chcyncvieekjousgzlrg.supabase.co";
   const SUPABASE_PUBLISHABLE_KEY =
     import.meta.env["VITE_SUPABASE_PUBLISHABLE_KEY"] ||
     process.env["SUPABASE_PUBLISHABLE_KEY"] ||
-    "sb_publishable_hD_q94WVNmIL9Rtmj-aeFQ_UB46f42O";
+    "sb_publishable_lAMPc_AZ_0A7qcNAJaGnHA_Ag23LHrE";
 
   if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
     const missing = [
@@ -96,8 +88,6 @@ function createSupabaseClient() {
 
 let _supabase: ReturnType<typeof createSupabaseClient> | undefined;
 
-// Import the supabase client like this:
-// import { supabase } from "@/integrations/supabase/client";
 export const supabase = new Proxy({} as ReturnType<typeof createSupabaseClient>, {
   get(_, prop, receiver) {
     if (!_supabase) _supabase = createSupabaseClient();
