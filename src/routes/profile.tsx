@@ -378,8 +378,7 @@ function ProfilePage() {
           </label>
           <label>
             <span className="mb-1 block text-[11px] font-semibold text-muted-foreground">Area / neighbourhood</span>
-            <input list="profile-area-options" value={area} onChange={(e)=>setArea(e.target.value)} placeholder="Type or choose an area" className="cp-input w-full" />
-            <datalist id="profile-area-options">{locationAreas.map(s=><option key={s} value={s} />)}</datalist>
+            <select value={area} disabled={!city || locationAreas.length===0} onChange={(e)=>setArea(e.target.value)} className="cp-input w-full"><option value="">{!city ? "Choose city first" : locationAreas.length ? "Choose area / neighbourhood" : "No areas found for this city"}</option>{locationAreas.map(s=><option key={s} value={s}>{s}</option>)}</select>
           </label>
           <label className="sm:col-span-2">
             <span className="mb-1 block text-[11px] font-semibold text-muted-foreground">Street / Address · optional</span>
