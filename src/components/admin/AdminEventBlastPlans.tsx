@@ -63,14 +63,14 @@ export function AdminEventBlastPlans() {
     const bc = form.price_bc.trim() === "" ? null : Number(form.price_bc);
     if (!form.name.trim() || !Number.isInteger(reach) || reach < 1 ||
         !Number.isInteger(duration) || duration < 1 ||
-        (usd !== null && (!Number.isFinite(usd) || usd < 0)) ||
+        (usd === null || !Number.isFinite(usd) || usd < 0) ||
         (bc !== null && (!Number.isInteger(bc) || bc < 0))) {
-      toast.error("Enter a name, positive reach and duration, and valid non-negative prices.");
+      toast.error("Enter a name, positive reach and duration, a cash price (zero if not offered), and valid non-negative BC price.");
       return;
     }
     setSaving(true);
     const { error } = await (supabase as any).rpc("admin_upsert_event_blast_plan", {
-      p_id: form.id || null,
+      p_id: form.id.trim() || form.name.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""),
       p_name: form.name.trim(),
       p_unique_reach: reach,
       p_duration_minutes: duration,
@@ -102,8 +102,8 @@ export function AdminEventBlastPlans() {
           <Input id="blast-plan-name" value={form.name} onChange={e => setForm(v => ({ ...v, name: e.target.value }))} placeholder="e.g. Local Reach" required />
         </div>
         <div className="space-y-1">
-          <Label htmlFor="blast-plan-id">Plan ID (leave blank for new)</Label>
-          <Input id="blast-plan-id" value={form.id} onChange={e => setForm(v => ({ ...v, id: e.target.value }))} placeholder="Existing plan ID for edits" />
+          <Label htmlFor="blast-plan-id">Plan ID (optional; generated from name)</Label>
+          <Input id="blast-plan-id" value={form.id} onChange={e => setForm(v => ({ ...v, id: e.target.value }))} placeholder="Auto-generated for new plans" />
         </div>
         <div className="space-y-1">
           <Label htmlFor="blast-reach">Unique audience reach</Label>
@@ -114,12 +114,12 @@ export function AdminEventBlastPlans() {
           <Input id="blast-duration" type="number" min="1" step="1" value={form.duration_minutes} onChange={e => setForm(v => ({ ...v, duration_minutes: e.target.value }))} required />
         </div>
         <div className="space-y-1">
-          <Label htmlFor="blast-usd">Cash price (USD, optional)</Label>
-          <Input id="blast-usd" type="number" min="0" step="0.01" value={form.price_usd} onChange={e => setForm(v => ({ ...v, price_usd: e.target.value }))} placeholder="Set only after deciding price" />
+          <Label htmlFor="blast-usd">Cash price (USD)</Label>
+          <Input id="blast-usd" type="number" min="0" step="0.01" value={form.price_usd} onChange={e => setForm(v => ({ ...v, price_usd: e.target.value }))} placeholder="Enter cash price" required />
         </div>
         <div className="space-y-1">
           <Label htmlFor="blast-bc">BC price (optional)</Label>
-          <Input id="blast-bc" type="number" min="0" step="1" value={form.price_bc} onChange={e => setForm(v => ({ ...v, price_bc: e.target.value }))} placeholder="Set only after deciding price" />
+          <Input id="blast-bc" type="number" min="0" step="1" value={form.price_bc} onChange={e => setForm(v => ({ ...v, price_bc: e.target.value }))} placeholder="Enter cash price" required />
         </div>
         <label className="flex items-center gap-2 text-sm sm:col-span-2">
           <input type="checkbox" checked={form.enabled} onChange={e => setForm(v => ({ ...v, enabled: e.target.checked }))} />
