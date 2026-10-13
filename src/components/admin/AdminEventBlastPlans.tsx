@@ -33,7 +33,7 @@ export function AdminEventBlastPlans() {
 
   const load = useCallback(async () => {
     setLoading(true);
-    const { data, error } = await (supabase as any).rpc("get_event_blast_plans");
+    const { data, error } = await (supabase as any).rpc("get_event_blast_plans_admin");
     setLoading(false);
     if (error) {
       toast.error("Could not load Event Blast plans: " + error.message);
@@ -119,7 +119,7 @@ export function AdminEventBlastPlans() {
         </div>
         <div className="space-y-1">
           <Label htmlFor="blast-bc">BC price (optional)</Label>
-          <Input id="blast-bc" type="number" min="0" step="1" value={form.price_bc} onChange={e => setForm(v => ({ ...v, price_bc: e.target.value }))} placeholder="Enter cash price" required />
+          <Input id="blast-bc" type="number" min="0" step="1" value={form.price_bc} onChange={e => setForm(v => ({ ...v, price_bc: e.target.value }))} placeholder="Optional BC price" />
         </div>
         <label className="flex items-center gap-2 text-sm sm:col-span-2">
           <input type="checkbox" checked={form.enabled} onChange={e => setForm(v => ({ ...v, enabled: e.target.checked }))} />
